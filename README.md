@@ -5,6 +5,21 @@
 
 # VantTec USV Main Repository
 
+### How to start working?
+
+On your terminal, enter the following commands:
+
+```Shell
+cd
+git clone http://github.com/vanttec/vanttec_usv.git
+cd vanttec_usv
+./init_worskpace.sh
+```
+
+**Make sure to have ROS installed, as well as the following dependencies:**
+
+-- TODO: Dependencies
+
 This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platforms. Each directory represents a ROS Package:
 
 - **arduino_br**: ROS package that uses rosserial_python and rosserial_arduino to interface with the T-100 and the T-200 thrusters.
