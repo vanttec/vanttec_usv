@@ -5,7 +5,7 @@
 
 # VantTec USV Main Repository
 
-### How to start working?
+**How to start working?**
 
 Enter the following commands into your **Ubuntu 16.04** terminal:
 
