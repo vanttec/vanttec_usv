@@ -7,7 +7,7 @@
 
 ### How to start working?
 
-On your terminal, enter the following commands:
+Enter the following commands into your **Ubuntu 16.04** terminal:
 
 ```Shell
 cd
