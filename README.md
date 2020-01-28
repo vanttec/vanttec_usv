@@ -1,7 +1,10 @@
 # VantTec USV Main Repository
 
 
-![alt-text](https://github.com/vanttec/vanttec_usv/blob/feature/release_candidate_v1_0/docs/LogoNegro_Azul.png)
+<p align="center">
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/release_candidate_v1_0/docs/LogoNegro_Azul.png" width="500" height="300" align="center"/>
+</p>
+
 
 
 This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platforms. Each directory represents a ROS Package:
