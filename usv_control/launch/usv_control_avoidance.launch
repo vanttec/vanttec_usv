@@ -1,0 +1,18 @@
+<launch>
+
+    <node pkg="usv_control" type="los_avoidance.py" name="los_avoidance" />
+
+    <node name="asmc" pkg="usv_control" type="asmc" >
+	<param name = "k_u" value = "0.1" />
+	<param name = "k_psi" value = "0.2" />
+	<param name = "kmin_u" value = "0.05" />
+	<param name = "kmin_psi" value = "0.2" />
+	<param name = "k2_u" value = "0.02" />
+	<param name = "k2_psi" value = "0.1" />
+	<param name = "mu_u" value = "0.05" />
+	<param name = "mu_psi" value = "0.1" />
+	<param name = "lambda_u" value = "0.001" />
+	<param name = "lambda_psi" value = "1" />
+    </node>
+
+</launch>

@@ -1,0 +1,15 @@
+[submodule ".github/vectornav_ros"]
+	path = .github/vectornav_ros
+	url = http://github.com/vanttec/vectornav_ros.git
+[submodule "vectornav_ros"]
+	path = vectornav_ros
+	url = http://github.com/vanttec/vectornav_ros.git
+[submodule "arduino_br"]
+	path = arduino_br
+	url = http://github.com/vanttec/arduino_br.git
+[submodule "velodyne_ros"]
+	path = velodyne_ros
+	url = http://github.com/vanttec/velodyne_ros.git
+[submodule "zed_ros_wrapper"]
+	path = zed_ros_wrapper
+	url = http://github.com/vanttec/zed_ros_wrapper.git
