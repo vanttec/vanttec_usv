@@ -1,5 +1,12 @@
 # VantTec USV Main Repository
 
+
+<p align="center">
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/release_candidate_v1_0/docs/LogoNegro_Azul.png" width="400" height="240" align="center"/>
+</p>
+
+
+
 This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platforms. Each directory represents a ROS Package:
 
 - **arduino_br**: ROS package that uses rosserial_python and rosserial_arduino to interface with the T-100 and the T-200 thrusters.
