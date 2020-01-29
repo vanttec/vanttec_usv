@@ -16,3 +16,18 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 - **vectornav_ros**: ROS package that allows the USV to interface with Vectornav's IMUs.
 - **velodyne**: ROS package for the Velodyne LIDARs.
 - **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
+
+*TODO: Dependencies*
+
+**How to start working?**
+
+Enter the following commands into your **Ubuntu 16.04** terminal:
+
+```Shell
+cd
+git clone http://github.com/vanttec/vanttec_usv.git
+cd vanttec_usv
+./init_worskpace.sh
+```
+
+
