@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="usv_comms" type="boat_transceiver.py" name="boat_transceiver">
+    <param name = "xbee_port" value = "/dev/ttyUSB2" />
+    </node>
+
+</launch>
