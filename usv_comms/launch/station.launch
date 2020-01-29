@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="usv_comms" type="station_transceiver.py" name="station_transceiver">
+    <param name = "xbee_port" value = "/dev/ttyUSB0" />
+    </node>
+
+</launch>
