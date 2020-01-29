@@ -1,6 +1,3 @@
-[submodule ".github/vectornav_ros"]
-	path = .github/vectornav_ros
-	url = http://github.com/vanttec/vectornav_ros.git
 [submodule "vectornav_ros"]
 	path = vectornav_ros
 	url = http://github.com/vanttec/vectornav_ros.git
