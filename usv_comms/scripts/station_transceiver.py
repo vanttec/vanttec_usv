@@ -1,30 +1,46 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''
+----------------------------------------------------------
+    @file: boat_transceiver.py
+    @date: Tue Dec 17, 2019
+    @date_modif: Thu Jan 30, 2020
+    @author: Alejandro Gonzalez
+    @e-mail: alexglzg97@gmail.com
+    @co-author: Sebastian Martinez Perez
+    @e-mail: sebas.martp@gmail.com
+	@co-author: Roberto Mendivil Castro
+    @e-mail: robertomc97@gmail.com
+	@brief: Script that handles communications with the boat in the station
+    Open source
+----------------------------------------------------------
+'''
 
 import argparse
-import rospy
-import time
 import sys
-from std_msgs.msg import String
+import time
+
 from digi.xbee.devices import XBeeDevice
+import rospy
+from std_msgs.msg import String
 
-#parser = argparse.ArgumentParser()
-#parser.add_argument('dev')
-#args = parser.parse_args()
-
-#****************************************************************************************#
 # Replace with the serial port where your local module is connected to.
 PORT = rospy.get_param("station_transceiver/xbee_port")
 # Replace with the baud rate of your local module.
 BAUD_RATE = 9600
-# El nodo XBee con el que se quiere comunicar.
+# The XBee node you are trying to communicate with
 REMOTE_NODE_ID = "vtecboat"
-# Frecuencia en Hz a la que se va a correr el nodo.
+# Frequency in Hz in which the node will be run at.
 ROS_RATE = 100
-#****************************************************************************************#
+
 
 class XbeeStation:
+
+
     def __init__(self, _port, _baud_rate, _remote_id, _ros_rate):
-        
+
+
         # Initialize and configure the DigiXTend Xbee Device
         self.device = XBeeDevice(_port, _baud_rate)
     
@@ -47,10 +63,10 @@ class XbeeStation:
         self.ros_rate = rospy.Rate(_ros_rate)
 
         # ROS Publisher
-        self.boat_data_pub = rospy.Publisher('/usv_comms/station_transceiver/boat_data', String, queue_size=10)
+        self.boat_data_pub = rospy.Publisher("/usv_comms/station_transceiver/boat_data", String, queue_size=10)
 
         # ROS Subscriber
-        rospy.Subscriber('/usv_comms/station_transceiver/course_config', String, self.config_callback)
+        rospy.Subscriber("/usv_comms/station_transceiver/course_config", String, self.config_callback)
         rospy.Subscriber("/usv_comms/boat_transceiver/general_status", String, self.general_status_callback)
         rospy.loginfo('[STATION] ROS Node initialized.')
 
@@ -63,13 +79,13 @@ class XbeeStation:
         if str(_config.data) == 'exit':
             self.comm_active = False
 
-    def general_status_callback(self, status):
-        self.boat_general_status = status.data
+    def general_status_callback(self, _status):
+        self.boat_general_status = _status.data
 
 def main():
-    rospy.loginfo(" +--------------------------------------+")
-    rospy.loginfo(" |                Station               |")
-    rospy.loginfo(" +--------------------------------------+\n")
+    rospy.loginfo(' +--------------------------------------+')
+    rospy.loginfo(' |                Station               |')
+    rospy.loginfo(' +--------------------------------------+\n')
 
     rospy.init_node('station_transceiver', anonymous=True)
     
@@ -81,15 +97,20 @@ def main():
 
     try:
         while not rospy.is_shutdown() and station.comm_active:
-            
+
+            #Read data and chek if something has been received 
             xbee_message = station.device.read_data()
+
             if xbee_message is not None:
+                #Decode and rospy.loginfo the message 
                 message = xbee_message.data.decode()
                 station.boat_data_pub.publish(str(message))
 
             station.ros_rate.sleep()
+
     finally:
         rospy.loginfo('[STATION] Terminating Session...')
+
         if station.device is not None and station.device.is_open():
             station.device.close()
 
