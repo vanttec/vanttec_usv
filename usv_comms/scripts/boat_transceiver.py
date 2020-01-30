@@ -25,7 +25,6 @@ from digi.xbee.devices import XBeeDevice
 import rospy
 from std_msgs.msg import Empty, String
 
-#**************************************************************************#
 # Replace with the serial port where your local module is connected to.
 PORT = rospy.get_param("boat_transceiver/xbee_port")
 # Replace with the baud rate of your local module.
