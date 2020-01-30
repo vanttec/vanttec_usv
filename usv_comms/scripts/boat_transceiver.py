@@ -33,7 +33,6 @@ BAUD_RATE = 9600
 REMOTE_NODE_ID = "vtecstation"
 # Frequency in Hz in which the node will be run at.
 ROS_RATE = 100
-#**************************************************************************#
 
 
 class XbeeBoat:
