@@ -1,5 +1,19 @@
 #!/usr/bin/env python
-#Backstepping controller with speed and heading control
+# -*- coding: utf-8 -*-
+
+'''
+----------------------------------------------------------
+OUTDATED SCRIPT
+    @file: bc.py
+    @date: Feb 2019
+    @modified: Wed Feb 5, 2020
+	@author: Alejandro Gonzalez Garcia
+    @e-mail: alexglzg97@gmail.com
+    @brief: Backstepping controller with speed and heading control
+	@version: 1.0
+    Open source
+---------------------------------------------------------
+'''
 
 import os
 import time

@@ -1,5 +1,19 @@
 #!/usr/bin/env python
-#Backstepping controller with heading control and forward thrust input
+# -*- coding: utf-8 -*-
+
+'''
+----------------------------------------------------------
+OUTDATED SCRIPT
+    @file: bc_heading.py
+    @date: Feb 2019
+    @modified: Wed Feb 5, 2020
+	@author: Alejandro Gonzalez Garcia
+    @e-mail: alexglzg97@gmail.com
+    @brief: Backstepping controller with heading control and forward thrust input
+	@version: 1.0
+    Open source
+---------------------------------------------------------
+'''
 
 import os
 import time

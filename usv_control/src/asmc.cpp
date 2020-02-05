@@ -1,18 +1,30 @@
+/*
+----------------------------------------------------------
+    @file: asmc.cpp
+    @date: Aug 8, 2019
+    @date_modif: Tue Feb 4, 2020
+    @author: Alejandro Gonzalez
+    @e-mail: alexglzg97@gmail.com
+    @co-author: Sebastian Martinez Perez
+    @e-mail: sebas.martp@gmail.com
+	  @brief: Implementation of an adaptive sliding mode controller (ASMC) for
+      a USV given desired speed and heading. Requires gains as parameters.
+    Open source
+----------------------------------------------------------
+*/
+
 #include <iostream>
+#include <math.h>
+
 #include "ros/ros.h"
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Vector3.h"
 #include "std_msgs/Float64.h"
 #include "std_msgs/UInt8.h"
-#include <math.h>
-#include <eigen3/Eigen/Dense>
-
-using namespace std;
-using namespace Eigen;
 
 //Thruster outputs
-float Tstbd = 0;
-float Tport = 0;
+float starboard_t = 0;
+float port_t = 0;
 
 //Sensor feedback
 float theta = 0;
@@ -31,55 +43,48 @@ float u_d = 0;
 float psi_d = 0;
 
 //Auxiliry variables
-//float u_line = 0;
-//float u_last = 0;
-//float u_d_line = 0;
-//float u_d_last = 0;
 float e_u_int = 0;
 float e_u_last = 0;
-//float e_psi_int = 0;
-//float e_psi_last = 0;
 
-//float u_d_dot = 0; surge speed derivative, not necessary
-
-void dspeed_callback(const std_msgs::Float64::ConstPtr& ud)
+void desiredSpeedCallback(const std_msgs::Float64::ConstPtr& _ud)
 {
-  u_d = ud->data;
+  u_d = _ud -> data;
 }
 
-void dheading_callback(const std_msgs::Float64::ConstPtr& psid)
+void desiredHeadingCallback(const std_msgs::Float64::ConstPtr& _psid)
 {
-  psi_d = psid->data;
+  psi_d = _psid -> data;
 }
 
-void ins_callback(const geometry_msgs::Pose2D::ConstPtr& ins)
+void insCallback(const geometry_msgs::Pose2D::ConstPtr& _ins)
 {
-  theta = ins->theta;
+  theta = _ins -> theta;
 }
 
-void vel_callback(const geometry_msgs::Vector3::ConstPtr& vel)
+void velocityCallback(const geometry_msgs::Vector3::ConstPtr& _vel)
 {
-  u = vel->x;
-  v = vel->y; 
-  r = vel->z;
+  u = _vel -> x;
+  v = _vel -> y;
+  r = _vel -> z;
 }
 
-void flag_callback(const std_msgs::UInt8::ConstPtr& flag)
+void flagCallback(const std_msgs::UInt8::ConstPtr& _flag)
 {
-  testing = flag->data;
+  testing = _flag -> data;
 }
 
-void ardu_callback(const std_msgs::UInt8::ConstPtr& ardu)
+void arduinoCallback(const std_msgs::UInt8::ConstPtr& _ardu)
 {
-  arduino = ardu->data;
+  arduino = _ardu -> data;
 }
+
 
 int main(int argc, char *argv[])
 {
 
   ros::init(argc, argv, "asmc");
 
-    ros::NodeHandle n;
+  ros::NodeHandle n;
 
   //ROS Publishers for each required sensor data
   ros::Publisher right_thruster_pub = n.advertise<std_msgs::Float64>("/usv_control/controller/right_thruster", 1000);
@@ -90,13 +95,14 @@ int main(int argc, char *argv[])
   ros::Publisher heading_sigma_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_sigma", 1000);
   ros::Publisher heading_gain_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_gain", 1000);
   ros::Publisher heading_error_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_error", 1000);
-
-  ros::Subscriber desired_speed_sub = n.subscribe("/guidance/desired_speed", 1000, dspeed_callback);
-  ros::Subscriber desired_heading_sub = n.subscribe("/guidance/desired_heading", 1000, dheading_callback);
-  ros::Subscriber ins_pose_sub = n.subscribe("/vectornav/ins_2d/ins_pose", 1000, ins_callback);
-  ros::Subscriber local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 1000, vel_callback);
-  ros::Subscriber flag_sub = n.subscribe("/arduino_br/ardumotors/", 1000, flag_callback);
-  ros::Subscriber ardu_sub = n.subscribe("arduino", 1000, ardu_callback);
+  
+  //ROS Subscribers
+  ros::Subscriber desired_speed_sub = n.subscribe("/guidance/desired_speed", 1000, desiredSpeedCallback);
+  ros::Subscriber desired_heading_sub = n.subscribe("/guidance/desired_heading", 1000, desiredHeadingCallback);
+  ros::Subscriber ins_pose_sub = n.subscribe("/vectornav/ins_2d/ins_pose", 1000, insCallback);
+  ros::Subscriber local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 1000, velocityCallback);
+  ros::Subscriber flag_sub = n.subscribe("/arduino_br/ardumotors/", 1000, flagCallback);
+  ros::Subscriber ardu_sub = n.subscribe("arduino", 1000, arduinoCallback);
 
   ros::Rate loop_rate(rate);
 
@@ -159,7 +165,7 @@ int main(int argc, char *argv[])
       Xuu = -70.92;
     }
 
-    Nr = (-0.52)*pow(pow(u,2)+pow(v,2),0.5);
+    Nr = (-0.52)*pow(pow(u,2) + pow(v,2),0.5);
 
     float g_u = (1 / (m - X_u_dot));
     float g_psi = (1 / (Iz - N_r_dot));
@@ -167,25 +173,15 @@ int main(int argc, char *argv[])
     float f_u = (((m - Y_v_dot)*v*r + (Xuu*u_abs*u + Xu*u)) / (m - X_u_dot));
     float f_psi = (((-X_u_dot + Y_v_dot)*u*v + (Nr*r)) / (Iz - N_r_dot));
 
-    //u_line = (0.004)*(u + u_last)/2 + u_line; //integral of the surge speed
-    //u_last = u;
-
-    //u_d_line = (0.004)*(u_d + u_d_last)/2 + u_d_line; //integral of the desired surge speed
-    //u_d_dot = (u_d - u_d_last) / 0.01; //Derivative, not necessary
-    //u_d_last = u_d;
-
     float e_u = u_d - u;
     float e_psi = psi_d - theta;
     if (abs(e_psi) > 3.141592){
-        e_psi = (e_psi/abs(e_psi))*(abs(e_psi)-2*3.141592);
+        e_psi = (e_psi/abs(e_psi))*(abs(e_psi) - 2*3.141592);
     }
     e_u_int = (integral_step)*(e_u + e_u_last)/2 + e_u_int; //integral of the surge speed error
     e_u_last = e_u;
 
     float e_psi_dot = 0 - r;
-
-//    e_psi_int = (integral_step)*(e_psi + e_psi_last)/2 + e_psi_int; //integral of the surge speed error
-//    e_psi_last = e_psi;
 
     float sigma_u = e_u + lambda_u * e_u_int;
     float sigma_psi = e_psi_dot + lambda_psi * e_psi;// + lambda_psi_i * e_psi_int;
@@ -273,26 +269,24 @@ int main(int argc, char *argv[])
       Ka_psi = 0;
       Ka_dot_last_psi = 0;
       e_u_int = 0;
-      //e_psi_int = 0;
       e_u_last = 0;
-      //e_psi_last = 0;
     }
 
-    Tport = (Tx / 2) + (Tz / B);
-    Tstbd = (Tx / (2*c)) - (Tz / (B*c));
+    port_t = (Tx / 2) + (Tz / B);
+    starboard_t = (Tx / (2*c)) - (Tz / (B*c));
 
     
-    if (Tstbd > 36.5){
-      Tstbd = 36.5;
+    if (starboard_t > 36.5){
+      starboard_t = 36.5;
     }
-    else if (Tstbd < -30){
-      Tstbd = -30;
+    else if (starboard_t < -30){
+      starboard_t = -30;
     }
-    if (Tport > 36.5){
-      Tport = 36.5;
+    if (port_t > 36.5){
+      port_t = 36.5;
     }
-    else if (Tport < -30){
-      Tport = -30;
+    else if (port_t < -30){
+      port_t = -30;
     }
     
     //Data publishing
@@ -308,8 +302,8 @@ int main(int argc, char *argv[])
     std_msgs::Float64 su;
     std_msgs::Float64 sp;
 
-    rt.data = Tstbd;
-    lt.data = Tport;
+    rt.data = starboard_t;
+    lt.data = port_t;
     
     sg.data = Ka_u;
     hg.data = Ka_psi;
