@@ -1,19 +1,35 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import rospy
-from std_msgs.msg import String
-from std_msgs.msg import Float64
-from std_msgs.msg import Int32
-from custom_msgs.msg import obj_detected
-from custom_msgs.msg import obj_detected_list
-from geometry_msgs.msg import Pose2D
-import numpy as np
+'''
+----------------------------------------------------------
+OUTDATED SCRIPT
+    @file: auto_nav_guidiance.py
+    @modified: Wed Feb 5, 2020
+	@author: Alejandro Gonzalez Garcia
+    @e-mail: alexglzg97@gmail.com
+    @brief: Give a desired heading and velocity to the USV based on the position
+            of markers in front of the USV, to navigate through such markers.
+	@version: 1.0
+    Open source
+---------------------------------------------------------
+'''
+
 import math
 import time
-#import matplotlib.pyplot as plt
+
+import numpy as np
+import rospy
+from std_msgs.msg import Int32, Float64, String
+from custom_msgs.msg import obj_detected, obj_detected_list
+from geometry_msgs.msg import Pose2D
+
 
 class AutoNav:
+
+
     def __init__(self):
+
 
         self.yaw = 0
         self.obj_list = []
@@ -26,7 +42,7 @@ class AutoNav:
         self.desired_heading = 0
 
         rospy.Subscriber("/vectornav/ins_2d/ins_pose", Pose2D, self.ins_pose_callback)
-        rospy.Subscriber('/usv_perception/yolo_zed/objects_detected', obj_detected_list, self.objs_callback)
+        rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
         self.status_pub = rospy.Publisher("/status", Int32, queue_size=10)
@@ -36,11 +52,13 @@ class AutoNav:
         self.yaw = pose.theta
 
     def objs_callback(self,data):
-        #print("a")
         self.obj_list = []
         for i in range(data.len):
             if str(data.objects[i].clase) == 'marker':
-                self.obj_list.append({'X' : data.objects[i].X + 0.55, 'Y' : data.objects[i].Y, 'color' : data.objects[i].color, 'class' : data.objects[i].clase})
+                self.obj_list.append({'X' : data.objects[i].X + 0.55,
+                                      'Y' : data.objects[i].Y, 
+                                      'color' : data.objects[i].color, 
+                                      'class' : data.objects[i].clase})
 
     def punto_medio(self):
 
