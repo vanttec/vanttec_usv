@@ -55,12 +55,7 @@ class USVMaster:
 
     def stop_mission_callback(self,stop_mission):
         self.kill_switch = True
-
-        #publish body fix 0,0
-
-        #obj = Float32MultiArray()
-        #obj.layout.data_offset = 3
-        #obj.data = [0, 0, 2]
+        
 
 def main():
     rospy.init_node('usv_master', anonymous=True)
