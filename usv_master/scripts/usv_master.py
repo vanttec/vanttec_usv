@@ -8,6 +8,7 @@
 	@author: Roberto Mendivil Castro
     @e-mail: robertomc97@gmail.com
     @co-author: Sebastian Martinez Perez
+    @co-author: 
     @e-mail: sebas.martp@gmail.com
 	@brief: Master script that controls the general mission status
     Open source
