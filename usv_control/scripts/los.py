@@ -3,7 +3,7 @@
 
 '''
 ----------------------------------------------------------
-    @file: los.py
+    @file: LOS.py
     @date: Nov 2019
     @date_modif: Tue, Feb 4 2020
     @author: Alejandro Gonzalez
@@ -68,8 +68,8 @@ class Test:
         # ROS Publishers
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
-        self.target_pub = rospy.Publisher("/usv_control/los/target", Pose2D, queue_size=10)
-        self.LOS_pub = rospy.Publisher("/usv_control/los/los", Pose2D, queue_size=10)
+        self.target_pub = rospy.Publisher("/usv_control/LOS/target", Pose2D, queue_size=10)
+        self.LOS_pub = rospy.Publisher("/usv_control/LOS/LOS", Pose2D, queue_size=10)
 
     def gps_callback(self, _gps):
         self.NEDx = _gps.x
@@ -89,7 +89,7 @@ class Test:
         self.waypoint_mode = _msg.data[-1] # 0 for NED, 1 for GPS, 2 for body
         self.wp_array = wp
 
-    def los_loop(self, _listvar):
+    def LOS_loop(self, _listvar):
 
         if self.k < len(_listvar)/2:
 
@@ -105,13 +105,13 @@ class Test:
             self.distance = math.pow(xpow + ypow, 0.5)
 
             if self.distance > 1:
-                self.los(x1, y1, x2, y2)
+                self.LOS(x1, y1, x2, y2)
             else:
                 self.k += 1
         else:
             self.desired(0, self.yaw)
 
-    def los(self, _x1, _y1, _x2, _y2):
+    def LOS(self, _x1, _y1, _x2, _y2):
         ak = math.atan2(_y2 - _y1, _x2 - _x1)
         ye = -(self.NEDx - _x1)*math.sin(ak) + (self.NEDy - _y1)*math.cos(ak)
         xe = (self.NEDx - _x1)*math.cos(ak) + (self.NEDy - _y1)*math.sin(ak)
@@ -122,10 +122,10 @@ class Test:
         if (abs(self.bearing) > (math.pi)):
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing) - 2*math.pi)
 
-        xlos = _x1 + (delta+xe)*math.cos(ak)
-        ylos = _y1 + (delta+xe)*math.sin(ak)
-        self.LOSpath.x = xlos
-        self.LOSpath.y = ylos
+        xLOS = _x1 + (delta+xe)*math.cos(ak)
+        yLOS = _y1 + (delta+xe)*math.sin(ak)
+        self.LOSpath.x = xLOS
+        self.LOSpath.y = yLOS
         self.LOS_pub.publish(self.LOSpath)
 
         self.vel = 1
@@ -186,7 +186,6 @@ def main():
     wp_LOS = []
 
     while (not rospy.is_shutdown()) and test.testing:
-    
         if test.wp_t != test.wp_array:
     
             test.k = 1
@@ -209,9 +208,8 @@ def main():
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
         if len(wp_LOS) > 1:
-            test.los_loop(test.wp_t)
+            test.LOS_loop(test.wp_t)
         rate.sleep()
-    
     test.desired(0, test.yaw)
     rospy.logwarn('Finished')
     rospy.spin()

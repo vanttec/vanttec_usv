@@ -275,7 +275,6 @@ int main(int argc, char *argv[])
     port_t = (Tx / 2) + (Tz / B);
     starboard_t = (Tx / (2*c)) - (Tz / (B*c));
 
-    
     if (starboard_t > 36.5){
       starboard_t = 36.5;
     }
