@@ -49,7 +49,7 @@ class AutoNav:
         self.offset = .55 #camera to ins offset
         self.target_x = 0
         self.target_y = 0
-        self.ned__alpha = 0
+        self.ned_alpha = 0
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
@@ -120,9 +120,9 @@ class AutoNav:
         if (abs(_alpha) > (math.pi)):
             _alpha = (_alpha/abs(_alpha))*(abs(_alpha) - 2*math.pi)
 
-        self.ned__alpha = _alpha + self.yaw
-        if (abs(self.ned__alpha) > (math.pi)):
-            self.ned__alpha = (self.ned__alpha/abs(self.ned__alpha))*(abs(self.ned__alpha) - 2*math.pi)
+        self.ned_alpha = _alpha + self.yaw
+        if (abs(self.ned_alpha) > (math.pi)):
+            self.ned_alpha = (self.ned_alpha/abs(self.ned_alpha))*(abs(self.ned_alpha) - 2*math.pi)
 
         xm, ym = self.gate_to_body(3,0,_alpha,xc,yc)
 
@@ -143,7 +143,7 @@ class AutoNav:
         @return: --
         '''
         self.target_x, self.target_y = self.gate_to_ned(1, 0, 
-                                                        self.ned__alpha,
+                                                        self.ned_alpha,
                                                         self.target_x,
                                                         self.target_y)
         
