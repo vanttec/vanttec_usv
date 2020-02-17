@@ -3,7 +3,6 @@
 
 '''
 ----------------------------------------------------------
-OUTDATED SCRIPT
     @file: auto_nav_guidance.py
     @date: Thu Dec 26, 2019
     @modified: Wed Feb 5, 2020
@@ -158,8 +157,13 @@ class AutoNav:
         '''
         @name: gate_to_body
         @brief: Coordinate transformation between gate and body reference frames.
-        @param: --
-        @return: --
+        @param: _gate_x2: obj x coordinate in gate reference frame
+                _gate_y2: obj y coordinate in gate reference frame
+                _alpha: angle between gate and body reference frames
+                _body_x1: gate x coordinate in body reference frame
+                _body_y1: gate y coordinate in body reference frame
+        @return: body_x2: obj body x coordinate
+                 body_y2: obj body y coordinate
         '''
         p = np.array([[_gate_x2],[_gate_y2]])
         J = np.array([[math.cos(_alpha), -1*math.sin(_alpha)],
@@ -175,8 +179,10 @@ class AutoNav:
         '''
         @name: body_to_ned
         @brief: Coordinate transformation between body and NED reference frames.
-        @param: --
-        @return: --
+        @param: _x: boat x coordinate in body reference frame
+                _y: boat y coordinate in body reference frame
+        @return: nedx: boat x coordinate in ned reference frame
+                 nedy: boat y coordinate in ned reference frame
         '''
         p = np.array([_x, _y])
         J = np.array([[math.cos(self.yaw), -1*math.sin(self.yaw)],
@@ -192,8 +198,13 @@ class AutoNav:
         '''
         @name: gate_to_ned
         @brief: Coordinate transformation between gate and NED reference frames.
-        @param: --
-        @return: --
+        @param: _gate_x2: obj x coordinate in gate reference frame
+                _gate_y2: obj y coordinate in gate reference frame
+                _alpha: angle between gate and ned reference frames
+                _body_x1: gate x coordinate in ned reference frame
+                _body_y1: gate y coordinate in ned reference frame
+        @return: body_x2: obj ned x coordinate
+                 body_y2: obj ned y coordinate
         '''
         p = np.array([[_gate_x2],[_gate_y2]])
         J = np.array([[math.cos(_alpha), -1*math.sin(_alpha)],
