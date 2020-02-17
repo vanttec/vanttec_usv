@@ -3,7 +3,7 @@
 
 '''
 ----------------------------------------------------------
-    @file: LOS.py
+    @file: los.py
     @date: Nov 2019
     @date_modif: Tue, Feb 4 2020
     @author: Alejandro Gonzalez
