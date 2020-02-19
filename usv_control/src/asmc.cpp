@@ -7,7 +7,7 @@
     @e-mail: alexglzg97@gmail.com
     @co-author: Sebastian Martinez Perez
     @e-mail: sebas.martp@gmail.com
-	  @brief: Implementation of an adaptive sliding mode controller (ASMC) for
+    @brief: Implementation of an adaptive sliding mode controller (ASMC) for
       a USV given desired speed and heading. Requires gains as parameters.
     Open source
 ----------------------------------------------------------
@@ -78,7 +78,7 @@ void arduinoCallback(const std_msgs::UInt8::ConstPtr& _ardu)
   arduino = _ardu -> data;
 }
 
-
+// Main
 int main(int argc, char *argv[])
 {
 
