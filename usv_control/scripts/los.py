@@ -10,7 +10,7 @@
     @e-mail: alexglzg97@gmail.com
     @co-author: Sebastian Martinez Perez
     @e-mail: sebas.martp@gmail.com
-	@brief: Implementation of line-of-sight (LOS) algorithm with inputs on
+    @brief: Implementation of line-of-sight (LOS) algorithm with inputs on
       NED, geodetic and body reference frames
     Open source
 ----------------------------------------------------------
@@ -25,13 +25,9 @@ import rospy
 from geometry_msgs.msg import Pose2D, Vector3
 from std_msgs.msg import Float32MultiArray, Float64
 
-
+# Class definition
 class Test:
-
-
     def __init__(self):
-
-
         self.testing = True
 
         self.ds = 0
@@ -90,9 +86,7 @@ class Test:
         self.wp_array = wp
 
     def LOS_loop(self, _listvar):
-
         if self.k < len(_listvar)/2:
-
             x1 = _listvar[2*self.k - 2]
             y1 = _listvar[2*self.k - 1]
             x2 = _listvar[2*self.k]
@@ -127,8 +121,8 @@ class Test:
         self.LOSpath.x = xLOS
         self.LOSpath.y = yLOS
         self.LOS_pub.publish(self.LOSpath)
-
         self.vel = 1
+	
         if self.distance < 6:
             self.vel = 0.4
 
@@ -187,7 +181,6 @@ def main():
 
     while (not rospy.is_shutdown()) and test.testing:
         if test.wp_t != test.wp_array:
-    
             test.k = 1
             test.wp_t = test.wp_array
             wp_LOS = test.wp_t
