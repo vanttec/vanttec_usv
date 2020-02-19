@@ -6,11 +6,11 @@
 OUTDATED SCRIPT
     @file: auto_nav_guidiance.py
     @modified: Wed Feb 5, 2020
-	@author: Alejandro Gonzalez Garcia
+    @author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @brief: Give a desired heading and velocity to the USV based on the position
             of markers in front of the USV, to navigate through such markers.
-	@version: 1.0
+    @version: 1.0
     Open source
 ---------------------------------------------------------
 '''
