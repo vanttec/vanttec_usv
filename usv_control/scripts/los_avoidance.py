@@ -7,11 +7,11 @@ UNDER DEVELOPMENT
     @file: bc_heading.py
     @date: Fri Dec 20, 2019
     @modified: Wed Feb 5, 2020
-	@author: Alejandro Gonzalez Garcia
+    @author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @brief: Implementation of line-of-sight (LOS) algorithm with obstacle
             avoidance approach published in COMRob 2019
-	@version: 1.0
+    @version: 1.0
     Open source
 ---------------------------------------------------------
 '''
@@ -27,12 +27,9 @@ from geometry_msgs.msg import Pose2D
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Float32MultiArray
 
+# Class definition
 class Test:
-
-
-    def __init__(self):
-
-        
+    def __init__(self):        
         self.testing = True
 
         self.ds = 0
