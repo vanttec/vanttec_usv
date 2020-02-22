@@ -24,13 +24,9 @@ from std_msgs.msg import Int32, Float64, String
 from custom_msgs.msg import obj_detected, obj_detected_list
 from geometry_msgs.msg import Pose2D
 
-
+# Class Definition
 class AutoNav:
-
-
     def __init__(self):
-
-
         self.yaw = 0
         self.obj_list = []
         self.activated = True
