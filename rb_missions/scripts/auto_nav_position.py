@@ -6,16 +6,16 @@
     @file: auto_nav_guidance.py
     @date: Thu Dec 26, 2019
     @modified: Wed Feb 5, 2020
-	@author: Alejandro Gonzalez Garcia
+    @author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @co-author: Rodolfo Cuan Urquizo
     @e-mail: fitocuan@gmail.com
     @co-author: Sebastian Martinez Perez
     @e-mail: sebas.martp@gmail.com
-	@brief: Motion planning. Script to navigate a USV through two sets of buoys 
+    @brief: Motion planning. Script to navigate a USV through two sets of buoys 
             or markers, all by receiving obstacle positions and sending a 
             desired position for the USV.
-	@version: 1.1
+    @version: 1.1
     Open source
 ---------------------------------------------------------
 '''
@@ -31,13 +31,9 @@ from geometry_msgs.msg import Pose2D
 
 from usv_perception.msg import obj_detected, obj_detected_list
 
-
+# Class Definition
 class AutoNav:
-
-
     def __init__(self):
-
-
         self.NEDx = 0
         self.NEDy = 0
         self.yaw = 0
@@ -146,11 +142,9 @@ class AutoNav:
                                                         self.ned_alpha,
                                                         self.target_x,
                                                         self.target_y)
-        
         obj = Float32MultiArray()
         obj.layout.data_offset = 3
         obj.data = [self.target_x, self.target_y, 0]
-
         self.desired(obj)
 
     def gate_to_body(self, _gate_x2, _gate_y2, _alpha, _body_x1, _body_y1):
@@ -169,10 +163,8 @@ class AutoNav:
         J = np.array([[math.cos(_alpha), -1*math.sin(_alpha)],
                       [math.sin(_alpha), math.cos(_alpha)]])
         n = J.dot(p)
-
         body_x2 = n[0] + _body_x1
         body_y2 = n[1] + _body_y1
-
         return (body_x2, body_y2)
 
     def body_to_ned(self, _x, _y):
@@ -188,10 +180,8 @@ class AutoNav:
         J = np.array([[math.cos(self.yaw), -1*math.sin(self.yaw)],
                       [math.sin(self.yaw), math.cos(self.yaw)]])
         n = J.dot(p)
-
         nedx = n[0] + self.NEDx
         nedy = n[1] + self.NEDy
-
         return (nedx, nedy)
 
     def gate_to_ned(self, _gate_x2, _gate_y2, _alpha, _ned_x1, _ned_y1):
@@ -210,16 +200,12 @@ class AutoNav:
         J = np.array([[math.cos(_alpha), -1*math.sin(_alpha)],
                       [math.sin(_alpha), math.cos(_alpha)]])
         n = J.dot(p)
-
         ned_x2 = n[0] + _ned_x1
         ned_y2 = n[1] + _ned_y1
-
         return (ned_x2, ned_y2)
 
     def desired(self, _obj):
-
     	self.path_pub.publish(_obj)
-
 
 def main():
 
