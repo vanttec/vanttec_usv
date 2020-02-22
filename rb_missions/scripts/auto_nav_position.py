@@ -208,7 +208,6 @@ class AutoNav:
     	self.path_pub.publish(_obj)
 
 def main():
-
     rospy.init_node("auto_nav_position", anonymous=False)
     rate = rospy.Rate(100)
     autoNav = AutoNav()
