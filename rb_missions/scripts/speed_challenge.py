@@ -162,7 +162,6 @@ class SpeedChallenge:
         w2_x, w2_y = self.body_to_ned(w2[0], w2[1])
         w3_x, w3_y = self.body_to_ned(w3[0], w3[1])
         w5_x, w5_y = self.gate_to_ned(-3, 0, self.ned_alpha, self.gate_x, self.gate_y)
-
         obj_array.data = [w1_x, w1_y, w2_x, w2_y, w3_x, w3_y,
                           self.gate_x, self.gate_y, w5_x, w5_y, 0]
         self.desired(obj_array)
