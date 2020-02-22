@@ -36,13 +36,9 @@ from usv_perception.msg import obj_detected, obj_detected_list
 
 #EARTH_RADIUS = 6371000
 
-
+# Class Definition
 class SpeedChallenge:
-
-
     def __init__(self):
-
-
         self.objects_list = []
         self.activated = True
         self.state = -1
@@ -134,14 +130,12 @@ class SpeedChallenge:
             self.ned_alpha = (self.ned_alpha/abs(self.ned_alpha))*(abs(self.ned_alpha) - 2*math.pi)
 
         xm, ym = self.gate_to_body(2,0,_alpha,xc,yc)
-
         self.target_x, self.target_y = self.body_to_ned(xm, ym)
         self.gate_x, self.gate_y = self.body_to_ned(xc, yc)
         
         obj_array = Float32MultiArray()
         obj_array.layout.data_offset = 5
         obj_array.data = [xc, yc, xm, ym, 2]
-
         self.desired(obj_array)
         
     def buoy_waypoints(self,_buoy_x,_buoy_y):
@@ -167,12 +161,10 @@ class SpeedChallenge:
         w1_x, w1_y = self.body_to_ned(w1[0], w1[1])
         w2_x, w2_y = self.body_to_ned(w2[0], w2[1])
         w3_x, w3_y = self.body_to_ned(w3[0], w3[1])
-
         w5_x, w5_y = self.gate_to_ned(-3, 0, self.ned_alpha, self.gate_x, self.gate_y)
 
         obj_array.data = [w1_x, w1_y, w2_x, w2_y, w3_x, w3_y,
                           self.gate_x, self.gate_y, w5_x, w5_y, 0]
-
         self.desired(obj_array)
 
     def farther(self):
@@ -187,11 +179,9 @@ class SpeedChallenge:
                                                         self.ned_alpha,
                                                         self.target_x, 
                                                         self.target_y)
-        
         obj_array = Float32MultiArray()
         obj_array.layout.data_offset = 3
         obj_array.data = [self.target_x, self.target_y, 0]
-
         self.desired(obj_array)
 
     def gate_to_body(self, _gate_x2, _gate_y2, _alpha, _body_x1, _body_y1):
@@ -210,10 +200,8 @@ class SpeedChallenge:
         J = np.array([[math.cos(_alpha), -1*math.sin(_alpha)],
                       [math.sin(_alpha), math.cos(_alpha)]])
         n = J.dot(p)
-
         body_x2 = n[0] + _body_x1
         body_y2 = n[1] + _body_y1
-
         return (body_x2, body_y2)
 
     def body_to_ned(self, _x, _y):
@@ -229,10 +217,8 @@ class SpeedChallenge:
         J = np.array([[math.cos(self.yaw), -1*math.sin(self.yaw)],
                       [math.sin(self.yaw), math.cos(self.yaw)]])
         n = J.dot(p)
-
         nedx = n[0] + self.NEDx
         nedy = n[1] + self.NEDy
-
         return (nedx, nedy)
 
     def gate_to_ned(self, _gate_x2, _gate_y2, _alpha, _ned_x1, _ned_y1):
@@ -251,29 +237,24 @@ class SpeedChallenge:
         J = np.array([[math.cos(_alpha), -1*math.sin(_alpha)],
                       [math.sin(_alpha), math.cos(_alpha)]])
         n = J.dot(p)
-
         ned_x2 = n[0] + _ned_x1
         ned_y2 = n[1] + _ned_y1
-
         return (ned_x2, ned_y2)
 
     def desired(self, _obj):
     	self.path_pub.publish(_obj)
     
 def main():
-
     rospy.init_node("speed_challenge", anonymous=False)
     rate = rospy.Rate(100)    
     speedChallenge = SpeedChallenge()
     speedChallenge.distance = 4
     while not rospy.is_shutdown() and speedChallenge.activated:
-
         if speedChallenge.state == -1:
             while (not rospy.is_shutdown()) and (len(speedChallenge.objects_list) < 2):
                 speedChallenge.test.publish(speedChallenge.state)
                 rate.sleep()
             speedChallenge.state = 0
-
         elif speedChallenge.state == 0:
             speedChallenge.test.publish(speedChallenge.state)
             if len(speedChallenge.objects_list) >= 2 and speedChallenge.distance >= 3:
@@ -286,7 +267,6 @@ def main():
                         speedChallenge.state = 1
                         rate.sleep()
                         break
-
         elif speedChallenge.state == 1:
             speedChallenge.test.publish(speedChallenge.state)
             x_list = []
@@ -309,7 +289,6 @@ def main():
                         speedChallenge.farther()
                         rate.sleep()
                         break
-
         elif speedChallenge.state == 2:
             speedChallenge.test.publish(speedChallenge.state)
             x_list = []
@@ -334,17 +313,14 @@ def main():
                         speedChallenge.farther()
                         rate.sleep()
                         break
-                
         elif speedChallenge.state == 3:
             speedChallenge.test.publish(speedChallenge.state)
             speedChallenge.buoy_waypoints(_buoy_x,_buoy_y)
             speedChallenge.state = 4
-
         elif speedChallenge.state == 4:
             speedChallenge.test.publish(speedChallenge.state)
             time.sleep(1)
             speedChallenge.status_pub.publish(1)
-
         rate.sleep()    
     rospy.spin()
 
