@@ -3,21 +3,22 @@
 
 '''
 ----------------------------------------------------------
-    @file: auto_nav_guidance.py
-    @date: Thu Dec 26, 2019
-    @modified: Wed Feb 5, 2020
-    @author: Alejandro Gonzalez Garcia
+    @file: speed_challenge.py
+    @date: Thu 02 Jan, 2020
+    @modified: Thu Jan 23, 2020
+	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @co-author: Rodolfo Cuan Urquizo
     @e-mail: fitocuan@gmail.com
-    @co-author: Sebastian Martinez Perez
-    @e-mail: sebas.martp@gmail.com
-    @brief: Motion planning. Script to navigate a USV through two sets of buoys 
-            or markers, all by receiving obstacle positions and sending a 
+    @co-author: Roberto Mendivil Castro
+    @e-mail: robertomc97@gmail.com
+	@brief: Motion planning. Script to navigate a USV through a first set of two
+            buoys, find a third buoy, circle around it and return to the first 
+            set of buoys, all by receiving obstacle positions and sending a 
             desired position for the USV.
-    @version: 1.1
+	@version: 1.1
     Open source
----------------------------------------------------------
+----------------------------------------------------------
 '''
 
 import math
@@ -26,27 +27,35 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import rospy
-from std_msgs.msg import Float32MultiArray, Int32, String
 from geometry_msgs.msg import Pose2D
+from std_msgs.msg import Float32MultiArray, Int32, String
+from sensor_msgs.msg import PointCloud2
+import sensor_msgs.point_cloud2 as pc2
 
 from usv_perception.msg import obj_detected, obj_detected_list
 
+#EARTH_RADIUS = 6371000
+
 # Class Definition
-class AutoNav:
+class SpeedChallenge:
     def __init__(self):
+        self.objects_list = []
+        self.activated = True
+        self.state = -1
         self.NEDx = 0
         self.NEDy = 0
         self.yaw = 0
-        self.obj_list = []
-        self.activated = True
-        self.state = -1
-        self.distance = 0
+        self.lat = 0
+        self.lon = 0
         self.InitTime = rospy.Time.now().secs
+        self.distance = 0
         self.offset = .55 #camera to ins offset
         self.target_x = 0
         self.target_y = 0
+        self.gate_x = 0
+        self.gate_y = 0
         self.ned_alpha = 0
-
+        
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
         rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
@@ -62,13 +71,13 @@ class AutoNav:
         self.yaw = _pose.theta
 
     def objs_callback(self,_data):
-        self.obj_list = []
+        self.objects_list = []
         for i in range(_data.len):
             if str(_data.objects[i].clase) == 'bouy': #Change to buoy when obj.names in usv_perception is changed, in RoboBoat change to marker
-                self.obj_list.append({'X' : _data.objects[i].X + self.offset, 
-                                      'Y' : _data.objects[i].Y, 
-                                      'color' : _data.objects[i].color, 
-                                      'class' : _data.objects[i].clase})
+                self.objects_list.append({'X' : _data.objects[i].X + self.offset,
+                                          'Y' : _data.objects[i].Y,
+                                          'color' : _data.objects[i].color, 
+                                          'class' : _data.objects[i].clase})
 
     def middle_point(self):
         '''
@@ -82,10 +91,10 @@ class AutoNav:
         y_list = []
         class_list = []
         distance_list = []
-        for i in range(len(self.obj_list)):
-            x_list.append(self.obj_list[i]['X'])
-            y_list.append(self.obj_list[i]['Y'])
-            class_list.append(self.obj_list[i]['class'])
+        for i in range(len(self.objects_list)):
+            x_list.append(self.objects_list[i]['X'])
+            y_list.append(self.objects_list[i]['Y'])
+            class_list.append(self.objects_list[i]['class'])
             distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
 
         ind_g1 = np.argsort(distance_list)[0]
@@ -120,15 +129,42 @@ class AutoNav:
         if (abs(self.ned_alpha) > (math.pi)):
             self.ned_alpha = (self.ned_alpha/abs(self.ned_alpha))*(abs(self.ned_alpha) - 2*math.pi)
 
-        xm, ym = self.gate_to_body(3,0,_alpha,xc,yc)
-
+        xm, ym = self.gate_to_body(2,0,_alpha,xc,yc)
         self.target_x, self.target_y = self.body_to_ned(xm, ym)
+        self.gate_x, self.gate_y = self.body_to_ned(xc, yc)
         
-        obj = Float32MultiArray()
-        obj.layout.data_offset = 5
-        obj.data = [xc, yc, xm, ym, 2]
+        obj_array = Float32MultiArray()
+        obj_array.layout.data_offset = 5
+        obj_array.data = [xc, yc, xm, ym, 2]
+        self.desired(obj_array)
+        
+    def buoy_waypoints(self,_buoy_x,_buoy_y):
+        '''
+        @name: buoy_waypoints
+        @brief: Returns 5 waypoints. The first three form a circle a certain radius
+          from the obstacle, and the next 2 waypoints return the vehicle to the gate
+        @param: _buoy_x: buoy x coordinate
+                _buoy_y: buoy y coordinate
+        @return: --
+        '''
+        rospy.loginfo("Buoy waypoints has just started")
+            
+        radio = 3
 
-        self.desired(obj)
+        w1 = [_buoy_x, _buoy_y + radio]
+        w2 = [_buoy_x + radio, _buoy_y]
+        w3 = [_buoy_x, _buoy_y - radio]
+
+        obj_array = Float32MultiArray()
+        obj_array.layout.data_offset = 11
+        
+        w1_x, w1_y = self.body_to_ned(w1[0], w1[1])
+        w2_x, w2_y = self.body_to_ned(w2[0], w2[1])
+        w3_x, w3_y = self.body_to_ned(w3[0], w3[1])
+        w5_x, w5_y = self.gate_to_ned(-3, 0, self.ned_alpha, self.gate_x, self.gate_y)
+        obj_array.data = [w1_x, w1_y, w2_x, w2_y, w3_x, w3_y,
+                          self.gate_x, self.gate_y, w5_x, w5_y, 0]
+        self.desired(obj_array)
 
     def farther(self):
         '''
@@ -138,14 +174,14 @@ class AutoNav:
         @param: --
         @return: --
         '''
-        self.target_x, self.target_y = self.gate_to_ned(1, 0, 
+        self.target_x, self.target_y = self.gate_to_ned(1.5, 0,
                                                         self.ned_alpha,
-                                                        self.target_x,
+                                                        self.target_x, 
                                                         self.target_y)
-        obj = Float32MultiArray()
-        obj.layout.data_offset = 3
-        obj.data = [self.target_x, self.target_y, 0]
-        self.desired(obj)
+        obj_array = Float32MultiArray()
+        obj_array.layout.data_offset = 3
+        obj_array.data = [self.target_x, self.target_y, 0]
+        self.desired(obj_array)
 
     def gate_to_body(self, _gate_x2, _gate_y2, _alpha, _body_x1, _body_y1):
         '''
@@ -206,65 +242,85 @@ class AutoNav:
 
     def desired(self, _obj):
     	self.path_pub.publish(_obj)
-
+    
 def main():
-    rospy.init_node("auto_nav_position", anonymous=False)
-    rate = rospy.Rate(100)
-    autoNav = AutoNav()
-    autoNav.distance = 4
-    while not rospy.is_shutdown() and autoNav.activated:
-
-        if autoNav.state == -1:
-            while (not rospy.is_shutdown()) and (len(autoNav.obj_list) < 2):
-                autoNav.test.publish(autoNav.state)
+    rospy.init_node("speed_challenge", anonymous=False)
+    rate = rospy.Rate(100)    
+    speedChallenge = SpeedChallenge()
+    speedChallenge.distance = 4
+    while not rospy.is_shutdown() and speedChallenge.activated:
+        if speedChallenge.state == -1:
+            while (not rospy.is_shutdown()) and (len(speedChallenge.objects_list) < 2):
+                speedChallenge.test.publish(speedChallenge.state)
                 rate.sleep()
-            autoNav.state = 0
-
-        elif autoNav.state == 0:
-            autoNav.test.publish(autoNav.state)
-            if (len(autoNav.obj_list) >= 2) and (autoNav.distance >= 3):
-                autoNav.middle_point()
+            speedChallenge.state = 0
+        elif speedChallenge.state == 0:
+            speedChallenge.test.publish(speedChallenge.state)
+            if len(speedChallenge.objects_list) >= 2 and speedChallenge.distance >= 3:
+                speedChallenge.middle_point()
             else:
                 initTime = rospy.Time.now().secs
-                while ((not rospy.is_shutdown()) and 
-                       (len(autoNav.obj_list) < 2 or autoNav.distance < 3)):
+                while ((not rospy.is_shutdown()) and
+                      (len(speedChallenge.objects_list) < 2 or speedChallenge.distance < 3)):
                     if rospy.Time.now().secs - initTime > 3:
-                        autoNav.state = 1
+                        speedChallenge.state = 1
                         rate.sleep()
                         break
-
-        elif autoNav.state == 1:
-            autoNav.test.publish(autoNav.state)
-            if len(autoNav.obj_list) >= 2:
-                autoNav.state = 2
+        elif speedChallenge.state == 1:
+            speedChallenge.test.publish(speedChallenge.state)
+            x_list = []
+            y_list = []
+            class_list = []
+            distance_list = []
+            for i in range(len(speedChallenge.objects_list)):
+                x_list.append(speedChallenge.objects_list[i]['X'])
+                y_list.append(speedChallenge.objects_list[i]['Y'])
+                class_list.append(speedChallenge.objects_list[i]['class'])
+                distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
+                ind_0 = np.argsort(distance_list)[0]
+            if (len(speedChallenge.objects_list) >= 1 and
+               (str(speedChallenge.objects_list[ind_0]['color']) == 'blue')):
+                speedChallenge.state = 2
             else:
                 initTime = rospy.Time.now().secs
-                while ((not rospy.is_shutdown()) and 
-                       (len(autoNav.obj_list) < 2)):
+                while (not rospy.is_shutdown() and (len(speedChallenge.objects_list)) < 1):
                     if rospy.Time.now().secs - initTime > 1:
-                        autoNav.farther()
+                        speedChallenge.farther()
                         rate.sleep()
                         break
-
-        elif autoNav.state == 2:
-            autoNav.test.publish(autoNav.state)
-            if len(autoNav.obj_list) >= 2 and autoNav.distance >= 3:
-                autoNav.middle_point()
+        elif speedChallenge.state == 2:
+            speedChallenge.test.publish(speedChallenge.state)
+            x_list = []
+            y_list = []
+            class_list = []
+            distance_list = []
+            for i in range(len(speedChallenge.objects_list)):
+                x_list.append(speedChallenge.objects_list[i]['X'])
+                y_list.append(speedChallenge.objects_list[i]['Y'])
+                class_list.append(speedChallenge.objects_list[i]['class'])
+                distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
+                ind_0 = np.argsort(distance_list)[0]
+            if ((len(speedChallenge.objects_list) >= 1) and
+                (speedChallenge.objects_list[ind_0]['X'] < 8)):
+                _buoy_x = speedChallenge.objects_list[0]['X']
+                _buoy_y = speedChallenge.objects_list[0]['Y']
+                speedChallenge.state = 3
             else:
                 initTime = rospy.Time.now().secs
-                while ((not rospy.is_shutdown()) and 
-                       (len(autoNav.obj_list) < 2 or autoNav.distance < 3)):
-                    if rospy.Time.now().secs - initTime > 3:
-                        autoNav.state = 3
+                while not rospy.is_shutdown() and (len(speedChallenge.objects_list)) < 1:
+                    if rospy.Time.now().secs - initTime > 1:
+                        speedChallenge.farther()
                         rate.sleep()
                         break
-
-        elif autoNav.state == 3:
-            autoNav.test.publish(autoNav.state)
+        elif speedChallenge.state == 3:
+            speedChallenge.test.publish(speedChallenge.state)
+            speedChallenge.buoy_waypoints(_buoy_x,_buoy_y)
+            speedChallenge.state = 4
+        elif speedChallenge.state == 4:
+            speedChallenge.test.publish(speedChallenge.state)
             time.sleep(1)
-            autoNav.status_pub.publish(1)
-
-        rate.sleep()
+            speedChallenge.status_pub.publish(1)
+        rate.sleep()    
     rospy.spin()
 
 if __name__ == "__main__":
