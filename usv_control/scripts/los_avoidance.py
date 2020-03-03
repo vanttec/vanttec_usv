@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+'''
+----------------------------------------------------------
+UNDER DEVELOPMENT
+    @file: bc_heading.py
+    @date: Fri Dec 20, 2019
+    @modified: Wed Feb 5, 2020
+    @author: Alejandro Gonzalez Garcia
+    @e-mail: alexglzg97@gmail.com
+    @brief: Implementation of line-of-sight (LOS) algorithm with obstacle
+            avoidance approach published in COMRob 2019
+    @version: 1.0
+    Open source
+---------------------------------------------------------
+'''
 
 import os
 import time
@@ -11,8 +27,9 @@ from geometry_msgs.msg import Pose2D
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Float32MultiArray
 
+# Class definition
 class Test:
-    def __init__(self):
+    def __init__(self):        
         self.testing = True
 
         self.ds = 0
@@ -44,7 +61,7 @@ class Test:
 
         self.k = 1
 
-        self.Waypointpath = Pose2D()
+        self.waypoint_path = Pose2D()
         self.LOSpath = Pose2D()
 
         self.obstacle_view = "000"
@@ -56,6 +73,7 @@ class Test:
         #self.e = 0.08181919
         #self.Pe_ref = np.zeros((3,1), dtype=np.float)
 
+        # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ned_callback)
         #rospy.Subscriber("/vectornav/ins_2d/ins_pose", Pose2D, self.gps_callback)
         rospy.Subscriber("/vectornav/ins_2d/ins_ref", Vector3, self.gpsref_callback)
@@ -63,6 +81,7 @@ class Test:
         rospy.Subscriber("/mission/waypoints", Float32MultiArray, self.waypoints_callback)
         rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  String, self.obstacles_callback)
 
+        # ROS Publishers
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
         self.target_pub = rospy.Publisher("/usv_control/los/target", Pose2D, queue_size=10)
@@ -99,15 +118,15 @@ class Test:
     def obstacles_callback(self, data):
         self.obstacle_view = data.data
 
-    def LOSloop(self, listvar):
+    def LOS_loop(self, listvar):
         if self.k < len(listvar)/2:
             x1 = listvar[2*self.k - 2]
             y1 = listvar[2*self.k - 1]
             x2 = listvar[2*self.k]
             y2 = listvar[2*self.k + 1]
-            self.Waypointpath.x = x2
-            self.Waypointpath.y = y2
-            self.target_pub.publish(self.Waypointpath)
+            self.waypoint_path.x = x2
+            self.waypoint_path.y = y2
+            self.target_pub.publish(self.waypoint_path)
             xpow = math.pow(x2 - self.NEDx, 2)
             ypow = math.pow(y2 - self.NEDy, 2)
             self.distance = math.pow(xpow + ypow, 0.5)
@@ -127,7 +146,7 @@ class Test:
         self.bearing = ak + psi_r
 
         if (abs(self.bearing) > (math.pi)):
-            self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
+            self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing) - 2*math.pi)
 
         xlos = x1 + (delta+xe)*math.cos(ak)
         ylos = y1 + (delta+xe)*math.sin(ak)
@@ -173,7 +192,7 @@ class Test:
         elif addition != 0:
             self.bearing = self.yaw + addition * 0.17
             if (abs(self.bearing) > (math.pi)):
-                self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
+                self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing) - 2*math.pi)
 
         self.desired(self.vel, self.bearing)
 
@@ -201,15 +220,15 @@ class Test:
 
         longitud_distance = (lon1 - lon2)
         y_distance = math.sin(longitud_distance) * math.cos(lat2)
-        x_distance = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(longitud_distance)
+        x_distance = math.cos(lat1)*math.sin(lat2) - math.sin(lat1)*math.cos(lat2)*math.cos(longitud_distance)
         bearing = math.atan2(-y_distance, x_distance)
         phi1 = math.radians(lat1)
         phi2 = math.radians(lat2)
         dphi = math.radians(lat2 - lat1)
         dlam = math.radians(lon2 - lon1)
-        a = math.sin(dphi/2)*math.sin(dphi/2) + math.cos(phi1)*math.cos(phi2)* math.sin(dlam/2)*math.sin(dlam/2)
+        a = math.sin(dphi/2)*math.sin(dphi/2) + math.cos(phi1)*math.cos(phi2)*math.sin(dlam/2)*math.sin(dlam/2)
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-        distance = 6378137 * c
+        distance = 6378137*c
 
         nedx = distance*math.cos(bearing)
         nedy = distance*math.sin(bearing)
@@ -235,34 +254,34 @@ class Test:
 def main():
     rospy.init_node('los_avoidance', anonymous=True)
     rate = rospy.Rate(100) # 100hz
-    t = Test()
-    t.wp_t = []
+    test = Test()
+    test.wp_t = []
     wp_LOS = []
-    while not rospy.is_shutdown() and t.testing:
-        if t.wp_t != t.wp_array:
-            t.k = 1
-            t.wp_t = t.wp_array
-            wp_LOS = t.wp_t
-            x_0 = t.NEDx
-            y_0 = t.NEDy
-            if t.waypoint_mode == 0:
+    while not rospy.is_shutdown() and test.testing:
+        if test.wp_t != test.wp_array:
+            test.k = 1
+            test.wp_t = test.wp_array
+            wp_LOS = test.wp_t
+            x_0 = test.NEDx
+            y_0 = test.NEDy
+            if test.waypoint_mode == 0:
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
-            elif t.waypoint_mode == 1:
+            elif test.waypoint_mode == 1:
                 for i in range(0,len(wp_LOS),2):
-                    wp_LOS[i], wp_LOS[i+1] = t.gps_to_ned(wp_LOS[i],wp_LOS[i+1])
+                    wp_LOS[i], wp_LOS[i+1] = test.gps_to_ned(wp_LOS[i],wp_LOS[i+1])
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
             elif t.waypoint_mode == 2:
                 for i in range(0,len(wp_LOS),2):
-                    wp_LOS[i], wp_LOS[i+1] = t.body_to_ned(wp_LOS[i],wp_LOS[i+1])
+                    wp_LOS[i], wp_LOS[i+1] = test.body_to_ned(wp_LOS[i],wp_LOS[i+1])
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
         if len(wp_LOS) > 1:
-            t.LOSloop(t.wp_t)
+            test.LOS_loop(test.wp_t)
         rate.sleep()
-    t.desired(0,t.yaw)
-    rospy.logwarn("Finished")
+    test.desired(0,t.yaw)
+    rospy.logwarn('Finished')
     rospy.spin()
 
 if __name__ == "__main__":
