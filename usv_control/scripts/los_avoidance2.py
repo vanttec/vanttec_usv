@@ -24,6 +24,10 @@ class Test:
         self.NEDy = 0
         self.yaw = 0
 
+        self.u = 0
+        self.v = 0
+        self.r = 0
+
         #self.lat = 0
         #self.lon = 0
 
@@ -60,9 +64,8 @@ class Test:
         #self.Pe_ref = np.zeros((3,1), dtype=np.float)
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ned_callback)
-        #rospy.Subscriber("/vectornav/ins_2d/ins_pose", Pose2D, self.gps_callback)
+        rospy.Subscriber("/vectornav/ins_2d/local_vel", Vector3, self.local_vel_callback)
         rospy.Subscriber("/vectornav/ins_2d/ins_ref", Vector3, self.gpsref_callback)
-        #rospy.Subscriber("/vectornav/ins_2d/ecef_ref", Vector3, self.ecefref_callback)
         rospy.Subscriber("/mission/waypoints", Float32MultiArray, self.waypoints_callback)
         rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  String, self.obstacles_callback)
 
@@ -75,6 +78,12 @@ class Test:
         self.NEDx = ned.x
         self.NEDy = ned.y
         self.yaw = ned.theta
+
+
+    def local_vel_callback(self, upsilon):
+        self.u = upsilon.x
+        self.v = upsilon.y
+        self.r = upsilon.z
 
     '''def gps_callback(self, gps):
         self.lat = gps.x
@@ -151,16 +160,19 @@ class Test:
             y = obstacles[i+1]
             obstacle_radius = obstacles[i+2]
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
+
             x_pow = pow(x-self.NEDx,2) 
             y_pow = pow(y-self.NEDy,2) 
             distance = sqrt(x_pow+y_pow)
+
             alpha = math.arcsin(obstacle_radius/distance)
-            beta = -math.atan2(x-self.NEDx/y-self.NEDy)
+
+            beta = math.atan2()-math.atan2(y-self.NEDy/x-self.NEDx)
             if beta>math.pi: 
-                beta = abs(beta -2*math.pi)
+                beta = abs(beta - 2*math.pi)
             if beta<-math.pi: 
                 beta = abs(beta +2*math.pi)
-            if beta<alfa or beta = alfa 
+            if beta<alfa or beta == alfa:
                 print('collision')
                 
         self.desired(self.vel, self.bearing)
