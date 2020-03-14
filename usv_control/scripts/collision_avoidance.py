@@ -11,6 +11,7 @@ from geometry_msgs.msg import Pose2D
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Float32MultiArray
 
+SIMULATION = rospy.get_param("collision_avoidance/simulation")
 class Test:
     def __init__(self):
         self.testing = True
@@ -152,30 +153,45 @@ class Test:
         if self.distance < 6:
             self.vel = 0.6
 
-        self.avoid(ak)
+        self.avoid(ak, x2, y2)
 
-    def avoid(self, angle_offset):
+    def avoid(self, ak, x2, y2):
+        vel_nedx,vel_nedy = body_to_ned(self.u,self.v,0,0)
+        vel_ppx,vel_ppy =  ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
+        ppx,ppy=ned_to_pp(self.NEDx,self.NEDy,x2,y2)
         for i in range(0,obstacles,3):
-            x = obstacles[i]
-            y = obstacles[i+1]
+            obsx = obstacles[i]
+            obsy = obstacles[i+1]
+            obsnedx, obsnedy = body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
+            obsppx,obsppy =  ned_to_pp(nedx,nedy,ak,x2,y2)
             obstacle_radius = obstacles[i+2]
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
 
-            x_pow = pow(x-self.NEDx,2) 
-            y_pow = pow(y-self.NEDy,2) 
+            x_pow = pow(obsppx-ppx,2) 
+            y_pow = pow(obsppy-ppy,2) 
             distance = sqrt(x_pow+y_pow)
 
             alpha = math.arcsin(obstacle_radius/distance)
 
-            beta = math.atan2()-math.atan2(y-self.NEDy/x-self.NEDx)
+            beta = math.atan2(vel_ppy/vel_ppx)-math.atan2(obsppy-ppy/obsppx-ppx)
             if beta>math.pi: 
                 beta = abs(beta - 2*math.pi)
             if beta<-math.pi: 
                 beta = abs(beta +2*math.pi)
             if beta<alfa or beta == alfa:
                 print('collision')
-                
-        self.desired(self.vel, self.bearing)
+                self.dodge(vel_ppx,vel_ppy,ppx,ppx,ppy)
+    
+    def dodge(vel_ppx,vel_ppy,ppx,ppy):
+        eucledian_vel = sqrt(pow(vel_ppx)+pow(vel_ppy))
+        eucleudian_pos = sqrt(pow(ppx)+pow(ppy))
+        unit_vely =vel_ppy/eucledian_vel 
+        unit_posy = ppy/eucledian_pos
+        if vy>py:
+            vel_ppy = vel_ppy+ac
+        if vy<py or vy=py:
+            vel_ppy = vel_ppy-ac
+
 
     '''
     def gps_to_ecef_to_ned(self, lat, lon):
@@ -216,13 +232,21 @@ class Test:
 
         return (nedx,nedy)
 
-    def body_to_ned(self, x, y):
-        p = np.array([x,y])
+
+    def body_to_ned(self, body_x, body_y, x, y):
+        p = np.array([body_x,body_y])
         J = np.array([[math.cos(self.yaw), -1*math.sin(self.yaw)],[math.sin(self.yaw), math.cos(self.yaw)]])
         n = J.dot(p)
 
-        nedx = n[0] + self.NEDx
-        nedy = n[1] + self.NEDy
+        nedx = n[0] + x
+        nedy = n[1] + y
+
+        return (nedx, nedy)
+
+    def ned_to_pp(self,x,y,ak,xd,yd):
+        p = np.array([x-xd,y-xd])
+        J = np.array([[math.cos(ak), -1*math.sin(ak)],[math.sin(ak), math.cos(ak)]])
+        n = J.dot(p)
 
         return (nedx, nedy)
 
@@ -233,7 +257,7 @@ class Test:
         self.d_speed_pub.publish(self.ds)
 
 def main():
-    rospy.init_node('los_avoidance', anonymous=True)
+    rospy.init_node('collision_avoidance', anonymous=False)
     rate = rospy.Rate(100) # 100hz
     t = Test()
     t.wp_t = []
@@ -255,7 +279,7 @@ def main():
                 wp_LOS.insert(1,y_0)
             elif t.waypoint_mode == 2:
                 for i in range(0,len(wp_LOS),2):
-                    wp_LOS[i], wp_LOS[i+1] = t.body_to_ned(wp_LOS[i],wp_LOS[i+1])
+                    wp_LOS[i], wp_LOS[i+1] = t.body_to_ned(wp_LOS[i],wp_LOS[i+1],self.NEDx,self.NEDy)
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
         if len(wp_LOS) > 1:
