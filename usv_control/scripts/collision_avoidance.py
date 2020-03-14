@@ -55,7 +55,7 @@ class Test:
         self.Waypointpath = Pose2D()
         self.LOSpath = Pose2D()
 
-        self.obstacles = []
+        self.obstacle_view = "000"
 
         self.waypoint_mode = 0 # 0 for NED, 1 for GPS, 2 for body
 
@@ -73,7 +73,7 @@ class Test:
         rospy.Subscriber("/vectornav/ins_2d/local_vel", Vector3, self.local_vel_callback)
         rospy.Subscriber("/vectornav/ins_2d/ins_ref", Vector3, self.gpsref_callback)
         rospy.Subscriber("/mission/waypoints", Float32MultiArray, self.waypoints_callback)
-        rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  obstacles_list, self.obstacles_callback)
+        rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  String, self.obstacles_callback)
 
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
@@ -113,11 +113,7 @@ class Test:
         self.wp_array = wp
 
     def obstacles_callback(self, data):
-        self.obstacles = []
-        for i in range(data.len):
-            self.obstacles.append({'X' : data.obstacles[i].x + self.offset,
-                                   'Y' : data.obstacles[i].y,
-                                   'radius' : data.obstacles[i].z})
+        self.obstacle_view = data.data
 
     def LOSloop(self, listvar):
         if self.k < len(listvar)/2:
@@ -261,8 +257,7 @@ class Test:
         p = np.array([x-xd,y-xd])
         J = np.array([[math.cos(ak), -1*math.sin(ak)],[math.sin(ak), math.cos(ak)]])
         n = J.dot(p)
-        nedx = n[0] + x
-        nedy = n[1] + y
+
         return (nedx, nedy)
 
     def desired(self, speed, heading):
@@ -284,17 +279,14 @@ def main():
             wp_LOS = t.wp_t
             x_0 = t.NEDx
             y_0 = t.NEDy
-            # 0 = NED
             if t.waypoint_mode == 0:
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
-            # 1 = GPS
             elif t.waypoint_mode == 1:
                 for i in range(0,len(wp_LOS),2):
                     wp_LOS[i], wp_LOS[i+1] = t.gps_to_ned(wp_LOS[i],wp_LOS[i+1])
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
-            # 2 = Body
             elif t.waypoint_mode == 2:
                 for i in range(0,len(wp_LOS),2):
                     wp_LOS[i], wp_LOS[i+1] = t.body_to_ned(wp_LOS[i],wp_LOS[i+1],self.NEDx,self.NEDy)
