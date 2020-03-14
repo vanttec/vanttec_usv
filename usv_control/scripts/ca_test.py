@@ -16,7 +16,6 @@ class Test:
 
         self.waypoints = Float32MultiArray()
         self.waypoints.layout.data_offset = 3
-        self.waypoints.data = [10, 0, 0]
 
         self.obstacles_list = obstacles_list()
         self.obstacles_list.len = 1
@@ -29,17 +28,6 @@ class Test:
 
         #self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
         self.waypoints_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
-
-def main():
-    rospy.init_node('ca_test', anonymous=True)
-    rate = rospy.Rate(100) # 100hz
-    t = Test()
-    while not rospy.is_shutdown() and t.testing:
-        #t.obstacles_pub.publish(t.obstacles_list)
-        t.waypoints_pub.publish(t.waypoints)
-        #t.testing = False
-        #rospy.logwarn("Finished")
-        rate.sleep()
     rospy.spin()
 
 if __name__ == "__main__":
