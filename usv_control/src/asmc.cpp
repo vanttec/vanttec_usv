@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
   ros::Subscriber desired_heading_sub = n.subscribe("/guidance/desired_heading", 1000, desiredHeadingCallback);
   ros::Subscriber ins_pose_sub = n.subscribe("/vectornav/ins_2d/ins_pose", 1000, insCallback);
   ros::Subscriber local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 1000, velocityCallback);
-  ros::Subscriber flag_sub = n.subscribe("/arduino_br/ardumotors/", 1000, flagCallback);
+  ros::Subscriber flag_sub = n.subscribe("/arduino_br/ardumotors/flag", 1000, flagCallback);
   ros::Subscriber ardu_sub = n.subscribe("arduino", 1000, arduinoCallback);
 
   ros::Rate loop_rate(rate);
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
     float e_psi_dot = 0 - r;
 
     float sigma_u = e_u + lambda_u * e_u_int;
-    float sigma_psi = e_psi_dot + lambda_psi * e_psi;// + lambda_psi_i * e_psi_int;
+    float sigma_psi = e_psi_dot + lambda_psi * e_psi;
     
     float sigma_u_abs = abs(sigma_u);
     float sigma_psi_abs = abs(sigma_psi);
