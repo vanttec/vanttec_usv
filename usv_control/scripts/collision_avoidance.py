@@ -11,7 +11,9 @@ from geometry_msgs.msg import Pose2D
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Float32MultiArray
 
-SIMULATION = rospy.get_param("collision_avoidance/simulation")
+from usv_perception.msg import obstacles_list
+
+SIMULATION = 1#rospy.get_param("collision_avoidance/simulation")
 class Test:
     def __init__(self):
         self.testing = True
@@ -52,12 +54,13 @@ class Test:
         self.Waypointpath = Pose2D()
         self.LOSpath = Pose2D()
 
-        self.obstacle_view = "000"
+        self.obstacles = []
 
         self.waypoint_mode = 0 # 0 for NED, 1 for GPS, 2 for body
 
         self.boat_radius = .50 #meters
         self.safety_radius = .3 #meters
+        self.offset = .55 #camera to ins offset
 
         #self.Rne = np.zeros((3, 3), dtype=np.float)
         #self.Rea = 6378137
@@ -68,7 +71,7 @@ class Test:
         rospy.Subscriber("/vectornav/ins_2d/local_vel", Vector3, self.local_vel_callback)
         rospy.Subscriber("/vectornav/ins_2d/ins_ref", Vector3, self.gpsref_callback)
         rospy.Subscriber("/mission/waypoints", Float32MultiArray, self.waypoints_callback)
-        rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  String, self.obstacles_callback)
+        rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  obstacles_list, self.obstacles_callback)
 
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
@@ -110,7 +113,11 @@ class Test:
         self.wp_array = wp
 
     def obstacles_callback(self, data):
-        self.obstacle_view = data.data
+        self.obstacles = []
+        for i in range(data.len):
+            self.obstacles.append({'X' : data.obstacles[i].x + self.offset,
+                                    'Y' : data.obstacles[i].y,
+                                    'radius' : data.obstacles[i].z})
 
     def LOSloop(self, listvar):
         if self.k < len(listvar)/2:
@@ -132,7 +139,6 @@ class Test:
             self.desired(0, self.yaw)
 
     def LOS(self, x1, y1, x2, y2):
-        angle = math.arcsin()
         ak = math.atan2(y2-y1,x2-x1)
         ye = -(self.NEDx - x1)*math.sin(ak) + (self.NEDy - y1)*math.cos(ak)
         xe = (self.NEDx - x1)*math.cos(ak) + (self.NEDy - y1)*math.sin(ak)
@@ -153,44 +159,48 @@ class Test:
         if self.distance < 6:
             self.vel = 0.6
 
+
         self.avoid(ak, x2, y2)
 
     def avoid(self, ak, x2, y2):
-        vel_nedx,vel_nedy = body_to_ned(self.u,self.v,0,0)
-        vel_ppx,vel_ppy =  ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
-        ppx,ppy=ned_to_pp(self.NEDx,self.NEDy,x2,y2)
-        for i in range(0,obstacles,3):
-            obsx = obstacles[i]
-            obsy = obstacles[i+1]
-            obsnedx, obsnedy = body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
-            obsppx,obsppy =  ned_to_pp(nedx,nedy,ak,x2,y2)
-            obstacle_radius = obstacles[i+2]
+        vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
+        vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
+        ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
+        for i in range(0,len(self.obstacles)):
+            obsx = self.obstacles[i]['X']
+            obsy = self.obstacles[i]['Y']
+            obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
+            obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
+            obstacle_radius = self.obstacles[i]['radius']
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
 
             x_pow = pow(obsppx-ppx,2) 
             y_pow = pow(obsppy-ppy,2) 
-            distance = sqrt(x_pow+y_pow)
+            distance = pow((x_pow+y_pow),0.5)
 
-            alpha = math.arcsin(obstacle_radius/distance)
+            alpha = math.asin(obstacle_radius/distance)
 
-            beta = math.atan2(vel_ppy/vel_ppx)-math.atan2(obsppy-ppy/obsppx-ppx)
-            if beta>math.pi: 
+            beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
+            if beta > math.pi: 
                 beta = abs(beta - 2*math.pi)
-            if beta<-math.pi: 
+            if beta < -math.pi: 
                 beta = abs(beta +2*math.pi)
-            if beta<alfa or beta == alfa:
+            if beta < alpha or beta == alpha:
                 print('collision')
-                self.dodge(vel_ppx,vel_ppy,ppx,ppx,ppy)
+                self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+
+        self.desired(self.vel, self.bearing)
     
-    def dodge(vel_ppx,vel_ppy,ppx,ppy):
-        eucledian_vel = sqrt(pow(vel_ppx)+pow(vel_ppy))
-        eucleudian_pos = sqrt(pow(ppx)+pow(ppy))
-        unit_vely =vel_ppy/eucledian_vel 
+    def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
+        eucledian_vel = pow((pow(vel_ppx,2)+pow(vel_ppy,2)),0.5)
+        eucledian_pos = pow((pow(ppx,2)+pow(ppy,2)),0.5)
+        unit_vely = vel_ppy/eucledian_vel 
         unit_posy = ppy/eucledian_pos
-        if vy>py:
-            vel_ppy = vel_ppy+ac
-        if vy<py or vy=py:
-            vel_ppy = vel_ppy-ac
+        if unit_vely>unit_posy:
+            vel_ppy = vel_ppy + ac
+        if unit_vely < unit_posy or unit_vely == unit_posy:
+            vel_ppy = vel_ppy - ac
+
 
 
     '''
@@ -247,7 +257,8 @@ class Test:
         p = np.array([x-xd,y-xd])
         J = np.array([[math.cos(ak), -1*math.sin(ak)],[math.sin(ak), math.cos(ak)]])
         n = J.dot(p)
-
+        nedx = n[0] + x
+        nedy = n[1] + y
         return (nedx, nedy)
 
     def desired(self, speed, heading):
