@@ -4,8 +4,8 @@ import os
 import time
 import rospy
 from std_msgs.msg import Float32MultiArray
-from usv_perception.msg import obj_detected
-from usv_perception.msg import obj_detected_list
+from geometry_msgs.msg import Vector3
+from usv_perception.msg import obstacles_list
 import math
 
 #Constant Speed and Constant angular
