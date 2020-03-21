@@ -4,8 +4,8 @@ import os
 import time
 import rospy
 from std_msgs.msg import Float32MultiArray
-from usv_perception.msg import obj_detected
-from usv_perception.msg import obj_detected_list
+from geometry_msgs.msg import Vector3
+from usv_perception.msg import obstacles_list
 import math
 
 #Constant Speed and Constant angular
@@ -18,17 +18,16 @@ class Test:
         self.waypoints.layout.data_offset = 3
         self.waypoints.data = [5, 1, 0]
 
-        self.obj_list = obj_detected_list()
-        self.len_list = 1
-        self.obj = obj_detected()
+        self.obstacles_list = obstacles_list()
+        self.obstacles_list.len = 1
+        self.obj = Vector3()
         #print(p1,p2)
-        self.obj.X = 
-        self.obj.Y = 1
-        self.obj.color = "green"
-        self.obj.clase = "bouy"
-        self.obj_list.objects.append(self.obj)
+        self.obj.x = 1
+        self.obj.y = 1
+        self.obj.z = 1
+        self.obstacles_list.obstacles.append(self.obj)
 
-        self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obj_detected_list, queue_size=10)
+        self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
         self.waypoints_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
 
 def main():
@@ -36,7 +35,7 @@ def main():
     rate = rospy.Rate(100) # 100hz
     t = Test()
     while not rospy.is_shutdown() and t.testing:
-        t.obstacles_pub.publish(t.obj_list)
+        t.obstacles_pub.publish(t.obstacles_list)
         t.waypoints_pub.publish(t.waypoints)
         #t.testing = False
         #rospy.logwarn("Finished")
