@@ -12,6 +12,7 @@ cv_bridge
 roscpp
 rospy
 std_msgs
+geometry_msgs
 sensor_msgs
 message_generation
 )
@@ -56,6 +57,7 @@ add_message_files(
    FILES
    obj_detected.msg
    obj_detected_list.msg
+   obstacles_list.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -74,7 +76,8 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   sensor_msgs
-     std_msgs
+  geometry_msgs
+  std_msgs
 )
 
 ################################################
