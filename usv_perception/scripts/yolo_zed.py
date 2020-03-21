@@ -145,8 +145,6 @@ class Detection_Node:
             boxes, confidences, indices, cls_ids = det.get_detections(net, frame)
             # Publish detections
 
-
-
             # If there were any previous detections, draw them
             colors = []
             distances = []
@@ -169,11 +167,9 @@ class Detection_Node:
 
                     #1280 si es HD , 672
 
-                    ind = p1+p2*zed_cam_size
+                    ind = p1 + p2*zed_cam_size
 
                     d_list = self.points_list[ind-15:ind+15]
-
-
 
                     d_list2_Y = []
                     for j in d_list:
@@ -187,7 +183,6 @@ class Detection_Node:
 
                     d_list = d_list2_Y
                     d_list_x = d_list2_X
-
 
                     if len(d_list_x) != 0:
                         dist_x = np.mean(d_list_x)
@@ -209,8 +204,6 @@ class Detection_Node:
                     colors.append(color)
                     distances.append(dist)
 
-
-
                     if str(dist) != 'nan' and str(dist_x) != 'nan':
                         obj = obj_detected()
                         #print(p1,p2)
@@ -224,7 +217,6 @@ class Detection_Node:
                         obj.clase = 'bouy' if cls_ids[i] == 0 else 'marker'
                         len_list += 1
                         obj_list.objects.append(obj)
-
 
                     det.draw_prediction(frame, cls_ids[i], confidences[i], color,diststring, x, y, x+w, y+h)
 
