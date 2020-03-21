@@ -27,11 +27,6 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Pose2D
 from geometry_msgs.msg import Vector3
 
-#TO DO 
-#Cambiar tipo de dato STATUS
-#AUTONAV Y SPEED CHALLENGE
-#3 CURSOS Y 6 RETOS 
-
 class USVMaster:
     def __init__(self):
 
