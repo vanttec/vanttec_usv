@@ -1,11 +1,19 @@
 <launch>
 
 	<!--node pkg="pkg_name" type="nombre_de_archivo" name="nombre_de_nodo" -->
+<<<<<<< 8d3c0695498252ecdf89f602c9651e32e035c1fc
   <!--node pkg="usv_control" type="collision_avoidance.py" name="collision_avoidance" >
 	<param name = "simulation" value = "1"/>
 	</node-->
 	
 	<!--node pkg="usv_control" type="ca_test.py" name="ca_test"-->
+=======
+  <node pkg="usv_control" type="collision_avoidance.py" name="collision_avoidance" >
+	<param name = "simulation" value = "1"/>
+	</node>
+	
+	<node pkg="usv_control" type="ca_test.py" name="ca_test"/>
+>>>>>>> bugfix roslaunch name
 
 	<node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" />
 
