@@ -5,7 +5,7 @@
 ----------------------------------------------------------
     @file: boat_transceiver.py
     @date: Tue Dec 17, 2019
-    @date_modif: Thu Jan 30, 2020
+    @date_modif: Sat Mar 21, 2020
     @author: Alejandro Gonzalez
     @e-mail: alexglzg97@gmail.com
 	@co-author: Roberto Mendivil Castro
@@ -38,20 +38,20 @@ ROS_RATE = 100
 class XbeeBoat:
 
 
-    def __init__(self, _port, _baud_rate, _remote_id, _ros_rate):
+    def __init__(self, port, baud_rate, remote_id, ros_rate):
 
         
         self.usv_master_status = ""
 
         # Initialize and configure the DigiXTend Xbee Device
-        self.device = XBeeDevice(_port, _baud_rate)
+        self.device = XBeeDevice(port, baud_rate)
         self.device.open()    
         if not self.device.is_open():
             rospy.loginfo('[USV] Device could not be opened.')
             raise Exception()
         self.device.flush_queues()
         self.xnetwork = self.device.get_network()
-        self.remote_device = self.xnetwork.discover_device(_remote_id)
+        self.remote_device = self.xnetwork.discover_device(remote_id)
         if self.remote_device is None:
             rospy.loginfo('[USV] Could not find the remote device.')
             self.device.close()
@@ -60,7 +60,7 @@ class XbeeBoat:
         rospy.loginfo('[USV] Digi XTend device initialized.')
 
         # ROS Configuration
-        self.ros_rate = rospy.Rate(_ros_rate)
+        self.ros_rate = rospy.Rate(ros_rate)
 
         # ROS Subscriber
         rospy.Subscriber("/usv_comms/boat_transceiver/data_input", String, self.data_callback)
@@ -78,13 +78,11 @@ class XbeeBoat:
         self.comm_active = True
         rospy.loginfo('[USV] Awaiting conversation...\n')
 
-    def data_callback(self, _data):
-        self.boat_data = _data.data
-        #rospy.loginfo('[USV] Sending data: ', self.boat_data)
-        #self.device.send_data_async(self.remote_device, self.boat_data)
+    def data_callback(self, data):
+        self.boat_data = data.data
 
-    def usv_master_callback(self, _status):
-        self.usv_master_status = _status.data
+    def usv_master_callback(self, status):
+        self.usv_master_status = status.data
 
 
 def main():
@@ -92,7 +90,7 @@ def main():
     rospy.loginfo(" |                       Boat                      |")
     rospy.loginfo(" +-------------------------------------------------+\n")
     
-    rospy.init_node('boat_transceiver', anonymous=True)
+    rospy.init_node('boat_transceiver', anonymous=False)
 
     try:
         usv = XbeeBoat(PORT, BAUD_RATE, REMOTE_NODE_ID, ROS_RATE)
@@ -122,8 +120,6 @@ def main():
                     message = 'STOP'
                 
                 usv.course_pub.publish(message)
-
-                #usv.device.send_data_async(usv.remote_device, usv.usv_master_status)     
                 
             usv.ros_rate.sleep()
 

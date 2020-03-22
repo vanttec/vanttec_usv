@@ -5,7 +5,7 @@
 ----------------------------------------------------------
     @file: boat_transceiver.py
     @date: Tue Dec 17, 2019
-    @date_modif: Thu Jan 30, 2020
+    @date_modif: Sat Mar 21, 2020
     @author: Alejandro Gonzalez
     @e-mail: alexglzg97@gmail.com
     @co-author: Sebastian Martinez Perez
@@ -38,11 +38,11 @@ ROS_RATE = 100
 class XbeeStation:
 
 
-    def __init__(self, _port, _baud_rate, _remote_id, _ros_rate):
+    def __init__(self, port, baud_rate, remote_id, ros_rate):
 
 
         # Initialize and configure the DigiXTend Xbee Device
-        self.device = XBeeDevice(_port, _baud_rate)
+        self.device = XBeeDevice(port, baud_rate)
     
         self.device.open()    
         if not self.device.is_open():
@@ -51,7 +51,7 @@ class XbeeStation:
 
         self.device.flush_queues()
         self.xnetwork = self.device.get_network()
-        self.remote_device = self.xnetwork.discover_device(_remote_id)
+        self.remote_device = self.xnetwork.discover_device(remote_id)
         if self.remote_device is None:
             rospy.loginfo('[STATION] Could not find the remote device.')
             self.device.close()
@@ -60,7 +60,7 @@ class XbeeStation:
         rospy.loginfo('[STATION] Digi XTend device initialized.')
 
         # ROS Configuration
-        self.ros_rate = rospy.Rate(_ros_rate)
+        self.ros_rate = rospy.Rate(ros_rate)
 
         # ROS Publisher
         self.boat_data_pub = rospy.Publisher("/usv_comms/station_transceiver/boat_data", String, queue_size=10)
@@ -73,21 +73,21 @@ class XbeeStation:
         self.comm_active = True
         rospy.loginfo('[STATION] Awaiting conversation...\n')
 
-    def config_callback(self, _config):
-        rospy.loginfo('[STATION] Sending following message: ' + str(_config.data))
-        self.device.send_data_async(self.remote_device, str(_config.data))
-        if str(_config.data) == 'exit':
+    def config_callback(self, config):
+        rospy.loginfo('[STATION] Sending following message: ' + str(config.data))
+        self.device.send_data_async(self.remote_device, str(config.data))
+        if str(config.data) == 'exit':
             self.comm_active = False
 
-    def general_status_callback(self, _status):
-        self.boat_general_status = _status.data
+    def general_status_callback(self, status):
+        self.boat_general_status = status.data
 
 def main():
     rospy.loginfo(' +--------------------------------------+')
     rospy.loginfo(' |                Station               |')
     rospy.loginfo(' +--------------------------------------+\n')
 
-    rospy.init_node('station_transceiver', anonymous=True)
+    rospy.init_node('station_transceiver', anonymous=False)
     
     try:
         station = XbeeStation(PORT, BAUD_RATE, REMOTE_NODE_ID, ROS_RATE)
