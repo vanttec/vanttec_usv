@@ -16,15 +16,15 @@ class Test:
 
         self.waypoints = Float32MultiArray()
         self.waypoints.layout.data_offset = 3
-        self.waypoints.data = [5, 1, 0]
+        self.waypoints.data = [10, 0, 0]
 
         self.obstacles_list = obstacles_list()
         self.obstacles_list.len = 1
         self.obj = Vector3()
         #print(p1,p2)
-        self.obj.x = 1
-        self.obj.y = 1
-        self.obj.z = 1
+        self.obj.x = 5
+        self.obj.y = 0
+        self.obj.z = .25
         self.obstacles_list.obstacles.append(self.obj)
 
         self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
