@@ -42,8 +42,8 @@ class SpeedChallenge:
         self.objects_list = []
         self.activated = True
         self.state = -1
-        self.NEDx = 0
-        self.NEDy = 0
+        self.ned_x = 0
+        self.ned_y = 0
         self.yaw = 0
         self.lat = 0
         self.lon = 0
@@ -66,8 +66,8 @@ class SpeedChallenge:
         self.test = rospy.Publisher("/mission/state", Int32, queue_size=10)
 
     def ins_pose_callback(self,pose):
-        self.NEDx = pose.x
-        self.NEDy = pose.y
+        self.ned_x = pose.x
+        self.ned_y = pose.y
         self.yaw = pose.theta
 
     def objs_callback(self,data):
@@ -227,29 +227,27 @@ class SpeedChallenge:
                  body_y2: obj body y coordinate
         '''
         p = np.array([[gate_x2],[gate_y2]])
-        J = np.array([[math.cos(alpha), -1*math.sin(alpha)],
-                      [math.sin(alpha), math.cos(alpha)]])
+        J = self.rotation_matrix(alpha)
         n = J.dot(p)
         body_x2 = n[0] + body_x1
         body_y2 = n[1] + body_y1
         return (body_x2, body_y2)
 
-    def body_to_ned(self, x, y):
+    def body_to_ned(self, x2, y2):
         '''
         @name: body_to_ned
         @brief: Coordinate transformation between body and NED reference frames.
-        @param: x: boat x coordinate in body reference frame
-                y: boat y coordinate in body reference frame
-        @return: nedx: boat x coordinate in ned reference frame
-                 nedy: boat y coordinate in ned reference frame
+        @param: x2: target x coordinate in body reference frame
+                y2: target y coordinate in body reference frame
+        @return: ned_x2: target x coordinate in ned reference frame
+                 ned_y2: target y coordinate in ned reference frame
         '''
-        p = np.array([x, y])
-        J = np.array([[math.cos(self.yaw), -1*math.sin(self.yaw)],
-                      [math.sin(self.yaw), math.cos(self.yaw)]])
+        p = np.array([x2, y2])
+        J = self.rotation_matrix(self.yaw)
         n = J.dot(p)
-        nedx = n[0] + self.NEDx
-        nedy = n[1] + self.NEDy
-        return (nedx, nedy)
+        ned_x2 = n[0] + self.ned_x
+        ned_y2 = n[1] + self.ned_y
+        return (ned_x2, ned_y2)
 
     def gate_to_ned(self, gate_x2, gate_y2, alpha, ned_x1, ned_y1):
         '''
@@ -264,12 +262,22 @@ class SpeedChallenge:
                  body_y2: obj ned y coordinate
         '''
         p = np.array([[gate_x2],[gate_y2]])
-        J = np.array([[math.cos(alpha), -1*math.sin(alpha)],
-                      [math.sin(alpha), math.cos(alpha)]])
+        J = self.rotation_matrix(alpha)
         n = J.dot(p)
         ned_x2 = n[0] + ned_x1
         ned_y2 = n[1] + ned_y1
         return (ned_x2, ned_y2)
+
+    def rotation_matrix(self, angle):
+        '''
+        @name: rotation_matrix
+        @brief: Transformation matrix template.
+        @param: angle: angle of rotation
+        @return: J: transformation matrix
+        '''
+        J = np.array([[math.cos(angle), -1*math.sin(angle)],
+                      [math.sin(angle), math.cos(angle)]])
+        return (J)
 
     def desired(self, path):
     	self.path_pub.publish(path)
@@ -359,8 +367,8 @@ def main():
                 last_detection = speedChallenge.objects_list
         if speedChallenge.state == 4:
             speedChallenge.test.publish(speedChallenge.state)
-            x_squared = math.pow(x_final - speedChallenge.NEDx, 2)
-            y_squared = math.pow(y_final - speedChallenge.NEDy, 2)
+            x_squared = math.pow(x_final - speedChallenge.ned_x, 2)
+            y_squared = math.pow(y_final - speedChallenge.ned_y, 2)
             distance_final = math.pow(x_squared + y_squared, 0.5)
             if distance_final > 1:
                 pass
