@@ -116,8 +116,8 @@ class Test:
         self.obstacles = []
         for i in range(data.len):
             self.obstacles.append({'X' : data.obstacles[i].x + self.offset,
-                                    'Y' : data.obstacles[i].y,
-                                    'radius' : data.obstacles[i].z})
+                                   'Y' : data.obstacles[i].y,
+                                   'radius' : data.obstacles[i].z})
 
     def LOSloop(self, listvar):
         if self.k < len(listvar)/2:
@@ -166,7 +166,7 @@ class Test:
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
         ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
-        for i in range(0,len(self.obstacles)):
+        for i in range(0,len(self.obstacles)-1,1):
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
             obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
@@ -186,7 +186,6 @@ class Test:
             if beta < -math.pi: 
                 beta = abs(beta +2*math.pi)
             if beta < alpha or beta == alpha:
-                print('collision')
                 self.dodge(vel_ppx,vel_ppy,ppx,ppy)
 
         self.desired(self.vel, self.bearing)
@@ -194,12 +193,14 @@ class Test:
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
         eucledian_vel = pow((pow(vel_ppx,2)+pow(vel_ppy,2)),0.5)
         eucledian_pos = pow((pow(ppx,2)+pow(ppy,2)),0.5)
-        unit_vely = vel_ppy/eucledian_vel 
-        unit_posy = ppy/eucledian_pos
-        if unit_vely>unit_posy:
-            vel_ppy = vel_ppy + ac
-        if unit_vely < unit_posy or unit_vely == unit_posy:
-            vel_ppy = vel_ppy - ac
+        if eucledian_pos != 0 and eucledian_vel !=0:
+            print('collision')
+            unit_vely = vel_ppy/eucledian_vel 
+            unit_posy = ppy/eucledian_pos
+            if unit_vely>unit_posy:
+                self.bearing = self.bearing + math.pi/36 #moves 5 degrees to the right
+            if unit_vely < unit_posy or unit_vely == unit_posy:
+                self.bearing = self.bearing - math.pi/36 #moves 5 degrees to the left
 
 
 
@@ -280,14 +281,17 @@ def main():
             wp_LOS = t.wp_t
             x_0 = t.NEDx
             y_0 = t.NEDy
+            # 0 = NED
             if t.waypoint_mode == 0:
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
+            # 1 = GPS
             elif t.waypoint_mode == 1:
                 for i in range(0,len(wp_LOS),2):
                     wp_LOS[i], wp_LOS[i+1] = t.gps_to_ned(wp_LOS[i],wp_LOS[i+1])
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
+            # 2 = Body
             elif t.waypoint_mode == 2:
                 for i in range(0,len(wp_LOS),2):
                     wp_LOS[i], wp_LOS[i+1] = t.body_to_ned(wp_LOS[i],wp_LOS[i+1],self.NEDx,self.NEDy)
