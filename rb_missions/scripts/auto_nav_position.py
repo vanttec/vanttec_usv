@@ -238,7 +238,7 @@ class AutoNav:
 
 def main():
     rospy.init_node("auto_nav_position", anonymous=False)
-    rate = rospy.Rate(100)
+    rate = rospy.Rate(20)
     autoNav = AutoNav()
     autoNav.distance = 4
     last_detection = []

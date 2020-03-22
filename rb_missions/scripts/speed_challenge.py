@@ -276,7 +276,7 @@ class SpeedChallenge:
     
 def main():
     rospy.init_node("speed_challenge", anonymous=False)
-    rate = rospy.Rate(100)    
+    rate = rospy.Rate(20)
     speedChallenge = SpeedChallenge()
     speedChallenge.distance = 4
     last_detection = []
