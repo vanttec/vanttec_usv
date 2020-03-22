@@ -1,11 +1,11 @@
 <launch>
 
 	<!--node pkg="pkg_name" type="nombre_de_archivo" name="nombre_de_nodo" -->
-  <node pkg="usv_control" type="collision_avoidance.py" name="collision_avoidance" >
+  <!--node pkg="usv_control" type="collision_avoidance.py" name="collision_avoidance" >
 	<param name = "simulation" value = "1"/>
-	</node>
+	</node-->
 	
-	<node pkg="usv_control" type="ca_test.py" name="ca_test"/>
+	<!--node pkg="usv_control" type="ca_test.py" name="ca_test"-->
 
 	<node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" />
 
