@@ -28,7 +28,7 @@ from std_msgs.msg import Float32MultiArray, Float64
 # Class definition
 class LOS:
     def __init__(self):
-        self.testing = True
+        self.active = True
 
         self.desired_speed = 0
         self.desired_heading = 0
@@ -57,7 +57,7 @@ class LOS:
         self.waypoint_mode = 0 # 0 for NED, 1 for GPS, 2 for body
          
         # ROS Subscribers
-        rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.gps_callback)
+        rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ned_callback)
         rospy.Subscriber("/vectornav/ins_2d/ins_ref", Pose2D, self.gpsref_callback)
         rospy.Subscriber("/mission/waypoints", Float32MultiArray, self.waypoints_callback)
 
@@ -67,7 +67,7 @@ class LOS:
         self.target_pub = rospy.Publisher("/usv_control/LOS/target", Pose2D, queue_size=10)
         self.LOS_pub = rospy.Publisher("/usv_control/LOS/LOS", Pose2D, queue_size=10)
 
-    def gps_callback(self, gps):
+    def ned_callback(self, gps):
         self.ned_x = gps.x
         self.ned_y = gps.y
         self.yaw = gps.theta
@@ -202,13 +202,13 @@ class LOS:
 
 def main():
 
-    rospy.init_node('los', anonymous=True)
+    rospy.init_node('los', anonymous=False)
     rate = rospy.Rate(100) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []
 
-    while (not rospy.is_shutdown()) and los.testing:
+    while (not rospy.is_shutdown()) and los.active:
         if los.last_waypoint_array != los.waypoint_array:
             los.k = 1
             los.last_waypoint_array = los.waypoint_array
