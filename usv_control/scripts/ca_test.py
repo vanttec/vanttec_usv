@@ -16,6 +16,7 @@ class Test:
 
         self.waypoints = Float32MultiArray()
         self.waypoints.layout.data_offset = 3
+        self.waypoints.data = [10, 0, 0]
 
         self.obstacles_list = obstacles_list()
         self.obstacles_list.len = 1
