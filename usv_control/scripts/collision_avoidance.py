@@ -186,7 +186,8 @@ class Test:
             if beta < -math.pi: 
                 beta = abs(beta +2*math.pi)
             if beta < alpha or beta == alpha:
-                self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+                #self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+                print('collision')
 
         self.desired(self.vel, self.bearing)
     
