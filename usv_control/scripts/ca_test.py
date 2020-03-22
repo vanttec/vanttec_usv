@@ -27,7 +27,7 @@ class Test:
         self.obj.z = .25
         self.obstacles_list.obstacles.append(self.obj)
 
-        self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
+        #self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
         self.waypoints_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
 
 def main():
@@ -35,7 +35,7 @@ def main():
     rate = rospy.Rate(100) # 100hz
     t = Test()
     while not rospy.is_shutdown() and t.testing:
-        t.obstacles_pub.publish(t.obstacles_list)
+        #t.obstacles_pub.publish(t.obstacles_list)
         t.waypoints_pub.publish(t.waypoints)
         #t.testing = False
         #rospy.logwarn("Finished")
