@@ -218,13 +218,13 @@ class SpeedChallenge:
         '''
         @name: gate_to_body
         @brief: Coordinate transformation between gate and body reference frames.
-        @param: gate_x2: obj x coordinate in gate reference frame
-                gate_y2: obj y coordinate in gate reference frame
+        @param: gate_x2: target x coordinate in gate reference frame
+                gate_y2: target y coordinate in gate reference frame
                 alpha: angle between gate and body reference frames
                 body_x1: gate x coordinate in body reference frame
                 body_y1: gate y coordinate in body reference frame
-        @return: body_x2: obj body x coordinate
-                 body_y2: obj body y coordinate
+        @return: body_x2: target x coordinate in body reference frame
+                 body_y2: target y coordinate in body reference frame
         '''
         p = np.array([[gate_x2],[gate_y2]])
         J = self.rotation_matrix(alpha)
@@ -253,13 +253,13 @@ class SpeedChallenge:
         '''
         @name: gate_to_ned
         @brief: Coordinate transformation between gate and NED reference frames.
-        @param: gate_x2: obj x coordinate in gate reference frame
-                gate_y2: obj y coordinate in gate reference frame
+        @param: gate_x2: target x coordinate in gate reference frame
+                gate_y2: target y coordinate in gate reference frame
                 alpha: angle between gate and ned reference frames
                 body_x1: gate x coordinate in ned reference frame
                 body_y1: gate y coordinate in ned reference frame
-        @return: body_x2: obj ned x coordinate
-                 body_y2: obj ned y coordinate
+        @return: body_x2: target x coordinate in ned reference frame
+                 body_y2: target y coordinate in ned reference frame
         '''
         p = np.array([[gate_x2],[gate_y2]])
         J = self.rotation_matrix(alpha)
