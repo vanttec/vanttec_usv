@@ -89,12 +89,12 @@ int main(int argc, char *argv[])
   //ROS Publishers for each required sensor data
   ros::Publisher right_thruster_pub = n.advertise<std_msgs::Float64>("/usv_control/controller/right_thruster", 1000);
   ros::Publisher left_thruster_pub = n.advertise<std_msgs::Float64>("/usv_control/controller/left_thruster", 1000);
-  //ros::Publisher speed_gain_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/speed_gain", 1000);
-  //ros::Publisher speed_error_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/speed_error", 1000);
-  //ros::Publisher speed_sigma_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/speed_sigma", 1000);
-  //ros::Publisher heading_sigma_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_sigma", 1000);
-  //ros::Publisher heading_gain_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_gain", 1000);
-  //ros::Publisher heading_error_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_error", 1000);
+  ros::Publisher speed_gain_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/speed_gain", 1000);
+  ros::Publisher speed_error_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/speed_error", 1000);
+  ros::Publisher speed_sigma_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/speed_sigma", 1000);
+  ros::Publisher heading_sigma_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_sigma", 1000);
+  ros::Publisher heading_gain_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_gain", 1000);
+  ros::Publisher heading_error_pub = n.advertise<std_msgs::Float64>("/usv_control/asmc/heading_error", 1000);
   
   //ROS Subscribers
   ros::Subscriber desired_speed_sub = n.subscribe("/guidance/desired_speed", 1000, desiredSpeedCallback);
@@ -292,36 +292,36 @@ int main(int argc, char *argv[])
     std_msgs::Float64 rt;
     std_msgs::Float64 lt;
     
-    /*std_msgs::Float64 sg;
+    std_msgs::Float64 sg;
     std_msgs::Float64 hg;
 
     std_msgs::Float64 eu;
     std_msgs::Float64 epsi;
 
     std_msgs::Float64 su;
-    std_msgs::Float64 sp;*/
+    std_msgs::Float64 sp;
 
     rt.data = starboard_t;
     lt.data = port_t;
     
-    /*sg.data = Ka_u;
+    sg.data = Ka_u;
     hg.data = Ka_psi;
 
     eu.data = e_u;
     epsi.data = e_psi;
 
     su.data = sigma_u;
-    sp.data = sigma_psi;*/
+    sp.data = sigma_psi;
 
     right_thruster_pub.publish(rt);
     left_thruster_pub.publish(lt);
 
-    /*speed_gain_pub.publish(sg);
+    speed_gain_pub.publish(sg);
     speed_error_pub.publish(eu);
     speed_sigma_pub.publish(su);
     heading_gain_pub.publish(hg);
     heading_error_pub.publish(epsi);
-    heading_sigma_pub.publish(sp);*/
+    heading_sigma_pub.publish(sp);
   }
     ros::spinOnce();
 

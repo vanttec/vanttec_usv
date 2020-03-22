@@ -1,6 +1,6 @@
 <launch>
 
-    <node pkg="usv_control" type="los.py" name="los" />
+    <!--node pkg="usv_control" type="los.py" name="los" /-->
 
     <node name="asmc" pkg="usv_control" type="asmc" >
 	<param name = "k_u" value = "0.1" />

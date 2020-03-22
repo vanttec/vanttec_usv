@@ -140,6 +140,9 @@ class LOS:
 	
         if self.distance < 6:
             self.vel = 0.4
+        
+        if abs(self.bearing - self.yaw) > np.pi/4:
+            self.vel = self.vel * 0.5
 
         self.desired(self.vel, self.bearing)
 
