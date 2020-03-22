@@ -13,7 +13,7 @@ from std_msgs.msg import Float32MultiArray
 
 from usv_perception.msg import obstacles_list
 
-SIMULATION = 1#rospy.get_param("collision_avoidance/simulation")
+SIMULATION = 1 #rospy.get_param("collision_avoidance/simulation")
 class Test:
     def __init__(self):
         self.testing = True
@@ -166,7 +166,7 @@ class Test:
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
         ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
-        for i in range(0,len(self.obstacles)):
+        for i in range(0,len(self.obstacles)-1,1):
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
             obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
@@ -186,8 +186,7 @@ class Test:
             if beta < -math.pi: 
                 beta = abs(beta +2*math.pi)
             if beta < alpha or beta == alpha:
-                #self.dodge(vel_ppx,vel_ppy,ppx,ppy)
-                print('collision')
+                self.dodge(vel_ppx,vel_ppy,ppx,ppy)
 
         self.desired(self.vel, self.bearing)
     
