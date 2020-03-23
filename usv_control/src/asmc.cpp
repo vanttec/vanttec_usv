@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
   if (testing == 1 && arduino == 1){
     Xu = -25;
     Xuu = 0;
-    float u_abs = abs(u);
+    float u_abs = std::abs(u);
     if (u_abs > 1.2){
       Xu = 64.55;
       Xuu = -70.92;
@@ -175,8 +175,8 @@ int main(int argc, char *argv[])
 
     float e_u = u_d - u;
     float e_psi = psi_d - theta;
-    if (abs(e_psi) > 3.141592){
-        e_psi = (e_psi/abs(e_psi))*(abs(e_psi) - 2*3.141592);
+    if (std::abs(e_psi) > 3.141592){
+        e_psi = (e_psi/std::abs(e_psi))*(std::abs(e_psi) - 2*3.141592);
     }
     e_u_int = (integral_step)*(e_u + e_u_last)/2 + e_u_int; //integral of the surge speed error
     e_u_last = e_u;
@@ -186,8 +186,8 @@ int main(int argc, char *argv[])
     float sigma_u = e_u + lambda_u * e_u_int;
     float sigma_psi = e_psi_dot + lambda_psi * e_psi;
     
-    float sigma_u_abs = abs(sigma_u);
-    float sigma_psi_abs = abs(sigma_psi);
+    float sigma_u_abs = std::abs(sigma_u);
+    float sigma_psi_abs = std::abs(sigma_psi);
     
     int sign_u_sm = 0;
     int sign_psi_sm = 0;
@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
     else if (port_t < -30){
       port_t = -30;
     }
-    
+
     //Data publishing
     std_msgs::Float64 rt;
     std_msgs::Float64 lt;

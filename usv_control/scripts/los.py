@@ -64,8 +64,8 @@ class LOS:
         # ROS Publishers
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
-        self.target_pub = rospy.Publisher("/usv_control/LOS/target", Pose2D, queue_size=10)
-        self.LOS_pub = rospy.Publisher("/usv_control/LOS/LOS", Pose2D, queue_size=10)
+        self.target_pub = rospy.Publisher("/usv_control/los/target", Pose2D, queue_size=10)
+        self.LOS_pub = rospy.Publisher("/usv_control/los/los", Pose2D, queue_size=10)
 
     def ned_callback(self, gps):
         self.ned_x = gps.x
@@ -138,10 +138,10 @@ class LOS:
         self.LOS_pub.publish(self.los_path)
         self.vel = 1
 	
-        if self.distance < 6:
-            self.vel = 0.4
+        if self.distance < 5:
+            self.vel = 0.5
         
-        if abs(self.bearing - self.yaw) > np.pi/4:
+        if abs(self.bearing - self.yaw) > np.pi/3:
             self.vel = self.vel * 0.5
 
         self.desired(self.vel, self.bearing)
