@@ -147,7 +147,7 @@ class Test:
         xe = (self.NEDx - x1)*math.cos(ak) + (self.NEDy - y1)*math.sin(ak)
         delta = (self.dmax - self.dmin)*math.exp(-(1/self.gamma)*abs(ye)) + self.dmin
         psi_r = math.atan(-ye/delta)
-        self.bearing = ak + psi_r + self.avoid_angle
+        self.bearing = ak + psi_r
         if (abs(self.bearing) > (math.pi)):
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
         xlos = x1 + (delta+xe)*math.cos(ak)
@@ -193,7 +193,6 @@ class Test:
             else: 
                 print ('free')
                 self.avoid_angle = 0
-
         self.desired(self.vel, self.bearing)
     
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
