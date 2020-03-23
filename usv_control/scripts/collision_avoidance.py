@@ -61,6 +61,7 @@ class Test:
         self.boat_radius = .50 #meters
         self.safety_radius = .3 #meters
         self.offset = .55 #camera to ins offset
+        self.avoid_angle = 0
 
         #self.Rne = np.zeros((3, 3), dtype=np.float)
         #self.Rea = 6378137
@@ -144,19 +145,16 @@ class Test:
         xe = (self.NEDx - x1)*math.cos(ak) + (self.NEDy - y1)*math.sin(ak)
         delta = (self.dmax - self.dmin)*math.exp(-(1/self.gamma)*abs(ye)) + self.dmin
         psi_r = math.atan(-ye/delta)
-        self.bearing = ak + psi_r
-
+        self.bearing = ak + psi_r + self.avoid_angle
         if (abs(self.bearing) > (math.pi)):
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
-
         xlos = x1 + (delta+xe)*math.cos(ak)
         ylos = y1 + (delta+xe)*math.sin(ak)
         self.LOSpath.x = xlos
         self.LOSpath.y = ylos
         self.LOS_pub.publish(self.LOSpath)
-
         self.vel = 1
-        if self.distance < 6:
+        if self.distance < 5:
             self.vel = 0.6
 
         self.avoid(ak, x2, y2)
@@ -166,19 +164,17 @@ class Test:
         vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
         ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
         for i in range(0,len(self.obstacles),1):
+            print("obstacle"+str(i+1))
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
             obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
             obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
             obstacle_radius = self.obstacles[i]['radius']
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
-            print(total_radius)
             x_pow = pow(obsppx-ppx,2) 
             y_pow = pow(obsppy-ppy,2) 
             distance = pow((x_pow+y_pow),0.5)
-
             alpha = math.asin(obstacle_radius/distance)
-
             beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
             if beta > math.pi: 
                 beta = abs(beta - 2*math.pi)
@@ -186,7 +182,9 @@ class Test:
                 beta = abs(beta +2*math.pi)
             if beta < alpha or beta == alpha:
                 self.dodge(vel_ppx,vel_ppy,ppx,ppy)
-                print('collision')
+            else: 
+                print('free')
+                self.avoid_angle = 0
 
         self.desired(self.vel, self.bearing)
     
@@ -195,13 +193,19 @@ class Test:
         eucledian_pos = pow((pow(ppx,2)+pow(ppy,2)),0.5)
         if eucledian_pos != 0 and eucledian_vel !=0:
             print('collision')
+            self.vel = 0.6
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = ppy/eucledian_pos
             if unit_vely>unit_posy:
-                self.bearing = self.bearing + math.pi/36 #moves 5 degrees to the right
+                self.avoid_angle = self.avoid_angle + .1 #moves 5 degrees to the right
+                print("right +")
+                print(self.bearing)
+                print(self.avoid_angle)
             if unit_vely < unit_posy or unit_vely == unit_posy:
-                self.bearing = self.bearing - math.pi/36 #moves 5 degrees to the left
-
+                self.avoid_angle = self.avoid_angle - .1 #moves 5 degrees to the left
+                print("left -")
+                print(self.bearing)
+                print(self.avoid_angle)
 
 
     '''
