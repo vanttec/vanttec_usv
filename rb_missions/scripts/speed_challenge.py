@@ -178,7 +178,7 @@ class SpeedChallenge:
         '''
         rospy.loginfo("Buoy waypoints has just started")
             
-        radius = 2
+        radius = 3
 
         w1 = [buoy_x, buoy_y + radius]
         w2 = [buoy_x + radius, buoy_y]
@@ -348,13 +348,13 @@ def main():
                     distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                     ind_0 = np.argsort(distance_list)[0]
                 if ((len(speedChallenge.objects_list) >= 1) and
-                    (speedChallenge.objects_list[ind_0]['X'] < 5)):
+                    (speedChallenge.objects_list[ind_0]['X'] < 7)):
                     buoy_x = speedChallenge.objects_list[0]['X']
                     buoy_y = speedChallenge.objects_list[0]['Y']
                     speedChallenge.state = 3
                 else:
                     initTime = rospy.Time.now().secs
-                    while not rospy.is_shutdown() and (len(speedChallenge.objects_list)) < 1:
+                    while not rospy.is_shutdown() and (len(speedChallenge.objects_list) < 1 or speedChallenge.objects_list[ind_0]['X'] >= 7):
                         if rospy.Time.now().secs - initTime > 1:
                             speedChallenge.farther()
                             rate.sleep()

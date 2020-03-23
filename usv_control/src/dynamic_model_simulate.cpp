@@ -3,6 +3,7 @@
 #include "geometry_msgs/Pose2D.h"
 #include "geometry_msgs/Vector3.h"
 #include "std_msgs/Float64.h"
+#include "std_msgs/UInt8.h"
 #include <math.h>
 #include <eigen3/Eigen/Dense>
 
@@ -71,6 +72,8 @@ int main(int argc, char *argv[])
 	ros::Publisher dm_pos_pub = n.advertise<geometry_msgs::Pose2D>("/vectornav/ins_2d/ins_pose", 1000);
 	ros::Publisher local_pos_pub = n.advertise<geometry_msgs::Pose2D>("/vectornav/ins_2d/NED_pose", 1000);
 	ros::Publisher dm_vel_pub = n.advertise<geometry_msgs::Vector3>("/vectornav/ins_2d/local_vel", 1000);
+	ros::Publisher ardumotors_flag_pub = n.advertise<std_msgs::UInt8>("/arduino_br/ardumotors/flag",1000);
+	ros::Publisher arduino_flag_pub = n.advertise<std_msgs::UInt8>("arduino",1000);
 
 	ros::Subscriber right_thruster_sub = n.subscribe("/usv_control/controller/right_thruster", 1000, right_callback);
 	ros::Subscriber left_thruster_sub = n.subscribe("/usv_control/controller/left_thruster", 1000, left_callback);
@@ -177,6 +180,11 @@ eta_dot_last << 0, 0, 0;
     dm_pos_pub.publish(dm_pose);
     dm_vel_pub.publish(dm_vel);
     local_pos_pub.publish(dm_pose);
+
+	std_msgs::UInt8 flag;
+	flag.data = 1;
+	arduino_flag_pub.publish(flag);
+	ardumotors_flag_pub.publish(flag);
 
     ros::spinOnce();
 
