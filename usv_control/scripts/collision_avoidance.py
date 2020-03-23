@@ -131,7 +131,7 @@ class Test:
             xpow = math.pow(x2 - self.NEDx, 2)
             ypow = math.pow(y2 - self.NEDy, 2)
             self.distance = math.pow(xpow + ypow, 0.5)
-            if self.distance > 2:
+            if self.distance > 1:
                 self.LOS(x1, y1, x2, y2)
             else:
                 self.k += 1
@@ -173,12 +173,16 @@ class Test:
             x_pow = pow(obsppx - ppx,2) 
             y_pow = pow(obsppy - ppy,2) 
             distance = pow((x_pow + y_pow),0.5)
+            #if distance >= obstacle_radius:
             alpha = math.asin(obstacle_radius/distance)
+            print("alpha: " + str(alpha))
             beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
             if beta > math.pi: 
-                beta = abs(beta - 2*math.pi)
+                beta = beta - 2*math.pi
             if beta < -math.pi: 
-                beta = abs(beta +2*math.pi)
+                beta = beta +2*math.pi
+            beta = abs(beta)
+            print("beta: " + str(beta))
             if beta < alpha or beta == alpha:
                 self.dodge(vel_ppx,vel_ppy,ppx,ppy)
                 self.bearing = self.bearing + self.avoid_angle
@@ -187,6 +191,8 @@ class Test:
             else: 
                 print('free')
                 self.avoid_angle = 0
+                #else:
+                #self.avoid_angle = 0
         self.desired(self.vel, self.bearing)
     
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
@@ -198,12 +204,12 @@ class Test:
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = ppy/eucledian_pos
             if unit_vely>unit_posy:
-                self.avoid_angle = self.avoid_angle + .075 #moves 5 degrees to the right
+                self.avoid_angle = self.avoid_angle + .3 #moves 5 degrees to the right
                 print("right +")
                 print(self.bearing)
                 print(self.avoid_angle)
             if unit_vely < unit_posy or unit_vely == unit_posy:
-                self.avoid_angle = self.avoid_angle - .075 #moves 5 degrees to the left
+                self.avoid_angle = self.avoid_angle - .3 #moves 5 degrees to the left
                 print("left -")
                 print(self.bearing)
                 print(self.avoid_angle)
