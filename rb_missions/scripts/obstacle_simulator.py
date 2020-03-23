@@ -67,7 +67,7 @@ class ObstacleSimulator:
                 if x > 1:
                     obstacle = obj_detected()
                     obstacle.X = x
-                    obstacle.Y = y
+                    obstacle.Y = -y
                     obstacle.color = self.obstacle_list[i]['color']
                     obstacle.clase = self.obstacle_list[i]['class']
                     list_length += 1
@@ -125,33 +125,33 @@ def main():
     rate = rospy.Rate(20) # 100hz
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
-        obstacleSimulator.obstacle_list.append({'X' : 6,
-                                    'Y' : 3,
+        obstacleSimulator.obstacle_list.append({'X' : 5.5,
+                                    'Y' : -1.5,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 6,
-                                    'Y' : -3,
+        obstacleSimulator.obstacle_list.append({'X' : 2.5,
+                                    'Y' : 1.5,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 28,
-                                    'Y' : 3,
+        obstacleSimulator.obstacle_list.append({'X' : 21.5,
+                                    'Y' : 14.5,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 28,
-                                    'Y' : -3,
+        obstacleSimulator.obstacle_list.append({'X' : 18.5,
+                                    'Y' : 17.5,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
     elif obstacleSimulator.challenge == 1:
-        obstacleSimulator.obstacle_list.append({'X' : 6,
-                                    'Y' : 3,
+        obstacleSimulator.obstacle_list.append({'X' : 5.5,
+                                    'Y' : -1.5,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 6,
-                                    'Y' : -3,
+        obstacleSimulator.obstacle_list.append({'X' : 2.5,
+                                    'Y' : 1.5,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 28,
-                                    'Y' : 0,
+        obstacleSimulator.obstacle_list.append({'X' : 20,
+                                    'Y' : 16,
                                     'color' : 'blue', 
                                     'class' : 'bouy'})
     while not rospy.is_shutdown() and obstacleSimulator.active:
