@@ -159,20 +159,32 @@ class Test:
         if self.distance < 6:
             self.vel = 0.6
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2799abdbb230f9ddb9974df036eb4e8bd6af055f
         self.avoid(ak, x2, y2)
 
     def avoid(self, ak, x2, y2):
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
         ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
+<<<<<<< HEAD
         for i in range(0,len(self.obstacles),1):
+=======
+        for i in range(0,len(self.obstacles)-1,1):
+>>>>>>> 2799abdbb230f9ddb9974df036eb4e8bd6af055f
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
             obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
             obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
             obstacle_radius = self.obstacles[i]['radius']
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
+<<<<<<< HEAD
             print(total_radius)
+=======
+
+>>>>>>> 2799abdbb230f9ddb9974df036eb4e8bd6af055f
             x_pow = pow(obsppx-ppx,2) 
             y_pow = pow(obsppy-ppy,2) 
             distance = pow((x_pow+y_pow),0.5)
@@ -185,7 +197,11 @@ class Test:
             if beta < -math.pi: 
                 beta = abs(beta +2*math.pi)
             if beta < alpha or beta == alpha:
+<<<<<<< HEAD
                 self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+=======
+                #self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+>>>>>>> 2799abdbb230f9ddb9974df036eb4e8bd6af055f
                 print('collision')
 
         self.desired(self.vel, self.bearing)
