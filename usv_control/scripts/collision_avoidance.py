@@ -159,7 +159,6 @@ class Test:
         if self.distance < 6:
             self.vel = 0.6
 
-
         self.avoid(ak, x2, y2)
 
     def avoid(self, ak, x2, y2):
