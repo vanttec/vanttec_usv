@@ -5,6 +5,7 @@ import time
 import rospy
 import math
 import numpy as np
+
 from std_msgs.msg import Float64
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose2D
@@ -84,7 +85,6 @@ class Test:
         self.NEDy = ned.y
         self.yaw = ned.theta
 
-
     def local_vel_callback(self, upsilon):
         self.u = upsilon.x
         self.v = upsilon.y
@@ -107,7 +107,6 @@ class Test:
     def waypoints_callback(self, msg):
         wp = []
         leng = (msg.layout.data_offset)
-
         for i in range(int(leng)-1):
             wp.append(msg.data[i])
         self.waypoint_mode = msg.data[-1]
@@ -140,12 +139,12 @@ class Test:
             self.desired(0, self.yaw)
 
     def LOS(self, x1, y1, x2, y2):
-        ak = math.atan2(y2-y1,x2-x1)
+        ak = math.atan2(y2 - y1, x2 - x1)
         ye = -(self.NEDx - x1)*math.sin(ak) + (self.NEDy - y1)*math.cos(ak)
         xe = (self.NEDx - x1)*math.cos(ak) + (self.NEDy - y1)*math.sin(ak)
         delta = (self.dmax - self.dmin)*math.exp(-(1/self.gamma)*abs(ye)) + self.dmin
         psi_r = math.atan(-ye/delta)
-        self.bearing = ak + psi_r + self.avoid_angle
+        self.bearing = ak + psi_r
         if (abs(self.bearing) > (math.pi)):
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
         xlos = x1 + (delta+xe)*math.cos(ak)
@@ -156,24 +155,24 @@ class Test:
         self.vel = 1
         if self.distance < 5:
             self.vel = 0.6
-
         self.avoid(ak, x2, y2)
 
     def avoid(self, ak, x2, y2):
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
-        ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
+        ppx,ppy = self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
         for i in range(0,len(self.obstacles),1):
             print("obstacle"+str(i+1))
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
-            obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
-            obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
+            #obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
+            #obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
+            obsppx,obsppy =  self.ned_to_pp(obsx,obsy,ak,x2,y2)
             obstacle_radius = self.obstacles[i]['radius']
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
-            x_pow = pow(obsppx-ppx,2) 
-            y_pow = pow(obsppy-ppy,2) 
-            distance = pow((x_pow+y_pow),0.5)
+            x_pow = pow(obsppx - ppx,2) 
+            y_pow = pow(obsppy - ppy,2) 
+            distance = pow((x_pow + y_pow),0.5)
             alpha = math.asin(obstacle_radius/distance)
             beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
             if beta > math.pi: 
@@ -182,10 +181,12 @@ class Test:
                 beta = abs(beta +2*math.pi)
             if beta < alpha or beta == alpha:
                 self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+                self.bearing = self.bearing + self.avoid_angle
+                if (abs(self.bearing) > (math.pi)):
+                    self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
             else: 
                 print('free')
                 self.avoid_angle = 0
-
         self.desired(self.vel, self.bearing)
     
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
@@ -197,16 +198,15 @@ class Test:
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = ppy/eucledian_pos
             if unit_vely>unit_posy:
-                self.avoid_angle = self.avoid_angle + .1 #moves 5 degrees to the right
+                self.avoid_angle = self.avoid_angle + .075 #moves 5 degrees to the right
                 print("right +")
                 print(self.bearing)
                 print(self.avoid_angle)
             if unit_vely < unit_posy or unit_vely == unit_posy:
-                self.avoid_angle = self.avoid_angle - .1 #moves 5 degrees to the left
+                self.avoid_angle = self.avoid_angle - .075 #moves 5 degrees to the left
                 print("left -")
                 print(self.bearing)
                 print(self.avoid_angle)
-
 
     '''
     def gps_to_ecef_to_ned(self, lat, lon):
@@ -223,13 +223,11 @@ class Test:
         Pn = np.matmul(self.Rne, Pe - self.Pe_ref)
         nedx = Pn[0]
         nedy = Pn[1]
-
         return (nedx,nedy)'''
 
     def gps_to_ned(self, lat2, lon2):
         lat1 = self.latref
         lon1 = self.lonref
-
         longitud_distance = (lon1 - lon2)
         y_distance = math.sin(longitud_distance) * math.cos(lat2)
         x_distance = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(longitud_distance)
@@ -241,12 +239,9 @@ class Test:
         a = math.sin(dphi/2)*math.sin(dphi/2) + math.cos(phi1)*math.cos(phi2)* math.sin(dlam/2)*math.sin(dlam/2)
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
         distance = 6378137 * c
-
         nedx = distance*math.cos(bearing)
         nedy = distance*math.sin(bearing)
-
         return (nedx,nedy)
-
 
     def body_to_ned(self, body_x, body_y, x, y):
         p = np.array([body_x,body_y])
