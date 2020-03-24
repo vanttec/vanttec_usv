@@ -132,6 +132,9 @@ class Test:
             ypow = math.pow(y2 - self.NEDy, 2)
             self.distance = math.pow(xpow + ypow, 0.5)
             if self.distance > 1:
+                print("Los step: " + str(self.k))
+                print("X1: " + str(x1))
+                print("X2: " + str(x2))
                 self.LOS(x1, y1, x2, y2)
             else:
                 self.k += 1
@@ -188,7 +191,7 @@ class Test:
                 if (abs(self.bearing) > (math.pi)):
                     self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
             else: 
-                print('free')
+                print ('free')
                 self.avoid_angle = 0
 
         self.desired(self.vel, self.bearing)
@@ -202,12 +205,12 @@ class Test:
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = ppy/eucledian_pos
             if unit_vely>unit_posy:
-                self.avoid_angle = self.avoid_angle + .8 #moves 5 degrees to the right
+                self.avoid_angle = self.avoid_angle + .5 #moves 5 degrees to the right
                 print("right +")
                 print(self.bearing)
                 print(self.avoid_angle)
             if unit_vely < unit_posy or unit_vely == unit_posy:
-                self.avoid_angle = self.avoid_angle - .8 #moves 5 degrees to the left
+                self.avoid_angle = self.avoid_angle - .5  #moves 5 degrees to the left
                 print("left -")
                 print(self.bearing)
                 print(self.avoid_angle)
