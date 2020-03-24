@@ -35,8 +35,8 @@ float r = 0;
 int rate = 100;
 float integral_step = 0.01;
 
-int testing = 1;
-int arduino = 1;
+int testing = 0;
+int arduino = 0;
 
 //Tracking variables
 float u_d = 0;
