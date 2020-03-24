@@ -194,7 +194,6 @@ class Test:
                 self.avoid_angle = 0
         ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
         for i in range(0,len(self.obstacles),1):
-        for i in range(0,len(self.obstacles)-1,1):
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
             obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
@@ -205,9 +204,7 @@ class Test:
             x_pow = pow(obsppx-ppx,2) 
             y_pow = pow(obsppy-ppy,2) 
             distance = pow((x_pow+y_pow),0.5)
-
             alpha = math.asin(obstacle_radius/distance)
-
             beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
             if beta > math.pi: 
                 beta = abs(beta - 2*math.pi)
