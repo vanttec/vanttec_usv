@@ -5,7 +5,6 @@ import time
 import rospy
 import math
 import numpy as np
-
 from std_msgs.msg import Float64
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose2D
@@ -156,7 +155,7 @@ class Test:
         self.LOSpath.y = ylos
         self.LOS_pub.publish(self.LOSpath)
         self.vel = 1
-        if self.distance < 5:
+        if self.distance < 6:
             self.vel = 0.6
         self.avoid(ak, x2, y2)
 
@@ -193,7 +192,31 @@ class Test:
             else: 
                 print ('free')
                 self.avoid_angle = 0
+        ppx,ppy=self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
+        for i in range(0,len(self.obstacles),1):
+        for i in range(0,len(self.obstacles)-1,1):
+            obsx = self.obstacles[i]['X']
+            obsy = self.obstacles[i]['Y']
+            obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
+            obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
+            obstacle_radius = self.obstacles[i]['radius']
+            total_radius = self.boat_radius+self.safety_radius+obstacle_radius
+            print(total_radius)
+            x_pow = pow(obsppx-ppx,2) 
+            y_pow = pow(obsppy-ppy,2) 
+            distance = pow((x_pow+y_pow),0.5)
 
+            alpha = math.asin(obstacle_radius/distance)
+
+            beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
+            if beta > math.pi: 
+                beta = abs(beta - 2*math.pi)
+            if beta < -math.pi: 
+                beta = abs(beta +2*math.pi)
+            if beta < alpha or beta == alpha:
+                self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+                #self.dodge(vel_ppx,vel_ppy,ppx,ppy)
+                print('collision')
         self.desired(self.vel, self.bearing)
     
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
@@ -214,6 +237,12 @@ class Test:
                 print("left -")
                 print(self.bearing)
                 print(self.avoid_angle)
+            unit_vely = vel_ppy/eucledian_vel 
+            unit_posy = ppy/eucledian_pos
+            if unit_vely>unit_posy:
+                self.bearing = self.bearing + math.pi/36 #moves 5 degrees to the right
+            if unit_vely < unit_posy or unit_vely == unit_posy:
+                self.bearing = self.bearing - math.pi/36 #moves 5 degrees to the left
 
     '''
     def gps_to_ecef_to_ned(self, lat, lon):
@@ -230,11 +259,13 @@ class Test:
         Pn = np.matmul(self.Rne, Pe - self.Pe_ref)
         nedx = Pn[0]
         nedy = Pn[1]
+
         return (nedx,nedy)'''
 
     def gps_to_ned(self, lat2, lon2):
         lat1 = self.latref
         lon1 = self.lonref
+
         longitud_distance = (lon1 - lon2)
         y_distance = math.sin(longitud_distance) * math.cos(lat2)
         x_distance = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(longitud_distance)
