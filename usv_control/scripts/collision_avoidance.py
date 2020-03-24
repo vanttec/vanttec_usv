@@ -189,7 +189,6 @@ class Test:
             else: 
                 print ('free')
                 self.avoid_angle = 0
-
         self.desired(self.vel, self.bearing)
     
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
