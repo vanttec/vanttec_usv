@@ -6,6 +6,8 @@ import rospy
 import math
 import numpy as np
 
+import sys
+
 from std_msgs.msg import Float64
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose2D
@@ -13,6 +15,15 @@ from geometry_msgs.msg import Vector3
 from std_msgs.msg import Float32MultiArray
 
 from usv_perception.msg import obstacles_list
+
+class Color():
+    RED   = "\033[1;31m"  
+    BLUE  = "\033[1;34m"
+    CYAN  = "\033[1;36m"
+    GREEN = "\033[0;32m"
+    RESET = "\033[0;0m"
+    BOLD    = "\033[;1m"
+    REVERSE = "\033[;7m"
 
 SIMULATION = 1#rospy.get_param("collision_avoidance/simulation")
 class Test:
@@ -132,12 +143,10 @@ class Test:
             ypow = math.pow(y2 - self.NEDy, 2)
             self.distance = math.pow(xpow + ypow, 0.5)
             if self.distance > 1:
-                print("Los step: " + str(self.k))
-                print("X1: " + str(x1))
-                print("X2: " + str(x2))
                 self.LOS(x1, y1, x2, y2)
             else:
                 self.k += 1
+                print("Next waypoint")
         else:
             self.desired(0, self.yaw)
 
@@ -158,24 +167,35 @@ class Test:
         self.vel = 1
         if self.distance < 5:
             self.vel = 0.6
-        self.avoid(ak, x2, y2)
+        self.avoid(ak, x1, y1)
 
-    def avoid(self, ak, x2, y2):
+    def avoid(self, ak, x1, y1):
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
-        vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
-        ppx,ppy = self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
+        vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
+        ppx,ppy = self.ned_to_pp(ak,x1,y1,self.NEDx,self.NEDy)
         for i in range(0,len(self.obstacles),1):
             print("obstacle"+str(i+1))
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
+            print("obsx: " + str(obsx))
+            print("nedx: " + str(self.NEDx))
+            print("obsy: " + str(obsy))
+            print("nedy: " + str(self.NEDy))
             #obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
             #obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
-            obsppx,obsppy =  self.ned_to_pp(obsx,obsy,ak,x2,y2)
+            obsppx,obsppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
             obstacle_radius = self.obstacles[i]['radius']
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
             x_pow = pow(obsppx - ppx,2) 
             y_pow = pow(obsppy - ppy,2) 
+            print("obsppx: " + str(obsppx))
+            print("ppx: " + str(ppx))
+            print("obsppy: " + str(obsppy))
+            print("ppy: " + str(ppy))
             distance = pow((x_pow + y_pow),0.5)
+            print("Distance: " + str(distance))
+            print("Total Radius: " + str(total_radius))
+            print("For alpha: "+ str(total_radius/distance))
             alpha = math.asin(total_radius/distance)
             print("alpha: " + str(alpha))
             beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
@@ -203,33 +223,21 @@ class Test:
             self.vel = 0.6
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = ppy/eucledian_pos
+            print("unit_vely " + str(unit_vely))
+            print("unit_posy: " + str(unit_posy))
             if unit_vely>unit_posy:
-                self.avoid_angle = self.avoid_angle + .5 #moves 5 degrees to the right
-                print("right +")
-                print(self.bearing)
-                print(self.avoid_angle)
-            if unit_vely < unit_posy or unit_vely == unit_posy:
-                self.avoid_angle = self.avoid_angle - .5  #moves 5 degrees to the left
+                self.avoid_angle = self.avoid_angle - .1  #moves 5 degrees to the left
+                sys.stdout.write(Color.RED)
                 print("left -")
-                print(self.bearing)
-                print(self.avoid_angle)
+                sys.stdout.write(Color.RESET)
+            if unit_vely < unit_posy or unit_vely == unit_posy:
+                self.avoid_angle = self.avoid_angle + .1 #moves 5 degrees to the right
+                sys.stdout.write(Color.GREEN)
+                print("right +")
+                sys.stdout.write(Color.RESET)
+            print("bearing: " + str(self.bearing))
+            print("avoid_angle: " + str(self.avoid_angle))
 
-    '''
-    def gps_to_ecef_to_ned(self, lat, lon):
-        self.Rne = np.array([[-math.sin(self.latref) * math.cos(self.lonref), -math.sin(self.latref) * math.sin(self.lonref), math.cos(self.latref)],
-                    [-math.sin(self.lonref), math.cos(self.lonref), 0],
-                    [-math.cos(self.latref) * math.cos(self.lonref), -math.cos(self.latref) * math.sin(self.lonref), -math.sin(self.latref)]])
-        self.Pe_ref = np.array([[self.ecefxref], [self.ecefyref], [self.ecefzref]])
-        _ne = 1 - (self.e**2)*math.pow(math.sin(lat),2)
-        Ne = self.Rea/(math.pow(_ne, 0.5))
-        xe = (Ne + self.altref)*math.cos(lat)*math.cos(lon)
-        ye = (Ne + self.altref)*math.cos(lat)*math.sin(lon)
-        ze = (Ne*(1-self.e**2) + self.altref)*math.sin(lat)
-        Pe = np.array([[xe],[ye],[ze]])
-        Pn = np.matmul(self.Rne, Pe - self.Pe_ref)
-        nedx = Pn[0]
-        nedy = Pn[1]
-        return (nedx,nedy)'''
 
     def gps_to_ned(self, lat2, lon2):
         lat1 = self.latref
@@ -249,21 +257,49 @@ class Test:
         nedy = distance*math.sin(bearing)
         return (nedx,nedy)
 
-    def body_to_ned(self, body_x, body_y, x, y):
-        p = np.array([body_x,body_y])
-        J = np.array([[math.cos(self.yaw), -1*math.sin(self.yaw)],[math.sin(self.yaw), math.cos(self.yaw)]])
+    def body_to_ned(self, x2, y2, offsetx, offsety):
+        '''
+        @name: body_to_ned
+        @brief: Coordinate transformation between body and NED reference frames.
+        @param: x2: target x coordinate in body reference frame
+                y2: target y coordinate in body reference frame
+                offsetx: offset x in ned reference frame
+                offsety: offset y in ned reference frame
+        @return: ned_x2: target x coordinate in ned reference frame
+                 ned_y2: target y coordinate in ned reference frame
+        '''
+        p = np.array([x2, y2])
+        J = np.array([[math.cos(self.yaw),
+                      -1*math.sin(self.yaw)],
+                      [math.sin(self.yaw),
+                       math.cos(self.yaw)]])
         n = J.dot(p)
-        nedx = n[0] + x
-        nedy = n[1] + y
-        return (nedx, nedy)
+        ned_x2 = n[0] + offsetx
+        ned_y2 = n[1] + offsety
+        return (ned_x2, ned_y2)
 
-    def ned_to_pp(self,x,y,ak,xd,yd):
-        p = np.array([x-xd,y-xd])
-        J = np.array([[math.cos(ak), -1*math.sin(ak)],[math.sin(ak), math.cos(ak)]])
-        n = J.dot(p)
-        nedx = n[0] + x
-        nedy = n[1] + y
-        return (nedx, nedy)
+    def ned_to_pp(self, ak, ned_x1, ned_y1, ned_x2, ned_y2):
+        '''
+        @name: ned_to_ned
+        @brief: Coordinate transformation between NED and body reference frames.
+        @param: ak: 
+                ned_x1: origin of parallel path x coordinate in ned reference frame
+                ned_y1: origin of parallel path y coordinate in ned reference frame
+                ned_x2: target x coordinate in ned reference frame
+                ned_y2: target y coordinate in ned reference frame
+        @return: pp_x2: target x coordinate in parallel path reference frame
+                 pp_y2: target y coordinate in parallel path reference frame
+        '''
+        n = np.array([ned_x2 - ned_x1, ned_y2 - ned_y1])
+        J = np.array([[math.cos(ak),
+                      -1*math.sin(ak)],
+                      [math.sin(ak),
+                       math.cos(ak)]])
+        J = np.linalg.inv(J)
+        pp = J.dot(n)
+        pp_x2 = pp[0]
+        pp_y2 = pp[1]
+        return (pp_x2, pp_y2)
 
     def desired(self, speed, heading):
         self.dh = heading
