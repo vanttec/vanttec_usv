@@ -51,6 +51,16 @@ class LOS:
 
         self.k = 1
 
+        self.u_max = 1
+        self.u_min = 0.3
+        self.threshold_radius = 5
+        self.chi_r = 1./self.threshold_radius
+        self.chi_psi = 2/math.pi
+        self.w_r = 0.8
+        self.w_psi = 0.2
+        self.exp_gain = 10
+        self.exp_offset = 0.5
+
         self.waypoint_path = Pose2D()
         self.los_path = Pose2D()
 
@@ -124,6 +134,17 @@ class LOS:
         ak = math.atan2(y2 - y1, x2 - x1)
         ye = -(self.ned_x - x1)*math.sin(ak) + (self.ned_y - y1)*math.cos(ak)
         xe = (self.ned_x - x1)*math.cos(ak) + (self.ned_y - y1)*math.sin(ak)
+        x_total = (x2 - x1)*math.cos(ak) + (y2 - y1)*math.sin(ak)
+        if xe > x_total: #Means the USV went farther than x2. 2 Alternatives:
+            #This one makes the USV return
+            ak = ak - math.pi
+            if (abs(ak) > (math.pi)):
+                ak = (ak/abs(ak))*(abs(ak) - 2*math.pi)
+            ye = -(self.ned_x - x1)*math.sin(ak) + (self.ned_y - y1)*math.cos(ak)
+            xe = (self.ned_x - x1)*math.cos(ak) + (self.ned_y - y1)*math.sin(ak)
+            '''#This one changes the target to the next in line
+            self.k += 1'''
+
         delta = (self.delta_max - self.delta_min)*math.exp(-(1/self.gamma)*abs(ye)) + self.delta_min
         psi_r = math.atan(-ye/delta)
         self.bearing = ak + psi_r
@@ -136,13 +157,20 @@ class LOS:
         self.los_path.x = x_los
         self.los_path.y = y_los
         self.LOS_pub.publish(self.los_path)
-        self.vel = 1
-	
-        if self.distance < 5:
-            self.vel = 0.5
-        
-        if abs(self.bearing - self.yaw) > np.pi/3:
-            self.vel = self.vel * 0.5
+
+        e_psi = self.bearing - self.yaw
+        abs_e_psi = abs(e_psi)
+        if (abs_e_psi > (math.pi)):
+            e_psi = (e_psi/abs_e_psi)*(abs_e_psi - 2*math.pi)
+            abs_e_psi = abs(e_psi)
+        u_psi = 1/(1 + math.exp(self.exp_gain*(abs_e_psi*self.chi_psi - self.exp_offset)))
+
+        if self.distance > self.threshold_radius:
+            self.vel = (self.u_max - self.u_min)*u_psi + self.u_min
+
+        else:
+            u_r = 1/(1 + math.exp(-self.exp_gain*(self.distance*self.chi_r - self.exp_offset)))
+            self.vel = (self.u_max - self.u_min)*(self.w_r*u_r + self.w_psi*u_psi) + self.u_min
 
         self.desired(self.vel, self.bearing)
 
