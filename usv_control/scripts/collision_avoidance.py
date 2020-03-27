@@ -113,7 +113,11 @@ class Test:
         self.wp_array = wp
 
     def obstacles_callback(self, data):
-        self.obstacle_view = data.data
+        self.obstacles = []
+        for i in range(data.len):
+            self.obstacles.append({'X' : data.obstacles[i].x, #+ self.offset,
+                                   'Y' : data.obstacles[i].y,
+                                   'radius' : data.obstacles[i].z})
 
     def LOSloop(self, listvar):
         if self.k < len(listvar)/2:
@@ -164,6 +168,8 @@ class Test:
             print("obstacle"+str(i+1))
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
+            print("nedx: " + str(self.NEDx))
+            print("nedy: " + str(self.NEDy))
             #obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
             #obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
             obsppx,obsppy =  self.ned_to_pp(obsx,obsy,ak,x2,y2)
@@ -171,6 +177,10 @@ class Test:
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
             x_pow = pow(obsppx - ppx,2) 
             y_pow = pow(obsppy - ppy,2) 
+            print("ppx: " + str(ppx))
+            print("ppy: " + str(ppy))
+            print("vel_ppx: " + str(vel_ppx))
+            print("vel_ppy: " + str(vel_ppy))
             distance = pow((x_pow + y_pow),0.5)
             alpha = math.asin(total_radius/distance)
             print("alpha: " + str(alpha))
@@ -186,6 +196,7 @@ class Test:
                 self.bearing = self.bearing + self.avoid_angle
                 if (abs(self.bearing) > (math.pi)):
                     self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
+                print("bearing: " + str(self.bearing))
             else: 
                 print ('free')
                 self.avoid_angle = 0
@@ -194,38 +205,26 @@ class Test:
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
         eucledian_vel = pow((pow(vel_ppx,2)+pow(vel_ppy,2)),0.5)
         eucledian_pos = pow((pow(ppx,2)+pow(ppy,2)),0.5)
-        if eucledian_pos != 0 and eucledian_vel !=0:
+        if eucledian_pos != 0 and eucledian_vel != 0:
             print('collision')
             self.vel = 0.6
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = ppy/eucledian_pos
-            if unit_vely>unit_posy:
-                self.avoid_angle = self.avoid_angle + .5 #moves 5 degrees to the right
-                print("right +")
-                print(self.bearing)
-                print(self.avoid_angle)
-            if unit_vely < unit_posy or unit_vely == unit_posy:
-                self.avoid_angle = self.avoid_angle - .5  #moves 5 degrees to the left
-                print("left -")
-                print(self.bearing)
-                print(self.avoid_angle)
+            print("unit_vely " + str(unit_vely))
+            print("unit_posy: " + str(unit_posy))
 
-    '''
-    def gps_to_ecef_to_ned(self, lat, lon):
-        self.Rne = np.array([[-math.sin(self.latref) * math.cos(self.lonref), -math.sin(self.latref) * math.sin(self.lonref), math.cos(self.latref)],
-                    [-math.sin(self.lonref), math.cos(self.lonref), 0],
-                    [-math.cos(self.latref) * math.cos(self.lonref), -math.cos(self.latref) * math.sin(self.lonref), -math.sin(self.latref)]])
-        self.Pe_ref = np.array([[self.ecefxref], [self.ecefyref], [self.ecefzref]])
-        _ne = 1 - (self.e**2)*math.pow(math.sin(lat),2)
-        Ne = self.Rea/(math.pow(_ne, 0.5))
-        xe = (Ne + self.altref)*math.cos(lat)*math.cos(lon)
-        ye = (Ne + self.altref)*math.cos(lat)*math.sin(lon)
-        ze = (Ne*(1-self.e**2) + self.altref)*math.sin(lat)
-        Pe = np.array([[xe],[ye],[ze]])
-        Pn = np.matmul(self.Rne, Pe - self.Pe_ref)
-        nedx = Pn[0]
-        nedy = Pn[1]
-        return (nedx,nedy)'''
+            if unit_vely <= unit_posy:
+                self.avoid_angle = self.avoid_angle - .1 #moves 5 degrees to the left
+                sys.stdout.write(Color.RED)
+                print("left -")
+                sys.stdout.write(Color.RESET)
+            if unit_vely > unit_posy:
+                self.avoid_angle = self.avoid_angle + .1 #moves 5 degrees to the right
+                sys.stdout.write(Color.GREEN)
+                print("right +")
+                sys.stdout.write(Color.RESET)
+            print("avoid_angle: " + str(self.avoid_angle))
+
 
     def gps_to_ned(self, lat2, lon2):
         lat1 = self.latref
@@ -268,7 +267,7 @@ class Test:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(100) # 100hz
+    rate = rospy.Rate(1) # 100hz
     t = Test()
     t.wp_t = []
     wp_LOS = []
