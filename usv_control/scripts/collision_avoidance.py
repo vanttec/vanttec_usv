@@ -126,7 +126,7 @@ class Test:
     def obstacles_callback(self, data):
         self.obstacles = []
         for i in range(data.len):
-            self.obstacles.append({'X' : data.obstacles[i].x + self.offset,
+            self.obstacles.append({'X' : data.obstacles[i].x, #+ self.offset,
                                    'Y' : data.obstacles[i].y,
                                    'radius' : data.obstacles[i].z})
 
@@ -177,9 +177,7 @@ class Test:
             print("obstacle"+str(i+1))
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
-            print("obsx: " + str(obsx))
             print("nedx: " + str(self.NEDx))
-            print("obsy: " + str(obsy))
             print("nedy: " + str(self.NEDy))
             #obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
             #obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
@@ -188,10 +186,10 @@ class Test:
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
             x_pow = pow(obsppx - ppx,2) 
             y_pow = pow(obsppy - ppy,2) 
-            print("obsppx: " + str(obsppx))
             print("ppx: " + str(ppx))
-            print("obsppy: " + str(obsppy))
             print("ppy: " + str(ppy))
+            print("vel_ppx: " + str(vel_ppx))
+            print("vel_ppy: " + str(vel_ppy))
             distance = pow((x_pow + y_pow),0.5)
             print("Distance: " + str(distance))
             print("Total Radius: " + str(total_radius))
@@ -210,6 +208,7 @@ class Test:
                 self.bearing = self.bearing + self.avoid_angle
                 if (abs(self.bearing) > (math.pi)):
                     self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
+                print("bearing: " + str(self.bearing))
             else: 
                 print ('free')
                 self.avoid_angle = 0
@@ -218,24 +217,24 @@ class Test:
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
         eucledian_vel = pow((pow(vel_ppx,2)+pow(vel_ppy,2)),0.5)
         eucledian_pos = pow((pow(ppx,2)+pow(ppy,2)),0.5)
-        if eucledian_pos != 0 and eucledian_vel !=0:
+        if eucledian_pos != 0 and eucledian_vel != 0:
             print('collision')
             self.vel = 0.6
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = ppy/eucledian_pos
             print("unit_vely " + str(unit_vely))
             print("unit_posy: " + str(unit_posy))
-            if unit_vely>unit_posy:
-                self.avoid_angle = self.avoid_angle - .1  #moves 5 degrees to the left
+
+            if unit_vely <= unit_posy:
+                self.avoid_angle = self.avoid_angle - .1 #moves 5 degrees to the left
                 sys.stdout.write(Color.RED)
                 print("left -")
                 sys.stdout.write(Color.RESET)
-            if unit_vely < unit_posy or unit_vely == unit_posy:
+            if unit_vely > unit_posy:
                 self.avoid_angle = self.avoid_angle + .1 #moves 5 degrees to the right
                 sys.stdout.write(Color.GREEN)
                 print("right +")
                 sys.stdout.write(Color.RESET)
-            print("bearing: " + str(self.bearing))
             print("avoid_angle: " + str(self.avoid_angle))
 
 
@@ -309,7 +308,7 @@ class Test:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(100) # 100hz
+    rate = rospy.Rate(1) # 100hz
     t = Test()
     t.wp_t = []
     wp_LOS = []
