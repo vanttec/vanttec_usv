@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(usv_perception)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -18,6 +18,8 @@ message_generation
 )
 find_package(OpenCV 3 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
+find_package(PCL REQUIRED)
+include_directories(${PCL_INCLUDE_DIRS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -128,9 +130,9 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/usv_perception.cpp
-# )
+add_library(pcl_lib
+   src/pcl_lib/lidar_pcl.cpp src/pcl_lib/lidar_pcl.h
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -211,3 +213,7 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_executable(lidar_pcl src/lidar_pcl.cpp)
+target_link_libraries(lidar_pcl ${catkin_LIBRARIES} pcl_lib)
+add_dependencies(lidar_pcl lidar_pcl_generate_messages_cpp)
