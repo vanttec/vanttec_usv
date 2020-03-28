@@ -31,7 +31,7 @@ public:
 	 * Callback to process point cloud. 
 	 * @param pcl[in]: Received pointcloud.  
 	 */
-	void PClCallback(const sensor_msgs::PointCloud2ConstPtr &pcl);
+	void PClCallback(const sensor_msgs::PointCloud2 &pcl);
 
 	/** 
 	 * Filters only ROI 

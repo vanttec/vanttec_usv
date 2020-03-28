@@ -215,5 +215,5 @@ add_library(pcl_lib
 # catkin_add_nosetests(test)
 
 add_executable(lidar_pcl src/lidar_pcl.cpp)
-target_link_libraries(lidar_pcl ${catkin_LIBRARIES} pcl_lib)
+target_link_libraries(lidar_pcl ${catkin_LIBRARIES} ${PCL_LIBRARIES} pcl_lib)
 add_dependencies(lidar_pcl lidar_pcl_generate_messages_cpp)

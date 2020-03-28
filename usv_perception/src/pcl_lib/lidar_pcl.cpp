@@ -15,7 +15,7 @@
 
 // INCLUDES --------------------------------------------------------------------
 #include "lidar_pcl.h"
-#include "pcl/point_cloud.h"
+#include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_ros/transforms.h>
 //#include <pcl_ros/transforms.h>
@@ -40,16 +40,16 @@ LidarPCl::LidarPCl(
 // FUNCTIONS -------------------------------------------------------------------
 
 //PC2 subscriber callback
-void LidarPCl::PClCallback(const sensor_msgs::PointCloud2ConstPtr &input) {
+void LidarPCl::PClCallback(const sensor_msgs::PointCloud2 &input) {
   // Convert the sensor_msgs/PointCloud2 data to pcl/PointCloud
-  //pcl::PointCloud<pcl::PointXYZ> cloud;
-  //pcl::fromROSMsg (*input, cloud);
+  pcl::PointCloud<pcl::PointXYZ> cloud;
+  pcl::fromROSMsg (input, cloud);
   //pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
   //pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-  pcl::PCLPointCloud2 cloud;
-  pcl_conversions::toPCL(*input, cloud);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::fromPCLPointCloud2(cloud,*temp_cloud);
+  //pcl::PCLPointCloud2 cloud;
+  //pcl_conversions::toPCL(*input, cloud);
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  //pcl::fromPCLPointCloud2(cloud,*temp_cloud);
     //do stuff with temp_cloud here
   /*
   pcl::PointCloud<pcl::PointXYZ>::Ptr tempVelodyneRaw( 
