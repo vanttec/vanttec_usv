@@ -45,9 +45,9 @@ class LOS:
         self.waypoint_array = []
         self.last_waypoint_array = []
 
-        self.delta_max = 10
-        self.delta_min = 2
-        self.gamma = 0.003
+        self.delta_max = 5
+        self.delta_min = 0.5
+        self.gamma = 0.5
 
         self.k = 1
 
@@ -62,7 +62,7 @@ class LOS:
         self.exp_offset = 0.5
 
         self.waypoint_path = Pose2D()
-        self.los_path = Pose2D()
+        self.ye = 0
 
         self.waypoint_mode = 0 # 0 for NED, 1 for GPS, 2 for body
          
@@ -75,7 +75,7 @@ class LOS:
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
         self.target_pub = rospy.Publisher("/usv_control/los/target", Pose2D, queue_size=10)
-        self.LOS_pub = rospy.Publisher("/usv_control/los/los", Pose2D, queue_size=10)
+        self.ye_pub = rospy.Publisher("/usv_control/los/ye", Float64, queue_size=10)
 
     def ned_callback(self, gps):
         self.ned_x = gps.x
@@ -154,9 +154,8 @@ class LOS:
 
         x_los = x1 + (delta+xe)*math.cos(ak)
         y_los = y1 + (delta+xe)*math.sin(ak)
-        self.los_path.x = x_los
-        self.los_path.y = y_los
-        self.LOS_pub.publish(self.los_path)
+        self.ye = ye
+        self.ye_pub.publish(self.ye)
 
         e_psi = self.bearing - self.yaw
         abs_e_psi = abs(e_psi)
