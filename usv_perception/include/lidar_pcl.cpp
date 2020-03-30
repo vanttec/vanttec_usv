@@ -15,24 +15,17 @@
 
 // INCLUDES --------------------------------------------------------------------
 #include "lidar_pcl.h"
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl_ros/transforms.h>
-//#include <pcl_ros/transforms.h>
-#include <pcl_conversions/pcl_conversions.h>
-//#include <pcl_ros/pcl_conversions.h>
-#include <pcl/conversions.h>
-#include <pcl_ros/point_cloud.h>
-#include <pcl/PCLPointCloud2.h>
+#include <pcl/filters/passthrough.h>
+
 // CLASS ----------------------------------------------------------------------
 LidarPCl::LidarPCl(
-	const std::string &obstacles_pub_topic, 
-	const std::string &lidar_sub_topic)
+	const std::string &obstacles_pub_topic) 
+	//const std::string &lidar_sub_topic)
 {
 	obstacles_pub_ = lidar_pcl_node_.advertise<usv_perception::obstacles_list>(
 		obstacles_pub_topic, 10);
-  lidar_sub_ = lidar_pcl_node_.subscribe(lidar_sub_topic, 10, 
-    &LidarPCl::PClCallback, this);
+  //lidar_sub_ = lidar_pcl_node_.subscribe(lidar_sub_topic, 10, 
+    //&LidarPCl::PClCallback, this);
 
 	ROS_INFO("Lidar is ready");
 }
@@ -40,10 +33,11 @@ LidarPCl::LidarPCl(
 // FUNCTIONS -------------------------------------------------------------------
 
 //PC2 subscriber callback
-void LidarPCl::PClCallback(const sensor_msgs::PointCloud2 &input) {
+/*void LidarPCl::PClCallback(const sensor_msgs::PointCloud2 &input) {
   // Convert the sensor_msgs/PointCloud2 data to pcl/PointCloud
   pcl::PointCloud<pcl::PointXYZ> cloud;
   pcl::fromROSMsg (input, cloud);
+  ROS_INFO("Recieved pointcloud");
   //pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; 
   //pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
   //pcl::PCLPointCloud2 cloud;
@@ -57,7 +51,24 @@ void LidarPCl::PClCallback(const sensor_msgs::PointCloud2 &input) {
   pcl_conversions::toPCL( *lastMsg, pclVelodyneRaw );
   pcl::fromPCLPointCloud2( pclVelodyneRaw, *tempVelodyneRaw );
   pcl::PointCloud<pcl::PointXYZ> cloud ;*/
-}
+//}
+
+/*void LidarPCl::PClCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &input) {
+  // Convert the sensor_msgs/PointCloud2 data to pcl/PointCloud
+  //pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  /*pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
+  
+  pcl::PassThrough<pcl::PointXYZ> pass;
+  pass.setInputCloud(input);
+  pass.setFilterFieldName ("z");
+  pass.setFilterLimits (0.0, 1.0);
+  //pass.setFilterLimitsNegative (true);
+  pass.filter (*cloud_filtered);
+
+  //pcl::fromPCLPointCloud2 (input, cloud);*/
+  //ROS_INFO("Recieved pointcloud");
+//}
+
 
 void LidarPCl::PassThrough(){
   //pcl::PassThrough<pcl::PointXYZ> pass;

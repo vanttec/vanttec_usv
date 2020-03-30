@@ -5,7 +5,7 @@
  *
  * @brief: 
  */
-#include "pcl_lib/lidar_pcl.h"
+#include "lidar_pcl.h"
 
 int main(int argc, char** argv)
 {

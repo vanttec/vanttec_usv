@@ -14,6 +14,7 @@ rospy
 std_msgs
 geometry_msgs
 sensor_msgs
+genmsg
 message_generation
 )
 find_package(OpenCV 3 REQUIRED)
@@ -112,9 +113,9 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+# INCLUDE_DIRS src/pcl_lib
 #  LIBRARIES usv_perception
-#  CATKIN_DEPENDS other_catkin_pkg
+#  CATKIN_DEPENDS 
 #  DEPENDS system_lib
 )
 
@@ -125,13 +126,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 add_library(pcl_lib
-   src/pcl_lib/lidar_pcl.cpp src/pcl_lib/lidar_pcl.h
+   include/lidar_pcl.cpp include/lidar_pcl.h
 )
 
 ## Add cmake target dependencies of the library
@@ -216,4 +217,4 @@ add_library(pcl_lib
 
 add_executable(lidar_pcl src/lidar_pcl.cpp)
 target_link_libraries(lidar_pcl ${catkin_LIBRARIES} ${PCL_LIBRARIES} pcl_lib)
-add_dependencies(lidar_pcl lidar_pcl_generate_messages_cpp)
+add_dependencies(lidar_pcl usv_perception_generate_messages_cpp)

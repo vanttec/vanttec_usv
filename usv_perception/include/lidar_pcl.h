@@ -15,6 +15,15 @@
 #include <usv_perception/obstacles_list.h>
 
 // PCL
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl_ros/transforms.h>
+#include <pcl_ros/transforms.h>
+#include <pcl_conversions/pcl_conversions.h>
+//#include <pcl_ros/pcl_conversions.h>
+#include <pcl/conversions.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/PCLPointCloud2.h>
 
 class LidarPCl {
 public:
@@ -24,14 +33,15 @@ public:
 	 * @param lidar_sub_topic[in]:Subscriber's topic name. 
 	 */
 	LidarPCl(
-		const std::string &obstacles_pub_topic = "/usv_perception/lidar_detector/obstacles",
-		const std::string &lidar_sub_topic = "/velodyne_points");
+		const std::string &obstacles_pub_topic = "/usv_perception/lidar_detector/obstacles");
+		//const std::string &lidar_sub_topic = "/velodyne_points");
 	
 	/** 
 	 * Callback to process point cloud. 
 	 * @param pcl[in]: Received pointcloud.  
 	 */
-	void PClCallback(const sensor_msgs::PointCloud2 &pcl);
+	//void PClCallback(const sensor_msgs::PointCloud2 &pcl);
+	//void PClCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &input);
 
 	/** 
 	 * Filters only ROI 
