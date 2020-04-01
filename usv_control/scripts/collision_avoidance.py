@@ -186,6 +186,8 @@ class Test:
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
             x_pow = pow(obsppx - ppx,2) 
             y_pow = pow(obsppy - ppy,2) 
+            print("obsppx: " + str(obsppx))
+            print("obsppy: " + str(obsppy))
             print("ppx: " + str(ppx))
             print("ppy: " + str(ppy))
             print("vel_ppx: " + str(vel_ppx))
@@ -193,8 +195,11 @@ class Test:
             distance = pow((x_pow + y_pow),0.5)
             print("Distance: " + str(distance))
             print("Total Radius: " + str(total_radius))
-            print("For alpha: "+ str(total_radius/distance))
-            alpha = math.asin(total_radius/distance)
+            alpha_params = (total_radius/distance)
+            print("For alpha: "+ str(alpha_params))
+            if (alpha_params>1):
+                rospy.logwarn("CRASH")
+            alpha = math.asin(alpha_params)
             print("alpha: " + str(alpha))
             beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
             if beta > math.pi: 
@@ -204,8 +209,9 @@ class Test:
             beta = abs(beta)
             print("beta: " + str(beta))
             if beta < alpha or beta == alpha:
-                self.dodge(vel_ppx,vel_ppy,ppx,ppy)
-                self.bearing = self.bearing + self.avoid_angle
+                self.dodge(vel_ppx,vel_ppy,ppx,ppy,obsppx,obsppy)
+                self.bearing =  ak + self.avoid_angle
+                #self.bearing =  self.bearing + self.avoid_angle 
                 if (abs(self.bearing) > (math.pi)):
                     self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
                 print("bearing: " + str(self.bearing))
@@ -214,14 +220,14 @@ class Test:
                 self.avoid_angle = 0
         self.desired(self.vel, self.bearing)
     
-    def dodge(self,vel_ppx,vel_ppy,ppx,ppy):
+    def dodge(self,vel_ppx,vel_ppy,ppx,ppy,obsppx,obsppy):
         eucledian_vel = pow((pow(vel_ppx,2)+pow(vel_ppy,2)),0.5)
-        eucledian_pos = pow((pow(ppx,2)+pow(ppy,2)),0.5)
+        eucledian_pos = pow((pow(obsppx-ppx,2)+pow(obsppy-ppy,2)),0.5)
         if eucledian_pos != 0 and eucledian_vel != 0:
             print('collision')
             self.vel = 0.6
             unit_vely = vel_ppy/eucledian_vel 
-            unit_posy = ppy/eucledian_pos
+            unit_posy = (obsppy-ppy)/eucledian_pos
             print("unit_vely " + str(unit_vely))
             print("unit_posy: " + str(unit_posy))
 
@@ -268,10 +274,8 @@ class Test:
                  ned_y2: target y coordinate in ned reference frame
         '''
         p = np.array([x2, y2])
-        J = np.array([[math.cos(self.yaw),
-                      -1*math.sin(self.yaw)],
-                      [math.sin(self.yaw),
-                       math.cos(self.yaw)]])
+        J = np.array([[math.cos(self.yaw), -1*math.sin(self.yaw)],
+                      [math.sin(self.yaw), math.cos(self.yaw)]])
         n = J.dot(p)
         ned_x2 = n[0] + offsetx
         ned_y2 = n[1] + offsety
@@ -290,10 +294,8 @@ class Test:
                  pp_y2: target y coordinate in parallel path reference frame
         '''
         n = np.array([ned_x2 - ned_x1, ned_y2 - ned_y1])
-        J = np.array([[math.cos(ak),
-                      -1*math.sin(ak)],
-                      [math.sin(ak),
-                       math.cos(ak)]])
+        J = np.array([[math.cos(ak), -1*math.sin(ak)],
+                      [math.sin(ak), math.cos(ak)]])
         J = np.linalg.inv(J)
         pp = J.dot(n)
         pp_x2 = pp[0]
