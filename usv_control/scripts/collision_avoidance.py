@@ -215,6 +215,7 @@ class Test:
                 if (abs(self.bearing) > (math.pi)):
                     self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
                 print("bearing: " + str(self.bearing))
+                print("ak: " +str(ak))
             else: 
                 print ('free')
                 self.avoid_angle = 0
@@ -232,15 +233,19 @@ class Test:
             print("unit_posy: " + str(unit_posy))
 
             if unit_vely <= unit_posy:
-                self.avoid_angle = self.avoid_angle - .1 #moves 5 degrees to the left
+                self.avoid_angle = self.avoid_angle - .8 #moves 5 degrees to the left
                 sys.stdout.write(Color.RED)
                 print("left -")
                 sys.stdout.write(Color.RESET)
+                if (abs(self.avoid_angle) > (math.pi)):
+                    self.bearing = -math.pi
             if unit_vely > unit_posy:
-                self.avoid_angle = self.avoid_angle + .1 #moves 5 degrees to the right
+                self.avoid_angle = self.avoid_angle + .8 #moves 5 degrees to the right
                 sys.stdout.write(Color.GREEN)
                 print("right +")
                 sys.stdout.write(Color.RESET)
+                if (abs(self.avoid_angle) > (math.pi)):
+                    self.bearing = math.pi
             print("avoid_angle: " + str(self.avoid_angle))
 
 
@@ -310,7 +315,7 @@ class Test:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(1) # 100hz
+    rate = rospy.Rate(100) # 100hz
     t = Test()
     t.wp_t = []
     wp_LOS = []
