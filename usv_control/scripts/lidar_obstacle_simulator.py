@@ -66,13 +66,12 @@ class ObstacleSimulator:
             distance = math.pow(delta_x*delta_x + delta_y*delta_y, 0.5)
             if (distance < self.max_visible_radius):
                 x, y = self.ned_to_body(x, y)
-                if x > 1:
-                    obstacle = Vector3()
-                    obstacle.x = x
-                    obstacle.y = -y
-                    obstacle.z = self.obstacle_list[i]['R']
-                    list_length += 1
-                    object_detected_list.obstacles.append(obstacle)
+                obstacle = Vector3()
+                obstacle.x = x
+                obstacle.y = y
+                obstacle.z = self.obstacle_list[i]['R']
+                list_length += 1
+                object_detected_list.obstacles.append(obstacle)
         object_detected_list.len = list_length
         self.detector_pub.publish(object_detected_list)
 
@@ -129,25 +128,32 @@ def main():
         obstacleSimulator.obstacle_list.append({'X' : 5.5,
                                     'Y' : -1.5,
                                     'R' : .2})
-        obstacleSimulator.obstacle_list.append({'X' : 2.5,
+        obstacleSimulator.obstacle_list.append({'X' : 5.5,
                                     'Y' : 1.5,
                                     'R' : .2})
-        obstacleSimulator.obstacle_list.append({'X' : 21.5,
-                                    'Y' : 14.5,
+        obstacleSimulator.obstacle_list.append({'X' : 15.0,
+                                    'Y' : 0,
                                     'R' : .2})
         obstacleSimulator.obstacle_list.append({'X' : 18.5,
                                     'Y' : 17.5,
                                     'R' : .2})
     elif obstacleSimulator.challenge == 1:
-        obstacleSimulator.obstacle_list.append({'X' : 5.5,
-                                    'Y' : -1.5,
+        obstacleSimulator.obstacle_list.append({'X' : 5.0,
+                                    'Y' : 0.0,
+                                    'R' : 0.2})
+        '''
+        obstacleSimulator.obstacle_list.append({'X' : 10.0,
+                                    'Y' : 0.0,
                                     'R' : .2})
-        obstacleSimulator.obstacle_list.append({'X' : 2.5,
+        '''
+        '''
+        obstacleSimulator.obstacle_list.append({'X' : 5.5,
                                     'Y' : 1.5,
                                     'R' : .2})
-        obstacleSimulator.obstacle_list.append({'X' : 20,
-                                    'Y' : 16,
+        obstacleSimulator.obstacle_list.append({'X' : 15,
+                                    'Y' : .5,
                                     'R' : .2})
+        '''
     while not rospy.is_shutdown() and obstacleSimulator.active:
         obstacleSimulator.simulate()
         rate.sleep()
