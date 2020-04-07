@@ -170,9 +170,13 @@ class Test:
             obsy = self.obstacles[i]['Y']
             print("nedx: " + str(self.NEDx))
             print("nedy: " + str(self.NEDy))
-            #obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
-            #obsppx,obsppy =  self.ned_to_pp(obsnedx,obsnedy,ak,x2,y2)
-            obsppx,obsppy =  self.ned_to_pp(obsx,obsy,ak,x2,y2)
+
+            # NED obstacles
+            # obsppx,obsppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
+            # Body obstacles
+            obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
+            obsppx,obsppy = self.ned_to_pp(ak,x1,y1,obsnedx,obsnedy)
+
             obstacle_radius = self.obstacles[i]['radius']
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
             x_pow = pow(obsppx - ppx,2) 
@@ -224,19 +228,19 @@ class Test:
             print("unit_posy: " + str(unit_posy))
 
             if unit_vely <= unit_posy:
-                self.avoid_angle = self.avoid_angle - .8 #moves 5 degrees to the left
+                self.avoid_angle = self.avoid_angle - .15 #moves 5 degrees to the left
                 sys.stdout.write(Color.RED)
                 print("left -")
                 sys.stdout.write(Color.RESET)
                 if (abs(self.avoid_angle) > (math.pi)):
-                    self.bearing = -math.pi
+                    self.avoid_angle = -math.pi
             if unit_vely > unit_posy:
-                self.avoid_angle = self.avoid_angle + .8 #moves 5 degrees to the right
+                self.avoid_angle = self.avoid_angle + .15 #moves 5 degrees to the right
                 sys.stdout.write(Color.GREEN)
                 print("right +")
                 sys.stdout.write(Color.RESET)
                 if (abs(self.avoid_angle) > (math.pi)):
-                    self.bearing = math.pi
+                    self.avoid_angle = math.pi
             print("avoid_angle: " + str(self.avoid_angle))
 
 
@@ -306,7 +310,7 @@ class Test:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(100) # 100hz
+    rate = rospy.Rate(10) # 100hz
     t = Test()
     t.wp_t = []
     wp_LOS = []
