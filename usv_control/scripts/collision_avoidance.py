@@ -67,6 +67,7 @@ class Test:
         self.obstacle_view = "000"
 
         self.waypoint_mode = 0 # 0 for NED, 1 for GPS, 2 for body
+        self.obstacle_mode = 1 # 0 for NED, 1 for Body
 
         self.boat_radius = .50 #meters
         self.safety_radius = .3 #meters
@@ -181,13 +182,13 @@ class Test:
             obsy = self.obstacles[i]['Y']
             #print("nedx: " + str(self.NEDx))
             #print("nedy: " + str(self.NEDy))
-
             # NED obstacles
-            # obsppx,obsppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
+            if (self.obstacle_mode == 0):
+                obsppx,obsppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
             # Body obstacles
-            obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
-            obsppx,obsppy = self.ned_to_pp(ak,x1,y1,obsnedx,obsnedy)
-
+            if (self.obstacle_mode == 1):
+                obsnedx, obsnedy = self.body_to_ned(obsx,obsy,self.NEDx,self.NEDy)
+                obsppx,obsppy = self.ned_to_pp(ak,x1,y1,obsnedx,obsnedy)
             obstacle_radius = self.obstacles[i]['radius']
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
             x_pow = pow(obsppx - ppx,2) 
