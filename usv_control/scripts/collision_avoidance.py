@@ -14,7 +14,16 @@ from std_msgs.msg import Float32MultiArray
 
 from usv_perception.msg import obstacles_list
 
-SIMULATION = 1 #rospy.get_param("collision_avoidance/simulation")
+class Color():
+    RED   = "\033[1;31m"  
+    BLUE  = "\033[1;34m"
+    CYAN  = "\033[1;36m"
+    GREEN = "\033[0;32m"
+    RESET = "\033[0;0m"
+    BOLD    = "\033[;1m"
+    REVERSE = "\033[;7m"
+
+SIMULATION = 1 # rospy.get_param("collision_avoidance/simulation")
 class Test:
     def __init__(self):
         self.testing = True
@@ -63,6 +72,7 @@ class Test:
         self.safety_radius = .3 #meters
         self.offset = .55 #camera to ins offset
         self.avoid_angle = 0
+        self.psi_r = 0
 
         #self.Rne = np.zeros((3, 3), dtype=np.float)
         #self.Rea = 6378137
@@ -146,8 +156,8 @@ class Test:
         ye = -(self.NEDx - x1)*math.sin(ak) + (self.NEDy - y1)*math.cos(ak)
         xe = (self.NEDx - x1)*math.cos(ak) + (self.NEDy - y1)*math.sin(ak)
         delta = (self.dmax - self.dmin)*math.exp(-(1/self.gamma)*abs(ye)) + self.dmin
-        psi_r = math.atan(-ye/delta)
-        self.bearing = ak + psi_r
+        self.psi_r = math.atan(-ye/delta)
+        self.bearing = ak + self.psi_r
         if (abs(self.bearing) > (math.pi)):
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
         xlos = x1 + (delta+xe)*math.cos(ak)
@@ -162,14 +172,15 @@ class Test:
 
     def avoid(self, ak, x2, y2):
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
-        vel_ppx,vel_ppy =  self.ned_to_pp(vel_nedx,vel_nedy,ak,0,0)
-        ppx,ppy = self.ned_to_pp(self.NEDx,self.NEDy,ak,x2,y2)
+        vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
+        ppx,ppy = self.ned_to_pp(ak,x1,y1,self.NEDx,self.NEDy)
+        crash = 0
         for i in range(0,len(self.obstacles),1):
             print("obstacle"+str(i+1))
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
-            print("nedx: " + str(self.NEDx))
-            print("nedy: " + str(self.NEDy))
+            #print("nedx: " + str(self.NEDx))
+            #print("nedy: " + str(self.NEDy))
 
             # NED obstacles
             # obsppx,obsppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
@@ -181,39 +192,42 @@ class Test:
             total_radius = self.boat_radius+self.safety_radius+obstacle_radius
             x_pow = pow(obsppx - ppx,2) 
             y_pow = pow(obsppy - ppy,2) 
-            print("obsppx: " + str(obsppx))
-            print("obsppy: " + str(obsppy))
-            print("ppx: " + str(ppx))
-            print("ppy: " + str(ppy))
-            print("vel_ppx: " + str(vel_ppx))
-            print("vel_ppy: " + str(vel_ppy))
+            #print("obsppx: " + str(obsppx))
+            #print("obsppy: " + str(obsppy))
+            #print("ppx: " + str(ppx))
+            #print("ppy: " + str(ppy))
+            #print("vel_ppx: " + str(vel_ppx))
+            #print("vel_ppy: " + str(vel_ppy))
             distance = pow((x_pow + y_pow),0.5)
             print("Distance: " + str(distance))
             print("Total Radius: " + str(total_radius))
-            alpha_params = (total_radius/distance)
-            print("For alpha: "+ str(alpha_params))
-            if (alpha_params>1):
+            if distance < total_radius:
                 rospy.logwarn("CRASH")
+            alpha_params = (total_radius/distance)
+            #print("For alpha: "+ str(alpha_params))
             alpha = math.asin(alpha_params)
-            print("alpha: " + str(alpha))
+            #print("alpha: " + str(alpha))
             beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obsppy-ppy,obsppx-ppx)
             if beta > math.pi: 
                 beta = beta - 2*math.pi
             if beta < -math.pi: 
                 beta = beta +2*math.pi
             beta = abs(beta)
-            print("beta: " + str(beta))
+            #print("beta: " + str(beta))
             if beta < alpha or beta == alpha:
                 self.dodge(vel_ppx,vel_ppy,ppx,ppy,obsppx,obsppy)
-                self.bearing =  ak + self.avoid_angle
-                #self.bearing =  self.bearing + self.avoid_angle 
+                self.bearing =  ak + self.psi_r + self.avoid_angle
                 if (abs(self.bearing) > (math.pi)):
                     self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
-                print("bearing: " + str(self.bearing))
-                print("ak: " +str(ak))
-            else: 
-                print ('free')
-                self.avoid_angle = 0
+                #print("ak: " +str(ak))
+                crash = crash + 1
+        if crash == 0:
+            sys.stdout.write(Color.BLUE)
+            print ('free')
+            sys.stdout.write(Color.RESET)
+            self.avoid_angle = 0
+        print("bearing: " + str(self.bearing))
+        print("avoid_angle: " + str(self.avoid_angle))
         self.desired(self.vel, self.bearing)
     
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy,obsppx,obsppy):
@@ -226,7 +240,6 @@ class Test:
             unit_posy = (obsppy-ppy)/eucledian_pos
             print("unit_vely " + str(unit_vely))
             print("unit_posy: " + str(unit_posy))
-
             if unit_vely <= unit_posy:
                 self.avoid_angle = self.avoid_angle - .15 #moves 5 degrees to the left
                 sys.stdout.write(Color.RED)
@@ -241,8 +254,6 @@ class Test:
                 sys.stdout.write(Color.RESET)
                 if (abs(self.avoid_angle) > (math.pi)):
                     self.avoid_angle = math.pi
-            print("avoid_angle: " + str(self.avoid_angle))
-
 
     def gps_to_ned(self, lat2, lon2):
         lat1 = self.latref
@@ -310,7 +321,7 @@ class Test:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(10) # 100hz
+    rate = rospy.Rate(100) # 100hz
     t = Test()
     t.wp_t = []
     wp_LOS = []
