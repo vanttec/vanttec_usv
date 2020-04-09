@@ -144,6 +144,7 @@ def main():
         obstacleSimulator.obstacle_list.append({'X' : 10.0,
                                     'Y' : 0.0,
                                     'R' : 0.2})
+
         '''
         obstacleSimulator.obstacle_list.append({'X' : 5.5,
                                     'Y' : 1.5,
