@@ -177,7 +177,9 @@ class Test:
         ppx,ppy = self.ned_to_pp(ak,x1,y1,self.NEDx,self.NEDy)
         crash = 0
         for i in range(0,len(self.obstacles),1):
+            sys.stdout.write(Color.CYAN)
             print("obstacle"+str(i+1))
+            sys.stdout.write(Color.RESET)
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
             #print("nedx: " + str(self.NEDx))
@@ -226,9 +228,15 @@ class Test:
             sys.stdout.write(Color.BLUE)
             print ('free')
             sys.stdout.write(Color.RESET)
-            self.avoid_angle = 0
+            if(self.avoid_angle > 0):
+                self.avoid_angle = self.avoid_angle -.15
+            if(self.avoid_angle < 0):
+                self.avoid_angle = self.avoid_angle +.15
+            #self.avoid_angle = 0
         print("bearing: " + str(self.bearing))
+        sys.stdout.write(Color.BOLD)
         print("avoid_angle: " + str(self.avoid_angle))
+        sys.stdout.write(Color.RESET)
         self.desired(self.vel, self.bearing)
     
     def dodge(self,vel_ppx,vel_ppy,ppx,ppy,obsppx,obsppy):
@@ -322,7 +330,7 @@ class Test:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(100) # 100hz
+    rate = rospy.Rate(1) # 100hz
     t = Test()
     t.wp_t = []
     wp_LOS = []
