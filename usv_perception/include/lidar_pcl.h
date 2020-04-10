@@ -17,31 +17,33 @@
 // PCL
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_ros/transforms.h>
-#include <pcl_conversions/pcl_conversions.h>
+//#include <pcl_ros/transforms.h>
+//#include <pcl_ros/transforms.h>
+//#include <pcl_conversions/pcl_conversions.h>
 //#include <pcl_ros/pcl_conversions.h>
-#include <pcl/conversions.h>
+//#include <pcl/conversions.h>
 #include <pcl_ros/point_cloud.h>
-#include <pcl/PCLPointCloud2.h>
+//#include <pcl/PCLPointCloud2.h>
 
-class LidarPCl {
+class Lidar {
 public:
 	/**
 	 * Constructor. 
-	 * @param obstacles_pub_topic[in]: Publisher's topic name. 
-	 * @param lidar_sub_topic[in]:Subscriber's topic name. 
+	 * @param obstacles_pub[in]: Publisher's topic name. 
+	 * @param lidar_sub[in]:Subscriber's topic name. 
 	 */
-	LidarPCl(
-		const std::string &obstacles_pub_topic = "/usv_perception/lidar_detector/obstacles");
-		//const std::string &lidar_sub_topic = "/velodyne_points");
+	Lidar(
+		const std::string &obstacles_pub = "/usv_perception/lidar_detector/obstacles",
+		const std::string &lidar_sub = "/velodyne_pcl"
+	);
 	
 	/** 
 	 * Callback to process point cloud. 
-	 * @param pcl[in]: Received pointcloud.  
+	 * @param input[in]: Received pointcloud.  
 	 */
+	//typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 	//void PClCallback(const sensor_msgs::PointCloud2 &pcl);
-	//void PClCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &input);
+	void LidarCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &input);
 
 	/** 
 	 * Filters only ROI 
@@ -53,7 +55,7 @@ public:
 private:
 
 	// ROS Node 
-	ros::NodeHandle lidar_pcl_node_;
+	ros::NodeHandle lidar_node_;
 
 	// Publishers for obsacle list.
   ros::Publisher obstacles_pub_;

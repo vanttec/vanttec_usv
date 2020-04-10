@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "lidar_pcl");
 
-	LidarPCl lidar_pcl;
+	Lidar lidar_pcl;
 
 	ros::spin();
 
