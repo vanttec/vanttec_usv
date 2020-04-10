@@ -29,8 +29,6 @@ class Test:
 
         #self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
         self.waypoints_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
-<<<<<<< 488f819483f2af1064c96002655b4995ac3f736f
-=======
 
 def main():
     rospy.init_node('ca_test', anonymous=True)
@@ -42,7 +40,7 @@ def main():
         #t.testing = False
         #rospy.logwarn("Finished")
         rate.sleep()
->>>>>>> ca_test without obstacles
+
     rospy.spin()
 
 if __name__ == "__main__":

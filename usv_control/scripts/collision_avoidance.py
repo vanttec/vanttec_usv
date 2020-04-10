@@ -6,6 +6,8 @@ import rospy
 import math
 import numpy as np
 
+import sys
+
 from std_msgs.msg import Float64
 from std_msgs.msg import String
 from geometry_msgs.msg import Pose2D
@@ -64,7 +66,7 @@ class Test:
         self.Waypointpath = Pose2D()
         self.LOSpath = Pose2D()
 
-        self.obstacle_view = "000"
+        self.obstacles = []
 
         self.waypoint_mode = 0 # 0 for NED, 1 for GPS, 2 for body
         self.obstacle_mode = 1 # 0 for NED, 1 for Body
@@ -85,7 +87,7 @@ class Test:
         rospy.Subscriber("/vectornav/ins_2d/local_vel", Vector3, self.local_vel_callback)
         rospy.Subscriber("/vectornav/ins_2d/ins_ref", Vector3, self.gpsref_callback)
         rospy.Subscriber("/mission/waypoints", Float32MultiArray, self.waypoints_callback)
-        rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  String, self.obstacles_callback)
+        rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  obstacles_list, self.obstacles_callback)
 
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
         self.d_heading_pub = rospy.Publisher("/guidance/desired_heading", Float64, queue_size=10)
@@ -144,12 +146,10 @@ class Test:
             ypow = math.pow(y2 - self.NEDy, 2)
             self.distance = math.pow(xpow + ypow, 0.5)
             if self.distance > 1:
-                print("Los step: " + str(self.k))
-                print("X1: " + str(x1))
-                print("X2: " + str(x2))
                 self.LOS(x1, y1, x2, y2)
             else:
                 self.k += 1
+                print("Next waypoint")
         else:
             self.desired(0, self.yaw)
 
@@ -170,9 +170,9 @@ class Test:
         self.vel = 1
         if self.distance < 5:
             self.vel = 0.6
-        self.avoid(ak, x2, y2)
+        self.avoid(ak, x1, y1)
 
-    def avoid(self, ak, x2, y2):
+    def avoid(self, ak, x1, y1):
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
         ppx,ppy = self.ned_to_pp(ak,x1,y1,self.NEDx,self.NEDy)
@@ -364,14 +364,17 @@ def main():
             wp_LOS = t.wp_t
             x_0 = t.NEDx
             y_0 = t.NEDy
+            # 0 = NED
             if t.waypoint_mode == 0:
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
+            # 1 = GPS
             elif t.waypoint_mode == 1:
                 for i in range(0,len(wp_LOS),2):
                     wp_LOS[i], wp_LOS[i+1] = t.gps_to_ned(wp_LOS[i],wp_LOS[i+1])
                 wp_LOS.insert(0,x_0)
                 wp_LOS.insert(1,y_0)
+            # 2 = Body
             elif t.waypoint_mode == 2:
                 for i in range(0,len(wp_LOS),2):
                     wp_LOS[i], wp_LOS[i+1] = t.body_to_ned(wp_LOS[i],wp_LOS[i+1],self.NEDx,self.NEDy)
