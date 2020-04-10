@@ -139,10 +139,10 @@ def main():
                                     'R' : .2})
     elif obstacleSimulator.challenge == 1:
         obstacleSimulator.obstacle_list.append({'X' : 5.0,
-                                    'Y' : 0.0,
+                                    'Y' : 1.00,
                                     'R' : 0.2})
         obstacleSimulator.obstacle_list.append({'X' : 10.0,
-                                    'Y' : 0.0,
+                                    'Y' : -1.00,
                                     'R' : 0.2})
 
         '''

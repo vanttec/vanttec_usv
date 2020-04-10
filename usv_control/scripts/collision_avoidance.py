@@ -76,6 +76,7 @@ class Test:
         self.offset = .55 #camera to ins offset
         self.avoid_angle = 0
         self.psi_r = 0
+        self.increase = 0 
 
         #self.Rne = np.zeros((3, 3), dtype=np.float)
         #self.Rea = 6378137
@@ -182,6 +183,7 @@ class Test:
             sys.stdout.write(Color.RESET)
             obsx = self.obstacles[i]['X']
             obsy = self.obstacles[i]['Y']
+            self.increase = (self.obstacles[i]['radius'])
             #print("nedx: " + str(self.NEDx))
             #print("nedy: " + str(self.NEDy))
             # NED obstacles
@@ -204,6 +206,21 @@ class Test:
             distance = pow((x_pow + y_pow),0.5)
             print("Distance: " + str(distance))
             print("Total Radius: " + str(total_radius))
+            distance_free = distance - total_radius
+            print("Distance_free: " + str(distance_free))
+            #Almost crash prevention
+            if abs(distance_free) < self.increase/10:
+                rospy.logwarn("ALMOST CRASH")
+                self.vel = 0.6
+                if distance_free <= 0: 
+                    self.avoid_angle = -math.pi
+                if distance_free > 0: 
+                    self.avoid_angle = math.pi
+                self.bearing =  ak + self.psi_r + self.avoid_angle
+                if (abs(self.bearing) > (math.pi)):
+                    self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
+                self.desired(self.vel, self.bearing)
+            
             if distance < total_radius:
                 rospy.logwarn("CRASH")
             alpha_params = (total_radius/distance)
@@ -228,10 +245,16 @@ class Test:
             sys.stdout.write(Color.BLUE)
             print ('free')
             sys.stdout.write(Color.RESET)
-            if(self.avoid_angle > 0):
-                self.avoid_angle = self.avoid_angle -.15
-            if(self.avoid_angle < 0):
-                self.avoid_angle = self.avoid_angle +.15
+
+            #Gradual comeback
+            if(self.avoid_angle > self.increase or self.avoid_angle < -self.increase):
+                if(self.avoid_angle < -self.increase):
+                    self.avoid_angle = self.avoid_angle + self.increase
+                if (self.avoid_angle > self.increase ):
+                    self.avoid_angle = self.avoid_angle -self.increase
+            else:
+                self.avoid_angle = 0
+            
             #self.avoid_angle = 0
         print("bearing: " + str(self.bearing))
         sys.stdout.write(Color.BOLD)
@@ -250,14 +273,14 @@ class Test:
             print("unit_vely " + str(unit_vely))
             print("unit_posy: " + str(unit_posy))
             if unit_vely <= unit_posy:
-                self.avoid_angle = self.avoid_angle - .15 #moves 5 degrees to the left
+                self.avoid_angle = self.avoid_angle - self.increase #moves 5 degrees to the left
                 sys.stdout.write(Color.RED)
                 print("left -")
                 sys.stdout.write(Color.RESET)
                 if (abs(self.avoid_angle) > (math.pi)):
                     self.avoid_angle = -math.pi
             if unit_vely > unit_posy:
-                self.avoid_angle = self.avoid_angle + .15 #moves 5 degrees to the right
+                self.avoid_angle = self.avoid_angle + self.increase #moves 5 degrees to the right
                 sys.stdout.write(Color.GREEN)
                 print("right +")
                 sys.stdout.write(Color.RESET)
@@ -330,7 +353,7 @@ class Test:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(1) # 100hz
+    rate = rospy.Rate(100) # 100hz
     t = Test()
     t.wp_t = []
     wp_LOS = []
