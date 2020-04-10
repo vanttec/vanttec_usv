@@ -30,8 +30,6 @@ class Test:
         #self.obstacles_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
         self.waypoints_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
 
-
-
 def main():
     rospy.init_node('ca_test', anonymous=True)
     rate = rospy.Rate(100) # 100hz
