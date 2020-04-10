@@ -56,8 +56,6 @@ class LOS:
         self.threshold_radius = 5
         self.chi_r = 1./self.threshold_radius
         self.chi_psi = 2/math.pi
-        self.w_r = 0.8
-        self.w_psi = 0.2
         self.exp_gain = 10
         self.exp_offset = 0.5
 
@@ -163,13 +161,9 @@ class LOS:
             e_psi = (e_psi/abs_e_psi)*(abs_e_psi - 2*math.pi)
             abs_e_psi = abs(e_psi)
         u_psi = 1/(1 + math.exp(self.exp_gain*(abs_e_psi*self.chi_psi - self.exp_offset)))
+        u_r = 1/(1 + math.exp(-self.exp_gain*(self.distance*self.chi_r - self.exp_offset)))
 
-        if self.distance > self.threshold_radius:
-            self.vel = (self.u_max - self.u_min)*u_psi + self.u_min
-
-        else:
-            u_r = 1/(1 + math.exp(-self.exp_gain*(self.distance*self.chi_r - self.exp_offset)))
-            self.vel = (self.u_max - self.u_min)*(self.w_r*u_r + self.w_psi*u_psi) + self.u_min
+        self.vel = (self.u_max - self.u_min)*np.min([u_psi, u_r]) + self.u_min
 
         self.desired(self.vel, self.bearing)
 
