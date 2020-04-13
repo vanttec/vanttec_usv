@@ -7,9 +7,11 @@
     @date: Sun Mar 22, 2020
 	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
+    @coauthor: Ivana Collado Gonzalez
+    @e-mail: ivanacollado@gmail.com
 	@brief: Obstacle simulation for mission testing.
 	@version: 1.0
-    Open source
+    @licence: Open source
 ----------------------------------------------------------
 '''
 
@@ -40,7 +42,7 @@ class ObstacleSimulator:
         self.challenge = 1 #0 for AutonomousNavigation, 1 for SpeedChallenge
         self.obstacle_list = []
 
-        self.max_visible_radius = 10
+        self.max_visible_radius = 6
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
         self.detector_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
@@ -124,7 +126,13 @@ class ObstacleSimulator:
         return (J)
 
     def rviz_markers(self):
-        markerArray = MarkerArray()
+        '''
+        @name: rviz_markers
+        @brief: Publishes obstacles as rviz markers.
+        @param: --
+        @return: --
+        '''
+        marker_array = MarkerArray()
         for i in range(len(self.obstacle_list)):
             x = self.obstacle_list[i]['X']
             y = self.obstacle_list[i]['Y']
@@ -133,9 +141,9 @@ class ObstacleSimulator:
             marker.header.frame_id = "/world"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = radius
-            marker.scale.y = radius
-            marker.scale.z = radius
+            marker.scale.x = radius + .8
+            marker.scale.y = radius + .8
+            marker.scale.z = radius + .8
             marker.color.a = 1.0
             marker.color.r = 1.0
             marker.color.g = 1.0
@@ -145,9 +153,9 @@ class ObstacleSimulator:
             marker.pose.position.y = y
             marker.pose.position.z = 0
             marker.id = i
-            markerArray.markers.append(marker)
+            marker_array.markers.append(marker)
         # Publish the MarkerArray
-        self.marker_pub.publish(markerArray)
+        self.marker_pub.publish(marker_array)
 
 def main():
     rospy.init_node('obstacle_simulator', anonymous=False)
@@ -168,17 +176,15 @@ def main():
                                     'R' : .2})
     elif obstacleSimulator.challenge == 1:
         obstacleSimulator.obstacle_list.append({'X' : 5.0,
-                                    'Y' : 0.00,
+                                    'Y' : -1.50,
                                     'R' : 0.2})
-        
         obstacleSimulator.obstacle_list.append({'X' : 5.0,
-                                    'Y' : 1.00,
+                                    'Y' : 1.50,
                                     'R' : 0.2})
-        
-        '''
-        obstacleSimulator.obstacle_list.append({'X' : 5.5,
-                                    'Y' : 1.5,
+        obstacleSimulator.obstacle_list.append({'X' : 5,
+                                    'Y' : 0.1,
                                     'R' : .2})
+        '''
         obstacleSimulator.obstacle_list.append({'X' : 15,
                                     'Y' : .5,
                                     'R' : .2})
