@@ -16,14 +16,16 @@
 
 // PCL
 #include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
+//#include <pcl/point_types.h>
 //#include <pcl_ros/transforms.h>
 //#include <pcl_ros/transforms.h>
 //#include <pcl_conversions/pcl_conversions.h>
 //#include <pcl_ros/pcl_conversions.h>
 //#include <pcl/conversions.h>
 #include <pcl_ros/point_cloud.h>
+#include <pcl/filters/passthrough.h>
 //#include <pcl/PCLPointCloud2.h>
+
 
 class Lidar {
 public:

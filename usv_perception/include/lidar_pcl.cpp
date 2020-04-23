@@ -15,7 +15,7 @@
 
 // INCLUDES --------------------------------------------------------------------
 #include "lidar_pcl.h"
-#include <pcl/filters/passthrough.h>
+
 
 // CLASS ----------------------------------------------------------------------
 Lidar::Lidar(
@@ -51,7 +51,8 @@ void Lidar::PassThrough(){
   pass.setFilterFieldName ("z");
   pass.setFilterLimits (0.0, 1.0);
   pass.filter (*cloud_filtered);
-  cloud_filtered.header = cloud.header
+  *cloud_filtered.header.frame_id = "/velodyne";
+  //cloud_filtered.header = cloud.header
   pcl_pub_.publish(cloud_filtered);
 }
 
