@@ -30,39 +30,46 @@ public:
 	/**
 	 * Constructor. 
 	 * @param obstacles_pub[in]: Publisher's topic name. 
-	 * @param lidar_sub[in]:Subscriber's topic name. 
+	 * @param lidar_sub[in]: Subscriber's topic name. 
+	 * @param queue_size[in]: Message queue size.
 	 */
 	Lidar(
+		const std::string &lidar_sub = "/velodyne_pcl",
 		const std::string &obstacles_pub = "/usv_perception/lidar_detector/obstacles",
-		const std::string &lidar_sub = "/velodyne_pcl"
+		const std::string &pcl_pub = "/usv_perception/lidar_detector/filtered_pcl",
+		const int &queue_size = 10
 	);
 	
 	/** 
 	 * Callback to process point cloud. 
 	 * @param input[in]: Received pointcloud.  
 	 */
-	//typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
-	//void PClCallback(const sensor_msgs::PointCloud2 &pcl);
 	void LidarCallback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr &input);
+
+	/** 
+	 * Filters only ROI 
+	 */
+	void DetectObstacles();
+
+private:
 
 	/** 
 	 * Filters only ROI 
 	 */
 	void PassThrough();
 
-
-
-private:
-
 	// ROS Node 
 	ros::NodeHandle lidar_node_;
 
-	// Publishers for obsacle list.
-  ros::Publisher obstacles_pub_;
 	// Publishers to Lidar PC.
   ros::Subscriber lidar_sub_;
+	// Publishers for obsacle list.
+  ros::Publisher obstacles_pub_;
+	ros::Publisher pcl_pub_;
 
 	usv_perception::obstacles_list list_;
 	geometry_msgs::Vector3 obstacle_;
+
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
 
 };
