@@ -6,10 +6,13 @@
 	</node-->
 	
 	<!--node pkg="usv_control" type="ca_test.py" name="ca_test"-->
+	<node name="boat_tf2_broadcaster" type="boat_tf2_broadcaster" pkg="usv_control" />
 
 	<node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" />
 
-  <node name="asmc" pkg="usv_control" type="asmc" >
+  <node name="lidar_obstacle_simulator" type="lidar_obstacle_simulator.py" pkg="usv_control" />
+
+	<node name="asmc" pkg="usv_control" type="asmc" >
 	<param name = "k_u" value = "0.1" />
 	<param name = "k_psi" value = "0.2" />
 	<param name = "kmin_u" value = "0.05" />

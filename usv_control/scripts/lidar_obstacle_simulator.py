@@ -5,6 +5,7 @@
 ----------------------------------------------------------
     @file: obstacle_simulator.py
     @date: Sun Mar 22, 2020
+    @date_modif: Dom April 12, 2020
 	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @coauthor: Ivana Collado Gonzalez
@@ -159,7 +160,7 @@ class ObstacleSimulator:
 
 def main():
     rospy.init_node('obstacle_simulator', anonymous=False)
-    rate = rospy.Rate(20) # 100hz
+    rate = rospy.Rate(1) # 100hz
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
         obstacleSimulator.obstacle_list.append({'X' : 5.5,
@@ -175,18 +176,20 @@ def main():
                                     'Y' : 17.5,
                                     'R' : .2})
     elif obstacleSimulator.challenge == 1:
+        '''
         obstacleSimulator.obstacle_list.append({'X' : 5.0,
-                                    'Y' : -1.50,
+                                    'Y' : 0.30,
                                     'R' : 0.2})
         obstacleSimulator.obstacle_list.append({'X' : 5.0,
-                                    'Y' : 1.50,
+                                    'Y' : 10.0,
                                     'R' : 0.2})
+        '''
         obstacleSimulator.obstacle_list.append({'X' : 5,
-                                    'Y' : 0.1,
-                                    'R' : .2})
+                                    'Y' : 0.2,
+                                    'R' : 0.5})
         '''
         obstacleSimulator.obstacle_list.append({'X' : 15,
-                                    'Y' : .5,
+                                    'Y' : .55
                                     'R' : .2})
         '''
     while not rospy.is_shutdown() and obstacleSimulator.active:
