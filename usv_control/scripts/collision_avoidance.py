@@ -85,6 +85,7 @@ class LOS:
         #self.psi_r = 0
         self.increase = 0 
 
+        self.r_max = 1 #rad/sec
         self.u_psi = 0
         self.u_r = 0
 
@@ -291,7 +292,11 @@ class LOS:
             if beta < alpha or beta == alpha:
                 u_obs = np.amin(u_obstacle)
                 self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_obs]) + self.u_min
-                self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
+                
+                teta = self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance)
+                avoid_distance = self.calculate_avoid_distance(teta, vel_ppx, vel_ppy)
+                if distance <= avoid_distance:
+                    self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
                 
                 '''
                 self.bearing =  ak + self.psi_r + self.avoid_angle
@@ -323,6 +328,22 @@ class LOS:
         #print("avoid_angle: " + str(self.avoid_angle))
         sys.stdout.write(Color.RESET)
         
+    def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance):
+        b = total_radius - abs(abs(obs_ppy)-abs(ppy))
+        print("b: " + str(b))
+        tangent_param = (distance - total_radius) * (distance + total_radius)
+        print("distance: " + str(distance))
+        tangent = pow(tangent_param, 0.5)
+        print("tangent: " + str(tangent))
+        gamma = math.asin(b/tangent)
+        teta = 90 - gamma
+        return (teta)
+
+    def calculate_avoid_distance(self, teta, vel_ppx, vel_ppy):
+        time = (teta / self.r_max)
+        eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
+        avoid_distance = time * eucledian_vel
+        return (avoid_distance)
     
     def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy):
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)

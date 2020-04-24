@@ -186,7 +186,7 @@ def main():
         '''
         obstacleSimulator.obstacle_list.append({'X' : 5,
                                     'Y' : 0.2,
-                                    'R' : 0.5})
+                                    'R' : 0.2})
         '''
         obstacleSimulator.obstacle_list.append({'X' : 15,
                                     'Y' : .55
