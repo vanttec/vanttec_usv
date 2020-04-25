@@ -232,7 +232,7 @@ class LOS:
             obsy = self.obstacles[i]['Y']
             self.increase = (self.obstacles[i]['radius'])
             #self.increase = .1
-            print("increase: " + str(self.increase))
+            #print("increase: " + str(self.increase))
             #print("nedx: " + str(self.ned_x))
             #print("nedy: " + str(self.ned_y))
             # NED obstacles
@@ -253,7 +253,7 @@ class LOS:
             #print("vel_ppx: " + str(vel_ppx))
             #print("vel_ppy: " + str(vel_ppy))
             distance = pow((x_pow + y_pow),0.5)
-            print("Distance: " + str(distance))
+            #print("Distance: " + str(distance))
             print("Total Radius: " + str(total_radius))
     
             u_obstacle = 1/(1 + math.exp(-self.exp_gain*(distance*self.chi_r - self.exp_offset)))
@@ -294,9 +294,10 @@ class LOS:
                 self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_obs]) + self.u_min
                 
                 teta = self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance)
-                avoid_distance = self.calculate_avoid_distance(teta, vel_ppx, vel_ppy)
+                avoid_distance = self.calculate_avoid_distance(teta, vel_ppx, vel_ppy, total_radius)
                 if distance <= avoid_distance:
-                    self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
+                    self.vel = 0.3
+                    self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy, teta)
                 
                 '''
                 self.bearing =  ak + self.psi_r + self.avoid_angle
@@ -329,34 +330,42 @@ class LOS:
         sys.stdout.write(Color.RESET)
         
     def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance):
-        b = total_radius - abs(abs(obs_ppy)-abs(ppy))
+        print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
+        total_radius = total_radius +.3
+        b = total_radius #- abs(abs(obs_ppy)-abs(ppy))
         print("b: " + str(b))
-        tangent_param = (distance - total_radius) * (distance + total_radius)
+        tangent_param = abs((distance - total_radius) * (distance + total_radius))
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
         print("tangent: " + str(tangent))
-        gamma = math.asin(b/tangent)
-        teta = 90 - gamma
+        if tangent >= b:
+            teta = math.asin(b/tangent)
+        else:
+            teta = math.asin(tangent/b)
+        print("teta: " + str(teta))
         return (teta)
 
-    def calculate_avoid_distance(self, teta, vel_ppx, vel_ppy):
+    def calculate_avoid_distance(self, teta, vel_ppx, vel_ppy, total_radius):
         time = (teta / self.r_max)
+        print("time: " + str(time))
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
-        avoid_distance = time * eucledian_vel
+        print("vel: " + str(eucledian_vel))
+        avoid_distance = time * eucledian_vel + total_radius +.3
+        print("avoid_distance: " + str(avoid_distance)) 
         return (avoid_distance)
     
-    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy):
+    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy, teta):
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
         if eucledian_pos != 0 and eucledian_vel != 0:
-            print('collision')
+            rospy.loginfo('collision')
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = (obs_ppy - ppy)/eucledian_pos #+ 0.1
             print("unit_vely " + str(unit_vely))
             print("unit_posy: " + str(unit_posy))
             if unit_vely <= unit_posy:
-                #self.avoid_angle = self.avoid_angle - self.increase #moves 5 degrees to the left
-                self.bearing = self.yaw - self.increase
+                #self.bearing = self.yaw - self.increase
+                self.bearing = self.yaw - teta
                 sys.stdout.write(Color.RED)
                 print("left -")
                 sys.stdout.write(Color.RESET)
@@ -365,8 +374,8 @@ class LOS:
                     self.avoid_angle = -math.pi/2
                 '''
             else:
-                #self.avoid_angle = self.avoid_angle + self.increase #moves 5 degrees to the right
-                self.bearing = self.yaw + self.increase
+                self.bearing = self.yaw + teta
+                #self.bearing = self.yaw + self.increase
                 sys.stdout.write(Color.GREEN)
                 print("right +")
                 sys.stdout.write(Color.RESET)
@@ -455,7 +464,7 @@ class LOS:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(100) # 100hz
+    rate = rospy.Rate(10) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []

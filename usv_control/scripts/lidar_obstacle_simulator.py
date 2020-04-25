@@ -160,7 +160,7 @@ class ObstacleSimulator:
 
 def main():
     rospy.init_node('obstacle_simulator', anonymous=False)
-    rate = rospy.Rate(1) # 100hz
+    rate = rospy.Rate(100) # 100hz
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
         obstacleSimulator.obstacle_list.append({'X' : 5.5,
@@ -185,8 +185,8 @@ def main():
                                     'R' : 0.2})
         '''
         obstacleSimulator.obstacle_list.append({'X' : 5,
-                                    'Y' : 0.2,
-                                    'R' : 0.2})
+                                    'Y' : -0.2,
+                                    'R' : 0.5})
         '''
         obstacleSimulator.obstacle_list.append({'X' : 15,
                                     'Y' : .55

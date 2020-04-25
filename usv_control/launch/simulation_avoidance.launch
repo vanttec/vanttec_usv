@@ -1,30 +1,28 @@
 <launch>
 
-	<!--node pkg="pkg_name" type="nombre_de_archivo" name="nombre_de_nodo" -->
-  <!--node pkg="usv_control" type="collision_avoidance.py" name="collision_avoidance" >
-	<param name = "simulation" value = "1"/>
-	</node-->
-	
-	<!--node pkg="usv_control" type="ca_test.py" name="ca_test"-->
-	<node name="boat_tf2_broadcaster" type="boat_tf2_broadcaster" pkg="usv_control" />
+    <!--node pkg="pkg_name" type="nombre_de_archivo" name="nombre_de_nodo" -->
+    <!--node pkg="usv_control" type="collision_avoidance.py" name="collision_avoidance" >
+    <param name = "simulation" value = "1"/>
+    </node-->
 
-	<node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" />
+    <!--node pkg="usv_control" type="ca_test.py" name="ca_test"-->
+    <node name="boat_tf2_broadcaster" type="boat_tf2_broadcaster" pkg="usv_control" />
 
-  <node name="lidar_obstacle_simulator" type="lidar_obstacle_simulator.py" pkg="usv_control" />
+    <node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" />
 
-	<node name="asmc" pkg="usv_control" type="asmc" >
-	<param name = "k_u" value = "0.1" />
-	<param name = "k_psi" value = "0.2" />
-	<param name = "kmin_u" value = "0.05" />
-	<param name = "kmin_psi" value = "0.2" />
-	<param name = "k2_u" value = "0.02" />
-	<param name = "k2_psi" value = "0.1" />
-	<param name = "mu_u" value = "0.05" />
-	<param name = "mu_psi" value = "0.1" />
-	<param name = "lambda_u" value = "0.001" />
-	<param name = "lambda_psi" value = "1" />
-  </node>
+    <node name="lidar_obstacle_simulator" type="lidar_obstacle_simulator.py" pkg="usv_control" />
 
-
+    <node name="asmc" pkg="usv_control" type="asmc" >
+    <param name = "k_u" value = "0.1" />
+    <param name = "k_psi" value = "0.2" />
+    <param name = "kmin_u" value = "0.05" />
+    <param name = "kmin_psi" value = "0.2" />
+    <param name = "k2_u" value = "0.02" />
+    <param name = "k2_psi" value = "0.1" />
+    <param name = "mu_u" value = "0.05" />
+    <param name = "mu_psi" value = "0.1" />
+    <param name = "lambda_u" value = "0.001" />
+    <param name = "lambda_psi" value = "1" />
+    </node>
 
 </launch>
