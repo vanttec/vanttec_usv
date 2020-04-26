@@ -283,7 +283,7 @@ class LOS:
                 self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx)
                 avoid_distance = self.calculate_avoid_distance( vel_ppx, vel_ppy, total_radius)
                 if distance <= avoid_distance:
-                    #self.collision_flag = 1
+                    self.collision_flag = 1
                     self.vel = 0.3
                     self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
                 
@@ -320,21 +320,32 @@ class LOS:
     def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance, ppx, obs_ppx):
         print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
         total_radius = total_radius +.3
-        b = total_radius #- abs(abs(obs_ppy)-abs(ppy))
-        print("b: " + str(b))
         tangent_param = abs((distance - total_radius) * (distance + total_radius))
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
         print("tangent: " + str(tangent))
-        if tangent >= b:
-            self.teta = math.asin(b/tangent)
+        if tangent >= total_radius:
+            self.teta = math.asin(total_radius/tangent)
+            #self.teta = math.atan2(total_radius,tangent)
+            '''
+            gamma1 = math.asin((ppy-obs_ppy)/distance)
+            gamma = ((math.pi/2)-self.teta) + gamma1
+            alpha = (math.pi/2) - gamma
+            print("alpha: " + str(alpha))
+            hb = (ppy-obs_ppy)/math.acos(alpha)
+            b = total_radius - hb
+            self.teta = math.atan2((total_radius-hb),tangent)
+            print("b: " + str(b))
+
+            if b <= 0:
+                self.collision_flag = 0
+            '''
         else:
-            self.teta = 90-math.asin(tangent/b)
-            #if obs_ppx <= ppx:
-                #self.collision_flag = 0
+            self.teta = math.pi/2-math.asin(tangent/total_radius)
+            if obs_ppx <= ppx:
+                self.collision_flag = 0
             #if self.teta <= 0:
             #self.collision_flag = 0
-
         print("teta: " + str(self.teta))
 
     def calculate_avoid_distance(self, vel_ppx, vel_ppy, total_radius):
@@ -357,7 +368,7 @@ class LOS:
             print("unit_posy: " + str(unit_posy))
             if unit_vely <= unit_posy:
                 #self.bearing = self.yaw - self.increase
-                self.bearing = self.yaw - self.teta
+                self.bearing = self.teta
                 sys.stdout.write(Color.RED)
                 print("left -")
                 sys.stdout.write(Color.RESET)
@@ -366,7 +377,7 @@ class LOS:
                     self.avoid_angle = -math.pi/2
                 '''
             else:
-                self.bearing = self.yaw + self.teta
+                self.bearing =  self.teta
                 #self.bearing = self.yaw + self.increase
                 sys.stdout.write(Color.GREEN)
                 print("right +")
