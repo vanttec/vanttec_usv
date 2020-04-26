@@ -85,6 +85,7 @@ class LOS:
         #self.psi_r = 0
         self.increase = 0 
         self.collision_flag = 0
+        self.b = 0
 
         self.r_max = 1 #rad/sec
         self.u_psi = 0
@@ -251,21 +252,7 @@ class LOS:
 
             distance_free = distance - total_radius
             print("Distance_free: " + str(distance_free))
-            '''
-            #Almost crash prevention
-            if abs(distance_free) < self.increase/10:
-                rospy.logwarn("ALMOST CRASH")
-                if distance_free <= 0: 
-                    self.increase = -math.pi/2
-                if distance_free > 0: 
-                    self.increase = math.pi/2
-                self.bearing = self.yaw + self.increase
-                if (abs(self.bearing) > (math.pi)):
-                    print("BEARING: " + str(self.bearing))
-                    self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
-                    #print("BEARING OVERFLOW: " + str(self.bearing))
-                self.desired(self.vel, self.bearing)
-            '''
+
             if distance < total_radius:
                 rospy.logwarn("CRASH")
             alpha_params = (total_radius/distance)
@@ -276,88 +263,92 @@ class LOS:
             if beta < -math.pi: 
                 beta = beta + 2*math.pi
             beta = abs(beta)
-            if beta < alpha or beta == alpha or 1 == self.collision_flag:
+            if beta <= alpha or 1 == self.collision_flag:
                 u_obs = np.amin(u_obstacle)
                 self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_obs]) + self.u_min
                 
                 self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx)
                 avoid_distance = self.calculate_avoid_distance( vel_ppx, vel_ppy, total_radius)
-                if distance <= avoid_distance:
+                
+                if distance <= avoid_distance and self.b > 0:
                     self.collision_flag = 1
                     self.vel = 0.3
                     self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
-                
-                '''
-                self.bearing =  ak + self.psi_r + self.avoid_angle
-                if (abs(self.bearing) > (math.pi)):
-                    print("BEARING: " + str(self.bearing))
-                    self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing)-2*math.pi)
-                    print("BEARING OVERFLOW: " + str(self.bearing))
-                #print("ak: " +str(ak))
-                '''
+
                 crash = crash + 1
         if crash == 0:
             sys.stdout.write(Color.BLUE)
             print ('free')
             sys.stdout.write(Color.RESET)
-            '''
-            #Gradual comeback
-            if(self.avoid_angle > self.increase or self.avoid_angle < -self.increase):
-                if(self.avoid_angle < -self.increase):
-                    self.avoid_angle = self.avoid_angle + self.increase
-                if (self.avoid_angle > self.increase ):
-                    self.avoid_angle = self.avoid_angle -self.increase
-            else:
-                self.avoid_angle = 0
-            #self.avoid_angle = 0
-            '''
+ 
         sys.stdout.write(Color.BOLD)
         print("yaw: " + str(self.yaw))
         print("bearing: " + str(self.bearing))
-        #print("avoid_angle: " + str(self.avoid_angle))
         sys.stdout.write(Color.RESET)
         
     def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance, ppx, obs_ppx):
+        '''
+        @name: calculate_avoid_angle
+        @brief: Calculates angle needed to avoid obstacle
+        @param: total_radius: total obstacle readius
+                ppy: boat y coordiante in path reference frame 
+                obs_ppy: osbtacle y coordiante in path reference frame
+                distance: distance from center of boat to center of obstacle 
+                ppx: boat x coordiante in path reference frame 
+                obs_ppx: osbtacle x coordiante in path reference frame
+        @return: --
+        '''
         print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
-        total_radius = total_radius +.3
+        total_radius = total_radius +.2
         tangent_param = abs((distance - total_radius) * (distance + total_radius))
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
-        print("tangent: " + str(tangent))
+        #print("tangent: " + str(tangent))
         self.teta = math.atan2(total_radius,tangent)
-        print("teta: " + str(self.teta))
+        #print("teta: " + str(self.teta))
         gamma1 = math.asin((ppy-obs_ppy)/distance)
-        print("gamma1: " + str(gamma1))
+        #print("gamma1: " + str(gamma1))
         gamma = ((math.pi/2)-self.teta) + gamma1
-        print("gamma: " + str(gamma))
+        #print("gamma: " + str(gamma))
         alpha = (math.pi/2) - gamma
-        print("alpha: " + str(alpha))
+        #print("alpha: " + str(alpha))
         hb = (ppy-obs_ppy)/math.cos(alpha)
-        b = total_radius - hb
-        print("b: " + str(b))
-        self.teta = math.atan2(b,tangent)
-
-        if b <= 0:
+        self.b = total_radius - hb
+        print("b: " + str(self.b))
+        self.teta = math.atan2(self.b,tangent)
+        if self.b <= 0:
             self.collision_flag = 0
-        
-        #else:
-            #self.teta = 90-math.asin(tangent/b)
-            #if obs_ppx <= ppx:
-                #self.collision_flag = 0
-            #if self.teta <= 0:
-            #self.collision_flag = 0
         print("teta: " + str(self.teta))
 
     def calculate_avoid_distance(self, vel_ppx, vel_ppy, total_radius):
+        '''
+        @name: calculate_avoid_distance
+        @brief: Calculates distance at wich it is necesary to leave path to avoid obstacle
+        @param: vel_ppx: boat velocity x  in path reference frame 
+                vel_ppy: boat velocity y  in path reference frame 
+                total_radius: total obstacle readius
+        @return: avoid_distance: returns distance at wich it is necesary to leave path to avoid obstacle
+        '''
         time = (self.teta/self.r_max)+2
         print("time: " + str(time))
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         print("vel: " + str(eucledian_vel))
-        avoid_distance = time * eucledian_vel + total_radius +.3
+        avoid_distance = time * eucledian_vel + total_radius +.2
         print("avoid_distance: " + str(avoid_distance)) 
         return (avoid_distance)
     
     def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy):
+        '''
+        @name: dodge
+        @brief: Calculates angle needed to avoid obstacle
+        @param: vel_ppx: boat velocity x  in path reference frame 
+                vel_ppy: boat velocity y  in path reference frame 
+                ppx: boat x coordiante in path reference frame 
+                ppy: boat y coordiante in path reference frame 
+                obs_ppx: osbtacle x coordiante in path reference frame
+                obs_ppy: osbtacle y coordiante in path reference frame
+        @return: --
+        '''
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
         if eucledian_pos != 0 and eucledian_vel != 0:
@@ -367,7 +358,6 @@ class LOS:
             print("unit_vely " + str(unit_vely))
             print("unit_posy: " + str(unit_posy))
             if unit_vely <= unit_posy:
-                #self.bearing = self.yaw - self.increase
                 self.bearing = self.teta
                 sys.stdout.write(Color.RED)
                 print("left -")
@@ -378,7 +368,6 @@ class LOS:
                 '''
             else:
                 self.bearing =  self.teta
-                #self.bearing = self.yaw + self.increase
                 sys.stdout.write(Color.GREEN)
                 print("right +")
                 sys.stdout.write(Color.RESET)
