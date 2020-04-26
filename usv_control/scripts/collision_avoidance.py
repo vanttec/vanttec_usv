@@ -324,26 +324,26 @@ class LOS:
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
         print("tangent: " + str(tangent))
-        if tangent >= total_radius:
-            self.teta = math.asin(total_radius/tangent)
-            #self.teta = math.atan2(total_radius,tangent)
-            '''
-            gamma1 = math.asin((ppy-obs_ppy)/distance)
-            gamma = ((math.pi/2)-self.teta) + gamma1
-            alpha = (math.pi/2) - gamma
-            print("alpha: " + str(alpha))
-            hb = (ppy-obs_ppy)/math.acos(alpha)
-            b = total_radius - hb
-            self.teta = math.atan2((total_radius-hb),tangent)
-            print("b: " + str(b))
+        self.teta = math.atan2(total_radius,tangent)
+        print("teta: " + str(self.teta))
+        gamma1 = math.asin((ppy-obs_ppy)/distance)
+        print("gamma1: " + str(gamma1))
+        gamma = ((math.pi/2)-self.teta) + gamma1
+        print("gamma: " + str(gamma))
+        alpha = (math.pi/2) - gamma
+        print("alpha: " + str(alpha))
+        hb = (ppy-obs_ppy)/math.cos(alpha)
+        b = total_radius - hb
+        print("b: " + str(b))
+        self.teta = math.atan2(b,tangent)
 
-            if b <= 0:
-                self.collision_flag = 0
-            '''
-        else:
-            self.teta = math.pi/2-math.asin(tangent/total_radius)
-            if obs_ppx <= ppx:
-                self.collision_flag = 0
+        if b <= 0:
+            self.collision_flag = 0
+        
+        #else:
+            #self.teta = 90-math.asin(tangent/b)
+            #if obs_ppx <= ppx:
+                #self.collision_flag = 0
             #if self.teta <= 0:
             #self.collision_flag = 0
         print("teta: " + str(self.teta))
