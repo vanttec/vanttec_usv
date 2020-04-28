@@ -247,8 +247,8 @@ class LOS:
             distance = pow((x_pow + y_pow),0.5)
             print("Total Radius: " + str(total_radius))
     
-            u_obstacle = 1/(1 + math.exp(-self.exp_gain*(distance*self.chi_r - self.exp_offset)))
-            u_obstacle_list.append(u_obstacle)
+            #u_obstacle = 1/(1 + math.exp(-self.exp_gain*(distance*self.chi_r - self.exp_offset)))
+            #u_obstacle_list.append(u_obstacle)
 
             distance_free = distance - total_radius
             print("Distance_free: " + str(distance_free))
@@ -264,18 +264,24 @@ class LOS:
                 beta = beta + 2*math.pi
             beta = abs(beta)
             if beta <= alpha or 1 == self.collision_flag:
-                u_obs = np.amin(u_obstacle)
-                self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_obs]) + self.u_min
+                #u_obs = np.amin(u_obstacle)
                 
                 self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx)
+                
+                u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*self.chi_r - self.exp_offset)))
+                u_psi_obs = 1/(1 + math.exp(self.exp_gain*(abs(self.teta)*self.chi_psi - self.exp_offset)))
+                self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs]) + self.u_min
+                
                 avoid_distance = self.calculate_avoid_distance( vel_ppx, vel_ppy, total_radius)
                 
                 if distance <= avoid_distance and self.b > 0:
                     self.collision_flag = 1
                     self.vel = 0.3
                     self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
+                    crash = crash + 1
+                else:
+                    rospy.loginfo("avoid_distance: " + str(avoid_distance)) 
 
-                crash = crash + 1
         if crash == 0:
             sys.stdout.write(Color.BLUE)
             print ('free')
@@ -299,26 +305,27 @@ class LOS:
         @return: --
         '''
         print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
-        total_radius = total_radius +.2
+        total_radius = total_radius +.3
         tangent_param = abs((distance - total_radius) * (distance + total_radius))
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
-        #print("tangent: " + str(tangent))
+        print("tangent: " + str(tangent))
         self.teta = math.atan2(total_radius,tangent)
-        #print("teta: " + str(self.teta))
-        gamma1 = math.asin((ppy-obs_ppy)/distance)
-        #print("gamma1: " + str(gamma1))
+        print("teta: " + str(self.teta))
+        gamma1 = math.asin(abs(ppy-obs_ppy)/distance)
+        print("gamma1: " + str(gamma1))
         gamma = ((math.pi/2)-self.teta) + gamma1
-        #print("gamma: " + str(gamma))
+        print("gamma: " + str(gamma))
         alpha = (math.pi/2) - gamma
-        #print("alpha: " + str(alpha))
-        hb = (ppy-obs_ppy)/math.cos(alpha)
+        print("alpha: " + str(alpha))
+        hb = abs(ppy-obs_ppy)/math.cos(alpha)
+        print("hb: " + str(hb))
         self.b = total_radius - hb
         print("b: " + str(self.b))
         self.teta = math.atan2(self.b,tangent)
+        print("teta: " + str(self.teta))
         if self.b <= 0:
             self.collision_flag = 0
-        print("teta: " + str(self.teta))
 
     def calculate_avoid_distance(self, vel_ppx, vel_ppy, total_radius):
         '''
@@ -329,12 +336,11 @@ class LOS:
                 total_radius: total obstacle readius
         @return: avoid_distance: returns distance at wich it is necesary to leave path to avoid obstacle
         '''
-        time = (self.teta/self.r_max)+2
+        time = (self.teta/self.r_max) + 3
         print("time: " + str(time))
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         print("vel: " + str(eucledian_vel))
-        avoid_distance = time * eucledian_vel + total_radius +.2
-        print("avoid_distance: " + str(avoid_distance)) 
+        avoid_distance = time * eucledian_vel + total_radius +.3
         return (avoid_distance)
     
     def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy):
@@ -352,13 +358,12 @@ class LOS:
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
         if eucledian_pos != 0 and eucledian_vel != 0:
-            rospy.loginfo('collision')
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = (obs_ppy - ppy)/eucledian_pos #+ 0.1
-            print("unit_vely " + str(unit_vely))
-            print("unit_posy: " + str(unit_posy))
+            #print("unit_vely " + str(unit_vely))
+            #print("unit_posy: " + str(unit_posy))
             if unit_vely <= unit_posy:
-                self.bearing = self.teta
+                self.bearing = -self.teta
                 sys.stdout.write(Color.RED)
                 print("left -")
                 sys.stdout.write(Color.RESET)
@@ -456,7 +461,7 @@ class LOS:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(10) # 100hz
+    rate = rospy.Rate(20) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []
