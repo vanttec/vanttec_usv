@@ -276,7 +276,7 @@ class LOS:
                 
                 if distance <= avoid_distance and self.b > 0:
                     self.collision_flag = 1
-                    self.vel = 0.3
+                    #self.vel = 0.3
                     if abs(ppy-obs_ppy) < 0.01:
                         self.bearing = -self.teta
                         sys.stdout.write(Color.RED)
@@ -346,7 +346,9 @@ class LOS:
         print("time: " + str(time))
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         print("vel: " + str(eucledian_vel))
-        avoid_distance = time * eucledian_vel + total_radius +.3
+        print("self.vel: " + str(self.vel))
+        #avoid_distance = time * eucledian_vel + total_radius +.3
+        avoid_distance = time * self.vel + total_radius +.3
         return (avoid_distance)
     
     def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy):
