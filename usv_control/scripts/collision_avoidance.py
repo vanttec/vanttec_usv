@@ -277,7 +277,13 @@ class LOS:
                 if distance <= avoid_distance and self.b > 0:
                     self.collision_flag = 1
                     self.vel = 0.3
-                    self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
+                    if abs(ppy-obs_ppy) < 0.01:
+                        self.bearing = -self.teta
+                        sys.stdout.write(Color.RED)
+                        print("right -")
+                        sys.stdout.write(Color.RESET)
+                    else:
+                        self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
                     crash = crash + 1
                 else:
                     rospy.loginfo("avoid_distance: " + str(avoid_distance)) 
@@ -359,13 +365,13 @@ class LOS:
         eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
         if eucledian_pos != 0 and eucledian_vel != 0:
             unit_vely = vel_ppy/eucledian_vel 
-            unit_posy = (obs_ppy - ppy)/eucledian_pos #+ 0.1
+            unit_posy = (obs_ppy - ppy)/eucledian_pos
             #print("unit_vely " + str(unit_vely))
             #print("unit_posy: " + str(unit_posy))
             if unit_vely <= unit_posy:
                 self.bearing = -self.teta
                 sys.stdout.write(Color.RED)
-                print("left -")
+                print("right -")
                 sys.stdout.write(Color.RESET)
                 '''
                 if (abs(self.avoid_angle) > (math.pi/2)):
@@ -374,7 +380,7 @@ class LOS:
             else:
                 self.bearing =  self.teta
                 sys.stdout.write(Color.GREEN)
-                print("right +")
+                print("left +")
                 sys.stdout.write(Color.RESET)
                 '''
                 if (abs(self.avoid_angle) > (math.pi/3)):
