@@ -79,17 +79,19 @@ class LOS:
         self.obstacle_mode = 1 # 0 for NED, 1 for Body
 
         self.boat_radius = .50 #meters
-        self.safety_radius = .3 #meters
+        self.safety_radius = 0.0 #meters
         self.offset = .55 #camera to ins offset
         self.avoid_angle = 0
         #self.psi_r = 0
         self.increase = 0 
         self.collision_flag = 0
-        self.b = 0
+        self.b = []
 
         self.r_max = 1 #rad/sec
         self.u_psi = 0
         self.u_r = 0
+        self.teta = []
+        self.vel_list = []
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ned_callback)
@@ -212,6 +214,7 @@ class LOS:
 
         self.desired(self.vel, self.bearing)
 
+
     def avoid(self, ak, x1, y1):
         '''
         @name: avoid
@@ -221,84 +224,209 @@ class LOS:
                 ak: angle from NED reference frame to path
         @return: --
         '''
-        u_obstacle_list = []
+        teta_list_right = []
+        teta_list_left = []
+        collision_obs_list = []
+
+        self.vel_list = []
+        nearest_obs = []
+        self.b = []
+        self.teta = []
+
+        obstacle_ppx = []
+        obstacle_ppy = []
+
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
         ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
-        crash = 0
-        for i in range(0,len(self.obstacles),1):
+
+        obs_list = self.check_obstacles()
+        for i in range(0,len(obs_list),3):
+
             sys.stdout.write(Color.CYAN)
-            print("obstacle"+str(i+1))
+            print("obstacle"+str(i/3))
             sys.stdout.write(Color.RESET)
-            obsx = self.obstacles[i]['X']
-            obsy = self.obstacles[i]['Y']
-            self.increase = (self.obstacles[i]['radius'])
-            # NED obstacles
-            if (self.obstacle_mode == 0):
-                obs_ppx,obs_ppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
-            # Body obstacles
-            if (self.obstacle_mode == 1):
-                obs_nedx, obs_nedy = self.body_to_ned(obsx,obsy,self.ned_x,self.ned_y)
-                obs_ppx,obs_ppy = self.ned_to_pp(ak,x1,y1,obs_nedx,obs_nedy)
-            obstacle_radius = self.obstacles[i]['radius']
+            obs_ppx, obs_ppy = self.get_obstacle(i, ak, x1, y1, obs_list[i], obs_list[i+1])
+            obstacle_ppx.append(obs_ppx)
+            obstacle_ppy.append(obs_ppy)
+            obstacle_radius = obs_list[i+2]
             total_radius = self.boat_radius + self.safety_radius + obstacle_radius
-            x_pow = pow(obs_ppx - ppx,2) 
-            y_pow = pow(obs_ppy - ppy,2) 
-            distance = pow((x_pow + y_pow),0.5)
-            print("Total Radius: " + str(total_radius))
-    
-            #u_obstacle = 1/(1 + math.exp(-self.exp_gain*(distance*self.chi_r - self.exp_offset)))
-            #u_obstacle_list.append(u_obstacle)
-
-            distance_free = distance - total_radius
-            print("Distance_free: " + str(distance_free))
-
-            if distance < total_radius:
-                rospy.logwarn("CRASH")
-            alpha_params = (total_radius/distance)
-            alpha = math.asin(alpha_params)
-            beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obs_ppy-ppy,obs_ppx-ppx)
-            if beta > math.pi: 
-                beta = beta - 2*math.pi
-            if beta < -math.pi: 
-                beta = beta + 2*math.pi
-            beta = abs(beta)
-            if beta <= alpha or 1 == self.collision_flag:
+            collision, distance = self.get_collision(total_radius, ppx, ppy, obs_ppx, obs_ppy, vel_ppy, vel_ppx, (i/3))
+            if collision:
                 #u_obs = np.amin(u_obstacle)
-                
-                self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx)
-                
-                u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*self.chi_r - self.exp_offset)))
-                u_psi_obs = 1/(1 + math.exp(self.exp_gain*(abs(self.teta)*self.chi_psi - self.exp_offset)))
-                self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs]) + self.u_min
-                
-                avoid_distance = self.calculate_avoid_distance( vel_ppx, vel_ppy, total_radius)
-                
+                avoid_distance = self.calculate_avoid_distance( vel_ppx, vel_ppy, total_radius, (i/3))
+                nearest_obs.append(avoid_distance - distance)
+                print("avoid_distance: " + str(avoid_distance)) 
+                print("distance: " + str(distance)) 
+            else:
+                nearest_obs.append(0)
+                self.vel_list.append(0)
+                self.teta.append(0)
+                self.b.append(0)
+                '''
                 if distance <= avoid_distance and self.b > 0:
                     self.collision_flag = 1
-                    #self.vel = 0.3
                     if abs(ppy-obs_ppy) < 0.01:
-                        self.bearing = -self.teta
-                        sys.stdout.write(Color.RED)
-                        print("right -")
-                        sys.stdout.write(Color.RESET)
+                        teta_list_right.append(self.teta)
                     else:
                         self.dodge(vel_ppx,vel_ppy,ppx,ppy,obs_ppx,obs_ppy)
-                    crash = crash + 1
+                        if self.teta > 0:
+                            teta_list_left.append(self.teta)
+                        else: 
+                            self.teta = -self.teta
+                            teta_list_right.append(self.teta)
                 else:
                     rospy.loginfo("avoid_distance: " + str(avoid_distance)) 
-
-        if crash == 0:
+        
+        print("right_list: " +str(len(teta_list_right)))
+        print("left_list: " +str(len(teta_list_left)))
+        if len(teta_list_right) > 0 & len(teta_list_left) > 0:
+            if len(teta_list_right) == len(teta_list_left):
+                if np.amax(teta_list_left) < np.amax(teta_list_right):
+                    self.bearing = np.amax(teta_list_left)
+                    sys.stdout.write(Color.GREEN)
+                    print("left +")
+                    sys.stdout.write(Color.RESET)
+                else:
+                    self.bearing = -np.amax(teta_list_right)
+                    sys.stdout.write(Color.RED)
+                    print("right -")
+                    sys.stdout.write(Color.RESET)
+        elif len(teta_list_right) == 0 & len(teta_list_left) == 0:
             sys.stdout.write(Color.BLUE)
             print ('free')
             sys.stdout.write(Color.RESET)
- 
-        sys.stdout.write(Color.BOLD)
-        print("yaw: " + str(self.yaw))
-        print("bearing: " + str(self.bearing))
-        sys.stdout.write(Color.RESET)
-        
-    def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance, ppx, obs_ppx):
+        else:
+            if len(teta_list_left) > 0:
+                self.bearing = np.amax(teta_list_left)
+                sys.stdout.write(Color.GREEN)
+                print("left +")
+                sys.stdout.write(Color.RESET)
+            else:
+                self.bearing = -np.amax(teta_list_right)
+                sys.stdout.write(Color.RED)
+                print("right -")
+                sys.stdout.write(Color.RESET)
+            '''
+        print('nearest_obs max: ' + str(np.max(nearest_obs)))
+        if np.max(nearest_obs)>0:
+            index = nearest_obs.index(np.max(nearest_obs))
+            sys.stdout.write(Color.BOLD)
+            print('index: ' + str(index))
+            sys.stdout.write(Color.RESET)
+            if np.max(nearest_obs) > 0 and self.b[index] > 0:
+                collision_obs_list.append(obs_ppx)
+                collision_obs_list.append(obs_ppy)
+                collision_obs_list.append(obstacle_radius)
+                self.vel = np.min(self.vel_list)
+                self.dodge(vel_ppx,vel_ppy,ppx,ppy,obstacle_ppy[index],obstacle_ppy[index], index)
+            else:
+                rospy.loginfo("nearest_obs: " + str(nearest_obs[index])) 
+                sys.stdout.write(Color.BLUE)
+                print ('free')
+                sys.stdout.write(Color.RESET)
+            #sys.stdout.write(Color.BOLD)
+            #print("yaw: " + str(self.yaw))
+            #print("bearing: " + str(self.bearing))
+            #sys.stdout.write(Color.RESET)
+        else:
+            sys.stdout.write(Color.BLUE)
+            print ('no obstacles')
+            sys.stdout.write(Color.RESET)
+
+    def check_obstacles(self):
+        print("CHECK OBSTACLES")
+        obs_list = []
+        for i in range(0,len(self.obstacles),1):
+            obs_list.append(self.obstacles[i]['X'])
+            obs_list.append(self.obstacles[i]['Y'])
+            obs_list.append(self.obstacles[i]['radius'])
+        i = 0
+        print("len_obs: " + str(len(obs_list)))
+        '''
+        for i in range(0,len(self.obstacles),1):
+            obs_list.append(self.obstacles[i]['X'])
+            obs_list.append(self.obstacles[i]['Y'])
+            obs_list.append(self.obstacles[i]['radius'])
+        '''
+        while i <= (len(obs_list)-6):
+            j = i + 3
+            while j < len(obs_list):
+                #print("i: " + str(i))
+                #print("j: " + str(j))
+                x = pow(obs_list[i]-obs_list[j],2)
+                y = pow(obs_list[i+1]-obs_list[j+1],2)
+                radius = obs_list[i+2] + obs_list[j+2]
+                distance = pow(x+y,0.5)-radius
+                if distance <= (self.boat_radius + self.safety_radius)*2:
+                    x,y,radius = self.merge_obstacles(obs_list[i],obs_list[i+1],obs_list[i+2],obs_list[j], obs_list[j+1], obs_list[j+2])
+                    del obs_list[j:j+3]
+                    del obs_list[i:i+3]
+                    obs_list.append(x)
+                    obs_list.append(y)
+                    obs_list.append(radius)
+                    print("len_obs: " + str(len(obs_list)))
+                    i = -3
+                    j = len(obs_list)
+                else:
+                    j=j+3
+                #print("i: " + str(i))
+                #print("j: " + str(j))
+            i = i+3
+        return obs_list
+
+    def merge_obstacles(self, x1, y1, r1, x2, y2, r2):
+        # calculate centroid
+        x = (x1+x2)/2
+        y = (y1+y2)/2
+        #calculte radius
+        x1_radius = x1 + r1 - x
+        x2_radius = x2 + r2 - x
+        y1_radius = y1 + r1 - y
+        y2_radius = y2 + r2 - y
+        radius = max(x1_radius, x2_radius, y1_radius, y2_radius)
+        print("Merged obstacle:" + str(radius))
+        return(x,y,radius)
+
+    def get_obstacle(self, i, ak, x1, y1, obsx,obsy):
+        # NED obstacles
+        if (self.obstacle_mode == 0):
+            obs_ppx,obs_ppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
+        # Body obstacles
+        if (self.obstacle_mode == 1):
+            obs_nedx, obs_nedy = self.body_to_ned(obsx,obsy,self.ned_x,self.ned_y)
+            obs_ppx,obs_ppy = self.ned_to_pp(ak,x1,y1,obs_nedx,obs_nedy)
+        return(obs_ppx, obs_ppy)
+    
+    def get_collision(self, total_radius, ppx, ppy, obs_ppx, obs_ppy, vel_ppy, vel_ppx, i):
+        collision = 0
+        #print("Total Radius: " + str(total_radius))
+        x_pow = pow(obs_ppx - ppx,2) 
+        y_pow = pow(obs_ppy - ppy,2) 
+        distance = pow((x_pow + y_pow),0.5)
+
+        #u_obstacle_list.append(u_obstacle)
+
+        distance_free = distance - total_radius
+        print("Distance_free: " + str(distance_free))
+
+        if distance < total_radius:
+            rospy.logwarn("CRASH")
+        alpha_params = (total_radius/distance)
+        alpha = math.asin(alpha_params)
+        beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(obs_ppy-ppy,obs_ppx-ppx)
+        if beta > math.pi: 
+            beta = beta - 2*math.pi
+        if beta < -math.pi: 
+            beta = beta + 2*math.pi
+        beta = abs(beta)
+        if beta <= alpha or 1 == self.collision_flag:
+            collision = 1
+            self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i)
+            self.get_velocity(distance_free, i)
+        return collision, distance
+    
+    def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i):
         '''
         @name: calculate_avoid_angle
         @brief: Calculates angle needed to avoid obstacle
@@ -310,30 +438,38 @@ class LOS:
                 obs_ppx: osbtacle x coordiante in path reference frame
         @return: --
         '''
+        print("ppx: " + str(ppx) + " obsppx: " + str(obs_ppx))
         print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
         total_radius = total_radius +.3
         tangent_param = abs((distance - total_radius) * (distance + total_radius))
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
-        print("tangent: " + str(tangent))
-        self.teta = math.atan2(total_radius,tangent)
-        print("teta: " + str(self.teta))
+        #print("tangent: " + str(tangent))
+        teta = math.atan2(total_radius,tangent)
+        print("teta: " + str(teta))
         gamma1 = math.asin(abs(ppy-obs_ppy)/distance)
-        print("gamma1: " + str(gamma1))
-        gamma = ((math.pi/2)-self.teta) + gamma1
-        print("gamma: " + str(gamma))
+        #print("gamma1: " + str(gamma1))
+        gamma = ((math.pi/2) - teta) + gamma1
+        #print("gamma: " + str(gamma))
         alpha = (math.pi/2) - gamma
-        print("alpha: " + str(alpha))
+        #print("alpha: " + str(alpha))
         hb = abs(ppy-obs_ppy)/math.cos(alpha)
         print("hb: " + str(hb))
-        self.b = total_radius - hb
-        print("b: " + str(self.b))
-        self.teta = math.atan2(self.b,tangent)
-        print("teta: " + str(self.teta))
-        if self.b <= 0:
+        self.b.append(total_radius - hb)
+        print("i: " + str(i))
+        print("b: " + str(self.b[i]))
+        self.teta.append(math.atan2(self.b[i],tangent))
+        print("teta: " + str(self.teta[i]))
+        if self.b[i] <= 0:
             self.collision_flag = 0
 
-    def calculate_avoid_distance(self, vel_ppx, vel_ppy, total_radius):
+    def get_velocity(self, distance_free, i):
+        u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*self.chi_r - self.exp_offset)))
+        u_psi_obs = 1/(1 + math.exp(self.exp_gain*(np.max(self.teta[i])*self.chi_psi - self.exp_offset)))
+        self.vel_list.append((self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs]) + self.u_min)
+        #self.vel = 0.3
+
+    def calculate_avoid_distance(self, vel_ppx, vel_ppy, total_radius, i):
         '''
         @name: calculate_avoid_distance
         @brief: Calculates distance at wich it is necesary to leave path to avoid obstacle
@@ -342,16 +478,16 @@ class LOS:
                 total_radius: total obstacle readius
         @return: avoid_distance: returns distance at wich it is necesary to leave path to avoid obstacle
         '''
-        time = (self.teta/self.r_max) + 3
-        print("time: " + str(time))
+        time = (self.teta[i]/self.r_max) + 3
+        #print("time: " + str(time))
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
-        print("vel: " + str(eucledian_vel))
-        print("self.vel: " + str(self.vel))
+        #print("vel: " + str(eucledian_vel))
+        #print("self.vel: " + str(self.vel))
         #avoid_distance = time * eucledian_vel + total_radius +.3
         avoid_distance = time * self.vel + total_radius +.3
         return (avoid_distance)
     
-    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy):
+    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy, i):
         '''
         @name: dodge
         @brief: Calculates angle needed to avoid obstacle
@@ -363,30 +499,45 @@ class LOS:
                 obs_ppy: osbtacle y coordiante in path reference frame
         @return: --
         '''
-        eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
-        eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
-        if eucledian_pos != 0 and eucledian_vel != 0:
-            unit_vely = vel_ppy/eucledian_vel 
-            unit_posy = (obs_ppy - ppy)/eucledian_pos
-            #print("unit_vely " + str(unit_vely))
-            #print("unit_posy: " + str(unit_posy))
-            if unit_vely <= unit_posy:
-                self.bearing = -self.teta
-                sys.stdout.write(Color.RED)
-                print("right -")
-                sys.stdout.write(Color.RESET)
+        self.collision_flag = 1
+        if abs(ppy-obs_ppy) < 0.01:
+            self.bearing = -self.teta[i]
+            sys.stdout.write(Color.RED)
+            print("right -")
+            sys.stdout.write(Color.RESET)
+        else:
+            eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
+            eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
+            if eucledian_pos != 0 and eucledian_vel != 0:
+                unit_vely = vel_ppy/eucledian_vel 
+                unit_posy = (obs_ppy - ppy)/eucledian_pos
+                #print("unit_vely " + str(unit_vely))
+                #print("unit_posy: " + str(unit_posy))
+                if unit_vely <= unit_posy:
+                    self.bearing = -self.teta[i]
+                    sys.stdout.write(Color.RED)
+                    print("right -")
+                    sys.stdout.write(Color.RESET)
+                    '''
+                    if (abs(self.avoid_angle) > (math.pi/2)):
+                        self.avoid_angle = -math.pi/2
+                    '''
+                else:
+                    self.bearing =  self.teta[i]
+                    sys.stdout.write(Color.GREEN)
+                    print("left +")
+                    sys.stdout.write(Color.RESET)
+                    '''
+                    if (abs(self.avoid_angle) > (math.pi/3)):
+                        self.avoid_angle = math.pi/2
+                    '''
                 '''
-                if (abs(self.avoid_angle) > (math.pi/2)):
-                    self.avoid_angle = -math.pi/2
-                '''
-            else:
-                self.bearing =  self.teta
-                sys.stdout.write(Color.GREEN)
-                print("left +")
-                sys.stdout.write(Color.RESET)
-                '''
-                if (abs(self.avoid_angle) > (math.pi/3)):
-                    self.avoid_angle = math.pi/2
+                if unit_vely <= unit_posy:
+                    self.teta = -self.teta
+                    
+                else:
+                    self.teta =  self.teta
+                    
                 '''
 
     def gps_to_ned(self, latitude_2, longitude_2):
@@ -481,7 +632,6 @@ def main():
             aux_waypoint_array = los.last_waypoint_array
             x_0 = los.ned_x
             y_0 = los.ned_y
-            
             if los.waypoint_mode == 0:
                 aux_waypoint_array.insert(0,x_0)
                 aux_waypoint_array.insert(1,y_0)
