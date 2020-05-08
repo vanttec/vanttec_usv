@@ -40,10 +40,10 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 1 #0 for AutonomousNavigation, 1 for SpeedChallenge
+        self.challenge = 0 #1 for AutonomousNavigation, 2 for SpeedChallenge
         self.obstacle_list = []
 
-        self.max_visible_radius = 6
+        self.max_visible_radius = 100
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
         self.detector_pub = rospy.Publisher("/usv_perception/lidar_detector/obstacles", obstacles_list, queue_size=10)
@@ -142,9 +142,9 @@ class ObstacleSimulator:
             marker.header.frame_id = "/world"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = radius #+.5
-            marker.scale.y = radius #+.5
-            marker.scale.z = radius #+.5
+            marker.scale.x = radius +.5
+            marker.scale.y = radius +.5
+            marker.scale.z = radius +.5
             marker.color.a = 1.0
             marker.color.r = 1.0
             marker.color.g = 1.0
@@ -163,16 +163,18 @@ def main():
     rate = rospy.Rate(100) # 100hz
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
-        obstacleSimulator.obstacle_list.append({'X' : 5,
+        obstacleSimulator.obstacle_list.append({'X' : 3.0,
                                     'Y' : 0.2,
                                     'R' : 0.5})
-        obstacleSimulator.obstacle_list.append({'X' : 15,
-                                    'Y' : 0.5,
+        
+        obstacleSimulator.obstacle_list.append({'X' : 7.0,
+                                    'Y' : 0.0,
                                     'R' : 0.5})
         '''
-        obstacleSimulator.obstacle_list.append({'X' : 15.0,
-                                    'Y' : 0,
-                                    'R' : .2})
+        obstacleSimulator.obstacle_list.append({'X' : 7.0,
+                                    'Y' : 0.2,
+                                    'R' : 0.2})
+        
         obstacleSimulator.obstacle_list.append({'X' : 18.5,
                                     'Y' : 17.5,
                                     'R' : .2})
