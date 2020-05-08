@@ -328,7 +328,7 @@ class LOS:
                     collision_obs_list.append(obstacle_radius)
                     self.vel = np.min(self.vel_list)
                     print('vel:' + str(self.vel))
-                    self.dodge(vel_ppx, vel_ppy, ppx, ppy, obstacle_ppx[index], obstacle_ppy[index], index)
+                    self.dodge(vel_ppx, vel_ppy, ppx, ppy, obstacle_ppx[index], obstacle_ppy[index], obstacle_radius[index], index)
                 else:
                     rospy.loginfo("nearest_obs: " + str(nearest_obs[index])) 
                     sys.stdout.write(Color.BLUE)
@@ -449,10 +449,10 @@ class LOS:
         @return: --
         '''
         #print("ppx: " + str(ppx) + " obsppx: " + str(obs_ppx))
-        #print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
+        print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
         total_radius = total_radius +.3
         tangent_param = abs((distance - total_radius) * (distance + total_radius))
-        print("distance: " + str(distance))
+        #print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
         #print("tangent: " + str(tangent))
         teta = math.atan2(total_radius,tangent)
@@ -468,7 +468,7 @@ class LOS:
         self.b.append(total_radius - hb)
         #print("i: " + str(i))
         print("b: " + str(self.b[i]))
-        self.teta.append(math.atan2(self.b[i],tangent))
+        self.teta.append(abs(math.atan2(self.b[i],tangent)))
         print("teta: " + str(self.teta[i]))
         if self.b[i] <= 0:
             self.collision_flag = 0
@@ -496,7 +496,7 @@ class LOS:
         avoid_distance = time * self.vel + total_radius +.3
         return (avoid_distance)
     
-    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy, i):
+    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy, obs_radius, i):
         '''
         @name: dodge
         @brief: Calculates angle needed to avoid obstacle
@@ -514,14 +514,26 @@ class LOS:
             sys.stdout.write(Color.RED)
             print("right -")
             sys.stdout.write(Color.RESET)
+            '''
+            elif ppy < (obs_ppy-obs_radius):
+                self.bearing = -self.teta[i]
+                sys.stdout.write(Color.RED)
+                print("right -")
+                sys.stdout.write(Color.RESET)
+            elif ppy > (obs_ppy+obs_radius):
+                self.bearing = self.teta[i]
+                sys.stdout.write(Color.GREEN)
+                print("left +")
+                sys.stdout.write(Color.RESET)
+            '''
         else:
             eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
             eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
             if eucledian_pos != 0 and eucledian_vel != 0:
                 unit_vely = vel_ppy/eucledian_vel 
                 unit_posy = (obs_ppy - ppy)/eucledian_pos
-                #print("unit_vely " + str(unit_vely))
-                #print("unit_posy: " + str(unit_posy))
+                print("unit_vely " + str(unit_vely))
+                print("unit_posy: " + str(unit_posy))
                 if unit_vely <= unit_posy:
                     self.bearing = -self.teta[i]
                     sys.stdout.write(Color.RED)
