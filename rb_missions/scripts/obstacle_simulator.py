@@ -22,6 +22,8 @@ import rospy
 from geometry_msgs.msg import Pose2D
 from usv_perception.msg import obj_detected
 from usv_perception.msg import obj_detected_list
+from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
 
 
 class ObstacleSimulator:
@@ -33,7 +35,7 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 1 #0 for AutonomousNavigation, 1 for SpeedChallenge
+        self.challenge = 0 #0 for AutonomousNavigation, 1 for SpeedChallenge
         self.obstacle_list = []
 
         self.max_visible_radius = 10
@@ -41,6 +43,7 @@ class ObstacleSimulator:
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
 
         self.detector_pub = rospy.Publisher('/usv_perception/yolo_zed/objects_detected', obj_detected_list, queue_size=10)
+        self.marker_pub = rospy.Publisher("/usv_perception/lidar_detector/markers", MarkerArray, queue_size=10)
 
     def ins_pose_callback(self,pose):
         self.ned_x = pose.x
@@ -120,6 +123,38 @@ class ObstacleSimulator:
                       [math.sin(angle), math.cos(angle)]])
         return (J)
 
+    def rviz_markers(self):
+        '''
+        @name: rviz_markers
+        @brief: Publishes obstacles as rviz markers.
+        @param: --
+        @return: --
+        '''
+        marker_array = MarkerArray()
+        for i in range(len(self.obstacle_list)):
+            x = self.obstacle_list[i]['X']
+            y = -self.obstacle_list[i]['Y']
+            radius = 0.21
+            marker = Marker()
+            marker.header.frame_id = "/world"
+            marker.type = marker.SPHERE
+            marker.action = marker.ADD
+            marker.scale.x = radius
+            marker.scale.y = radius
+            marker.scale.z = radius
+            marker.color.a = 1.0
+            marker.color.r = 1.0
+            marker.color.g = 1.0
+            marker.color.b = 0.0
+            marker.pose.orientation.w = 1.0
+            marker.pose.position.x = x
+            marker.pose.position.y = y
+            marker.pose.position.z = 0
+            marker.id = i
+            marker_array.markers.append(marker)
+        # Publish the MarkerArray
+        self.marker_pub.publish(marker_array)
+
 def main():
     rospy.init_node('obstacle_simulator', anonymous=False)
     rate = rospy.Rate(20) # 100hz
@@ -156,6 +191,7 @@ def main():
                                     'class' : 'bouy'})
     while not rospy.is_shutdown() and obstacleSimulator.active:
         obstacleSimulator.simulate()
+        obstacleSimulator.rviz_markers()
         rate.sleep()
     rospy.spin()
 
