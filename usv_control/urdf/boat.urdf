@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<robot name="boat">
+
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+  <link name="boat">
+    <visual>
+    	<origin rpy="1.57075 3.141592 -1.57075" xyz="0.55 -0.375 0.2"/>
+      <geometry>
+        <mesh filename="package://urdf_tutorial/meshes/AssemblyForGazebo.STL" scale="0.001 0.001 0.001"/>
+        <!--mesh filename="package://urdf_tutorial/meshes/boat.dae" scale="0.001 0.001 0.001"/-->
+      </geometry>
+      <material name="white"/>
+    </visual>
+
+    <!--collision>
+    	<origin rpy="1.57075 0 1.57075" xyz="0 0 -0.25"/>
+      <geometry>
+        <mesh filename="package://urdf_tutorial/meshes/boat.dae" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision-->
+
+    <!--inertial>
+      <origin rpy="1.57075 3.1416 1.57075" xyz="0 0 -0.25"/>
+      <mass value="30"/>
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="4.1"/>
+    </inertial-->
+
+
+  </link>
+</robot>
