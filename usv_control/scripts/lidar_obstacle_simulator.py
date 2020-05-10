@@ -40,7 +40,7 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 1 #1 for AutonomousNavigation, 2 for SpeedChallenge
+        self.challenge = 0 #1 for AutonomousNavigation, 2 for SpeedChallenge
         self.obstacle_list = []
 
         self.max_visible_radius = 100
@@ -72,6 +72,7 @@ class ObstacleSimulator:
             distance = math.pow(delta_x*delta_x + delta_y*delta_y, 0.5)
             if (distance < self.max_visible_radius):
                 x, y = self.ned_to_body(x, y)
+                #if x > -0.5:
                 obstacle = Vector3()
                 obstacle.x = x
                 obstacle.y = y
@@ -163,7 +164,7 @@ def main():
     rate = rospy.Rate(100) # 100hz
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
-        obstacleSimulator.obstacle_list.append({'X' : 3.0,
+        obstacleSimulator.obstacle_list.append({'X' : 5.0,
                                     'Y' : -0.1,
                                     'R' : 0.5})
         '''

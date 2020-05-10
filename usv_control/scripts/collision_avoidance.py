@@ -206,7 +206,6 @@ class LOS:
         self.u_r = 1/(1 + math.exp(-self.exp_gain*(self.distance*self.chi_r - self.exp_offset)))
 
         self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r]) + self.u_min
-        
         self.avoid(ak, x1, y1)
 
         if (abs(self.bearing) > (math.pi)):
@@ -224,7 +223,7 @@ class LOS:
                 ak: angle from NED reference frame to path
         @return: --
         '''
-
+        print('Next waypoint:' + str(self.k))
         collision_obs_list = []
 
         self.vel_list = []
@@ -235,7 +234,8 @@ class LOS:
         obstacle_x = []
         obstacle_y = []
         obstacle_radius=[]
-
+        x1 = 0.0
+        y1 = 0.0
         #vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         #vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
         #ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
@@ -246,20 +246,22 @@ class LOS:
             #obs_ppx, obs_ppy = self.get_obstacle( ak, x1, y1, obs_list[i], obs_list[i+1])
             obs_x = obs_list[i]
             obs_y = obs_list[i+1]
-            if (-0.5<= obs_x - x1):
-                obstacle_x.append(obs_x)
-                obstacle_y.append(obs_y)
-                obs_radius = obs_list[i+2]
-                obstacle_radius.append(obs_radius)
+            #if (-0.5<= obs_x - x1):
+            print("ppy: " + str(y1) + " obsppy: " + str(obs_y))
+            print("ppx: " + str(x1) + " obsppx: " + str(obs_x))
+            obstacle_x.append(obs_x)
+            obstacle_y.append(obs_y)
+            obs_radius = obs_list[i+2]
+            obstacle_radius.append(obs_radius)
 
         for i in range(0,len(obstacle_x),1):
-
             sys.stdout.write(Color.CYAN)
             print("obstacle"+str(i))
             sys.stdout.write(Color.RESET)
             
             total_radius = self.boat_radius + self.safety_radius + obstacle_radius[i]
             collision, distance = self.get_collision(total_radius, x1, y1, obstacle_x[i], obstacle_y[i], self.v, self.u, i)
+            print("distance: " + str(distance)) 
             if collision:
                 #u_obs = np.amin(u_obstacle)
                 avoid_distance = self.calculate_avoid_distance( self.u, self.v, total_radius, i)
@@ -406,7 +408,7 @@ class LOS:
         '''
         #print("ppx: " + str(ppx) + " obsppx: " + str(obs_ppx))
         print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
-        total_radius = total_radius +.3
+        total_radius = total_radius + .30
         tangent_param = abs((distance - total_radius) * (distance + total_radius))
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
