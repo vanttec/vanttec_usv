@@ -158,6 +158,7 @@ class LOS:
                 self.los(x1, y1, x2, y2)
             else:
                 self.k += 1
+                print('Next Waypoint: ' + str(self.k))
         else:
             self.desired(0, self.yaw)
 
@@ -207,7 +208,7 @@ class LOS:
 
         self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r]) + self.u_min
         self.avoid(ak, x1, y1)
-
+        print("bearing: " + str(self.bearing))
         if (abs(self.bearing) > (math.pi)):
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing) - 2*math.pi)
 
@@ -223,7 +224,6 @@ class LOS:
                 ak: angle from NED reference frame to path
         @return: --
         '''
-        print('Next waypoint:' + str(self.k))
         collision_obs_list = []
 
         self.vel_list = []
@@ -247,8 +247,8 @@ class LOS:
             obs_x = obs_list[i]
             obs_y = obs_list[i+1]
             #if (-0.5<= obs_x - x1):
-            print("ppy: " + str(y1) + " obsppy: " + str(obs_y))
-            print("ppx: " + str(x1) + " obsppx: " + str(obs_x))
+            #print("ppy: " + str(y1) + " obsppy: " + str(obs_y))
+            #print("ppx: " + str(x1) + " obsppx: " + str(obs_x))
             obstacle_x.append(obs_x)
             obstacle_y.append(obs_y)
             obs_radius = obs_list[i+2]
@@ -261,13 +261,13 @@ class LOS:
             
             total_radius = self.boat_radius + self.safety_radius + obstacle_radius[i]
             collision, distance = self.get_collision(total_radius, x1, y1, obstacle_x[i], obstacle_y[i], self.v, self.u, i)
-            print("distance: " + str(distance)) 
+            #print("distance: " + str(distance)) 
             if collision:
                 #u_obs = np.amin(u_obstacle)
                 avoid_distance = self.calculate_avoid_distance( self.u, self.v, total_radius, i)
                 nearest_obs.append(avoid_distance - distance)
                 print("avoid_distance: " + str(avoid_distance)) 
-                print("distance: " + str(distance)) 
+                #print("distance: " + str(distance)) 
             else:
                 nearest_obs.append(0)
                 self.vel_list.append(self.vel)
@@ -278,7 +278,7 @@ class LOS:
             if np.max(nearest_obs)>0:
                 index = nearest_obs.index(np.max(nearest_obs))
                 sys.stdout.write(Color.BOLD)
-                print('index: ' + str(index))
+                #print('index: ' + str(index))
                 sys.stdout.write(Color.RESET)
                 if np.max(nearest_obs) > 0 and self.b[index] > 0:
                     collision_obs_list.append(obs_x)
@@ -302,7 +302,6 @@ class LOS:
             sys.stdout.write(Color.RESET)
 
     def check_obstacles(self):
-        print("CHECK OBSTACLES")
         obs_list = []
         for i in range(0,len(self.obstacles),1):
                 obs_list.append(self.obstacles[i]['X'])
@@ -310,7 +309,7 @@ class LOS:
                 obs_list.append(self.obstacles[i]['radius'])
         i = 0
         j = 0 
-        print("total obs: " + str(len(obs_list)/3))
+        #print("total obs: " + str(len(obs_list)/3))
 
         while i <= (len(obs_list)-6):
             j = i + 3
@@ -386,10 +385,14 @@ class LOS:
         if beta < -math.pi: 
             beta = beta + 2*math.pi
         beta = abs(beta)
+        print('local collision: ' + str(collision))
+        print('global collision: ' + str(self.collision_flag))
         if beta <= alpha or 1 == self.collision_flag:
-            #print('beta: ' + str(beta))
-            #print('alpha: ' + str(alpha))
+            print('beta: ' + str(beta))
+            print('alpha: ' + str(alpha))
+            print("COLLISION")
             collision = 1
+            self.collision_flag = 1
             self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i)
             self.get_velocity(distance_free, i)
         return collision, distance
@@ -424,12 +427,14 @@ class LOS:
         hb = abs(ppy-obs_ppy)/math.cos(alpha)
         print("hb: " + str(hb))
         self.b.append(total_radius - hb)
-        print("i: " + str(i))
+        #print("i: " + str(i))
         print("b: " + str(self.b[i]))
-        self.teta.append(abs(math.atan2(self.b[i],tangent)))
+        self.teta.append((math.atan2(self.b[i],tangent)))
         print("teta: " + str(self.teta[i]))
-        if self.b[i] <= 0:
+        if alpha < 0.0:
+            #if self.b[i] <= 0.1:
             self.collision_flag = 0
+            print("Collision flag off")
 
     def get_velocity(self, distance_free, i):
         u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*self.chi_r - self.exp_offset)))
@@ -466,9 +471,9 @@ class LOS:
                 obs_ppy: osbtacle y coordiante in path reference frame
         @return: --
         '''
-        self.collision_flag = 1
+        #self.collision_flag = 1
         if abs(ppy-obs_ppy) < 0.01:
-            self.bearing = -self.teta[i]
+            self.bearing = self.yaw-self.teta[i]
             sys.stdout.write(Color.RED)
             print("left -")
             sys.stdout.write(Color.RESET)
