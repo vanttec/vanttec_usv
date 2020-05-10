@@ -9,7 +9,7 @@
     <visual>
     	<origin rpy="1.57075 3.141592 -1.57075" xyz="0.55 -0.375 0.2"/>
       <geometry>
-        <mesh filename="package://urdf_tutorial/meshes/AssemblyForGazebo.STL" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://usv_control/meshes/AssemblyForGazebo.STL" scale="0.001 0.001 0.001"/>
         <!--mesh filename="package://urdf_tutorial/meshes/boat.dae" scale="0.001 0.001 0.001"/-->
       </geometry>
       <material name="white"/>
