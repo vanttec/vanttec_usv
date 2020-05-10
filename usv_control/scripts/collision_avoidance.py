@@ -468,7 +468,7 @@ class LOS:
         if abs(ppy-obs_ppy) < 0.01:
             self.bearing = -self.teta[i]
             sys.stdout.write(Color.RED)
-            print("right -")
+            print("left -")
             sys.stdout.write(Color.RESET)
         else:
             eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
@@ -481,7 +481,7 @@ class LOS:
                 if unit_vely <= unit_posy:
                     self.bearing = self.yaw - self.teta[i]
                     sys.stdout.write(Color.RED)
-                    print("right -")
+                    print("left -")
                     sys.stdout.write(Color.RESET)
                     '''
                     if (abs(self.avoid_angle) > (math.pi/2)):
@@ -490,7 +490,7 @@ class LOS:
                 else:
                     self.bearing = self.yaw + self.teta[i]
                     sys.stdout.write(Color.GREEN)
-                    print("left +")
+                    print("right +")
                     sys.stdout.write(Color.RESET)
                     '''
                     if (abs(self.avoid_angle) > (math.pi/3)):
