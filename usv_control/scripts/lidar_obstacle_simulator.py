@@ -75,7 +75,7 @@ class ObstacleSimulator:
                 #if x > -0.5:
                 obstacle = Vector3()
                 obstacle.x = x
-                obstacle.y = y
+                obstacle.y = -y
                 obstacle.z = self.obstacle_list[i]['R']
                 list_length += 1
                 object_detected_list.obstacles.append(obstacle)
@@ -160,14 +160,15 @@ class ObstacleSimulator:
         self.marker_pub.publish(marker_array)
 
 def main():
-    rospy.init_node('obstacle_simulator', anonymous=False)
+    rospy.init_node('obstacle_simulator', anonymous = False)
     rate = rospy.Rate(100) # 100hz
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
-        obstacleSimulator.obstacle_list.append({'X' : 5.0,
-                                    'Y' : -0.1,
-                                    'R' : 0.5})
         '''
+        obstacleSimulator.obstacle_list.append({'X' : 3.0,
+                                    'Y' : 0.0,
+                                    'R' : 0.5})
+        
         obstacleSimulator.obstacle_list.append({'X' : 7.0,
                                     'Y' : 0.4,
                                     'R' : 0.5})
