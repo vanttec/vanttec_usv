@@ -84,7 +84,7 @@ class LOS:
         self.avoid_angle = 0
         #self.psi_r = 0
         self.increase = 0 
-        self.collision_flag = 0
+        #self.collision_flag = 0
         self.b = []
 
         self.r_max = 1 #rad/sec
@@ -92,6 +92,8 @@ class LOS:
         self.u_r = 0
         self.teta = []
         self.vel_list = []
+        self.collision_flag = []
+        self.past_collision_flag = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ned_callback)
@@ -236,6 +238,8 @@ class LOS:
         obstacle_radius=[]
         x1 = 0.0
         y1 = 0.0
+        self.collision_flag = []
+
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
         vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
         #ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
@@ -300,6 +304,8 @@ class LOS:
             sys.stdout.write(Color.BLUE)
             print ('no obstacles')
             sys.stdout.write(Color.RESET)
+        self.past_collision_flag = []
+        self.past_collision_flag = self.collision_flag
 
     def check_obstacles(self):
         obs_list = []
@@ -385,14 +391,16 @@ class LOS:
         if beta < -math.pi: 
             beta = beta + 2*math.pi
         beta = abs(beta)
-        if beta <= alpha or 1 == self.collision_flag:
+        if beta <= alpha or 1 == self.past_collision_flag[i]:
             print('beta: ' + str(beta))
             print('alpha: ' + str(alpha))
             print("COLLISION")
             collision = 1
-            self.collision_flag = 1
+            self.collision_flag.append(1)
             self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i)
             self.get_velocity(distance_free, i)
+        else:
+            self.collision_flag.append(0)
         return collision, distance
     
     def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i):
@@ -430,8 +438,10 @@ class LOS:
         self.teta.append((math.atan2(self.b[i],tangent)))
         print("teta: " + str(self.teta[i]))
         if alpha < 0.0:
-            self.collision_flag = 0
+            self.collision_flag[i] = 0
+            sys.stdout.write(Color.BOLD)
             print("Collision flag off")
+            sys.stdout.write(Color.RESET)
 
     def get_velocity(self, distance_free, i):
         u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*self.chi_r - self.exp_offset)))
@@ -592,7 +602,7 @@ class LOS:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(1) # 100hz
+    rate = rospy.Rate(10) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []
