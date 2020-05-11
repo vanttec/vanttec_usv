@@ -207,6 +207,9 @@ class LOS:
         self.u_r = 1/(1 + math.exp(-self.exp_gain*(self.distance*self.chi_r - self.exp_offset)))
 
         self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r]) + self.u_min
+        sys.stdout.write(Color.CYAN)
+        print("vel y: " + str(self.v))
+        sys.stdout.write(Color.RESET)
         self.avoid(ak, x1, y1)
         print("bearing: " + str(self.bearing))
         if (abs(self.bearing) > (math.pi)):
@@ -247,7 +250,7 @@ class LOS:
             obs_x = obs_list[i]
             obs_y = obs_list[i+1]
             #if (-0.5<= obs_x - x1):
-            #print("ppy: " + str(y1) + " obsppy: " + str(obs_y))
+            print("ppy: " + str(y1) + " obsppy: " + str(obs_y))
             #print("ppx: " + str(x1) + " obsppx: " + str(obs_x))
             obstacle_x.append(obs_x)
             obstacle_y.append(obs_y)
@@ -278,14 +281,14 @@ class LOS:
             if np.max(nearest_obs)>0:
                 index = nearest_obs.index(np.max(nearest_obs))
                 sys.stdout.write(Color.BOLD)
-                #print('index: ' + str(index))
                 sys.stdout.write(Color.RESET)
                 if np.max(nearest_obs) > 0 and self.b[index] > 0:
                     collision_obs_list.append(obs_x)
                     collision_obs_list.append(obs_y)
                     collision_obs_list.append(obstacle_radius)
                     self.vel = np.min(self.vel_list)
-                    print('vel:' + str(self.vel))
+                    #print('vel:' + str(self.vel))
+                    print('index: ' + str(index))
                     self.dodge(self.u, self.v, x1, y1, obstacle_x[index], obstacle_y[index], obstacle_radius[index], index)
                 else:
                     rospy.loginfo("nearest_obs: " + str(nearest_obs[index])) 
@@ -305,7 +308,7 @@ class LOS:
         obs_list = []
         for i in range(0,len(self.obstacles),1):
                 obs_list.append(self.obstacles[i]['X'])
-                obs_list.append(self.obstacles[i]['Y'])
+                obs_list.append(-self.obstacles[i]['Y'])
                 obs_list.append(self.obstacles[i]['radius'])
         i = 0
         j = 0 
@@ -471,16 +474,17 @@ class LOS:
                 obs_ppy: osbtacle y coordiante in path reference frame
         @return: --
         '''
-        #self.collision_flag = 1
-        if abs(ppy-obs_ppy) < 0.01:
-            self.bearing = self.yaw-self.teta[i]
-            sys.stdout.write(Color.RED)
-            print("left -")
-            sys.stdout.write(Color.RESET)
-        else:
-            eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
-            eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
-            if eucledian_pos != 0 and eucledian_vel != 0:
+        eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
+        if eucledian_vel != 0:
+            print("vel y: " + str(self.v))
+            if abs(ppy-obs_ppy) < 0.01:
+                print('center')
+                self.bearing = self.yaw - self.teta[i]
+                sys.stdout.write(Color.RED)
+                print("left -")
+                sys.stdout.write(Color.RESET)
+            else:
+                eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
                 unit_vely = vel_ppy/eucledian_vel 
                 unit_posy = (obs_ppy - ppy)/eucledian_pos
                 print("unit_vely " + str(unit_vely))
