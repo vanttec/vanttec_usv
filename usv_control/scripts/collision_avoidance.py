@@ -207,9 +207,6 @@ class LOS:
         self.u_r = 1/(1 + math.exp(-self.exp_gain*(self.distance*self.chi_r - self.exp_offset)))
 
         self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r]) + self.u_min
-        sys.stdout.write(Color.CYAN)
-        print("vel y: " + str(self.v))
-        sys.stdout.write(Color.RESET)
         self.avoid(ak, x1, y1)
         print("bearing: " + str(self.bearing))
         if (abs(self.bearing) > (math.pi)):
@@ -239,8 +236,8 @@ class LOS:
         obstacle_radius=[]
         x1 = 0.0
         y1 = 0.0
-        #vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
-        #vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
+        vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
+        vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
         #ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
 
         obs_list = self.check_obstacles()
@@ -263,7 +260,7 @@ class LOS:
             sys.stdout.write(Color.RESET)
             
             total_radius = self.boat_radius + self.safety_radius + obstacle_radius[i]
-            collision, distance = self.get_collision(total_radius, x1, y1, obstacle_x[i], obstacle_y[i], self.v, self.u, i)
+            collision, distance = self.get_collision(total_radius, x1, y1, obstacle_x[i], obstacle_y[i], vel_ppy, vel_ppx, i)
             #print("distance: " + str(distance)) 
             if collision:
                 #u_obs = np.amin(u_obstacle)
@@ -289,7 +286,7 @@ class LOS:
                     self.vel = np.min(self.vel_list)
                     #print('vel:' + str(self.vel))
                     print('index: ' + str(index))
-                    self.dodge(self.u, self.v, x1, y1, obstacle_x[index], obstacle_y[index], obstacle_radius[index], index)
+                    self.dodge(vel_ppx, vel_ppy, x1, y1, obstacle_x[index], obstacle_y[index], obstacle_radius[index], index)
                 else:
                     rospy.loginfo("nearest_obs: " + str(nearest_obs[index])) 
                     sys.stdout.write(Color.BLUE)
@@ -476,7 +473,7 @@ class LOS:
         '''
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         if eucledian_vel != 0:
-            print("vel y: " + str(self.v))
+            print("vel y: " + str(vel_ppy))
             if abs(ppy-obs_ppy) < 0.01:
                 print('center')
                 self.bearing = self.yaw - self.teta[i]
