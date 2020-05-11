@@ -208,7 +208,7 @@ class LOS:
 
         self.vel = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r]) + self.u_min
         self.avoid(ak, x1, y1)
-        print("bearing: " + str(self.bearing))
+
         if (abs(self.bearing) > (math.pi)):
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing) - 2*math.pi)
 
@@ -385,8 +385,6 @@ class LOS:
         if beta < -math.pi: 
             beta = beta + 2*math.pi
         beta = abs(beta)
-        print('local collision: ' + str(collision))
-        print('global collision: ' + str(self.collision_flag))
         if beta <= alpha or 1 == self.collision_flag:
             print('beta: ' + str(beta))
             print('alpha: ' + str(alpha))
@@ -432,7 +430,6 @@ class LOS:
         self.teta.append((math.atan2(self.b[i],tangent)))
         print("teta: " + str(self.teta[i]))
         if alpha < 0.0:
-            #if self.b[i] <= 0.1:
             self.collision_flag = 0
             print("Collision flag off")
 
@@ -472,46 +469,48 @@ class LOS:
         @return: --
         '''
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
-        if eucledian_vel != 0:
-            print("vel y: " + str(vel_ppy))
-            if abs(ppy-obs_ppy) < 0.01:
-                print('center')
-                self.bearing = self.yaw - self.teta[i]
-                sys.stdout.write(Color.RED)
-                print("left -")
-                sys.stdout.write(Color.RESET)
-            else:
-                eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
-                unit_vely = vel_ppy/eucledian_vel 
-                unit_posy = (obs_ppy - ppy)/eucledian_pos
-                print("unit_vely " + str(unit_vely))
-                print("unit_posy: " + str(unit_posy))
-                if unit_vely <= unit_posy:
-                    self.bearing = self.yaw - self.teta[i]
-                    sys.stdout.write(Color.RED)
-                    print("left -")
-                    sys.stdout.write(Color.RESET)
-                    '''
-                    if (abs(self.avoid_angle) > (math.pi/2)):
-                        self.avoid_angle = -math.pi/2
-                    '''
-                else:
-                    self.bearing = self.yaw + self.teta[i]
-                    sys.stdout.write(Color.GREEN)
-                    print("right +")
-                    sys.stdout.write(Color.RESET)
-                    '''
-                    if (abs(self.avoid_angle) > (math.pi/3)):
-                        self.avoid_angle = math.pi/2
-                    '''
-                '''
-                if unit_vely <= unit_posy:
-                    self.teta = -self.teta
-                    
-                else:
-                    self.teta =  self.teta
-                    
-                '''
+        #if eucledian_vel != 0:
+        print("vel y: " + str(vel_ppy))
+        '''
+        if abs(ppy-obs_ppy) < 0.01:
+            print('center')
+            self.bearing = self.yaw - self.teta[i]
+            sys.stdout.write(Color.RED)
+            print("left -")
+            sys.stdout.write(Color.RESET)
+        else:
+        '''
+        eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
+        unit_vely = vel_ppy/eucledian_vel 
+        unit_posy = (obs_ppy - ppy)/eucledian_pos
+        print("unit_vely " + str(unit_vely))
+        print("unit_posy: " + str(unit_posy))
+        if unit_vely <= unit_posy:
+            self.bearing = self.yaw - self.teta[i]
+            sys.stdout.write(Color.RED)
+            print("left -")
+            sys.stdout.write(Color.RESET)
+            '''
+            if (abs(self.avoid_angle) > (math.pi/2)):
+                self.avoid_angle = -math.pi/2
+            '''
+        else:
+            self.bearing = self.yaw + self.teta[i]
+            sys.stdout.write(Color.GREEN)
+            print("right +")
+            sys.stdout.write(Color.RESET)
+            '''
+            if (abs(self.avoid_angle) > (math.pi/3)):
+                self.avoid_angle = math.pi/2
+            '''
+        '''
+        if unit_vely <= unit_posy:
+            self.teta = -self.teta
+            
+        else:
+            self.teta =  self.teta
+            
+        '''
 
     def gps_to_ned(self, latitude_2, longitude_2):
         '''
