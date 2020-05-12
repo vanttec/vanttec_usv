@@ -306,6 +306,8 @@ class LOS:
             sys.stdout.write(Color.RESET)
         self.past_collision_flag = []
         self.past_collision_flag = self.collision_flag
+        if 0 == len(self.past_collision_flag):
+            self.past_collision_flag.append(0)
 
     def check_obstacles(self):
         obs_list = []
@@ -490,37 +492,37 @@ class LOS:
             sys.stdout.write(Color.RESET)
         else:
         '''
-        eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
-        unit_vely = vel_ppy/eucledian_vel 
-        unit_posy = (obs_ppy - ppy)/eucledian_pos
-        print("unit_vely " + str(unit_vely))
-        print("unit_posy: " + str(unit_posy))
-        if unit_vely <= unit_posy:
-            self.bearing = self.yaw - self.teta[i]
-            sys.stdout.write(Color.RED)
-            print("left -")
-            sys.stdout.write(Color.RESET)
+            eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
+            unit_vely = vel_ppy/eucledian_vel 
+            unit_posy = (obs_ppy - ppy)/eucledian_pos
+            print("unit_vely " + str(unit_vely))
+            print("unit_posy: " + str(unit_posy))
+            if unit_vely <= unit_posy:
+                self.bearing = self.yaw - self.teta[i]
+                sys.stdout.write(Color.RED)
+                print("left -")
+                sys.stdout.write(Color.RESET)
+                '''
+                if (abs(self.avoid_angle) > (math.pi/2)):
+                    self.avoid_angle = -math.pi/2
+                '''
+            else:
+                self.bearing = self.yaw + self.teta[i]
+                sys.stdout.write(Color.GREEN)
+                print("right +")
+                sys.stdout.write(Color.RESET)
+                '''
+                if (abs(self.avoid_angle) > (math.pi/3)):
+                    self.avoid_angle = math.pi/2
+                '''
             '''
-            if (abs(self.avoid_angle) > (math.pi/2)):
-                self.avoid_angle = -math.pi/2
+            if unit_vely <= unit_posy:
+                self.teta = -self.teta
+                
+            else:
+                self.teta =  self.teta
+                
             '''
-        else:
-            self.bearing = self.yaw + self.teta[i]
-            sys.stdout.write(Color.GREEN)
-            print("right +")
-            sys.stdout.write(Color.RESET)
-            '''
-            if (abs(self.avoid_angle) > (math.pi/3)):
-                self.avoid_angle = math.pi/2
-            '''
-        '''
-        if unit_vely <= unit_posy:
-            self.teta = -self.teta
-            
-        else:
-            self.teta =  self.teta
-            
-        '''
 
     def gps_to_ned(self, latitude_2, longitude_2):
         '''
