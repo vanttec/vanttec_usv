@@ -236,11 +236,16 @@ class LOS:
         obstacle_x = []
         obstacle_y = []
         obstacle_radius=[]
-        x1 = 0.0
-        y1 = 0.0
+        #x1 = 0.0
+        #y1 = 0.0
         self.collision_flag = []
 
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
+        print("self.u: " + str(self.u))
+        print("self.v: " + str(self.v))
+        print("vel_nedx: " + str(vel_nedx))
+        print("vel_nedy " + str(vel_nedy))
+        print("ak: ", str(ak))
         vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
         #ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
 
@@ -251,8 +256,8 @@ class LOS:
             obs_x = obs_list[i]
             obs_y = obs_list[i+1]
             #if (-0.5<= obs_x - x1):
-            print("ppy: " + str(y1) + " obsppy: " + str(obs_y))
-            #print("ppx: " + str(x1) + " obsppx: " + str(obs_x))
+            print("ppy: " + str(0) + " obsppy: " + str(obs_y))
+            print("ppx: " + str(0) + " obsppx: " + str(obs_x))
             obstacle_x.append(obs_x)
             obstacle_y.append(obs_y)
             obs_radius = obs_list[i+2]
@@ -264,7 +269,7 @@ class LOS:
             sys.stdout.write(Color.RESET)
             
             total_radius = self.boat_radius + self.safety_radius + obstacle_radius[i]
-            collision, distance = self.get_collision(total_radius, x1, y1, obstacle_x[i], obstacle_y[i], vel_ppy, vel_ppx, i)
+            collision, distance = self.get_collision(total_radius, 0, 0, obstacle_x[i], obstacle_y[i], vel_ppy, vel_ppx, i)
             #print("distance: " + str(distance)) 
             if collision:
                 #u_obs = np.amin(u_obstacle)
@@ -290,7 +295,9 @@ class LOS:
                     self.vel = np.min(self.vel_list)
                     #print('vel:' + str(self.vel))
                     print('index: ' + str(index))
-                    self.dodge(vel_ppx, vel_ppy, x1, y1, obstacle_x[index], obstacle_y[index], obstacle_radius[index], index)
+                    ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
+                    obs_ppx, obs_ppy = self.get_obstacle( ak, x1, y1, obstacle_x[index], obstacle_y[index])
+                    self.dodge(vel_ppx, vel_ppy, ppx, ppy, obs_ppx, obs_ppy, obstacle_radius[index], index, obstacle_y[index])
                 else:
                     rospy.loginfo("nearest_obs: " + str(nearest_obs[index])) 
                     sys.stdout.write(Color.BLUE)
@@ -306,6 +313,7 @@ class LOS:
             sys.stdout.write(Color.RESET)
         self.past_collision_flag = []
         self.past_collision_flag = self.collision_flag
+        # To avoid out of index error
         if 0 == len(self.past_collision_flag):
             self.past_collision_flag.append(0)
 
@@ -313,6 +321,7 @@ class LOS:
         obs_list = []
         for i in range(0,len(self.obstacles),1):
                 obs_list.append(self.obstacles[i]['X'])
+                # Negative y to compensate Lidar reference frame
                 obs_list.append(-self.obstacles[i]['Y'])
                 obs_list.append(self.obstacles[i]['radius'])
         i = 0
@@ -417,7 +426,7 @@ class LOS:
                 obs_ppx: osbtacle x coordiante in path reference frame
         @return: --
         '''
-        #print("ppx: " + str(ppx) + " obsppx: " + str(obs_ppx))
+        print("ppx: " + str(ppx) + " obsppx: " + str(obs_ppx))
         print("ppy: " + str(ppy) + " obsppy: " + str(obs_ppy))
         total_radius = total_radius + .30
         tangent_param = abs((distance - total_radius) * (distance + total_radius))
@@ -468,7 +477,7 @@ class LOS:
         avoid_distance = time * self.vel + total_radius +.3
         return (avoid_distance)
     
-    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy, obs_radius, i):
+    def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy, obs_radius, i, obs_y):
         '''
         @name: dodge
         @brief: Calculates angle needed to avoid obstacle
@@ -481,18 +490,23 @@ class LOS:
         @return: --
         '''
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
-        #if eucledian_vel != 0:
-        print("vel y: " + str(vel_ppy))
-        '''
-        if abs(ppy-obs_ppy) < 0.01:
-            print('center')
-            self.bearing = self.yaw - self.teta[i]
-            sys.stdout.write(Color.RED)
-            print("left -")
-            sys.stdout.write(Color.RESET)
-        else:
-        '''
+        # Euclaedian vel must be different to cero to avoid math error
+        if eucledian_vel != 0:
+            print("vel x: " + str(vel_ppx))
+            print("vel y: " + str(vel_ppy))
+            print("obs_y: " + str(ppy-obs_ppy))
+            '''
+            if abs(obs_y) < 0.01:
+                print('center')
+                self.bearing = self.yaw - self.teta[i]
+                sys.stdout.write(Color.RED)
+                print("left -")
+                sys.stdout.write(Color.RESET)
+            else:
+            '''
             eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
+            print("eucledian_vel " + str(eucledian_vel))
+            print("eucladian_pos: " + str(eucledian_pos))
             unit_vely = vel_ppy/eucledian_vel 
             unit_posy = (obs_ppy - ppy)/eucledian_pos
             print("unit_vely " + str(unit_vely))
@@ -555,7 +569,6 @@ class LOS:
 
         return (ned_x2,ned_y2)
 
-
     def body_to_ned(self, x2, y2, offsetx, offsety):
         '''
         @name: body_to_ned
@@ -604,7 +617,7 @@ class LOS:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(10) # 100hz
+    rate = rospy.Rate(20) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []
