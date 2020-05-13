@@ -241,11 +241,11 @@ class LOS:
         self.collision_flag = []
 
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
-        print("self.u: " + str(self.u))
-        print("self.v: " + str(self.v))
-        print("vel_nedx: " + str(vel_nedx))
-        print("vel_nedy " + str(vel_nedy))
-        print("ak: ", str(ak))
+        #print("self.u: " + str(self.u))
+        #print("self.v: " + str(self.v))
+        #print("vel_nedx: " + str(vel_nedx))
+        #print("vel_nedy " + str(vel_nedy))
+        #print("ak: ", str(ak))
         vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
         #ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
 
@@ -262,6 +262,12 @@ class LOS:
             obstacle_y.append(obs_y)
             obs_radius = obs_list[i+2]
             obstacle_radius.append(obs_radius)
+        # To avoid out of index error
+        #print(len(self.past_collision_flag))
+        #print(len(obs_list)/3)
+        if len(self.past_collision_flag) < len(obs_list)/3:
+            for i in range(len(self.past_collision_flag),len(obs_list)/3,1):
+                self.past_collision_flag.append(0)
 
         for i in range(0,len(obstacle_x),1):
             sys.stdout.write(Color.CYAN)
@@ -286,15 +292,15 @@ class LOS:
             print('nearest_obs max: ' + str(np.max(nearest_obs)))
             if np.max(nearest_obs)>0:
                 index = nearest_obs.index(np.max(nearest_obs))
-                sys.stdout.write(Color.BOLD)
-                sys.stdout.write(Color.RESET)
                 if np.max(nearest_obs) > 0 and self.b[index] > 0:
                     collision_obs_list.append(obs_x)
                     collision_obs_list.append(obs_y)
                     collision_obs_list.append(obstacle_radius)
                     self.vel = np.min(self.vel_list)
+                    sys.stdout.write(Color.BOLD)
                     #print('vel:' + str(self.vel))
                     print('index: ' + str(index))
+                    sys.stdout.write(Color.RESET)
                     ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
                     obs_ppx, obs_ppy = self.get_obstacle( ak, x1, y1, obstacle_x[index], obstacle_y[index])
                     self.dodge(vel_ppx, vel_ppy, ppx, ppy, obs_ppx, obs_ppy, obstacle_radius[index], index, obstacle_y[index])
@@ -313,9 +319,6 @@ class LOS:
             sys.stdout.write(Color.RESET)
         self.past_collision_flag = []
         self.past_collision_flag = self.collision_flag
-        # To avoid out of index error
-        if 0 == len(self.past_collision_flag):
-            self.past_collision_flag.append(0)
 
     def check_obstacles(self):
         obs_list = []
@@ -403,9 +406,9 @@ class LOS:
             beta = beta + 2*math.pi
         beta = abs(beta)
         if beta <= alpha or 1 == self.past_collision_flag[i]:
-            print('beta: ' + str(beta))
-            print('alpha: ' + str(alpha))
-            print("COLLISION")
+            #print('beta: ' + str(beta))
+            #print('alpha: ' + str(alpha))
+            #print("COLLISION")
             collision = 1
             self.collision_flag.append(1)
             self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i)
@@ -492,13 +495,13 @@ class LOS:
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         # Euclaedian vel must be different to cero to avoid math error
         if eucledian_vel != 0:
-            print("vel x: " + str(vel_ppx))
-            print("vel y: " + str(vel_ppy))
-            print("obs_y: " + str(obs_y))
+            #print("vel x: " + str(vel_ppx))
+            #print("vel y: " + str(vel_ppy))
+            #print("obs_y: " + str(obs_y))
             # obstacle in center, this is to avoid shaky behaivor
             if abs(obs_y) < 0.1:
                 angle_difference = self.bearing - self.yaw
-                print("angle diference: " + str(angle_difference))
+                #print("angle diference: " + str(angle_difference))
                 if 0.1 > abs(angle_difference) or 0 > (angle_difference):
                     self.bearing = self.yaw - self.teta[i]
                     sys.stdout.write(Color.RED)
@@ -511,12 +514,12 @@ class LOS:
                     sys.stdout.write(Color.RESET)
             else:
                 eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
-                print("eucledian_vel " + str(eucledian_vel))
-                print("eucladian_pos: " + str(eucledian_pos))
+                #print("eucledian_vel " + str(eucledian_vel))
+                #print("eucladian_pos: " + str(eucledian_pos))
                 unit_vely = vel_ppy/eucledian_vel 
                 unit_posy = (obs_ppy - ppy)/eucledian_pos
-                print("unit_vely " + str(unit_vely))
-                print("unit_posy: " + str(unit_posy))
+                #print("unit_vely " + str(unit_vely))
+                #print("unit_posy: " + str(unit_posy))
                 if unit_vely <= unit_posy:
                     self.bearing = self.yaw - self.teta[i]
                     sys.stdout.write(Color.RED)
