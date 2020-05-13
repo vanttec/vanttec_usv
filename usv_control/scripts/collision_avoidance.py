@@ -494,49 +494,55 @@ class LOS:
         if eucledian_vel != 0:
             print("vel x: " + str(vel_ppx))
             print("vel y: " + str(vel_ppy))
-            print("obs_y: " + str(ppy-obs_ppy))
-            '''
-            if abs(obs_y) < 0.01:
-                print('center')
-                self.bearing = self.yaw - self.teta[i]
-                sys.stdout.write(Color.RED)
-                print("left -")
-                sys.stdout.write(Color.RESET)
+            print("obs_y: " + str(obs_y))
+            # obstacle in center, this is to avoid shaky behaivor
+            if abs(obs_y) < 0.1:
+                angle_difference = self.bearing - self.yaw
+                print("angle diference: " + str(angle_difference))
+                if 0.1 > abs(angle_difference) or 0 > (angle_difference):
+                    self.bearing = self.yaw - self.teta[i]
+                    sys.stdout.write(Color.RED)
+                    print("center left -")
+                    sys.stdout.write(Color.RESET)
+                else:
+                    self.bearing = self.yaw + self.teta[i]
+                    sys.stdout.write(Color.GREEN)
+                    print("center right +")
+                    sys.stdout.write(Color.RESET)
             else:
-            '''
-            eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
-            print("eucledian_vel " + str(eucledian_vel))
-            print("eucladian_pos: " + str(eucledian_pos))
-            unit_vely = vel_ppy/eucledian_vel 
-            unit_posy = (obs_ppy - ppy)/eucledian_pos
-            print("unit_vely " + str(unit_vely))
-            print("unit_posy: " + str(unit_posy))
-            if unit_vely <= unit_posy:
-                self.bearing = self.yaw - self.teta[i]
-                sys.stdout.write(Color.RED)
-                print("left -")
-                sys.stdout.write(Color.RESET)
+                eucledian_pos = pow((pow(obs_ppx - ppx,2) + pow(obs_ppy - ppy,2)),0.5)
+                print("eucledian_vel " + str(eucledian_vel))
+                print("eucladian_pos: " + str(eucledian_pos))
+                unit_vely = vel_ppy/eucledian_vel 
+                unit_posy = (obs_ppy - ppy)/eucledian_pos
+                print("unit_vely " + str(unit_vely))
+                print("unit_posy: " + str(unit_posy))
+                if unit_vely <= unit_posy:
+                    self.bearing = self.yaw - self.teta[i]
+                    sys.stdout.write(Color.RED)
+                    print("left -")
+                    sys.stdout.write(Color.RESET)
+                    '''
+                    if (abs(self.avoid_angle) > (math.pi/2)):
+                        self.avoid_angle = -math.pi/2
+                    '''
+                else:
+                    self.bearing = self.yaw + self.teta[i]
+                    sys.stdout.write(Color.GREEN)
+                    print("right +")
+                    sys.stdout.write(Color.RESET)
+                    '''
+                    if (abs(self.avoid_angle) > (math.pi/3)):
+                        self.avoid_angle = math.pi/2
+                    '''
                 '''
-                if (abs(self.avoid_angle) > (math.pi/2)):
-                    self.avoid_angle = -math.pi/2
+                if unit_vely <= unit_posy:
+                    self.teta = -self.teta
+                    
+                else:
+                    self.teta =  self.teta
+                    
                 '''
-            else:
-                self.bearing = self.yaw + self.teta[i]
-                sys.stdout.write(Color.GREEN)
-                print("right +")
-                sys.stdout.write(Color.RESET)
-                '''
-                if (abs(self.avoid_angle) > (math.pi/3)):
-                    self.avoid_angle = math.pi/2
-                '''
-            '''
-            if unit_vely <= unit_posy:
-                self.teta = -self.teta
-                
-            else:
-                self.teta =  self.teta
-                
-            '''
 
     def gps_to_ned(self, latitude_2, longitude_2):
         '''
