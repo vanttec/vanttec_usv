@@ -62,8 +62,8 @@ class LOS:
 
         self.k = 1
 
-        self.u_max = 1.0
-        self.u_min = 0.3
+        self.u_max = 0.7
+        self.u_min = 0.2
         self.threshold_radius = 5
         self.chi_r = 1./self.threshold_radius
         self.chi_psi = 2/math.pi
@@ -241,7 +241,7 @@ class LOS:
         self.collision_flag = []
 
         vel_nedx,vel_nedy = self.body_to_ned(self.u,self.v,0,0)
-        #print("self.u: " + str(self.u))
+        print("self.u: " + str(self.u))
         #print("self.v: " + str(self.v))
         #print("vel_nedx: " + str(vel_nedx))
         #print("vel_nedy " + str(vel_nedy))
@@ -285,8 +285,8 @@ class LOS:
                 #print("distance: " + str(distance)) 
             else:
                 nearest_obs.append(0)
-                self.vel_list.append(self.vel)
-                self.teta.append(0)
+                #self.vel_list.append(self.vel)
+                #self.teta.append(0)
                 self.b.append(0)
         if len(nearest_obs) > 0:
             print('nearest_obs max: ' + str(np.max(nearest_obs)))
@@ -298,7 +298,7 @@ class LOS:
                     collision_obs_list.append(obstacle_radius)
                     self.vel = np.min(self.vel_list)
                     sys.stdout.write(Color.BOLD)
-                    #print('vel:' + str(self.vel))
+                    print('vel:' + str(self.vel))
                     print('index: ' + str(index))
                     sys.stdout.write(Color.RESET)
                     ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
@@ -412,9 +412,11 @@ class LOS:
             collision = 1
             self.collision_flag.append(1)
             self.calculate_avoid_angle(total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i)
-            self.get_velocity(distance_free, i)
+            #self.get_velocity(distance_free, i)
         else:
             self.collision_flag.append(0)
+            self.teta.append(0)
+        self.get_velocity(distance_free, i)
         return collision, distance
     
     def calculate_avoid_angle(self, total_radius, ppy, obs_ppy, distance, ppx, obs_ppx, i):
@@ -459,7 +461,10 @@ class LOS:
 
     def get_velocity(self, distance_free, i):
         u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*self.chi_r - self.exp_offset)))
-        u_psi_obs = 1/(1 + math.exp(self.exp_gain*(self.teta[i]*self.chi_psi - self.exp_offset)))
+        u_psi_obs = 1/(1 + math.exp(self.exp_gain*(abs(self.teta[i])*self.chi_psi -self.exp_offset)))
+        print("u_r_obs: " + str( u_r_obs))
+        print("u_psi_obs" + str(u_psi_obs))
+        print("Vel chosen: " + str(np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs])))
         self.vel_list.append((self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs]) + self.u_min)
 
     def calculate_avoid_distance(self, vel_ppx, vel_ppy, total_radius, i):
@@ -626,7 +631,7 @@ class LOS:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(20) # 100hz
+    rate = rospy.Rate(1) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []
