@@ -62,7 +62,7 @@ class LOS:
 
         self.k = 1
 
-        self.u_max = 0.7
+        self.u_max = 1.0
         self.u_min = 0.2
         self.threshold_radius = 5
         self.chi_r = 1./self.threshold_radius
@@ -298,7 +298,6 @@ class LOS:
                     collision_obs_list.append(obstacle_radius)
                     self.vel = np.min(self.vel_list)
                     sys.stdout.write(Color.BOLD)
-                    print('vel:' + str(self.vel))
                     print('index: ' + str(index))
                     sys.stdout.write(Color.RESET)
                     ppx,ppy = self.ned_to_pp(ak,x1,y1,self.ned_x,self.ned_y)
@@ -317,6 +316,7 @@ class LOS:
             sys.stdout.write(Color.BLUE)
             print ('no obstacles')
             sys.stdout.write(Color.RESET)
+        print('vel:' + str(self.vel))
         self.past_collision_flag = []
         self.past_collision_flag = self.collision_flag
 
@@ -460,7 +460,7 @@ class LOS:
             sys.stdout.write(Color.RESET)
 
     def get_velocity(self, distance_free, i):
-        u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*self.chi_r - self.exp_offset)))
+        u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*(1/5) - self.exp_offset)))
         u_psi_obs = 1/(1 + math.exp(self.exp_gain*(abs(self.teta[i])*self.chi_psi -self.exp_offset)))
         print("u_r_obs: " + str( u_r_obs))
         print("u_psi_obs" + str(u_psi_obs))
@@ -631,7 +631,7 @@ class LOS:
 
 def main():
     rospy.init_node('collision_avoidance', anonymous=False)
-    rate = rospy.Rate(1) # 100hz
+    rate = rospy.Rate(20) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []
