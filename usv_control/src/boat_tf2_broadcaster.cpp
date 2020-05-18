@@ -1,3 +1,15 @@
+/*
+----------------------------------------------------------
+    @file: boat_tf2_broadcaster.cpp
+    @date: May, 2019
+    @date_modif: Mon May 18, 2020
+    @author: Alejandro Gonzalez
+    @e-mail: alexglzg97@gmail.com
+    @brief: TF ROS node for the USV and world reference frames.
+    Open source
+----------------------------------------------------------
+*/
+
 #include <math.h>
 #include <ros/ros.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -61,7 +73,7 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "boat_tf2_broadcaster");
   TfAndPath tfAndPath;
 
-  while(true){
+  while(ros::ok()){
     ros::Rate(100).sleep();
     ros::spinOnce();
   }
