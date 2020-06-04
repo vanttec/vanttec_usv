@@ -4,10 +4,10 @@
 '''
 ----------------------------------------------------------
     @file: obstacle_simulator.py
-    @date: Sun Mar 22, 2020
+    @date: Wed Jun 3, 2020
 	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
-	@brief: Obstacle simulation for mission testing.
+	@brief: Dock and acoustic signal simulator.
 	@version: 1.0
     Open source
 ----------------------------------------------------------
@@ -19,11 +19,9 @@ import os
 
 import numpy as np
 import rospy
-from geometry_msgs.msg import Pose2D
-from usv_perception.msg import obj_detected
-from usv_perception.msg import obj_detected_list
-from visualization_msgs.msg import Marker
-from visualization_msgs.msg import MarkerArray
+from geometry_msgs.msg import Pose2D, PoseArray, Pose
+from std_msgs.msg import Float64
+from visualization_msgs.msg import Marker, MarkerArray
 
 
 class ObstacleSimulator:
@@ -35,15 +33,16 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 1 #0 for AutonomousNavigation, 1 for SpeedChallenge
         self.obstacle_list = []
 
-        self.max_visible_radius = 10
+        self.max_acoustic_radius = 20
+        self.radius = 1 #Dock radius
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
 
-        self.detector_pub = rospy.Publisher('/usv_perception/yolo_zed/objects_detected', obj_detected_list, queue_size=10)
-        self.marker_pub = rospy.Publisher("/usv_perception/lidar_detector/markers", MarkerArray, queue_size=10)
+        self.signal_pub = rospy.Publisher('/usv_perception/hydrophones/acoustic_signal', Float64, queue_size=10)
+        self.detector_pub = rospy.Publisher('/usv_perception/lidar_detector/dock', PoseArray, queue_size=10)
+        self.marker_pub = rospy.Publisher("/usv_perception/dock_marker", MarkerArray, queue_size=10)
 
     def ins_pose_callback(self,pose):
         self.ned_x = pose.x
@@ -57,27 +56,32 @@ class ObstacleSimulator:
         @param: --
         @return: --
         '''
-        object_detected_list = obj_detected_list()
-        list_length = 0
+        pose_array = PoseArray()
+        pose1 = Pose()
+        pose2 = Pose()
         for i in range(len(self.obstacle_list)):
             x = self.obstacle_list[i]['X']
             y = self.obstacle_list[i]['Y']
             delta_x = x - self.ned_x
             delta_y = y - self.ned_y
             distance = math.pow(delta_x*delta_x + delta_y*delta_y, 0.5)
-            if (distance < self.max_visible_radius):
-                x, y = self.ned_to_body(x, y)
-                if x > 1:
-                    obstacle = obj_detected()
-                    obstacle.X = x
-                    obstacle.Y = -y
-                    obstacle.color = self.obstacle_list[i]['color']
-                    obstacle.clase = self.obstacle_list[i]['class']
-                    list_length += 1
-                    object_detected_list.objects.append(obstacle)
-        object_detected_list.len = list_length
-        self.detector_pub.publish(object_detected_list)
-
+            x1 = x 
+            y1 = y - 2*self.radius
+            x2 = x 
+            y2 = y + 2*self.radius
+            x1b, y1b = self.ned_to_body(x1, y1)
+            x2b, y2b = self.ned_to_body(x2, y2)
+            pose1.position.x = x1b
+            pose1.position.y = y1b
+            pose_array.poses.append(pose1)
+            pose2.position.x = x2b
+            pose2.position.y = y2b
+            pose_array.poses.append(pose2)
+            self.detector_pub.publish(pose_array)
+            if (distance < self.max_acoustic_radius):
+                xb, yb = self.ned_to_body(x, y)
+                signal = np.math.atan2(yb,xb)
+                self.signal_pub.publish(signal)
 
     def body_to_ned(self, x2, y2):
         '''
@@ -134,20 +138,20 @@ class ObstacleSimulator:
         for i in range(len(self.obstacle_list)):
             x = self.obstacle_list[i]['X']
             y = -self.obstacle_list[i]['Y']
-            radius = 0.21
+            self.radius = 1
             marker = Marker()
             marker.header.frame_id = "/world"
-            marker.type = marker.SPHERE
+            marker.type = marker.CUBE
             marker.action = marker.ADD
-            marker.scale.x = radius
-            marker.scale.y = radius
-            marker.scale.z = radius
+            marker.scale.x = self.radius
+            marker.scale.y = self.radius*2
+            marker.scale.z = self.radius
             marker.color.a = 1.0
             marker.color.r = 1.0
             marker.color.g = 1.0
             marker.color.b = 0.0
             marker.pose.orientation.w = 1.0
-            marker.pose.position.x = x
+            marker.pose.position.x = x + (self.radius/2.)
             marker.pose.position.y = y
             marker.pose.position.z = 0
             marker.id = i
@@ -156,39 +160,11 @@ class ObstacleSimulator:
         self.marker_pub.publish(marker_array)
 
 def main():
-    rospy.init_node('obstacle_simulator', anonymous=False)
-    rate = rospy.Rate(20) # 100hz
+    rospy.init_node('dock_simulator', anonymous=False)
+    rate = rospy.Rate(100) # 100hz
     obstacleSimulator = ObstacleSimulator()
-    if obstacleSimulator.challenge == 0:
-        obstacleSimulator.obstacle_list.append({'X' : 6.5,
-                                    'Y' : -0.5,
-                                    'color' : 'yellow', 
-                                    'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 3.5,
-                                    'Y' : 2.5,
-                                    'color' : 'yellow', 
-                                    'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 22.5,
-                                    'Y' : 15.5,
-                                    'color' : 'yellow', 
-                                    'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 19.5,
-                                    'Y' : 18.5,
-                                    'color' : 'yellow', 
-                                    'class' : 'bouy'})
-    elif obstacleSimulator.challenge == 1:
-        obstacleSimulator.obstacle_list.append({'X' : 6.5,
-                                    'Y' : -0.5,
-                                    'color' : 'yellow', 
-                                    'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 3.5,
-                                    'Y' : 2.5,
-                                    'color' : 'yellow', 
-                                    'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 21,
-                                    'Y' : 17,
-                                    'color' : 'blue', 
-                                    'class' : 'bouy'})
+    obstacleSimulator.obstacle_list.append({'X' : 8,
+                                'Y' : -5})
     while not rospy.is_shutdown() and obstacleSimulator.active:
         obstacleSimulator.simulate()
         obstacleSimulator.rviz_markers()
