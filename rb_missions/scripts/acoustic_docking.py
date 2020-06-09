@@ -40,6 +40,7 @@ class AcousticDocking:
         self.y2 = 0
         self.x_body_origin = 0
         self.y_body_origin = 0
+        self.correction_distance = 3
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
@@ -65,9 +66,9 @@ class AcousticDocking:
         self.x2 = dock.poses[1].position.x
         self.y2 = dock.poses[1].position.y
 
-    def calculate_distance_to_boat(self):
+    def calculate_distance_to_dock(self):
         '''
-        @name: calculate_distance_to_boat
+        @name: calculate_distance_to_dock
         @brief: Calculates the distance between the USV and the dock. 
         @param: --
         @return: --
@@ -77,9 +78,9 @@ class AcousticDocking:
 
         self.distance = math.pow(xc*xc + yc*yc, 0.5)
 
-    def center_point(self):
+    def dock(self):
         '''
-        @name: center_point
+        @name: dock
         @brief: Calculates the intersection point between the USV and the pinger
           location at the dock. Returns two waypoints as desired positions. The first
           waypoint is perpendicularly in front of the pinger to straighten the path.
@@ -112,7 +113,7 @@ class AcousticDocking:
         x_pinger = ((xl*yr-yl*xr)*(self.x_body_origin-x_beta)-(xl-xr)*(self.x_body_origin*y_beta-self.y_body_origin*x_beta)) / common_denominator
         y_pinger = ((xl*yr-yl*xr)*(self.y_body_origin-y_beta)-(yl-yr)*(self.x_body_origin*y_beta-self.y_body_origin*x_beta)) / common_denominator
 
-        x_aux, y_aux = self.aux_to_body(-2,0,alpha,x_pinger,y_pinger)
+        x_aux, y_aux = self.aux_to_body(-self.correction_distance,0,alpha,x_pinger,y_pinger)
 
         path_array = Float32MultiArray()
         path_array.layout.data_offset = 5
@@ -159,9 +160,9 @@ def main():
     acousticDocking = AcousticDocking()
     last_detection = []
     while not rospy.is_shutdown() and acousticDocking.activated:
-        acousticDocking.calculate_distance_to_boat()
+        acousticDocking.calculate_distance_to_dock()
         if (acousticDocking.distance >= 5):
-            acousticDocking.center_point()
+            acousticDocking.dock()
         else:
             acousticDocking.status_pub.publish(1)
 

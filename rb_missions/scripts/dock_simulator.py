@@ -3,7 +3,7 @@
 
 '''
 ----------------------------------------------------------
-    @file: obstacle_simulator.py
+    @file:dock_simulator.py
     @date: Wed Jun 3, 2020
 	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
@@ -144,12 +144,12 @@ class ObstacleSimulator:
             marker.type = marker.CUBE
             marker.action = marker.ADD
             marker.scale.x = self.radius
-            marker.scale.y = self.radius*2
+            marker.scale.y = self.radius*3
             marker.scale.z = self.radius
             marker.color.a = 1.0
-            marker.color.r = 1.0
-            marker.color.g = 1.0
-            marker.color.b = 0.0
+            marker.color.r = 0.9
+            marker.color.g = 0.7
+            marker.color.b = 0.5
             marker.pose.orientation.w = 1.0
             marker.pose.position.x = x + (self.radius/2.)
             marker.pose.position.y = y
