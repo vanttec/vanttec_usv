@@ -140,12 +140,11 @@ class CollisionAvoidance:
     def check_obstacles(self, input_list):
         self.obs_list = []
         for i in range(0,len(input_list),1):
-                Boat.id = i
-                Boat.x = input_list[i]['X']
+                Obstacle.x = input_list[i]['X']
                 # Negative y to compensate Lidar reference frame
-                Boat.y = -input_list[i]['Y']
-                Boat.radius = input_list[i]['radius']
-                self.obs_list.append(Boat)
+                Obsatacle.y = -input_list[i]['Y']
+                Obstacle.radius = input_list[i]['radius']
+                self.obs_list.append(Obstacle)
         i = 0
         j = 0 
         while i <= (len(self.obs_list)-1):
