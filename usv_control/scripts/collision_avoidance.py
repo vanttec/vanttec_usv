@@ -133,7 +133,7 @@ class LOS:
     def obstacles_callback(self, data):
         self.obstacles = []
         for i in range(data.len):
-            self.obstacles.append({'X' : data.obstacles[i].x, #+ self.offset,
+            self.obstacles.append({'X' : data.obstacles[i].x - self.offset,
                                    'Y' : data.obstacles[i].y,
                                    'radius' : data.obstacles[i].z})
 

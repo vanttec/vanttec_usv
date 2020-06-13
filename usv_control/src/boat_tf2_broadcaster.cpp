@@ -61,7 +61,7 @@ int main(int argc, char** argv){
   ros::init(argc, argv, "boat_tf2_broadcaster");
   TfAndPath tfAndPath;
 
-  while(true){
+  while(ros::ok()){
     ros::Rate(100).sleep();
     ros::spinOnce();
   }
