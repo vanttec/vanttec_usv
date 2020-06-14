@@ -24,7 +24,8 @@ import numpy as np
 import rospy
 from geometry_msgs.msg import Pose2D, Vector3
 from std_msgs.msg import Float32MultiArray, Float64
-import ca as 
+from usv_perception.msg import obstacles_list
+import ca
 
 # Class definition
 class LOS:
@@ -65,13 +66,20 @@ class LOS:
 
         self.waypoint_mode = 0 # 0 for NED, 1 for GPS, 2 for body
 
-        ca_obj = ca.CollisionAvoidance(self.exp_offset, self.safety_radius, self.u_max, self.u_min, self.exp_gain, self.chi_psi)
-        boat = ca.Boat(self.boat_radius)
+        self.obstacles = []
+        self.safety_radius = 0.0
+        self.boat_radius = 0.5
+        self.r_max = 1 #rad/sec
+        self.obstacle_mode = 1 # 0 for NED, 1 for Body
+        self.ca_obj = ca.CollisionAvoidance(self.exp_offset, self.safety_radius, self.u_max, self.u_min, self.exp_gain, self.chi_psi, self.r_max, self.obstacle_mode)
+        self.boat = ca.Boat(self.boat_radius)
          
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ned_callback)
         rospy.Subscriber("/vectornav/ins_2d/ins_ref", Pose2D, self.gpsref_callback)
+        rospy.Subscriber("/vectornav/ins_2d/local_vel", Vector3, self.local_vel_callback)
         rospy.Subscriber("/mission/waypoints", Float32MultiArray, self.waypoints_callback)
+        rospy.Subscriber("/usv_perception/lidar_detector/obstacles",  obstacles_list, self.obstacles_callback)
 
         # ROS Publishers
         self.d_speed_pub = rospy.Publisher("/guidance/desired_speed", Float64, queue_size=10)
@@ -83,6 +91,11 @@ class LOS:
         self.ned_x = gps.x
         self.ned_y = gps.y
         self.yaw = gps.theta
+
+    def local_vel_callback(self, upsilon):
+        self.u = upsilon.x
+        self.v = upsilon.y
+        self.r = upsilon.z
 
     def gpsref_callback(self, gps):
         self.reference_latitude = gps.x
@@ -97,6 +110,12 @@ class LOS:
         self.waypoint_mode = msg.data[-1] # 0 for NED, 1 for GPS, 2 for body
         self.waypoint_array = waypoints
 
+    def obstacles_callback(self, data):
+        self.obstacles = []
+        for i in range(data.len):
+            self.obstacles.append({'X' : data.obstacles[i].x , #- self.offset,
+                                   'Y' : data.obstacles[i].y ,
+                                   'radius' : data.obstacles[i].z})
     def los_manager(self, listvar):
         '''
         @name: los_manager
@@ -169,14 +188,15 @@ class LOS:
 
         self.vel = (self.u_max - self.u_min)*np.min([u_psi, u_r]) + self.u_min
 
-        boat.ned_x = self.ned_x
-        boat.ned_y = self.ned_y
-        Boat_yaw = self.yaw
-        boat.u = self.u
-        boat.v = self.v
-        boat.vel = self.vel
-        boat.bearing = self.bearing
-        ca_obj.avoid(ak, x1, y1, self.obstacles)
+        self.boat.ned_x = self.ned_x
+        self.boat.ned_y = self.ned_y
+        self.boat.yaw = self.yaw
+        self.boat.u = self.u
+        self.boat.v = self.v
+        self.boat.vel = self.vel
+        self.boat.bearing = self.bearing
+        self.bearing, self.vel = self.ca_obj.avoid(ak, x1, y1, self.obstacles, self.boat)
+
 
         self.desired(self.vel, self.bearing)
 
@@ -240,7 +260,7 @@ class LOS:
 def main():
 
     rospy.init_node('los', anonymous=False)
-    rate = rospy.Rate(100) # 100hz
+    rate = rospy.Rate(1) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []

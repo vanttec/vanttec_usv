@@ -38,35 +38,38 @@ class Obstacle:
         self.radius = 0
         self.teta = 0
         self.b = 0
-        self collision_flag = 0
+        self.collision_flag = 0
         self.past_collision_flag = 0
-        self.vel_list = 0
         self.total_radius = 0
 
 class Boat:
-    def __init__(self, boat_radius=0):
-      self.boat_radius = boat_radius
-      self.ned_x = 0
-      self.ned_y = 0
-      self.yaw = 0
-      self.u = 0
-      self.v = 0
-      self.vel = 0
-      self.bearing = 0
+    def __init__(self, radius=0):
+        self.radius = radius
+        self.ned_x = 0
+        self.ned_y = 0
+        self.yaw = 0
+        self.u = 0
+        self.v = 0
+        self.vel = 0
+        self.bearing = 0
 
 class CollisionAvoidance:
-    def __init__(self, exp_offset=0, safety_radius=0, u_max=0, u_min=0, exp_gain=0, chi_psi=0):
-      self.safety_radius = safety_radius
-      self.u_max = u_max
-      self.u_min = u_min
-      self.chi_psi = chi_psi
-      self.exp_gain = exp_gain
-      self.exp_offset = exp_offset
-      self.obs_list = []
-      self.u_psi = 0
-      self.u_r = 0
+    def __init__(self, exp_offset=0, safety_radius=0, u_max=0, u_min=0, exp_gain=0, chi_psi=0, r_max=0, obstacle_mode=0):
+        self.safety_radius = safety_radius
+        self.u_max = u_max
+        self.u_min = u_min
+        self.chi_psi = chi_psi
+        self.exp_gain = exp_gain
+        self.exp_offset = exp_offset
+        self.r_max = r_max
+        self.obstacle_mode = obstacle_mode
+        self.obs_list = []
+        self.vel_list = []
+        self.u_psi = 0
+        self.u_r = 0
+        self.boat = Boat()
 
-    def avoid(self, ak, x1, y1, input_list):
+    def avoid(self, ak, x1, y1, input_list, boat):
         '''
         @name: avoid
         @brief: Calculates if there is an impending collision.
@@ -76,31 +79,33 @@ class CollisionAvoidance:
         @return: --
         '''
         nearest_obs = []
+        self.vel_list = []
+        self.boat = boat
 
-        vel_nedx,vel_nedy = self.body_to_ned(Boat.u,Boat.v,0,0)
-        print("self.u: " + str(Boat.u))
-        #print("Boat.v: " + str(Boat.v))
+        vel_nedx,vel_nedy = self.body_to_ned(self.boat.u,self.boat.v,0,0)
+        print("self.u: " + str(self.boat.u))
+        #print("self.boat.v: " + str(self.boat.v))
         #print("vel_nedx: " + str(vel_nedx))
         #print("vel_nedy " + str(vel_nedy))
         #print("ak: ", str(ak))
         vel_ppx,vel_ppy =  self.ned_to_pp(ak,0,0,vel_nedx,vel_nedy)
-        #ppx,ppy = self.ned_to_pp(ak,x1,y1,Boat.ned_x,Boat.ned_y)
+        #ppx,ppy = self.ned_to_pp(ak,x1,y1,self.boat.ned_x,self.boat.ned_y)
 
         self.check_obstacles(input_list)
 
         for i in range(0,len(self.obs_list),1):
             sys.stdout.write(Color.CYAN)
-            print("obstacle"+str(self.obs_list[i].id))
+            print("obstacle"+str(i))
             sys.stdout.write(Color.RESET)
             print("ppy: " + str(0) + " obs: " + str(self.obs_list[i].y))
             print("ppx: " + str(0) + " obs: " + str(self.obs_list[i].x))
         
-            self.obs_list[i].total_radius = Boat.boat_radius + self.safety_radius + self.obs_list[i].radius
+            self.obs_list[i].total_radius = self.boat.radius + self.safety_radius + self.obs_list[i].radius
             collision, distance = self.get_collision(0, 0, vel_ppy, vel_ppx,i)
             #print("distance: " + str(distance)) 
             if collision:
                 #u_obs = np.amin(u_obstacle)
-                avoid_distance = self.calculate_avoid_distance(Boat.u, Boat.v, i)
+                avoid_distance = self.calculate_avoid_distance(self.boat.u, self.boat.v, i)
                 nearest_obs.append(avoid_distance - distance)
                 print("avoid_distance: " + str(avoid_distance)) 
                 #print("distance: " + str(distance)) 
@@ -114,11 +119,11 @@ class CollisionAvoidance:
             if np.max(nearest_obs)>0:
                 index = nearest_obs.index(np.max(nearest_obs))
                 if np.max(nearest_obs) > 0 and self.obs_list[index].b > 0:
-                    self.vel = np.min(self.vel_list)
+                    self.boat.vel = np.min(self.vel_list)
                     sys.stdout.write(Color.BOLD)
                     print('index: ' + str(index))
                     sys.stdout.write(Color.RESET)
-                    ppx,ppy = self.ned_to_pp(ak, x1, y1, Boat.ned_x, Boat.ned_y)
+                    ppx,ppy = self.ned_to_pp(ak, x1, y1, self.boat.ned_x, self.boat.ned_y)
                     obs_ppx, obs_ppy = self.get_obstacle( ak, x1, y1, index)
                     self.dodge(vel_ppx, vel_ppy, ppx, ppy, obs_ppx, obs_ppy, index)
                 else:
@@ -135,41 +140,47 @@ class CollisionAvoidance:
             sys.stdout.write(Color.BLUE)
             print ('no obstacles')
             sys.stdout.write(Color.RESET)
-        print('vel:' + str(Boat.vel))
+        print('vel:' + str(self.boat.vel))
+        
+        return self.boat.bearing, self.boat.vel
 
     def check_obstacles(self, input_list):
         self.obs_list = []
         for i in range(0,len(input_list),1):
-                Obstacle.x = input_list[i]['X']
-                # Negative y to compensate Lidar reference frame
-                Obsatacle.y = -input_list[i]['Y']
-                Obstacle.radius = input_list[i]['radius']
-                self.obs_list.append(Obstacle)
+            obstacle = Obstacle()
+            obstacle.x = input_list[i]['X']
+            # Negative y to compensate Lidar reference frame
+            obstacle.y = -input_list[i]['Y']
+            obstacle.radius = input_list[i]['radius']
+            self.obs_list.append(obstacle)
         i = 0
         j = 0 
         while i <= (len(self.obs_list)-1):
             j = i + 1
-              while j < len(self.obs_list):
+            while j < len(self.obs_list):
                 x = pow(self.obs_list[i].x-self.obs_list[j].x, 2)
                 y = pow(self.obs_list[i].y-self.obs_list[j].y, 2)
                 radius = self.obs_list[i].radius + self.obs_list[j].radius
                 distance = pow(x+y, 0.5) - radius
-               # print("distance between i" + str(i)+ " and " + str(j) + "j: "+ str(distance))
-                if distance <= (self.boat_radius + self.safety_radius)*2:
-                    x,y,radius = self.merge_obstacles(i)
-                    self.obs_list[i].x = x
-                    self.obs_list[i].y = y
-                    self.obs_list[i].radius = radius
-                    self.obs_list[j].x = x
-                    self.obs_list[j].y = y
-                    self.obs_list[j].radius = radius
-                    #print("len_obs: " + str(len(self.obs_list)))
-                    i = -1
-                    j = len(self.obs_list)
+                # print("distance between i" + str(i)+ " and " + str(j) + "j: "+ str(distance))
+                if distance > 0:
+                    if distance <= (self.boat.radius + self.safety_radius)*2:
+                        x,y,radius = self.merge_obstacles(i)
+                        self.obs_list[i].x = x
+                        self.obs_list[i].y = y
+                        self.obs_list[i].radius = radius
+                        self.obs_list[j].x = x
+                        self.obs_list[j].y = y
+                        self.obs_list[j].radius = radius
+                        #print("len_obs: " + str(len(self.obs_list)))
+                        i = -1
+                        j = len(self.obs_list)
+                    else:
+                        j = j + 1
                 else:
-                    j = j + 1
-                #print("i: " + str(i))
-                #print("j: " + str(j))
+                      j = j + 1
+                  #print("i: " + str(i))
+                  #print("j: " + str(j))
             i = i + 1
             #print("done j")
         #print(self.obs_list)
@@ -178,7 +189,7 @@ class CollisionAvoidance:
     def merge_obstacles(self, i):
         # calculate centroid
         x = (self.obs_list[i].x + self.obs_list[i+1].x)/2
-        y = (self.obs_list[i].y + self.obs_list[i]+1.y)/2
+        y = (self.obs_list[i].y + self.obs_list[i+1].y)/2
         #calculte radius
         x1_radius = self.obs_list[i].x + self.obs_list[i].radius - x
         x2_radius = self.obs_list[i+1].x + self.obs_list[i+1].radius - x
@@ -208,7 +219,7 @@ class CollisionAvoidance:
         if beta < -math.pi: 
             beta = beta + 2*math.pi
         beta = abs(beta)
-        if beta <= alpha or 1 == self.obs_list[i].past_collision_flag[i]:
+        if beta <= alpha or 1 == self.obs_list[i].past_collision_flag:
             #print('beta: ' + str(beta))
             #print('alpha: ' + str(alpha))
             #print("COLLISION")
@@ -236,7 +247,7 @@ class CollisionAvoidance:
         '''
         print("ppx: " + str(ppx) + " obs: " + str(self.obs_list[i].x))
         print("ppy: " + str(ppy) + " obs: " + str(self.obs_list[i].y))
-        total_radius = total_radius + .30
+        self.obs_list[i].total_radius = self.obs_list[i].total_radius + .30
         tangent_param = abs((distance - self.obs_list[i].total_radius) * (distance + self.obs_list[i].total_radius))
         print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
@@ -251,10 +262,10 @@ class CollisionAvoidance:
         print("alpha: " + str(alpha))
         hb = abs(ppy-self.obs_list[i].y)/math.cos(alpha)
         print("hb: " + str(hb))
-        self.obs_list[i].b = total_radius - hb
+        self.obs_list[i].b = self.obs_list[i].total_radius - hb
         #print("i: " + str(i))
-        print("b: " + str(self.b[i]))
-        self.obs_list[i].teta = math.atan2(self.b[i],tangent)
+        print("b: " + str(self.obs_list[i].b))
+        self.obs_list[i].teta = math.atan2(self.obs_list[i].b,tangent)
         print("teta: " + str(self.obs_list[i].teta))
         if alpha < 0.0:
             self.obs_list[i].collision_flag = 0
@@ -268,7 +279,7 @@ class CollisionAvoidance:
         print("u_r_obs: " + str( u_r_obs))
         print("u_psi_obs" + str(u_psi_obs))
         print("Vel chosen: " + str(np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs])))
-        self.obs_list[i].vel_list = (self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs]) + self.u_min
+        self.vel_list.append((self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs]) + self.u_min)
 
     def calculate_avoid_distance(self, vel_ppx, vel_ppy, i):
         '''
@@ -279,13 +290,13 @@ class CollisionAvoidance:
                 total_radius: total obstacle readius
         @return: avoid_distance: returns distance at wich it is necesary to leave path to avoid obstacle
         '''
-        time = (self.teta[i]/self.r_max) + 3
+        time = (self.obs_list[i].teta/self.r_max) + 3
         #print("time: " + str(time))
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
         #print("vel: " + str(eucledian_vel))
-        #print("Boat.vel: " + str(Boat.vel))
+        #print("self.boat.vel: " + str(self.boat.vel))
         #avoid_distance = time * eucledian_vel + total_radius +.3
-        avoid_distance = time * Boat.vel + self.obs_list[i].total_radius +.3 +.5
+        avoid_distance = time * self.boat.vel + self.obs_list[i].total_radius +.3 +.5
         return (avoid_distance)
 
     def get_obstacle(self, ak, x1, y1, i):
@@ -294,7 +305,7 @@ class CollisionAvoidance:
             obs_ppx,obs_ppy = self.ned_to_pp(ak,x1,y1,self.obs_list[i].x,self.obs_list[i].y)
         # Body obstacles
         if (self.obstacle_mode == 1):
-            obs_nedx, obs_nedy = self.body_to_ned(self.obs_list[i].x, self.obs_list[i].y, Boat.ned_x, Boat.ned_y)
+            obs_nedx, obs_nedy = self.body_to_ned(self.obs_list[i].x, self.obs_list[i].y, self.boat.ned_x, self.boat.ned_y)
             obs_ppx,obs_ppy = self.ned_to_pp(ak, x1, y1, obs_nedx, obs_nedy)
         return(obs_ppx, obs_ppy)
 
@@ -318,15 +329,15 @@ class CollisionAvoidance:
             #print("obs_y: " + str(obs_y))
             # obstacle in center, this is to avoid shaky behaivor
             if abs(self.obs_list[i].y) < 0.1:
-                angle_difference = Boat.bearing - Boat.yaw
+                angle_difference = self.boat.bearing - self.boat.yaw
                 #print("angle diference: " + str(angle_difference))
                 if 0.1 > abs(angle_difference) or 0 > (angle_difference):
-                    Boat.bearing = Boat.yaw - self.obs_list[i].teta
+                    self.boat.bearing = self.boat.yaw - self.obs_list[i].teta
                     sys.stdout.write(Color.RED)
                     print("center left -")
                     sys.stdout.write(Color.RESET)
                 else:
-                    Boat.bearing = Boat.yaw + self.obs_list[i].teta
+                    self.boat.bearing = self.boat.yaw + self.obs_list[i].teta
                     sys.stdout.write(Color.GREEN)
                     print("center right +")
                     sys.stdout.write(Color.RESET)
@@ -339,7 +350,7 @@ class CollisionAvoidance:
                 #print("unit_vely " + str(unit_vely))
                 #print("unit_posy: " + str(unit_posy))
                 if unit_vely <= unit_posy:
-                    Boat.bearing = Boat.yaw - self.obs_list[i].teta
+                    self.boat.bearing = self.boat.yaw - self.obs_list[i].teta
                     sys.stdout.write(Color.RED)
                     print("left -")
                     sys.stdout.write(Color.RESET)
@@ -348,7 +359,7 @@ class CollisionAvoidance:
                         self.avoid_angle = -math.pi/2
                     '''
                 else:
-                    Boat.bearing = Boat.yaw + self.obs_list[i].teta
+                    self.boat.bearing = self.boat.yaw + self.obs_list[i].teta
                     sys.stdout.write(Color.GREEN)
                     print("right +")
                     sys.stdout.write(Color.RESET)
@@ -377,8 +388,8 @@ class CollisionAvoidance:
                  ned_y2: target y coordinate in ned reference frame
         '''
         p = np.array([x2, y2])
-        J = np.array([[math.cos(Boat.yaw), -1*math.sin(Boat.yaw)],
-                      [math.sin(Boat.yaw), math.cos(Boat.yaw)]])
+        J = np.array([[math.cos(self.boat.yaw), -1*math.sin(self.boat.yaw)],
+                      [math.sin(self.boat.yaw), math.cos(self.boat.yaw)]])
         n = J.dot(p)
         ned_x2 = n[0] + offsetx
         ned_y2 = n[1] + offsety
