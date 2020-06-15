@@ -40,7 +40,7 @@ class AcousticDocking:
         self.y2 = 0
         self.x_body_origin = 0
         self.y_body_origin = 0
-        self.correction_distance = 3
+        self.correction_distance = 2
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
