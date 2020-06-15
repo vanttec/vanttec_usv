@@ -5,11 +5,11 @@
 ----------------------------------------------------------
     @file: los.py
     @date: Nov 2019
-    @date_modif: Sat Mar 21, 2020
+    @date_modif: June 10, 2020
     @author: Alejandro Gonzalez
     @e-mail: alexglzg97@gmail.com
-    @co-author: Sebastian Martinez Perez
-    @e-mail: sebas.martp@gmail.com
+    @co-author: Ivana Collado
+    @e-mail: ivanacollado@gmail.com
     @brief: Implementation of line-of-sight (LOS) algorithm with inputs on
       NED, geodetic and body reference frames
     Open source
@@ -71,7 +71,9 @@ class LOS:
         self.boat_radius = 0.5
         self.r_max = 1 #rad/sec
         self.obstacle_mode = 1 # 0 for NED, 1 for Body
-        self.ca_obj = ca.CollisionAvoidance(self.exp_offset, self.safety_radius, self.u_max, self.u_min, self.exp_gain, self.chi_psi, self.r_max, self.obstacle_mode)
+        self.ca_obj = ca.CollisionAvoidance(self.exp_offset, self.safety_radius, 
+            self.u_max, self.u_min, self.exp_gain, self.chi_psi, self.r_max, 
+            self.obstacle_mode)
         self.boat = ca.Boat(self.boat_radius)
          
         # ROS Subscribers
@@ -259,7 +261,7 @@ class LOS:
 def main():
 
     rospy.init_node('los', anonymous=False)
-    rate = rospy.Rate(1) # 100hz
+    rate = rospy.Rate(10) # 100hz
     los = LOS()
     los.last_waypoint_array = []
     aux_waypoint_array = []

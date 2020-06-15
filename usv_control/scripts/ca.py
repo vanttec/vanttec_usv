@@ -54,7 +54,8 @@ class Boat:
         self.bearing = 0
 
 class CollisionAvoidance:
-    def __init__(self, exp_offset=0, safety_radius=0, u_max=0, u_min=0, exp_gain=0, chi_psi=0, r_max=0, obstacle_mode=0):
+    def __init__(self, exp_offset=0, safety_radius=0, u_max=0, u_min=0, 
+        exp_gain=0, chi_psi=0, r_max=0, obstacle_mode=0):
         self.safety_radius = safety_radius
         self.u_max = u_max
         self.u_min = u_min
@@ -76,11 +77,15 @@ class CollisionAvoidance:
     def avoid(self, ak, x1, y1, input_list, boat):
         '''
         @name: avoid
-        @brief: Calculates if there is an impending collision.
+        @brief: If there is an impending collision, returns the velocity and 
+            angle to avoid.
         @param: x1: x coordinate of the path starting-waypoint
                 y1: y coordinate of the path starting-waypoint
                 ak: angle from NED reference frame to path
-        @return: --
+                input_list: incomming obstacle list
+                boat: boat class structure
+        @return: bearing: bearing to avoid obstacles
+                 velocity: velocity to avoid obstacles
         '''
         nearest_obs = []
         self.vel_list = []
@@ -148,6 +153,12 @@ class CollisionAvoidance:
         return self.boat.bearing, self.boat.vel
 
     def check_obstacles(self, input_list):
+        '''
+        @name: check_obstacles
+        @brief: Recieves incomming obstacles and checks if they must be merged.
+        @param: input_list: incomming obstacle list
+        @return: --
+        '''
         sys.stdout.write(Color.RED)
         print("Check Obstacles:")
         sys.stdout.write(Color.RESET)
@@ -203,6 +214,16 @@ class CollisionAvoidance:
         return self.obs_list
 
     def merge_obstacles(self, i, j, distance_centers):
+        '''
+        @name: merge_obstacles
+        @brief: Calculates new obstacle center and radius for merged obstacles.
+        @param: i: first obstacle index
+                j: second obstacle index
+                distance_centers: distance of obstacles centers
+        @return: x: merged obstacle center x
+                 y: merged obstacle center y 
+                 radius: merged obstacle radius
+        '''
         # calculate centroid
         x = (self.obs_list[i].x + self.obs_list[j].x)/2
         y = (self.obs_list[i].y + self.obs_list[j].y)/2
@@ -214,7 +235,18 @@ class CollisionAvoidance:
         sys.stdout.write(Color.RESET)
         return(x,y,radius)
     
-    def get_collision(self, ppx, ppy, vel_ppy, vel_ppx,i):
+    def get_collision(self, ppx, ppy, vel_ppy, vel_ppx, i):
+        '''
+        @name: get_collision
+        @brief: Calculates if there is an impending collision with an obstacle.
+        @param: ppx: boat parallel path position x
+                ppy: boat parallel path position y
+                vel_ppy: boat parallel path velocity y
+                vel_ppx: boat parallel path velocity x
+                i: obstacle index
+        @return: collision: 1 = collision 0 = non-collision
+                 distance: distance to obstacle
+        '''
         collision = 0
         #print("Total Radius: " + str(total_radius))
         x_pow = pow(self.obs_list[i].x - ppx,2) 
@@ -252,12 +284,10 @@ class CollisionAvoidance:
         '''
         @name: calculate_avoid_angle
         @brief: Calculates angle needed to avoid obstacle
-        @param: total_radius: total obstacle readius
-                ppy: boat y coordiante in path reference frame 
-                obs_ppy: osbtacle y coordiante in path reference frame
+        @param: ppy: boat y coordiante in path reference frame 
                 distance: distance from center of boat to center of obstacle 
                 ppx: boat x coordiante in path reference frame 
-                obs_ppx: osbtacle x coordiante in path reference frame
+                i: osbtacle index
         @return: --
         '''
         #print("ppx: " + str(ppx) + " obs: " + str(self.obs_list[i].x))
@@ -289,6 +319,13 @@ class CollisionAvoidance:
             sys.stdout.write(Color.RESET)
 
     def get_velocity(self, distance_free, i):
+        '''
+        @name: get_velocity
+        @brief: Calculates velocity needed to avoid obstacle
+        @param: distance_free: distance to collision  
+                i: osbtacle index
+        @return: --
+        '''
         u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*(1/5) - self.exp_offset)))
         u_psi_obs = 1/(1 + math.exp(self.exp_gain*(abs(self.obs_list[i].teta)*self.chi_psi -self.exp_offset)))
         #print("u_r_obs: " + str( u_r_obs))
@@ -299,11 +336,13 @@ class CollisionAvoidance:
     def calculate_avoid_distance(self, vel_ppx, vel_ppy, i):
         '''
         @name: calculate_avoid_distance
-        @brief: Calculates distance at wich it is necesary to leave path to avoid obstacle
+        @brief: Calculates distance at wich it is necesary to leave path to 
+            avoid obstacle
         @param: vel_ppx: boat velocity x  in path reference frame 
                 vel_ppy: boat velocity y  in path reference frame 
-                total_radius: total obstacle readius
-        @return: avoid_distance: returns distance at wich it is necesary to leave path to avoid obstacle
+                i: obstacle index
+        @return: avoid_distance: returns distance at wich it is necesary to 
+            leave path to avoid obstacle
         '''
         time = (self.obs_list[i].teta/self.r_max) + 3
         #print("time: " + str(time))
@@ -311,10 +350,20 @@ class CollisionAvoidance:
         #print("vel: " + str(eucledian_vel))
         #print("self.boat.vel: " + str(self.boat.vel))
         #avoid_distance = time * eucledian_vel + total_radius +.3
-        avoid_distance = time * self.boat.vel + self.obs_list[i].total_radius +.3 +.5
+        avoid_distance = time * self.boat.vel + self.obs_list[i].total_radius +.3 #+.5
         return (avoid_distance)
 
     def get_obstacle(self, ak, x1, y1, i):
+        '''
+        @name: get_obstacle
+        @brief: Gets obstacle coodinates in parallel path reference frame
+        @param: ak: coordinate frame angle difference
+                x1: starting x coordinate
+                y1: starting y coordinate
+                i: osbtacle index
+        @return: obs_ppx: obstalce x in parallel path reference frame
+                 obs_ppy: obstalce y in parallel path reference frame
+        '''
         # NED obstacles
         if (self.obstacle_mode == 0):
             obs_ppx,obs_ppy = self.ned_to_pp(ak,x1,y1,self.obs_list[i].x,self.obs_list[i].y)
@@ -334,6 +383,7 @@ class CollisionAvoidance:
                 ppy: boat y coordiante in path reference frame 
                 obs_ppx: osbtacle x coordiante in path reference frame
                 obs_ppy: osbtacle y coordiante in path reference frame
+                i: obstacle index
         @return: --
         '''
         eucledian_vel = pow((pow(vel_ppx,2) + pow(vel_ppy,2)),0.5)
@@ -414,9 +464,11 @@ class CollisionAvoidance:
         '''
         @name: ned_to_ned
         @brief: Coordinate transformation between NED and body reference frames.
-        @param: ak: 
-                ned_x1: origin of parallel path x coordinate in ned reference frame
-                ned_y1: origin of parallel path y coordinate in ned reference frame
+        @param: ak: angle difference from ned to parallel path 
+                ned_x1: origin of parallel path x coordinate in ned reference 
+                    frame
+                ned_y1: origin of parallel path y coordinate in ned reference 
+                    frame
                 ned_x2: target x coordinate in ned reference frame
                 ned_y2: target y coordinate in ned reference frame
         @return: pp_x2: target x coordinate in parallel path reference frame
