@@ -9,7 +9,7 @@
     @licence: Open source
 ----------------------------------------------------------
 '''
-# https://dbader.org/blog/records-structs-and-data-transfer-objects-in-python#:~:text=Structs%20are%20defined%20using%20a,handled%20purely%20inside%20Python%20code.
+
 import math
 import os
 import sys
@@ -17,8 +17,8 @@ import time
 
 import numpy as np
 import rospy
-from std_msgs.msg import Float64,  Float32MultiArray, String
 from geometry_msgs.msg import Pose2D, Vector3
+from std_msgs.msg import Float64,  Float32MultiArray, String
 from usv_perception.msg import obstacles_list
 
 # Class definition for easy debugging
@@ -37,7 +37,7 @@ class Obstacle:
         self.y = 0
         self.radius = 0
         self.teta = 0
-        self.b = 0
+        self.alpha = 0
         self.collision_flag = 0
         self.past_collision_flag = 0
         self.total_radius = 0
@@ -69,6 +69,10 @@ class CollisionAvoidance:
         self.u_r = 0
         self.boat = Boat()
 
+        for i in range(0,21,1):
+            obstacle = Obstacle()
+            self.obs_list.append(obstacle)
+
     def avoid(self, ak, x1, y1, input_list, boat):
         '''
         @name: avoid
@@ -83,7 +87,7 @@ class CollisionAvoidance:
         self.boat = boat
 
         vel_nedx,vel_nedy = self.body_to_ned(self.boat.u,self.boat.v,0,0)
-        print("self.u: " + str(self.boat.u))
+        #print("self.u: " + str(self.boat.u))
         #print("self.boat.v: " + str(self.boat.v))
         #print("vel_nedx: " + str(vel_nedx))
         #print("vel_nedy " + str(vel_nedy))
@@ -97,8 +101,9 @@ class CollisionAvoidance:
             sys.stdout.write(Color.CYAN)
             print("obstacle"+str(i))
             sys.stdout.write(Color.RESET)
-            print("ppy: " + str(0) + " obs: " + str(self.obs_list[i].y))
-            print("ppx: " + str(0) + " obs: " + str(self.obs_list[i].x))
+            print("obsx: " + str(self.obs_list[i].x))
+            print("obsy: " + str(self.obs_list[i].y))
+            print("obsradius: " + str(self.obs_list[i].radius))
         
             self.obs_list[i].total_radius = self.boat.radius + self.safety_radius + self.obs_list[i].radius
             collision, distance = self.get_collision(0, 0, vel_ppy, vel_ppx,i)
@@ -107,18 +112,17 @@ class CollisionAvoidance:
                 #u_obs = np.amin(u_obstacle)
                 avoid_distance = self.calculate_avoid_distance(self.boat.u, self.boat.v, i)
                 nearest_obs.append(avoid_distance - distance)
-                print("avoid_distance: " + str(avoid_distance)) 
+                #print("avoid_distance: " + str(avoid_distance)) 
                 #print("distance: " + str(distance)) 
             else:
                 nearest_obs.append(0)
                 #self.vel_list.append(self.vel)
-                self.obs_list[i].b = 0
         
         if len(nearest_obs) > 0:
             print('nearest_obs max: ' + str(np.max(nearest_obs)))
             if np.max(nearest_obs)>0:
                 index = nearest_obs.index(np.max(nearest_obs))
-                if np.max(nearest_obs) > 0 and self.obs_list[index].b > 0:
+                if np.max(nearest_obs) > 0 and self.obs_list[index].alpha > 0:
                     self.boat.vel = np.min(self.vel_list)
                     sys.stdout.write(Color.BOLD)
                     print('index: ' + str(index))
@@ -127,7 +131,7 @@ class CollisionAvoidance:
                     obs_ppx, obs_ppy = self.get_obstacle( ak, x1, y1, index)
                     self.dodge(vel_ppx, vel_ppy, ppx, ppy, obs_ppx, obs_ppy, index)
                 else:
-                    rospy.loginfo("nearest_obs: " + str(nearest_obs[index])) 
+                    #rospy.loginfo("nearest_obs: " + str(nearest_obs[index])) 
                     sys.stdout.write(Color.BLUE)
                     print ('free')
                     sys.stdout.write(Color.RESET)
@@ -135,7 +139,6 @@ class CollisionAvoidance:
                 #print("yaw: " + str(self.yaw))
                 #print("bearing: " + str(self.bearing))
                 #sys.stdout.write(Color.RESET)
-                self.obs_list[index].past_collision_flag = self.obs_list[index].collision_flag
         else:
             sys.stdout.write(Color.BLUE)
             print ('no obstacles')
@@ -145,58 +148,70 @@ class CollisionAvoidance:
         return self.boat.bearing, self.boat.vel
 
     def check_obstacles(self, input_list):
-        self.obs_list = []
+        sys.stdout.write(Color.RED)
+        print("Check Obstacles:")
+        sys.stdout.write(Color.RESET)
         for i in range(0,len(input_list),1):
-            obstacle = Obstacle()
-            obstacle.x = input_list[i]['X']
+            #self.obstacle = Obstacle()
+            self.obs_list[i].x = input_list[i]['X']
             # Negative y to compensate Lidar reference frame
-            obstacle.y = -input_list[i]['Y']
-            obstacle.radius = input_list[i]['radius']
-            self.obs_list.append(obstacle)
+            self.obs_list[i].y = -input_list[i]['Y']
+            self.obs_list[i].radius = input_list[i]['radius']
+            print("self.obs_list[" + str(i)+ "].x: " + str(self.obs_list[i].x))
+            print("self.obs_list[i].y: " + str(self.obs_list[i].y))
+            print("self.obs_list[i].radius: " + str(self.obs_list[i].radius))
+            print("self.obs_list[i].collision_flag: " + str(self.obs_list[i].collision_flag))
         i = 0
         j = 0 
-        while i <= (len(self.obs_list)-1):
+        while i < (len(self.obs_list)-1):
             j = i + 1
             while j < len(self.obs_list):
                 x = pow(self.obs_list[i].x-self.obs_list[j].x, 2)
                 y = pow(self.obs_list[i].y-self.obs_list[j].y, 2)
                 radius = self.obs_list[i].radius + self.obs_list[j].radius
-                distance = pow(x+y, 0.5) - radius
-                # print("distance between i" + str(i)+ " and " + str(j) + "j: "+ str(distance))
-                if distance > 0:
-                    if distance <= (self.boat.radius + self.safety_radius)*2:
-                        x,y,radius = self.merge_obstacles(i)
-                        self.obs_list[i].x = x
-                        self.obs_list[i].y = y
-                        self.obs_list[i].radius = radius
-                        self.obs_list[j].x = x
-                        self.obs_list[j].y = y
-                        self.obs_list[j].radius = radius
-                        #print("len_obs: " + str(len(self.obs_list)))
-                        i = -1
-                        j = len(self.obs_list)
-                    else:
-                        j = j + 1
+                distance_centers = pow(x+y, 0.5)
+                distance = distance_centers - radius
+                #print("distance between i:" + str(i)+ " and j:" + str(j) + " = "+ str(distance))
+                #print("boat distance: " + str((self.boat.radius + self.safety_radius)*2))
+                if distance < 0:
+                  j = j + 1
+                elif distance <= (self.boat.radius + self.safety_radius)*2:
+                    x,y,radius = self.merge_obstacles(i,j, distance_centers)
+                    print("self.obs_list[i].y: " + str(self.obs_list[i].y))
+                    print("self.obs_list[j].y: " + str(self.obs_list[j].y))
+                    self.obs_list[i].x = x
+                    self.obs_list[i].y = y
+                    self.obs_list[i].radius = radius
+                    print("self.obs_list[ij].y: " + str(self.obs_list[i].y))
+                    print("self.obs_list[ij].radius: " + str(self.obs_list[i].radius))
+                    self.obs_list[j].x = x
+                    #print("self.obs_list[i].x: " + str(self.obs_list[j].x))
+                    self.obs_list[j].y = y
+                    self.obs_list[j].radius = radius
+                    i = 0
                 else:
-                      j = j + 1
-                  #print("i: " + str(i))
-                  #print("j: " + str(j))
+                    j = j + 1
+
+                sys.stdout.write(Color.RED)
+                #print("Obstacle the same")
+                sys.stdout.write(Color.RESET)
+                #print("i: " + str(i))
+                #print("j: " + str(j))
             i = i + 1
             #print("done j")
         #print(self.obs_list)
         return self.obs_list
 
-    def merge_obstacles(self, i):
+    def merge_obstacles(self, i, j, distance_centers):
         # calculate centroid
-        x = (self.obs_list[i].x + self.obs_list[i+1].x)/2
-        y = (self.obs_list[i].y + self.obs_list[i+1].y)/2
+        x = (self.obs_list[i].x + self.obs_list[j].x)/2
+        y = (self.obs_list[i].y + self.obs_list[j].y)/2
         #calculte radius
-        x1_radius = self.obs_list[i].x + self.obs_list[i].radius - x
-        x2_radius = self.obs_list[i+1].x + self.obs_list[i+1].radius - x
-        y1_radius = self.obs_list[i].y + self.obs_list[i].radius - y
-        y2_radius = self.obs_list[i+1].y + self.obs_list[i+1].radius - y
-        radius = max(x1_radius, x2_radius, y1_radius, y2_radius)
+        max_radius = max(self.obs_list[i].radius, self.obs_list[i+1].radius)
+        radius = distance_centers/2 + max_radius
+        sys.stdout.write(Color.RED)
         print("Merged obstacle:" + str(radius))
+        sys.stdout.write(Color.RESET)
         return(x,y,radius)
     
     def get_collision(self, ppx, ppy, vel_ppy, vel_ppx,i):
@@ -216,19 +231,19 @@ class CollisionAvoidance:
         beta = math.atan2(vel_ppy,vel_ppx)-math.atan2(self.obs_list[i].y-ppy,self.obs_list[i].x-ppx)
         if beta > math.pi: 
             beta = beta - 2*math.pi
-        if beta < -math.pi: 
+        if beta < - math.pi: 
             beta = beta + 2*math.pi
         beta = abs(beta)
-        if beta <= alpha or 1 == self.obs_list[i].past_collision_flag:
+        if beta <= alpha or 1 == self.obs_list[i].collision_flag:
             #print('beta: ' + str(beta))
             #print('alpha: ' + str(alpha))
-            #print("COLLISION")
+            print("COLLISION")
             collision = 1
             self.obs_list[i].collision_flag = 1
             self.calculate_avoid_angle(ppy, distance, ppx, i)
             #self.get_velocity(distance_free, i)
         else:
-            self.obs_list[i].collision_flag = 0
+            #self.obs_list[i].collision_flag = 0
             self.obs_list[i].tetha = 0
         self.get_velocity(distance_free, i)
         return collision, distance
@@ -245,29 +260,29 @@ class CollisionAvoidance:
                 obs_ppx: osbtacle x coordiante in path reference frame
         @return: --
         '''
-        print("ppx: " + str(ppx) + " obs: " + str(self.obs_list[i].x))
-        print("ppy: " + str(ppy) + " obs: " + str(self.obs_list[i].y))
+        #print("ppx: " + str(ppx) + " obs: " + str(self.obs_list[i].x))
+        #print("ppy: " + str(ppy) + " obs: " + str(self.obs_list[i].y))
         self.obs_list[i].total_radius = self.obs_list[i].total_radius + .30
         tangent_param = abs((distance - self.obs_list[i].total_radius) * (distance + self.obs_list[i].total_radius))
-        print("distance: " + str(distance))
+        #print("distance: " + str(distance))
         tangent = pow(tangent_param, 0.5)
-        print("tangent: " + str(tangent))
+        #print("tangent: " + str(tangent))
         teta = math.atan2(self.obs_list[i].total_radius,tangent)
-        print("teta: " + str(teta))
+        #print("teta: " + str(teta))
         gamma1 = math.asin(abs(ppy-self.obs_list[i].y)/distance)
-        print("gamma1: " + str(gamma1))
+        #print("gamma1: " + str(gamma1))
         gamma = ((math.pi/2) - teta) + gamma1
-        print("gamma: " + str(gamma))
-        alpha = (math.pi/2) - gamma
-        print("alpha: " + str(alpha))
-        hb = abs(ppy-self.obs_list[i].y)/math.cos(alpha)
-        print("hb: " + str(hb))
-        self.obs_list[i].b = self.obs_list[i].total_radius - hb
+        #print("gamma: " + str(gamma))
+        self.obs_list[i].alpha = (math.pi/2) - gamma
+        print("alpha: " + str(self.obs_list[i].alpha))
+        hb = abs(ppy-self.obs_list[i].y)/math.cos(self.obs_list[i].alpha)
+        #print("hb: " + str(hb))
+        b = self.obs_list[i].total_radius - hb
         #print("i: " + str(i))
-        print("b: " + str(self.obs_list[i].b))
-        self.obs_list[i].teta = math.atan2(self.obs_list[i].b,tangent)
+        print("b: " + str(b))
+        self.obs_list[i].teta = math.atan2(b,tangent)
         print("teta: " + str(self.obs_list[i].teta))
-        if alpha < 0.0:
+        if self.obs_list[i].alpha < 0.0:
             self.obs_list[i].collision_flag = 0
             sys.stdout.write(Color.BOLD)
             print("Collision flag off")
@@ -276,9 +291,9 @@ class CollisionAvoidance:
     def get_velocity(self, distance_free, i):
         u_r_obs = 1/(1 + math.exp(-self.exp_gain*(distance_free*(1/5) - self.exp_offset)))
         u_psi_obs = 1/(1 + math.exp(self.exp_gain*(abs(self.obs_list[i].teta)*self.chi_psi -self.exp_offset)))
-        print("u_r_obs: " + str( u_r_obs))
-        print("u_psi_obs" + str(u_psi_obs))
-        print("Vel chosen: " + str(np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs])))
+        #print("u_r_obs: " + str( u_r_obs))
+        #print("u_psi_obs" + str(u_psi_obs))
+        #print("Vel chosen: " + str(np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs])))
         self.vel_list.append((self.u_max - self.u_min)*np.min([self.u_psi, self.u_r, u_r_obs, u_psi_obs]) + self.u_min)
 
     def calculate_avoid_distance(self, vel_ppx, vel_ppy, i):

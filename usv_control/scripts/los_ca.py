@@ -115,7 +115,7 @@ class LOS:
         for i in range(data.len):
             self.obstacles.append({'X' : data.obstacles[i].x , #- self.offset,
                                    'Y' : data.obstacles[i].y ,
-                                   'radius' : data.obstacles[i].z})
+                                 'radius' : data.obstacles[i].z})
     def los_manager(self, listvar):
         '''
         @name: los_manager
@@ -196,7 +196,6 @@ class LOS:
         self.boat.vel = self.vel
         self.boat.bearing = self.bearing
         self.bearing, self.vel = self.ca_obj.avoid(ak, x1, y1, self.obstacles, self.boat)
-
 
         self.desired(self.vel, self.bearing)
 
