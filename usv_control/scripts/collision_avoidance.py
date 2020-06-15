@@ -133,8 +133,8 @@ class LOS:
     def obstacles_callback(self, data):
         self.obstacles = []
         for i in range(data.len):
-            self.obstacles.append({'X' : data.obstacles[i].x - self.offset,
-                                   'Y' : data.obstacles[i].y,
+            self.obstacles.append({'X' : data.obstacles[i].x , #- self.offset,
+                                   'Y' : data.obstacles[i].y ,
                                    'radius' : data.obstacles[i].z})
 
     def los_manager(self, listvar):
@@ -215,7 +215,6 @@ class LOS:
             self.bearing = (self.bearing/abs(self.bearing))*(abs(self.bearing) - 2*math.pi)
 
         self.desired(self.vel, self.bearing)
-
 
     def avoid(self, ak, x1, y1):
         '''
@@ -376,7 +375,7 @@ class LOS:
     def get_obstacle(self, ak, x1, y1, obsx,obsy):
         # NED obstacles
         if (self.obstacle_mode == 0):
-            obs_ppx,obs_ppy =  self.ned_to_pp(ak,x1,y1,obsx,obsy)
+            obs_ppx,obs_ppy = self.ned_to_pp(ak,x1,y1,obsx,obsy)
         # Body obstacles
         if (self.obstacle_mode == 1):
             obs_nedx, obs_nedy = self.body_to_ned(obsx,obsy,self.ned_x,self.ned_y)
@@ -482,7 +481,7 @@ class LOS:
         #print("vel: " + str(eucledian_vel))
         #print("self.vel: " + str(self.vel))
         #avoid_distance = time * eucledian_vel + total_radius +.3
-        avoid_distance = time * self.vel + total_radius +.3
+        avoid_distance = time * self.vel + total_radius +.3 +.5
         return (avoid_distance)
     
     def dodge(self, vel_ppx, vel_ppy , ppx, ppy, obs_ppx, obs_ppy, obs_radius, i, obs_y):
