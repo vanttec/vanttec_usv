@@ -5,10 +5,11 @@
 ----------------------------------------------------------
     @file: obstacle_simulator.py
     @date: Sun Mar 22, 2020
+    @modified: Mon Jun 8, 2020
 	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
 	@brief: Obstacle simulation for mission testing.
-	@version: 1.0
+	@version: 1.1
     Open source
 ----------------------------------------------------------
 '''
@@ -35,10 +36,11 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 0 #0 for AutonomousNavigation, 1 for SpeedChallenge
+        self.challenge = 2 #0 for AutonomousNavigation, 1 for SpeedChallenge, 2 for ObstacleChannel
         self.obstacle_list = []
 
         self.max_visible_radius = 10
+        self.sensor_to_usv_offset = 0.55
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
 
@@ -69,7 +71,7 @@ class ObstacleSimulator:
                 x, y = self.ned_to_body(x, y)
                 if x > 1:
                     obstacle = obj_detected()
-                    obstacle.X = x
+                    obstacle.X = x - self.sensor_to_usv_offset
                     obstacle.Y = -y
                     obstacle.color = self.obstacle_list[i]['color']
                     obstacle.clase = self.obstacle_list[i]['class']
@@ -134,22 +136,48 @@ class ObstacleSimulator:
         for i in range(len(self.obstacle_list)):
             x = self.obstacle_list[i]['X']
             y = -self.obstacle_list[i]['Y']
-            radius = 0.21
+            if self.challenge == 0:
+                diameter = 0.254
+            if self.challenge == 1:
+                diameter = 0.39
+            if self.challenge == 2:
+                diameter = 0.21
             marker = Marker()
             marker.header.frame_id = "/world"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = radius
-            marker.scale.y = radius
-            marker.scale.z = radius
-            marker.color.a = 1.0
-            marker.color.r = 1.0
-            marker.color.g = 1.0
-            marker.color.b = 0.0
+            if self.obstacle_list[i]['color'] == 'yellow':
+                marker.color.a = 1.0
+                marker.color.r = 1.0
+                marker.color.g = 1.0
+                marker.color.b = 0.0
+                diameter = 0.39
+            elif self.obstacle_list[i]['color'] == 'red':
+                marker.color.a = 1.0
+                marker.color.r = 1.0
+                marker.color.g = 0.0
+                marker.color.b = 0.0
+            elif self.obstacle_list[i]['color'] == 'green':
+                marker.color.a = 1.0
+                marker.color.r = 0.0
+                marker.color.g = 1.0
+                marker.color.b = 0.0
+            elif self.obstacle_list[i]['color'] == 'blue':
+                marker.color.a = 1.0
+                marker.color.r = 0.0
+                marker.color.g = 0.0
+                marker.color.b = 1.0
+            marker.scale.x = diameter
+            marker.scale.y = diameter
+            marker.scale.z = diameter
             marker.pose.orientation.w = 1.0
             marker.pose.position.x = x
             marker.pose.position.y = y
             marker.pose.position.z = 0
+            if self.challenge == 0:
+                marker.type = marker.CYLINDER
+                marker.scale.z = 1
+                marker.pose.position.z = 0.5
             marker.id = i
             marker_array.markers.append(marker)
         # Publish the MarkerArray
@@ -160,34 +188,116 @@ def main():
     rate = rospy.Rate(20) # 100hz
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
-        obstacleSimulator.obstacle_list.append({'X' : 5.5,
-                                    'Y' : -1.5,
-                                    'color' : 'yellow', 
+        obstacleSimulator.obstacle_list.append({'X' : 6.5,
+                                    'Y' : -0.5,
+                                    'color' : 'red', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 2.5,
-                                    'Y' : 1.5,
-                                    'color' : 'yellow', 
+        obstacleSimulator.obstacle_list.append({'X' : 3.5,
+                                    'Y' : 2.5,
+                                    'color' : 'green', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 21.5,
-                                    'Y' : 14.5,
-                                    'color' : 'yellow', 
+        obstacleSimulator.obstacle_list.append({'X' : 22.5,
+                                    'Y' : 15.5,
+                                    'color' : 'red', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 18.5,
-                                    'Y' : 17.5,
-                                    'color' : 'yellow', 
+        obstacleSimulator.obstacle_list.append({'X' : 19.5,
+                                    'Y' : 18.5,
+                                    'color' : 'green', 
                                     'class' : 'bouy'})
     elif obstacleSimulator.challenge == 1:
-        obstacleSimulator.obstacle_list.append({'X' : 5.5,
-                                    'Y' : -1.5,
-                                    'color' : 'yellow', 
+        obstacleSimulator.obstacle_list.append({'X' : 6.5,
+                                    'Y' : -0.5,
+                                    'color' : 'red', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 2.5,
-                                    'Y' : 1.5,
-                                    'color' : 'yellow', 
+        obstacleSimulator.obstacle_list.append({'X' : 3.5,
+                                    'Y' : 2.5,
+                                    'color' : 'green', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 20,
-                                    'Y' : 16,
+        obstacleSimulator.obstacle_list.append({'X' : 21,
+                                    'Y' : 17,
                                     'color' : 'blue', 
+                                    'class' : 'bouy'})
+    elif obstacleSimulator.challenge == 2:
+        obstacleSimulator.max_visible_radius = 50
+        obstacleSimulator.obstacle_list.append({'X' : 7,
+                                    'Y' : 2,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 7,
+                                    'Y' : 5,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' :14,
+                                    'Y' : 4.7,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 14,
+                                    'Y' : 7.7,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 16,
+                                    'Y' : 5.5,
+                                    'color' : 'yellow', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 21,
+                                    'Y' : 5.2,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' :21,
+                                    'Y' : 8.2,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 28,
+                                    'Y' : 4.3,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 28,
+                                    'Y' : 7.3,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 35,
+                                    'Y' : 1,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' :35,
+                                    'Y' : 4,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 40,
+                                    'Y' : 3,
+                                    'color' : 'yellow', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 42,
+                                    'Y' : 0.8,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 42,
+                                    'Y' : 3.8,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' :49,
+                                    'Y' : 1.5,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 49,
+                                    'Y' : 4.5,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 56,
+                                    'Y' : 3,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 56,
+                                    'Y' : 6,
+                                    'color' : 'red', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' :63,
+                                    'Y' : 5,
+                                    'color' : 'green', 
+                                    'class' : 'bouy'})
+        obstacleSimulator.obstacle_list.append({'X' : 63,
+                                    'Y' : 8,
+                                    'color' : 'red', 
                                     'class' : 'bouy'})
     while not rospy.is_shutdown() and obstacleSimulator.active:
         obstacleSimulator.simulate()
