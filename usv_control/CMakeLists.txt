@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(usv_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
+#add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -16,7 +15,7 @@ sensor_msgs
 tf2
 tf2_ros
 tf2_geometry_msgs
-
+usv_perception
 )
 
 ## System dependencies are found with CMake's conventions
@@ -109,9 +108,9 @@ tf2_geometry_msgs
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES usv_control
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+	#INCLUDE_DIRS include
+  #LIBRARIES usv_control
+  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
 
@@ -214,8 +213,17 @@ include_directories(
 
 
 add_executable(asmc src/asmc.cpp)
-add_executable(dynamic_model_simulate src/dynamic_model_simulate.cpp)
-add_executable(boat_tf2_broadcaster src/boat_tf2_broadcaster.cpp)
 target_link_libraries(asmc ${catkin_LIBRARIES})
+
+add_executable(dynamic_model_simulate src/dynamic_model_simulate.cpp)
 target_link_libraries(dynamic_model_simulate ${catkin_LIBRARIES})
+
+add_executable(boat_tf2_broadcaster src/boat_tf2_broadcaster.cpp)
 target_link_libraries(boat_tf2_broadcaster ${catkin_LIBRARIES})
+
+add_executable(velocity_obstacle src/velocity_obstacle.cpp)
+target_link_libraries(velocity_obstacle 
+	${catkin_LIBRARIES}
+	${usv_perception_LIBRARIES}
+)
+add_dependencies(velocity_obstacle ${catkin_EXPORTED_TARGETS})
