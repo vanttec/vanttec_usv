@@ -140,8 +140,8 @@ int main(int argc, char** argv){
   initialize(vo_node);
   while (ros::ok()){
     collision_cone();
-    //ros::spinOnce();
-    //loop_rate.sleep();
+    ros::spinOnce();
+    loop_rate.sleep();
   }
   return 0;
 };
@@ -158,7 +158,7 @@ void initialize(ros::NodeHandle &vo_node){
   desired_heading_pub_ = vo_node.advertise<std_msgs::Float64>(
     topic_desired_heading_pub_, queue_size_);
   // Success
-  ROS_INFO("Velocity broadcaster node is Ready!");
+  ROS_INFO("Velocity obstacle node is Ready!");
 }
 
 void on_speed_msg(const geometry_msgs::Vector3::ConstPtr &msg){
@@ -183,7 +183,7 @@ void on_waypoints_msg(const std_msgs::Float32MultiArray::ConstPtr &msg){
 
 void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg){
   obstacle_list_.empty();
-  for (int i = 0; i > msg->len; ++i){
+  for (int i = 0; i < msg->len; ++i){
     Obstacle obstacle;
     obstacle.x = msg->obstacles[i].x;
     obstacle.y = msg->obstacles[i].y;
@@ -193,5 +193,23 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg){
 }
 
 void collision_cone(){
-  
+  if(0 < obstacle_list_.size()){
+    //Find tangent points
+    // Boat circle : (y-a)^2 + (x-b)^2 = ro^2 a=0 b=0 ro=distance to obstacle
+    // Obstacle circle: (y-c)^2 + (x-d)^2 = r1^2 c=obstacleY d=obstacleX r1=obstacle radius
+    int i = 0;
+    double a = 0.0;
+    double b = 0.0;
+    double r0 = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2));
+    double c = obstacle_list_[i].y;
+    double d = obstacle_list_[i].x;
+    double r1 = obstacle_list_[i].r;
+    double D = r0;
+    double delta = (1/4)*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
+    double x1 = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
+    double x2 = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
+    double y1 = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
+    double y2 = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
+    ROS_INFO("Intersection1:%f,%f intersection2:%f,%f", x1, y1, x2, y2);
+  }
 }
