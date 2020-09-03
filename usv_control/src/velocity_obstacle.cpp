@@ -26,6 +26,11 @@
 // NAMESPACES ------------------------------------------------------------------
 
 // STRUCTS ---------------------------------------------------------------------
+struct Coord{ 
+  // Position
+  double x;
+  double y;
+};
 struct Obstacle{
   // Obstacle position in x
   double x;
@@ -34,16 +39,18 @@ struct Obstacle{
   // Obstacle radius
   double r;
   // Right tangent angle
-  double tan_r;
+  Coord tan_r;
   // Left tangent angle
-  double tan_l;
+  Coord tan_l;
 };
-
 // GLOBAL PARAMETERS -----------------------------------------------------------
 /**
   * Input Parameters
   * */
-double robot_radius_ = 0.5; //m
+double robot_radius_ = 0.5; //meters
+double time_horizon_ = 1.0; //seconds
+double max_long_acceleration_ = 0.3; //m/s^3
+double max_yaw_acceleration_ = 0.1; //rad/s^2
 /**
   * Size of buffer queue 
   * */
@@ -72,6 +79,16 @@ double speed_yaw_ = 0.0;
 double pos_x_ = 0.0;
 double pos_y_ = 0.0;
 double pos_theta_ = 0.0;
+/**
+  * Waypoint list vector
+  * */
+Coord tan_r_;
+Coord tan_l_;
+/**
+  * 4 points of reachable velocities cuadrilateral. 
+  * */
+std::vector<Coord> RV;
+
 /**
   * Waypoint list vector
   * */
@@ -131,6 +148,18 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &obstacles)
   * @return void.
   * */
 void collision_cone();
+/**
+  * Calculate rechable velocities. 
+  * @return void.
+  * */
+void reachable_velocities();
+/**
+  * Calculate intersect of two lines taking 4 points as input. 
+  * @return 4 Coord points. Point 1 and point 2 belong to line 1. 
+  *         Point 3 and point 4 belong to line 2.  
+  * */
+Coord intersect_two_lines(const Coord& p1, const Coord& p2, const Coord& p3, 
+                          const Coord& p4);
 
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
@@ -150,8 +179,10 @@ void initialize(ros::NodeHandle &vo_node){
   // Subscribers
   vel_sub_ = vo_node.subscribe(topic_vel_sub_, queue_size_, &on_speed_msg);
   pose_sub_ = vo_node.subscribe(topic_pose_sub_, queue_size_, &on_pose_msg);
-  waypoints_sub_ = vo_node.subscribe(topic_waypoints_sub_, queue_size_, &on_waypoints_msg);
-  obstacles_sub_ = vo_node.subscribe(topic_obstacles_sub_, queue_size_, &on_obstacles_msg);
+  waypoints_sub_ = vo_node.subscribe(topic_waypoints_sub_, queue_size_, 
+                                    &on_waypoints_msg);
+  obstacles_sub_ = vo_node.subscribe(topic_obstacles_sub_, queue_size_, 
+                                    &on_obstacles_msg);
   // Publishers
   desired_vel_pub_ = vo_node.advertise<std_msgs::Float64>(
     topic_desired_vel_pub_, queue_size_);
@@ -197,6 +228,7 @@ void collision_cone(){
     //Find tangent points
     // Boat circle : (y-a)^2 + (x-b)^2 = ro^2 a=0 b=0 ro=distance to obstacle
     // Obstacle circle: (y-c)^2 + (x-d)^2 = r1^2 c=obstacleY d=obstacleX r1=obstacle radius
+    // D = distance of circle centers
     int i = 0;
     double a = 0.0;
     double b = 0.0;
@@ -206,10 +238,65 @@ void collision_cone(){
     double r1 = obstacle_list_[i].r;
     double D = r0;
     double delta = (1/4)*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
-    double x1 = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
-    double x2 = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
-    double y1 = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
-    double y2 = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
-    ROS_INFO("Intersection1:%f,%f intersection2:%f,%f", x1, y1, x2, y2);
+    obstacle_list_[i].tan_r.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
+    obstacle_list_[i].tan_l.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
+    obstacle_list_[i].tan_r.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
+    obstacle_list_[i].tan_l.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
+    ROS_INFO("Intersection1:%f,%f intersection2:%f,%f", obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
   }
+}
+
+void reachable_velocities(){
+  // No se considera la velocidad lateral 
+  double speed_long = speed_x_; //sqrt(pow(speed_x_,2)+pow(speed_y_,2));
+  double v_max = speed_long + max_long_acceleration_*time_horizon_;
+  double v_min = speed_long - max_long_acceleration_*time_horizon_;
+  double w_max = speed_yaw_ + max_yaw_acceleration_*time_horizon_;
+  double w_min = speed_yaw_ - max_yaw_acceleration_*time_horizon_;
+  Coord p0 = {v_max, w_min};
+  RV.push_back(p0);
+  Coord p1 = {v_max, w_max};
+  RV.push_back(p1);
+  Coord p2 = {v_min, w_max};
+  RV.push_back(p2);
+  Coord p3 = {v_min, w_min};
+  RV.push_back(p3);
+}
+
+void reachable_avoidance_velocities(){
+  int i = 0;
+  //bottom line intersect
+  //first line
+  Coord p1 = {0,0};
+  Coord p2 = obstacle_list_[i].tan_r;
+  //second line
+  Coord p3 = RV[2];
+  Coord p4 = RV[3];
+  Coord pbr = intersect_two_lines(p1, p2, p3, p4);
+  p2 = obstacle_list_[i].tan_l;
+  Coord pbl = intersect_two_lines(p1, p2, p3, p4);
+  p3 = RV[0];
+  p4 = RV[1];
+  Coord ptl = intersect_two_lines(p1, p2, p3, p4);
+  p2 = obstacle_list_[i].tan_r;
+  Coord ptr = intersect_two_lines(p1, p2, p3, p4);
+  p3 = RV[1];
+  p4 = RV[2];
+  Coord prr = intersect_two_lines(p1, p2, p3, p4);
+  p2 = obstacle_list_[i].tan_l;
+  Coord prl = intersect_two_lines(p1, p2, p3, p4);
+  p3 = RV[0];
+  p4 = RV[3];
+  Coord pll = intersect_two_lines(p1, p2, p3, p4);
+  p2 = obstacle_list_[i].tan_r;
+  Coord plr = intersect_two_lines(p1, p2, p3, p4);
+}
+
+
+Coord intersect_two_lines(const Coord& p1, const Coord& p2, const Coord& p3, 
+                          const Coord& p4){
+  Coord inter;
+  inter.x = ((p1.x*p2.y-p1.y*p2.x)*(p3.x-p4.x) - (p1.x - p2.x)*(p3.x*p4.y-p3.y*p4.x))/((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
+  inter.y = ((p1.x*p2.y-p1.y*p2.x)*(p3.y-p4.y) - (p1.y - p2.y)*(p3.x*p4.y-p3.y*p4.x))/((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
+  return inter;
 }
