@@ -18,8 +18,12 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 - **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
 
 *TODO: Dependencies*
+## Dependencies
+```
+sudo apt-get install libcgal-dev
+```
 
-**How to start working?**
+## How to start working?
 
 Enter the following commands into your **Ubuntu 16.04** terminal:
 
