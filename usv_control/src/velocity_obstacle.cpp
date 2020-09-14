@@ -11,7 +11,7 @@
  * @todo: 
  * Waypoint pose2D array msg
  * Perception msgs names uppercase
- * 
+ * Update ASMC and dynamic model codes to c++11
  * ---------------------------------------------------------------------------*/
 
 // INCLUDES --------------------------------------------------------------------
@@ -52,6 +52,10 @@ double time_horizon_ = 1.0; //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1; //rad/s^2
 /**
+  * 4 corners of reachable velocities cuadrilateral. 
+  * */
+std::vector<Coord> RV;
+/**
   * Size of buffer queue 
   * */
 int queue_size_ = 10;
@@ -79,16 +83,6 @@ double speed_yaw_ = 0.0;
 double pos_x_ = 0.0;
 double pos_y_ = 0.0;
 double pos_theta_ = 0.0;
-/**
-  * Waypoint list vector
-  * */
-Coord tan_r_;
-Coord tan_l_;
-/**
-  * 4 points of reachable velocities cuadrilateral. 
-  * */
-std::vector<Coord> RV;
-
 /**
   * Waypoint list vector
   * */
@@ -169,6 +163,7 @@ int main(int argc, char** argv){
   initialize(vo_node);
   while (ros::ok()){
     collision_cone();
+    reachable_velocities();
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -229,21 +224,22 @@ void collision_cone(){
     // Boat circle : (y-a)^2 + (x-b)^2 = ro^2 a=0 b=0 ro=distance to obstacle
     // Obstacle circle: (y-c)^2 + (x-d)^2 = r1^2 c=obstacleY d=obstacleX r1=obstacle radius
     // D = distance of circle centers
-    int i = 0;
-    double a = 0.0;
-    double b = 0.0;
-    double r0 = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2));
-    double c = obstacle_list_[i].y;
-    double d = obstacle_list_[i].x;
-    double r1 = obstacle_list_[i].r;
-    double D = r0;
-    double delta = (1/4)*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
-    obstacle_list_[i].tan_r.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
-    obstacle_list_[i].tan_l.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
-    obstacle_list_[i].tan_r.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
-    obstacle_list_[i].tan_l.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
-    ROS_INFO("Intersection1:%f,%f intersection2:%f,%f", obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
-  }
+    for(int i = 0; i<obstacle_list_.size(); ++i){
+      double a = 0.0;
+      double b = 0.0;
+      double r0 = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2));
+      double c = obstacle_list_[i].y;
+      double d = obstacle_list_[i].x;
+      double r1 = obstacle_list_[i].r;
+      double D = r0;
+      double delta = (1/4)*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
+      obstacle_list_[i].tan_r.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
+      obstacle_list_[i].tan_l.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
+      obstacle_list_[i].tan_r.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
+      obstacle_list_[i].tan_l.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
+      ROS_INFO("Obstacle %i intersection1:%f,%f intersection2:%f,%f", i, obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
+    }
+  }9
 }
 
 void reachable_velocities(){
@@ -253,50 +249,71 @@ void reachable_velocities(){
   double v_min = speed_long - max_long_acceleration_*time_horizon_;
   double w_max = speed_yaw_ + max_yaw_acceleration_*time_horizon_;
   double w_min = speed_yaw_ - max_yaw_acceleration_*time_horizon_;
-  Coord p0 = {v_max, w_min};
-  RV.push_back(p0);
-  Coord p1 = {v_max, w_max};
-  RV.push_back(p1);
-  Coord p2 = {v_min, w_max};
-  RV.push_back(p2);
-  Coord p3 = {v_min, w_min};
-  RV.push_back(p3);
+  RV.empty();
+  Coord temp = {v_max, speed_long};
+  RV.push_back(temp);
+  temp = {speed_long, w_max};
+  RV.push_back(temp);
+  temp = {v_min, speed_long};
+  RV.push_back(temp);
+  temp = {speed_long, w_min};
+  RV.push_back(temp);
 }
 
 void reachable_avoidance_velocities(){
-  int i = 0;
-  //bottom line intersect
-  //first line
-  Coord p1 = {0,0};
-  Coord p2 = obstacle_list_[i].tan_r;
-  //second line
-  Coord p3 = RV[2];
-  Coord p4 = RV[3];
-  Coord pbr = intersect_two_lines(p1, p2, p3, p4);
-  p2 = obstacle_list_[i].tan_l;
-  Coord pbl = intersect_two_lines(p1, p2, p3, p4);
-  p3 = RV[0];
-  p4 = RV[1];
-  Coord ptl = intersect_two_lines(p1, p2, p3, p4);
-  p2 = obstacle_list_[i].tan_r;
-  Coord ptr = intersect_two_lines(p1, p2, p3, p4);
-  p3 = RV[1];
-  p4 = RV[2];
-  Coord prr = intersect_two_lines(p1, p2, p3, p4);
-  p2 = obstacle_list_[i].tan_l;
-  Coord prl = intersect_two_lines(p1, p2, p3, p4);
-  p3 = RV[0];
-  p4 = RV[3];
-  Coord pll = intersect_two_lines(p1, p2, p3, p4);
-  p2 = obstacle_list_[i].tan_r;
-  Coord plr = intersect_two_lines(p1, p2, p3, p4);
+  Coord origin = {0,0}; //Robot body position
+  double angle_bl = atan2(RV[3].y, RV[3].x);
+  double angle_tr = atan2(RV[1].y, RV[1].x);
+  Coord pbr ;
+  Coord pbl;
+  Coord ptr;
+  Coord ptl;
+  Coord prr;
+  Coord prl;
+  Coord pll;
+  Coord plr;
+  Coord point_temp = {0,0};
+  double angle_temp = 0.0;
+  for(int i = 0; i<obstacle_list_.size(); ++i){
+    //bottom line right intersect
+    point_temp = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[2], RV[3]);
+    angle_temp = atan2(point_temp.y, point_temp_.x);
+    if (angle_bl >= angle_temp && 0 <= angle_temp){sw
+      if (angle_temp < atan2(R[2], pbr)){
+        pbr = point_temp;
+      }
+    }
+    //bottom line left intersect
+    point _temp = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[2], RV[3]);
+    angle_temp = angle_between_vectors(R[2], point_temp);
+    if (angle_bl >= angle_temp && 0 <= angle_temp){
+      if (angle_temp > angle_between_vectors(R[2], pbr){
+        pbr = point_temp;
+      }
+    }
+    //right line right intersect
+    prr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[1], RV[2]);
+    //right line left intersect
+    prl = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[1], RV[0]);
+    
+    
+    //top line left intersect
+    ptl_temp = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[0], RV[1]);
+    //top line right intersect
+    ptr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[0], RV[1]);
+    //left line left intersect
+    pll = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[0], RV[3]);
+    //left line right intersect
+    plr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[0], RV[3]);;
+  }
 }
-
 
 Coord intersect_two_lines(const Coord& p1, const Coord& p2, const Coord& p3, 
                           const Coord& p4){
   Coord inter;
-  inter.x = ((p1.x*p2.y-p1.y*p2.x)*(p3.x-p4.x) - (p1.x - p2.x)*(p3.x*p4.y-p3.y*p4.x))/((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
-  inter.y = ((p1.x*p2.y-p1.y*p2.x)*(p3.y-p4.y) - (p1.y - p2.y)*(p3.x*p4.y-p3.y*p4.x))/((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
+  inter.x = ((p1.x*p2.y-p1.y*p2.x)*(p3.x-p4.x) - (p1.x - p2.x)*(p3.x*p4.y-p3.y*p4.x))/
+            ((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
+  inter.y = ((p1.x*p2.y-p1.y*p2.x)*(p3.y-p4.y) - (p1.y - p2.y)*(p3.x*p4.y-p3.y*p4.x))/
+            ((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
   return inter;
 }
