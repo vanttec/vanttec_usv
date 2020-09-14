@@ -239,7 +239,7 @@ void collision_cone(){
       obstacle_list_[i].tan_l.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
       ROS_INFO("Obstacle %i intersection1:%f,%f intersection2:%f,%f", i, obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
     }
-  }9
+  }
 }
 
 void reachable_velocities(){
@@ -274,20 +274,20 @@ void reachable_avoidance_velocities(){
   Coord plr;
   Coord point_temp = {0,0};
   double angle_temp = 0.0;
-  for(int i = 0; i<obstacle_list_.size(); ++i){
+  /*for(int i = 0; i<obstacle_list_.size(); ++i){
     //bottom line right intersect
     point_temp = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[2], RV[3]);
-    angle_temp = atan2(point_temp.y, point_temp_.x);
-    if (angle_bl >= angle_temp && 0 <= angle_temp){sw
-      if (angle_temp < atan2(R[2], pbr)){
+    angle_temp = atan2(point_temp.y, point_temp.x);
+    if (angle_bl >= angle_temp && 0 <= angle_temp){
+      if (angle_temp < atan2(RV[2], pbr)){
         pbr = point_temp;
       }
     }
     //bottom line left intersect
-    point _temp = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[2], RV[3]);
-    angle_temp = angle_between_vectors(R[2], point_temp);
+    point_temp = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[2], RV[3]);
+    angle_temp =  atan2(point_temp.y, point_temp.x);
     if (angle_bl >= angle_temp && 0 <= angle_temp){
-      if (angle_temp > angle_between_vectors(R[2], pbr){
+      if (angle_temp > angle_between_vectors(RV[2], pbr){
         pbr = point_temp;
       }
     }
@@ -298,14 +298,14 @@ void reachable_avoidance_velocities(){
     
     
     //top line left intersect
-    ptl_temp = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[0], RV[1]);
+    ptl = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[0], RV[1]);
     //top line right intersect
     ptr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[0], RV[1]);
     //left line left intersect
     pll = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[0], RV[3]);
     //left line right intersect
     plr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[0], RV[3]);;
-  }
+  }*/
 }
 
 Coord intersect_two_lines(const Coord& p1, const Coord& p2, const Coord& p3, 
