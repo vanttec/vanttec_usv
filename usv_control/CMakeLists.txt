@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(usv_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-#add_compile_options(-std=c++11)
+#add_compile_options(-std=c++14)
+#add_compile_options(-DQt5_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -20,6 +21,9 @@ usv_perception
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED)
+#find_package(Qt4 REQUIRED)
+find_package(CGAL REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -111,7 +115,7 @@ catkin_package(
 	#INCLUDE_DIRS include
   #LIBRARIES usv_control
   CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+  DEPENDS CGAL
 )
 
 ###########
@@ -121,9 +125,10 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
-  include/cpp/include
+  #include/cpp/include
+	${CGAL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -227,3 +232,9 @@ target_link_libraries(velocity_obstacle
 	${usv_perception_LIBRARIES}
 )
 add_dependencies(velocity_obstacle ${catkin_EXPORTED_TARGETS})
+
+add_executable(cgal_tutorial src/cgal_tutorial.cpp)
+target_link_libraries(cgal_tutorial
+	${catkin_LIBRARIES}
+	CGAL::CGAL
+)
