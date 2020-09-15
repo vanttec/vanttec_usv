@@ -15,15 +15,27 @@
  * ---------------------------------------------------------------------------*/
 
 // INCLUDES --------------------------------------------------------------------
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+#include <CGAL/Boolean_set_operations_2.h>
+#include <CGAL/Polygon_set_2.h>
+#include <list>
+
 #include <ros/ros.h>
 #include <geometry_msgs/Pose2D.h>
 #include <geometry_msgs/Vector3.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Float64.h>
 
+#include "print_utils.h"
 #include "usv_perception/obstacles_list.h"
 
 // NAMESPACES ------------------------------------------------------------------
+typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
+typedef Kernel::Point_2                                   Point_2;
+typedef CGAL::Polygon_2<Kernel>                           Polygon_2;
+typedef CGAL::Polygon_with_holes_2<Kernel>                Polygon_with_holes_2;
+typedef std::list<Polygon_with_holes_2>                   Pwh_list_2;
+typedef CGAL::Polygon_set_2<Kernel>                       Polygon_set_2;
 
 // STRUCTS ---------------------------------------------------------------------
 struct Coord{ 
@@ -33,15 +45,15 @@ struct Coord{
 };
 struct Obstacle{
   // Obstacle position in x
-  double x;
+  double x = 0.0;
   // Obstacle position in y
-  double y;
+  double y = 0.0;
   // Obstacle radius
-  double r;
+  double r = 0.0;
   // Right tangent angle
-  Coord tan_r;
+  Coord tan_r = {0,0};
   // Left tangent angle
-  Coord tan_l;
+  Coord tan_l = {0,0};
 };
 // GLOBAL PARAMETERS -----------------------------------------------------------
 /**
@@ -52,9 +64,9 @@ double time_horizon_ = 1.0; //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1; //rad/s^2
 /**
-  * 4 corners of reachable velocities cuadrilateral. 
+  * Rechable velocities dimond. 
   * */
-std::vector<Coord> RV;
+Polygon_2 RV_;
 /**
   * Size of buffer queue 
   * */
@@ -141,12 +153,17 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &obstacles)
   * Calculate obstacle collision cone. 
   * @return void.
   * */
-void collision_cone();
+bool collision_cone();
 /**
   * Calculate rechable velocities. 
   * @return void.
   * */
 void reachable_velocities();
+/**
+  * Calculate rechable velocities. 
+  * @return void.
+  * */
+void reachable_avoidance_velocities();
 /**
   * Calculate intersect of two lines taking 4 points as input. 
   * @return 4 Coord points. Point 1 and point 2 belong to line 1. 
@@ -162,8 +179,11 @@ int main(int argc, char** argv){
   ros::Rate loop_rate(100);
   initialize(vo_node);
   while (ros::ok()){
-    collision_cone();
-    reachable_velocities();
+    if(collision_cone()){
+      reachable_velocities();
+      reachable_avoidance_velocities();
+      return 0;
+    }
     ros::spinOnce();
     loop_rate.sleep();
   }
@@ -218,28 +238,38 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg){
   }
 }
 
-void collision_cone(){
+bool collision_cone(){
   if(0 < obstacle_list_.size()){
     //Find tangent points
     // Boat circle : (y-a)^2 + (x-b)^2 = ro^2 a=0 b=0 ro=distance to obstacle
     // Obstacle circle: (y-c)^2 + (x-d)^2 = r1^2 c=obstacleY d=obstacleX r1=obstacle radius
     // D = distance of circle centers
+    // Boat circle : (x-a)^2 + (y-b)^2 = ro^2 a=0 b=0 ro=distance to obstacle
+    // Obstacle circle: (x-c)^2 + (y-d)^2 = r1^2 c=obstacleX d=obstacleY r1=obstacle radius
     for(int i = 0; i<obstacle_list_.size(); ++i){
-      double a = 0.0;
-      double b = 0.0;
-      double r0 = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2));
-      double c = obstacle_list_[i].y;
-      double d = obstacle_list_[i].x;
+      double a = 0;
+      double b = 0;
+      double r0 = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2)); 
+      double c = obstacle_list_[i].x;
+      double d = obstacle_list_[i].y;
       double r1 = obstacle_list_[i].r;
+      ROS_INFO("Obstacle radius: %f coordinates %f,%f", r1, obstacle_list_[i].x, obstacle_list_[i].y);
       double D = r0;
-      double delta = (1/4)*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
-      obstacle_list_[i].tan_r.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
-      obstacle_list_[i].tan_l.x = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
-      obstacle_list_[i].tan_r.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
-      obstacle_list_[i].tan_l.y = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
+      double delta = 0.25*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
+      ROS_INFO("Obstacle delta: %f", delta);
+      obstacle_list_[i].tan_r.y = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
+      ROS_INFO("Obstacle y1 %f", obstacle_list_[i].tan_r.y); 
+      obstacle_list_[i].tan_l.y = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
+      ROS_INFO("Obstacle y2 %f", obstacle_list_[i].tan_l.y); 
+      obstacle_list_[i].tan_r.x = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
+      ROS_INFO("Obstacle x1 %f", obstacle_list_[i].tan_r.x); 
+      obstacle_list_[i].tan_l.x = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
+      ROS_INFO("Obstacle x2 %f", obstacle_list_[i].tan_l.x); 
       ROS_INFO("Obstacle %i intersection1:%f,%f intersection2:%f,%f", i, obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
     }
+    return 1;
   }
+  return 0;
 }
 
 void reachable_velocities(){
@@ -249,63 +279,48 @@ void reachable_velocities(){
   double v_min = speed_long - max_long_acceleration_*time_horizon_;
   double w_max = speed_yaw_ + max_yaw_acceleration_*time_horizon_;
   double w_min = speed_yaw_ - max_yaw_acceleration_*time_horizon_;
-  RV.empty();
-  Coord temp = {v_max, speed_long};
-  RV.push_back(temp);
-  temp = {speed_long, w_max};
-  RV.push_back(temp);
-  temp = {v_min, speed_long};
-  RV.push_back(temp);
-  temp = {speed_long, w_min};
-  RV.push_back(temp);
+  RV_.clear();
+  RV_.push_back (Point_2 (v_max, speed_long));
+  RV_.push_back (Point_2 (speed_long, w_max));
+  RV_.push_back (Point_2 (v_min, speed_long));
+  RV_.push_back (Point_2 (speed_long, w_min));
 }
 
 void reachable_avoidance_velocities(){
-  Coord origin = {0,0}; //Robot body position
-  double angle_bl = atan2(RV[3].y, RV[3].x);
-  double angle_tr = atan2(RV[1].y, RV[1].x);
-  Coord pbr ;
-  Coord pbl;
-  Coord ptr;
-  Coord ptl;
-  Coord prr;
-  Coord prl;
-  Coord pll;
-  Coord plr;
-  Coord point_temp = {0,0};
-  double angle_temp = 0.0;
-  /*for(int i = 0; i<obstacle_list_.size(); ++i){
-    //bottom line right intersect
-    point_temp = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[2], RV[3]);
-    angle_temp = atan2(point_temp.y, point_temp.x);
-    if (angle_bl >= angle_temp && 0 <= angle_temp){
-      if (angle_temp < atan2(RV[2], pbr)){
-        pbr = point_temp;
-      }
+  Polygon_2 C;
+  Polygon_with_holes_2 C_union;
+  for(int i = 0; i<obstacle_list_.size(); ++i){
+    // Construct the input cone
+    C.clear();
+    C.push_back (Point_2 (0, 0));
+    C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y));
+    C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y));
+    std::cout << "C = "; print_polygon (C);
+    // Check to see if cone intersercts with RV dimond
+    if ((CGAL::do_intersect (C, RV_))){
+      std::cout << "The two polygons intersect." << std::endl;
+      //Join cone with other cones
+      CGAL::join (C, C_union, C_union);
     }
-    //bottom line left intersect
-    point_temp = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[2], RV[3]);
-    angle_temp =  atan2(point_temp.y, point_temp.x);
-    if (angle_bl >= angle_temp && 0 <= angle_temp){
-      if (angle_temp > angle_between_vectors(RV[2], pbr){
-        pbr = point_temp;
-      }
+    else{
+      std::cout << "The two polygons do not intersect." << std::endl;
     }
-    //right line right intersect
-    prr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[1], RV[2]);
-    //right line left intersect
-    prl = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[1], RV[0]);
-    
-    
-    //top line left intersect
-    ptl = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[0], RV[1]);
-    //top line right intersect
-    ptr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[0], RV[1]);
-    //left line left intersect
-    pll = intersect_two_lines(origin, obstacle_list_[i].tan_l, RV[0], RV[3]);
-    //left line right intersect
-    plr = intersect_two_lines(origin, obstacle_list_[i].tan_r, RV[0], RV[3]);;
-  }*/
+  }
+  // Perform a sequence of operations.
+  Polygon_set_2 S;
+  S.insert (C_union);
+  S.complement();              // Compute the complement.
+  S.intersection (RV_);        // Intersect with the clipping rectangle.
+  // Print the result.
+  std::list<Polygon_with_holes_2> res;
+  std::list<Polygon_with_holes_2>::const_iterator it;
+  std::cout << "The result contains " << S.number_of_polygons_with_holes()
+            << " components:" << std::endl;
+  S.polygons_with_holes (std::back_inserter (res));
+  for (it = res.begin(); it != res.end(); ++it) {
+    std::cout << "--> ";
+    print_polygon_with_holes (*it);
+  }
 }
 
 Coord intersect_two_lines(const Coord& p1, const Coord& p2, const Coord& p3, 

@@ -36,7 +36,7 @@ int main (int argc, char** argv)
   Q.push_back (Point_2 (3, 6));
   std::cout << "Q = "; print_polygon (Q);
   
-    // Compute the union of P and Q.
+  // Compute the union of P and Q.
   Polygon_with_holes_2 C_union(P);
   
   if ((CGAL::do_intersect (C_union, Q)))

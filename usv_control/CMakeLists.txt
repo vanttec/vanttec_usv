@@ -127,7 +127,6 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  #include/cpp/include
 	${CGAL_INCLUDE_DIRS}
 )
 
@@ -230,6 +229,7 @@ add_executable(velocity_obstacle src/velocity_obstacle.cpp)
 target_link_libraries(velocity_obstacle 
 	${catkin_LIBRARIES}
 	${usv_perception_LIBRARIES}
+	CGAL::CGAL
 )
 add_dependencies(velocity_obstacle ${catkin_EXPORTED_TARGETS})
 
