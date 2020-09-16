@@ -12,6 +12,9 @@
  * Waypoint pose2D array msg
  * Perception msgs names uppercase
  * Update ASMC and dynamic model codes to c++11
+ * 
+ * Imminent collisions
+ * Search using closest to goal heuristic
  * ---------------------------------------------------------------------------*/
 
 // INCLUDES --------------------------------------------------------------------
@@ -19,6 +22,8 @@
 #include <CGAL/Boolean_set_operations_2.h>
 #include <CGAL/Polygon_set_2.h>
 #include <list>
+
+#include <eigen3/Eigen/Dense>
 
 #include <ros/ros.h>
 #include <geometry_msgs/Pose2D.h>
@@ -36,6 +41,8 @@ typedef CGAL::Polygon_2<Kernel>                           Polygon_2;
 typedef CGAL::Polygon_with_holes_2<Kernel>                Polygon_with_holes_2;
 typedef std::list<Polygon_with_holes_2>                   Pwh_list_2;
 typedef CGAL::Polygon_set_2<Kernel>                       Polygon_set_2;
+typename CGAL::Polygon_2<Kernel>::Vertex_const_iterator   vit;
+typename CGAL::Polygon_with_holes_2<Kernel>::Hole_const_iterator  hit;
 
 // STRUCTS ---------------------------------------------------------------------
 struct Coord{ 
@@ -55,6 +62,24 @@ struct Obstacle{
   // Left tangent angle
   Coord tan_l = {0,0};
 };
+struct Vertex{ 
+  // Position
+  double x = 0;
+  double y = 0;
+  double goal_dist = INT_MAX;
+};
+
+// CLASS DECLARATION -----------------------------------------------------------
+// To compare two points 
+class Comparator 
+{ 
+public: 
+    int operator() (const Vertex& v1, const Vertex& v2) 
+    { 
+        return v1.goal_dist > v2.goal_dist; 
+    } 
+};
+
 // GLOBAL PARAMETERS -----------------------------------------------------------
 /**
   * Input Parameters
@@ -64,9 +89,13 @@ double time_horizon_ = 1.0; //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1; //rad/s^2
 /**
-  * Rechable velocities dimond. 
+  * Rechable velocities diamond. 
   * */
 Polygon_2 RV_;
+/**
+  * RAV poligon set. 
+  * */
+Polygon_set_2 RAV_;
 /**
   * Size of buffer queue 
   * */
@@ -76,7 +105,8 @@ int queue_size_ = 10;
   * */
 ros::Subscriber vel_sub_;
 ros::Subscriber pose_sub_;
-ros::Subscriber waypoints_sub_;
+ros::Subscriber goal_sub_;
+//ros::Subscriber waypoints_sub_;
 ros::Subscriber obstacles_sub_;
 /**
   * Publishers
@@ -96,9 +126,14 @@ double pos_x_ = 0.0;
 double pos_y_ = 0.0;
 double pos_theta_ = 0.0;
 /**
+  * Goal position vector NED
+  * */
+Eigen::Vector3f goalNED_ = Eigen::Vector3f::Zero();
+Eigen::Vector3f goal_body_ = Eigen::Vector3f::Zero();
+/**
   * Waypoint list vector
   * */
-std::vector<double> waypoint_list_;
+//std::vector<double> waypoint_list_;
 /**
   * Obstacle list vector
   * */
@@ -110,7 +145,8 @@ std::vector<Obstacle> obstacle_list_;
   * */
 const std::string topic_vel_sub_ = "/vectornav/ins_2d/local_vel";
 const std::string topic_pose_sub_ = "/vectornav/ins_2d/NED_pose";
-const std::string topic_waypoints_sub_ = "/mission/waypoints";
+const std::string topic_goal_sub_ = "/usv_control/los/target";
+//const std::string topic_waypoints_sub_ = "/mission/waypoints";
 const std::string topic_obstacles_sub_ = "/usv_perception/lidar_detector/obstacles";
 const std::string topic_desired_vel_pub_ = "/guidance/desired_speed";
 const std::string topic_desired_heading_pub_ = "/guidance/desired_heading";
@@ -133,16 +169,16 @@ void initialize(ros::NodeHandle &vo_node);
 void on_speed_msg(const geometry_msgs::Vector3::ConstPtr &speed);
 /**
   * Callback to obtain current NED pose. 
-  * @param pose[in]: Received velocity vector.
+  * @param pose[in]: Received pose.
   * @return void.
   * */
 void on_pose_msg(const geometry_msgs::Pose2D::ConstPtr &pose);
 /**
-  * Callback to obtain current NED pose. 
-  * @param waypoints[in]: Received velocity vector.
+  * Callback to obtain current NED target pose. 
+  * @param pose[in]: Recive target pose.
   * @return void.
   * */
-void on_waypoints_msg(const std_msgs::Float32MultiArray::ConstPtr &waypoints);
+void on_goal_msg(const geometry_msgs::Pose2D::ConstPtr &goal);;
 /**
   * Callback to obtain list of obstacles. 
   * @param obstacles[in]: Received velocity vector.
@@ -160,17 +196,20 @@ bool collision_cone();
   * */
 void reachable_velocities();
 /**
-  * Calculate rechable velocities. 
+  * Calculate rechable avoidance velocities. 
   * @return void.
   * */
-void reachable_avoidance_velocities();
+bool reachable_avoidance_velocities();
 /**
-  * Calculate intersect of two lines taking 4 points as input. 
-  * @return 4 Coord points. Point 1 and point 2 belong to line 1. 
-  *         Point 3 and point 4 belong to line 2.  
+  * Calculate rechable avoidance velocities. 
+  * @return void.
   * */
-Coord intersect_two_lines(const Coord& p1, const Coord& p2, const Coord& p3, 
-                          const Coord& p4);
+void desiered_velocity();
+/**
+  * Rotate position from NED to body. 
+  * @return void.
+  * */
+void NED2body();
 
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
@@ -181,7 +220,9 @@ int main(int argc, char** argv){
   while (ros::ok()){
     if(collision_cone()){
       reachable_velocities();
-      reachable_avoidance_velocities();
+      if(reachable_avoidance_velocities()){
+        desiered_velocity();
+      }
       return 0;
     }
     ros::spinOnce();
@@ -194,8 +235,9 @@ void initialize(ros::NodeHandle &vo_node){
   // Subscribers
   vel_sub_ = vo_node.subscribe(topic_vel_sub_, queue_size_, &on_speed_msg);
   pose_sub_ = vo_node.subscribe(topic_pose_sub_, queue_size_, &on_pose_msg);
-  waypoints_sub_ = vo_node.subscribe(topic_waypoints_sub_, queue_size_, 
-                                    &on_waypoints_msg);
+  goal_sub_ = vo_node.subscribe(topic_goal_sub_, queue_size_, &on_goal_msg);
+  //waypoints_sub_ = vo_node.subscribe(topic_waypoints_sub_, queue_size_, 
+  //                                  &on_waypoints_msg);
   obstacles_sub_ = vo_node.subscribe(topic_obstacles_sub_, queue_size_, 
                                     &on_obstacles_msg);
   // Publishers
@@ -219,12 +261,17 @@ void on_pose_msg(const geometry_msgs::Pose2D::ConstPtr &msg){
   pos_theta_ = msg->theta;
 }
 
-void on_waypoints_msg(const std_msgs::Float32MultiArray::ConstPtr &msg){
+/*void on_waypoints_msg(const std_msgs::Float32MultiArray::ConstPtr &msg){
   waypoint_list_.empty();
   int leng = msg->layout.data_offset;
   for (int i = 0; i>leng; ++i){
     waypoint_list_.push_back(msg->data[i]);
   }
+}*/
+
+void on_goal_msg(const geometry_msgs::Pose2D::ConstPtr &msg){
+  goalNED_(0) = msg->x;
+  goalNED_(1) = msg->y;
 }
 
 void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg){
@@ -280,15 +327,17 @@ void reachable_velocities(){
   double w_max = speed_yaw_ + max_yaw_acceleration_*time_horizon_;
   double w_min = speed_yaw_ - max_yaw_acceleration_*time_horizon_;
   RV_.clear();
-  RV_.push_back (Point_2 (v_max, speed_long));
+  RV_.push_back (Point_2 (v_max, 0));
   RV_.push_back (Point_2 (speed_long, w_max));
-  RV_.push_back (Point_2 (v_min, speed_long));
+  RV_.push_back (Point_2 (v_min, 0));
   RV_.push_back (Point_2 (speed_long, w_min));
+  std::cout << "RV = "; print_polygon (RV_);
 }
 
-void reachable_avoidance_velocities(){
+bool reachable_avoidance_velocities(){
   Polygon_2 C;
   Polygon_with_holes_2 C_union;
+  //Polygon_with_holes_2* ptr = &C_union;
   for(int i = 0; i<obstacle_list_.size(); ++i){
     // Construct the input cone
     C.clear();
@@ -296,39 +345,103 @@ void reachable_avoidance_velocities(){
     C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y));
     C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y));
     std::cout << "C = "; print_polygon (C);
-    // Check to see if cone intersercts with RV dimond
+    // Check to see if cone intersercts with RV diamond
     if ((CGAL::do_intersect (C, RV_))){
       std::cout << "The two polygons intersect." << std::endl;
-      //Join cone with other cones
-      CGAL::join (C, C_union, C_union);
+      if(C_union.is_unbounded()){
+        std::cout << "Unbounded" << std::endl;
+        Polygon_with_holes_2 temp(C); // insert first cone
+        C_union = temp;
+      }
+      else{
+        //Join cone with other cones
+        CGAL::join (C, C_union, C_union);
+        std::cout << "Joined." << std::endl;
+      }
+      print_polygon_with_holes (C_union);
     }
     else{
       std::cout << "The two polygons do not intersect." << std::endl;
     }
   }
-  // Perform a sequence of operations.
-  Polygon_set_2 S;
-  S.insert (C_union);
-  S.complement();              // Compute the complement.
-  S.intersection (RV_);        // Intersect with the clipping rectangle.
-  // Print the result.
-  std::list<Polygon_with_holes_2> res;
-  std::list<Polygon_with_holes_2>::const_iterator it;
-  std::cout << "The result contains " << S.number_of_polygons_with_holes()
-            << " components:" << std::endl;
-  S.polygons_with_holes (std::back_inserter (res));
-  for (it = res.begin(); it != res.end(); ++it) {
-    std::cout << "--> ";
-    print_polygon_with_holes (*it);
+  if(!C_union.is_unbounded()){
+    // Perform a sequence of operations.
+    RAV_.clear();
+    RAV_.insert(C_union);
+    RAV_.complement();              // Compute the complement.
+    RAV_.intersection (RV_);        // Intersect with the clipping rectangle.
+    // Print the result.
+    std::cout << "The result contains " << RAV_.number_of_polygons_with_holes()
+              << " components:" << std::endl;
+    if(0 < RAV_.number_of_polygons_with_holes()){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+void desiered_velocity(){
+  NED2body();
+  if (!(0 == goal_body_(0) && 0 == goal_body_(1))){
+    Pwh_list_2 res;
+    Pwh_list_2::const_iterator it;
+    Polygon_with_holes_2 temp;
+    Polygon_2 temp_poly;
+    Point_2 temp_point;
+    // Creates a Min heap of points (order by goal_dist) 
+    std::priority_queue<Vertex, std::vector<Vertex>, Comparator> queue;
+    //Iterate over set of polygon with holes
+    RAV_.polygons_with_holes (std::back_inserter (res));
+    for (it = res.begin(); it != res.end(); ++it) {
+      std::cout << "--> ";
+      temp = *it;
+      // Print polygon outer boundary
+      std::cout << "{ Outer boundary = ";
+      std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
+      for (vit = temp.outer_boundary().vertices_begin(); vit != temp.outer_boundary().vertices_end(); ++vit){
+        //std::cout << " (" << *vit << ')';
+        temp_point = *vit;
+        std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+        Vertex temp_vertex;
+        temp_vertex.x = CGAL::to_double(temp_point.x());
+        temp_vertex.y = CGAL::to_double(temp_point.y());
+        temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
+        queue.push(temp_vertex);
+      }
+      std::cout << " ]" << std::endl;
+
+      std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
+      unsigned int k = 1;
+      for (hit = temp.holes_begin(); hit != temp.holes_end(); ++hit, ++k)
+      {
+        std::cout << "    Hole #" << k << " = ";
+        //print_polygon (*hit);
+        temp_poly = *hit;
+        std::cout << "[ " << temp_poly.size() << " vertices:";
+        for (vit = temp_poly.vertices_begin(); vit != temp_poly.vertices_end(); ++vit){
+          //std::cout << " (" << *vit << ')';
+          temp_point = *vit;
+          std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+          Vertex temp_vertex;
+          temp_vertex.x = CGAL::to_double(temp_point.x());
+          temp_vertex.y = CGAL::to_double(temp_point.y());
+          temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
+          queue.push(temp_vertex);
+        }
+        std::cout << " ]" << std::endl;
+      }
+      std::cout << " }" << std::endl;
+
+      std::cout << " queue size: " << queue.size() << std::endl;
+      std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
+    }
   }
 }
 
-Coord intersect_two_lines(const Coord& p1, const Coord& p2, const Coord& p3, 
-                          const Coord& p4){
-  Coord inter;
-  inter.x = ((p1.x*p2.y-p1.y*p2.x)*(p3.x-p4.x) - (p1.x - p2.x)*(p3.x*p4.y-p3.y*p4.x))/
-            ((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
-  inter.y = ((p1.x*p2.y-p1.y*p2.x)*(p3.y-p4.y) - (p1.y - p2.y)*(p3.x*p4.y-p3.y*p4.x))/
-            ((p1.x-p2.x)*(p3.y-p4.y) - (p1.y-p2.y)*(p3.x-p4.x));
-  return inter;
+void NED2body(){
+  Eigen::Matrix3f R;
+  R << cos(pos_theta_), -sin(pos_theta_), 0,
+  sin(pos_theta_), cos(pos_theta_), 0,
+  0, 0, 1;
+  goal_body_ = R*goalNED_; 
 }
