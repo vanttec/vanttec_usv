@@ -88,6 +88,7 @@ double robot_radius_ = 0.5; //meters
 double time_horizon_ = 1.0; //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1; //rad/s^2
+double max_vel_ = 1.5; //m/s
 /**
   * Rechable velocities diamond. 
   * */
@@ -111,8 +112,8 @@ ros::Subscriber obstacles_sub_;
 /**
   * Publishers
   * */
-ros::Publisher desired_vel_pub_;
-ros::Publisher desired_heading_pub_;
+ros::Publisher desiered_vel_pub_;
+ros::Publisher desiered_heading_pub_;
 /**
   * Speed variables
   * */
@@ -148,8 +149,8 @@ const std::string topic_pose_sub_ = "/vectornav/ins_2d/NED_pose";
 const std::string topic_goal_sub_ = "/usv_control/los/target";
 //const std::string topic_waypoints_sub_ = "/mission/waypoints";
 const std::string topic_obstacles_sub_ = "/usv_perception/lidar_detector/obstacles";
-const std::string topic_desired_vel_pub_ = "/guidance/desired_speed";
-const std::string topic_desired_heading_pub_ = "/guidance/desired_heading";
+const std::string topic_desiered_vel_pub_ = "/guidance/desired_speed";
+const std::string topic_desiered_heading_pub_ = "/guidance/desired_heading";
 /** 
   * Parameters
   * */
@@ -204,7 +205,12 @@ bool reachable_avoidance_velocities();
   * Calculate rechable avoidance velocities. 
   * @return void.
   * */
-void desiered_velocity();
+void optimal_velocity();
+/**
+  * Calculate rechable avoidance velocities. 
+  * @return void.
+  * */
+void desiered_velocity(const Vertex& optimal);
 /**
   * Rotate position from NED to body. 
   * @return void.
@@ -221,7 +227,7 @@ int main(int argc, char** argv){
     if(collision_cone()){
       reachable_velocities();
       if(reachable_avoidance_velocities()){
-        desiered_velocity();
+        optimal_velocity();
       }
       return 0;
     }
@@ -241,10 +247,10 @@ void initialize(ros::NodeHandle &vo_node){
   obstacles_sub_ = vo_node.subscribe(topic_obstacles_sub_, queue_size_, 
                                     &on_obstacles_msg);
   // Publishers
-  desired_vel_pub_ = vo_node.advertise<std_msgs::Float64>(
-    topic_desired_vel_pub_, queue_size_);
-  desired_heading_pub_ = vo_node.advertise<std_msgs::Float64>(
-    topic_desired_heading_pub_, queue_size_);
+  desiered_vel_pub_ = vo_node.advertise<std_msgs::Float64>(
+    topic_desiered_vel_pub_, queue_size_);
+  desiered_heading_pub_ = vo_node.advertise<std_msgs::Float64>(
+    topic_desiered_heading_pub_, queue_size_);
   // Success
   ROS_INFO("Velocity obstacle node is Ready!");
 }
@@ -323,6 +329,7 @@ void reachable_velocities(){
   // No se considera la velocidad lateral 
   double speed_long = speed_x_; //sqrt(pow(speed_x_,2)+pow(speed_y_,2));
   double v_max = speed_long + max_long_acceleration_*time_horizon_;
+  v_max = (max_vel_ < v_max) ? v_max : max_vel_;
   double v_min = speed_long - max_long_acceleration_*time_horizon_;
   double w_max = speed_yaw_ + max_yaw_acceleration_*time_horizon_;
   double w_min = speed_yaw_ - max_yaw_acceleration_*time_horizon_;
@@ -380,7 +387,7 @@ bool reachable_avoidance_velocities(){
   return 0;
 }
 
-void desiered_velocity(){
+void optimal_velocity(){
   NED2body();
   if (!(0 == goal_body_(0) && 0 == goal_body_(1))){
     Pwh_list_2 res;
@@ -434,8 +441,18 @@ void desiered_velocity(){
 
       std::cout << " queue size: " << queue.size() << std::endl;
       std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
+      desiered_velocity(queue.top());
     }
   }
+}
+
+void desiered_velocity(const Vertex& optimal){
+  std_msgs::Float64 desiered_heading;
+  std_msgs::Float64 desiered_speed;
+  desiered_heading.data = atan2(optimal.y, optimal.x) + pos_theta_;
+  desiered_speed.data = sqrt(pow(optimal.x,2) + pow(optimal.y,2));
+  desiered_heading_pub_.publish(desiered_heading);
+  desiered_vel_pub_.publish(desiered_speed);
 }
 
 void NED2body(){
