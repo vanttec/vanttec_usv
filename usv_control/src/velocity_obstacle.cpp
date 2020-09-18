@@ -346,6 +346,9 @@ bool reachable_avoidance_velocities(){
   Polygon_with_holes_2 C_union;
   //Polygon_with_holes_2* ptr = &C_union;
   for(int i = 0; i<obstacle_list_.size(); ++i){
+    double obs_dist = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2));
+    // Codigo Sebas
+    
     // Construct the input cone
     C.clear();
     C.push_back (Point_2 (0, 0));

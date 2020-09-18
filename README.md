@@ -19,11 +19,6 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 
 *TODO: Dependencies*
 ## Dependencies
-**CGal**
-```
-  sudo apt-get install libcgal-dev
-  sudo apt-get install libcgal-qt5-11
-```
 **Boost**
 ```
   sudo apt-get install libboost-all-dev
@@ -38,6 +33,11 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
   sudo apt-get install qtbase5-examples -y
   sudo apt-get install qttools5-dev -y
   sudo ldconfig
+```
+**CGal**
+```
+  sudo apt-get install libcgal-dev
+  sudo apt-get install libcgal-qt5-11
 ```
 **ROS Kinetic**
 

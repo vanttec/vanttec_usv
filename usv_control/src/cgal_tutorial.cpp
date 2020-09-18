@@ -8,6 +8,7 @@ typedef CGAL::Polygon_2<Kernel>                           Polygon_2;
 typedef CGAL::Polygon_with_holes_2<Kernel>                Polygon_with_holes_2;
 typedef std::list<Polygon_with_holes_2>                   Pwh_list_2;
 typedef CGAL::Polygon_set_2<Kernel>                       Polygon_set_2;
+typedef Kernel::Circle_2                                  Circle_2;
 #include "print_utils.h"
 
 #include <ros/ros.h>
@@ -122,6 +123,11 @@ int main (int argc, char** argv)
     std::cout << "--> ";
     print_polygon_with_holes (*it);
   }
+
+  Point_2 center = Point_2(0, 0);
+  double radius = 2;
+  Circle_2 circle(center, radius);
+  
 
   return 0;
 }
