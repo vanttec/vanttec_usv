@@ -205,7 +205,7 @@ class SpeedChallenge:
         @param: --
         @return: --
         '''
-        self.target_x, self.target_y = self.gate_to_ned(1.5, 0,
+        self.target_x, self.target_y = self.gate_to_ned(6, 0,
                                                         self.ned_alpha,
                                                         self.target_x, 
                                                         self.target_y)

@@ -13,6 +13,10 @@ rospy
 std_msgs 
 genmsg
 sensor_msgs
+tf2
+tf2_ros
+tf2_geometry_msgs
+
 )
 
 ## System dependencies are found with CMake's conventions
@@ -211,5 +215,7 @@ include_directories(
 
 add_executable(asmc src/asmc.cpp)
 add_executable(dynamic_model_simulate src/dynamic_model_simulate.cpp)
+add_executable(boat_tf2_broadcaster src/boat_tf2_broadcaster.cpp)
 target_link_libraries(asmc ${catkin_LIBRARIES})
 target_link_libraries(dynamic_model_simulate ${catkin_LIBRARIES})
+target_link_libraries(boat_tf2_broadcaster ${catkin_LIBRARIES})
