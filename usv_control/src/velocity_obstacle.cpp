@@ -344,17 +344,57 @@ void reachable_velocities(){
 bool reachable_avoidance_velocities(){
   Polygon_2 C;
   Polygon_with_holes_2 C_union;
+  Polygon_2 VOH;
+  double obstacle_theta = 0.0;
+  double speed_th = 0.0;
+  double vel_th_x = 0.0;
+  double vel_th_y = 0.0;
+  double slope = 0.0;
+  double b = 0.0;
+  double numerator = 0.0;
+  double denominator = 0.0;
+  double intersect_l_x = 0.0;
+  double intersect_l_y = 0.0;
+  double intersect_r_x = 0.0;
+  double intersect_r_y = 0.0;
+
   //Polygon_with_holes_2* ptr = &C_union;
   for(int i = 0; i<obstacle_list_.size(); ++i){
-    double obs_dist = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2));
+    double obs_dist = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2)) - obstacle_list_[i].r;
     // Codigo Sebas
-    
+    speed_th = obs_dist / time_horizon_;
+    obstacle_theta = atan2(obstacle_list_[i].x, obstacle_list_[i].y);
+    vel_th_x = speed_th * sin(obstacle_theta);
+    vel_th_y = speed_th * cos(obstacle_theta);
+    slope = -1 / ((vel_th_x - pos_x_)/(vel_th_y - pos_y_));
+    b = vel_th_x - (slope * vel_th_y);
+    // Intersect tan_l
+    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th_x-b)) - ((obstacle_list_[i].tan_l.x-0)*((vel_th_x*0)-(vel_th_y*b)));
+    denominator = ((obstacle_list_[i].tan_l.x-0)*(vel_th_y-0)) - ((obstacle_list_[i].tan_l.y-0)*(vel_th_x-b)); 
+    intersect_l_x =  numerator / denominator;
+    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th_y-0)) - ((obstacle_list_[i].tan_l.y-0)*((vel_th_x*0)-(vel_th_y*b)));
+    intersect_l_y =  numerator / denominator;
+    // Intersect tan_r
+    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th_x-b)) - ((obstacle_list_[i].tan_r.x-0)*((vel_th_x*0)-(vel_th_y*b)));
+    denominator = ((obstacle_list_[i].tan_r.x-0)*(vel_th_y-0)) - ((obstacle_list_[i].tan_r.y-0)*(vel_th_x-b)); 
+    intersect_r_x =  numerator / denominator;
+    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th_y-0)) - ((obstacle_list_[i].tan_r.y-0)*((vel_th_x*0)-(vel_th_y*b)));
+    intersect_r_y =  numerator / denominator;
+
+    // Construct VOH
+    VOH.clear();
+    VOH.push_back(Point_2 (0, 0));
+    VOH.push_back(Point_2 (intersect_l_x, intersect_l_y));
+    VOH.push_back(Point_2 (intersect_r_x, intersect_r_y));
+    std::cout << "VOH = "; print_polygon (VOH);
+
     // Construct the input cone
     C.clear();
     C.push_back (Point_2 (0, 0));
     C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y));
     C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y));
     std::cout << "C = "; print_polygon (C);
+
     // Check to see if cone intersercts with RV diamond
     if ((CGAL::do_intersect (C, RV_))){
       std::cout << "The two polygons intersect." << std::endl;
@@ -368,6 +408,12 @@ bool reachable_avoidance_velocities(){
         CGAL::join (C, C_union, C_union);
         std::cout << "Joined." << std::endl;
       }
+      // Substract VOH from the union of cones
+      Pwh_list_2 C_union_diff;
+      Pwh_list_2::const_iterator it;
+      CGAL::difference (C_union, VOH, std::back_inserter(C_union_diff));
+      C_union = C_union_diff.front();
+      C_union_diff.clear();
       print_polygon_with_holes (C_union);
     }
     else{

@@ -76,6 +76,18 @@ int main (int argc, char** argv)
     print_polygon_with_holes (*it);
   }*/
 
+  // Compute difference of two polygons
+  Pwh_list_2 C_union_diff;
+  Pwh_list_2::const_iterator i;
+
+  CGAL::difference (C_union, C, std::back_inserter(C_union_diff));
+  std::cout << "The difference:" << std::endl;
+  for (i = C_union_diff.begin(); i != C_union_diff.end(); ++i) {
+    std::cout << "--> ";
+    print_polygon_with_holes (*i);
+  }
+  
+
   // Perform a sequence of operations.
   Polygon_set_2 S;
   S.insert (C_union);
