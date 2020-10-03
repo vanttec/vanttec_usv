@@ -344,14 +344,11 @@ void reachable_velocities(){
 bool reachable_avoidance_velocities(){
   Polygon_2 C;
   Polygon_with_holes_2 C_union;
-
-  Vertex intersect_l;
-  Vertex intersect_r;
-
+  Coord intersect_l;
+  Coord intersect_r;
+  Coord vel_th;
   double obstacle_theta = 0.0;
   double speed_th = 0.0;
-  double vel_th_x = 0.0;
-  double vel_th_y = 0.0;
   double slope = 0.0;
   double b = 0.0;
   double numerator = 0.0;
@@ -362,21 +359,21 @@ bool reachable_avoidance_velocities(){
     double obs_dist = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2)) - obstacle_list_[i].r;
     speed_th = obs_dist / time_horizon_;
     obstacle_theta = atan2(obstacle_list_[i].x, obstacle_list_[i].y);
-    vel_th_x = speed_th * sin(obstacle_theta);
-    vel_th_y = speed_th * cos(obstacle_theta);
-    slope = -1 / ((vel_th_x - pos_x_)/(vel_th_y - pos_y_));
-    b = vel_th_x - (slope * vel_th_y);
+    vel_th.x = speed_th * sin(obstacle_theta);
+    vel_th.y = speed_th * cos(obstacle_theta);
+    slope = -1 / ((vel_th.x - pos_x_)/(vel_th.y - pos_y_));
+    b = vel_th.x - (slope * vel_th.y);
     // Intersect tan_l
-    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th_x-b)) - ((obstacle_list_[i].tan_l.x-0)*((vel_th_x*0)-(vel_th_y*b)));
-    denominator = ((obstacle_list_[i].tan_l.x-0)*(vel_th_y-0)) - ((obstacle_list_[i].tan_l.y-0)*(vel_th_x-b)); 
+    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th.x-b)) - ((obstacle_list_[i].tan_l.x-0)*((vel_th.x*0)-(vel_th.y*b)));
+    denominator = ((obstacle_list_[i].tan_l.x-0)*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-0)*(vel_th.x-b)); 
     intersect_l.x =  numerator / denominator;
-    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th_y-0)) - ((obstacle_list_[i].tan_l.y-0)*((vel_th_x*0)-(vel_th_y*b)));
+    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-0)*((vel_th.x*0)-(vel_th.y*b)));
     intersect_l.y =  numerator / denominator;
     // Intersect tan_r
-    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th_x-b)) - ((obstacle_list_[i].tan_r.x-0)*((vel_th_x*0)-(vel_th_y*b)));
-    denominator = ((obstacle_list_[i].tan_r.x-0)*(vel_th_y-0)) - ((obstacle_list_[i].tan_r.y-0)*(vel_th_x-b)); 
+    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th.x-b)) - ((obstacle_list_[i].tan_r.x-0)*((vel_th.x*0)-(vel_th.y*b)));
+    denominator = ((obstacle_list_[i].tan_r.x-0)*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-0)*(vel_th.x-b)); 
     intersect_r.x =  numerator / denominator;
-    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th_y-0)) - ((obstacle_list_[i].tan_r.y-0)*((vel_th_x*0)-(vel_th_y*b)));
+    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-0)*((vel_th.x*0)-(vel_th.y*b)));
     intersect_r.y =  numerator / denominator;
 
     // Construct the input cone
