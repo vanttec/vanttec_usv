@@ -309,16 +309,16 @@ bool collision_cone(){
       ROS_INFO("Obstacle radius: %f coordinates %f,%f", r1, obstacle_list_[i].x, obstacle_list_[i].y);
       double D = r0;
       double delta = 0.25*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
-      ROS_INFO("Obstacle delta: %f", delta);
+      //ROS_INFO("Obstacle delta: %f", delta);
       obstacle_list_[i].tan_r.y = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
-      ROS_INFO("Obstacle y1 %f", obstacle_list_[i].tan_r.y); 
+      //ROS_INFO("Obstacle y1 %f", obstacle_list_[i].tan_r.y); 
       obstacle_list_[i].tan_l.y = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
-      ROS_INFO("Obstacle y2 %f", obstacle_list_[i].tan_l.y); 
+      //ROS_INFO("Obstacle y2 %f", obstacle_list_[i].tan_l.y); 
       obstacle_list_[i].tan_r.x = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
-      ROS_INFO("Obstacle x1 %f", obstacle_list_[i].tan_r.x); 
+      //ROS_INFO("Obstacle x1 %f", obstacle_list_[i].tan_r.x); 
       obstacle_list_[i].tan_l.x = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
-      ROS_INFO("Obstacle x2 %f", obstacle_list_[i].tan_l.x); 
-      ROS_INFO("Obstacle %i intersection1:%f,%f intersection2:%f,%f", i, obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
+      //ROS_INFO("Obstacle x2 %f", obstacle_list_[i].tan_l.x); 
+      //ROS_INFO("Obstacle %i intersection1:%f,%f intersection2:%f,%f", i, obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
     }
     return 1;
   }
@@ -344,17 +344,46 @@ void reachable_velocities(){
 bool reachable_avoidance_velocities(){
   Polygon_2 C;
   Polygon_with_holes_2 C_union;
-  //Polygon_with_holes_2* ptr = &C_union;
+  Coord intersect_l;
+  Coord intersect_r;
+  Coord vel_th;
+  double obstacle_theta = 0.0;
+  double speed_th = 0.0;
+  double slope = 0.0;
+  double b = 0.0;
+  double numerator = 0.0;
+  double denominator = 0.0;
+
   for(int i = 0; i<obstacle_list_.size(); ++i){
-    double obs_dist = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2));
-    // Codigo Sebas
-    
+    // Calculate VOH
+    double obs_dist = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2)) - obstacle_list_[i].r;
+    speed_th = obs_dist / time_horizon_;
+    obstacle_theta = atan2(obstacle_list_[i].x, obstacle_list_[i].y);
+    vel_th.x = speed_th * sin(obstacle_theta);
+    vel_th.y = speed_th * cos(obstacle_theta);
+    slope = -1 / ((vel_th.x - pos_x_)/(vel_th.y - pos_y_));
+    b = vel_th.x - (slope * vel_th.y);
+    // Intersect tan_l
+    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th.x-b)) - ((obstacle_list_[i].tan_l.x-0)*((vel_th.x*0)-(vel_th.y*b)));
+    denominator = ((obstacle_list_[i].tan_l.x-0)*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-0)*(vel_th.x-b)); 
+    intersect_l.x =  numerator / denominator;
+    numerator = (((obstacle_list_[i].tan_l.x*0)-(obstacle_list_[i].tan_l.y*0))*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-0)*((vel_th.x*0)-(vel_th.y*b)));
+    intersect_l.y =  numerator / denominator;
+    // Intersect tan_r
+    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th.x-b)) - ((obstacle_list_[i].tan_r.x-0)*((vel_th.x*0)-(vel_th.y*b)));
+    denominator = ((obstacle_list_[i].tan_r.x-0)*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-0)*(vel_th.x-b)); 
+    intersect_r.x =  numerator / denominator;
+    numerator = (((obstacle_list_[i].tan_r.x*0)-(obstacle_list_[i].tan_r.y*0))*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-0)*((vel_th.x*0)-(vel_th.y*b)));
+    intersect_r.y =  numerator / denominator;
+
     // Construct the input cone
     C.clear();
-    C.push_back (Point_2 (0, 0));
-    C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y));
-    C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y));
+    C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
+    C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y)); // Limit of input cone
+    C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
+    C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH
     std::cout << "C = "; print_polygon (C);
+
     // Check to see if cone intersercts with RV diamond
     if ((CGAL::do_intersect (C, RV_))){
       std::cout << "The two polygons intersect." << std::endl;
@@ -409,7 +438,7 @@ void optimal_velocity(){
       std::cout << "{ Outer boundary = ";
       std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
       for (vit = temp.outer_boundary().vertices_begin(); vit != temp.outer_boundary().vertices_end(); ++vit){
-        //std::cout << " (" << *vit << ')';
+        std::cout << " (" << *vit << ')';
         temp_point = *vit;
         std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
         Vertex temp_vertex;
@@ -425,11 +454,11 @@ void optimal_velocity(){
       for (hit = temp.holes_begin(); hit != temp.holes_end(); ++hit, ++k)
       {
         std::cout << "    Hole #" << k << " = ";
-        //print_polygon (*hit);
+        print_polygon (*hit);
         temp_poly = *hit;
         std::cout << "[ " << temp_poly.size() << " vertices:";
         for (vit = temp_poly.vertices_begin(); vit != temp_poly.vertices_end(); ++vit){
-          //std::cout << " (" << *vit << ')';
+          std::cout << " (" << *vit << ')';
           temp_point = *vit;
           std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
           Vertex temp_vertex;
