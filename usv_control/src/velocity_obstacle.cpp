@@ -309,16 +309,16 @@ bool collision_cone(){
       ROS_INFO("Obstacle radius: %f coordinates %f,%f", r1, obstacle_list_[i].x, obstacle_list_[i].y);
       double D = r0;
       double delta = 0.25*sqrt((D+r0+r1)*(D+r0-r1)*(D-r0+r1)*(-D+r0+r1));
-      ROS_INFO("Obstacle delta: %f", delta);
+      //ROS_INFO("Obstacle delta: %f", delta);
       obstacle_list_[i].tan_r.y = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
-      ROS_INFO("Obstacle y1 %f", obstacle_list_[i].tan_r.y); 
+      //ROS_INFO("Obstacle y1 %f", obstacle_list_[i].tan_r.y); 
       obstacle_list_[i].tan_l.y = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) + 2*((a-c)/(D*D))*delta;
-      ROS_INFO("Obstacle y2 %f", obstacle_list_[i].tan_l.y); 
+      //ROS_INFO("Obstacle y2 %f", obstacle_list_[i].tan_l.y); 
       obstacle_list_[i].tan_r.x = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) + 2*((b-d)/(D*D))*delta;
-      ROS_INFO("Obstacle x1 %f", obstacle_list_[i].tan_r.x); 
+      //ROS_INFO("Obstacle x1 %f", obstacle_list_[i].tan_r.x); 
       obstacle_list_[i].tan_l.x = (a+c)/2 + ((c-a)*(r0*r0-r1*r1))/(2*D*D) - 2*((b-d)/(D*D))*delta;
-      ROS_INFO("Obstacle x2 %f", obstacle_list_[i].tan_l.x); 
-      ROS_INFO("Obstacle %i intersection1:%f,%f intersection2:%f,%f", i, obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
+      //ROS_INFO("Obstacle x2 %f", obstacle_list_[i].tan_l.x); 
+      //ROS_INFO("Obstacle %i intersection1:%f,%f intersection2:%f,%f", i, obstacle_list_[i].tan_r.x , obstacle_list_[i].tan_r.y, obstacle_list_[i].tan_l.x , obstacle_list_[i].tan_l.y);
     }
     return 1;
   }
@@ -354,8 +354,8 @@ bool reachable_avoidance_velocities(){
   double numerator = 0.0;
   double denominator = 0.0;
 
-  //Polygon_with_holes_2* ptr = &C_union;
   for(int i = 0; i<obstacle_list_.size(); ++i){
+    // Calculate VOH
     double obs_dist = sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2)) - obstacle_list_[i].r;
     speed_th = obs_dist / time_horizon_;
     obstacle_theta = atan2(obstacle_list_[i].x, obstacle_list_[i].y);
@@ -432,47 +432,47 @@ void optimal_velocity(){
     //Iterate over set of polygon with holes
     RAV_.polygons_with_holes (std::back_inserter (res));
     for (it = res.begin(); it != res.end(); ++it) {
-      // std::cout << "--> ";
+      std::cout << "--> ";
       temp = *it;
       // Print polygon outer boundary
-      // std::cout << "{ Outer boundary = ";
-      // std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
+      std::cout << "{ Outer boundary = ";
+      std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
       for (vit = temp.outer_boundary().vertices_begin(); vit != temp.outer_boundary().vertices_end(); ++vit){
-        //std::cout << " (" << *vit << ')';
+        std::cout << " (" << *vit << ')';
         temp_point = *vit;
-      //  std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+        std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
         Vertex temp_vertex;
         temp_vertex.x = CGAL::to_double(temp_point.x());
         temp_vertex.y = CGAL::to_double(temp_point.y());
         temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
         queue.push(temp_vertex);
       }
-      //std::cout << " ]" << std::endl;
+      std::cout << " ]" << std::endl;
 
-      //std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
+      std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
       unsigned int k = 1;
       for (hit = temp.holes_begin(); hit != temp.holes_end(); ++hit, ++k)
       {
-        //std::cout << "    Hole #" << k << " = ";
-        //print_polygon (*hit);
+        std::cout << "    Hole #" << k << " = ";
+        print_polygon (*hit);
         temp_poly = *hit;
-        //std::cout << "[ " << temp_poly.size() << " vertices:";
+        std::cout << "[ " << temp_poly.size() << " vertices:";
         for (vit = temp_poly.vertices_begin(); vit != temp_poly.vertices_end(); ++vit){
-          //std::cout << " (" << *vit << ')';
+          std::cout << " (" << *vit << ')';
           temp_point = *vit;
-        //  std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+          std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
           Vertex temp_vertex;
           temp_vertex.x = CGAL::to_double(temp_point.x());
           temp_vertex.y = CGAL::to_double(temp_point.y());
           temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
           queue.push(temp_vertex);
         }
-      //  std::cout << " ]" << std::endl;
+        std::cout << " ]" << std::endl;
       }
-      // std::cout << " }" << std::endl;
+      std::cout << " }" << std::endl;
 
-      // std::cout << " queue size: " << queue.size() << std::endl;
-      // std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
+      std::cout << " queue size: " << queue.size() << std::endl;
+      std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
       desiered_velocity(queue.top());
     }
   }
