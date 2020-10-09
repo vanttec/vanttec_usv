@@ -31,8 +31,10 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Float64.h>
 
-#include "print_utils.h"
+#include "../include/print_utils.h"
 #include "usv_perception/obstacles_list.h"
+
+#include <visualization_msgs/Marker.h>
 
 // NAMESPACES ------------------------------------------------------------------
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
@@ -216,23 +218,32 @@ void desiered_velocity(const Vertex& optimal);
   * @return void.
   * */
 void NED2body();
+/**
+  * Draw cone from target to obstacle. 
+  * @return void.
+  * */
+void coneDraw(ros::Publisher &marker_pub);
 
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
   ros::init(argc, argv, "velocity_obstacle");
   ros::NodeHandle vo_node("velocity_obstacle");
-  ros::Rate loop_rate(100);
+  ros::Rate loop_rate(500);
+  ros::Publisher marker_pub = vo_node.advertise<visualization_msgs::Marker>("/usv_control/cone", queue_size_);
+  
   initialize(vo_node);
   while (ros::ok()){
     if(collision_cone()){
       reachable_velocities();
       if(reachable_avoidance_velocities()){
         optimal_velocity();
+        coneDraw(marker_pub);
       }
-      return 0;
+      //return 0;
     }
-    ros::spinOnce();
     loop_rate.sleep();
+    ros::spinOnce();
+    
   }
   return 0;
 };
@@ -339,6 +350,44 @@ void reachable_velocities(){
   RV_.push_back (Point_2 (v_min, 0));
   RV_.push_back (Point_2 (speed_long, w_min));
   std::cout << "RV = "; print_polygon (RV_);
+}
+
+void coneDraw(ros::Publisher &marker_pub){
+  uint32_t shape = visualization_msgs::Marker::LINE_STRIP;
+  visualization_msgs::Marker marker;
+  marker.header.frame_id = "/my_frame";
+  marker.header.stamp = ros::Time::now();
+  marker.ns = "cone_shape";
+  marker.id = 0;
+  marker.type = shape;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.pose.position.x = 0;
+  marker.pose.position.y = 0;
+  marker.pose.position.z = 0;
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 1.0;
+  marker.scale.x = 0.1;
+  marker.lifetime = ros::Duration();
+
+  geometry_msgs::Point p;
+
+  marker.points.clear();
+  for(int i=0; i<obstacle_list_.size(); i++){
+    p.x = obstacle_list_[i].tan_l.x;
+    p.y = obstacle_list_[i].tan_l.y;
+    p.z = 0;
+    marker.points.push_back(p);
+    p.x = obstacle_list_[i].tan_r.x;
+    p.y = obstacle_list_[i].tan_r.y;
+    p.z = 0;
+    marker.points.push_back(p);
+  }
+  marker_pub.publish(marker);
+
 }
 
 bool reachable_avoidance_velocities(){
