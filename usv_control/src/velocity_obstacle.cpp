@@ -95,6 +95,7 @@ double max_vel_ = 1.5; //m/s
   * Rechable velocities diamond. 
   * */
 Polygon_2 RV_;
+
 /**
   * RAV poligon set. 
   * */
@@ -116,6 +117,7 @@ ros::Subscriber obstacles_sub_;
   * */
 ros::Publisher desiered_vel_pub_;
 ros::Publisher desiered_heading_pub_;
+ros::Publisher marker_pub;
 /**
   * Speed variables
   * */
@@ -222,14 +224,14 @@ void NED2body();
   * Draw cone from target to obstacle. 
   * @return void.
   * */
-void coneDraw(ros::Publisher &marker_pub);
+void coneDraw(Polygon_2 C);
 
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
   ros::init(argc, argv, "velocity_obstacle");
   ros::NodeHandle vo_node("velocity_obstacle");
   ros::Rate loop_rate(500);
-  ros::Publisher marker_pub = vo_node.advertise<visualization_msgs::Marker>("/usv_control/cone", queue_size_);
+  marker_pub = vo_node.advertise<visualization_msgs::Marker>("/usv_control/cone", 10);
   
   initialize(vo_node);
   while (ros::ok()){
@@ -237,7 +239,6 @@ int main(int argc, char** argv){
       reachable_velocities();
       if(reachable_avoidance_velocities()){
         optimal_velocity();
-        coneDraw(marker_pub);
       }
       //return 0;
     }
@@ -352,14 +353,13 @@ void reachable_velocities(){
   std::cout << "RV = "; print_polygon (RV_);
 }
 
-void coneDraw(ros::Publisher &marker_pub){
-  uint32_t shape = visualization_msgs::Marker::LINE_STRIP;
+void coneDraw(Polygon_2 C){
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "/my_frame";
+  marker.header.frame_id = "/world";
   marker.header.stamp = ros::Time::now();
   marker.ns = "cone_shape";
   marker.id = 0;
-  marker.type = shape;
+  marker.type = visualization_msgs::Marker::LINE_STRIP;
   marker.action = visualization_msgs::Marker::ADD;
   marker.pose.position.x = 0;
   marker.pose.position.y = 0;
@@ -371,21 +371,20 @@ void coneDraw(ros::Publisher &marker_pub){
   marker.color.b = 1.0;
   marker.color.a = 1.0;
   marker.scale.x = 0.1;
-  marker.lifetime = ros::Duration();
-
+  //marker.lifetime = ros::Duration();
   geometry_msgs::Point p;
+  //marker.points.clear();
+  for (Polygon_2::Vertex_const_iterator vertex = C.vertices_begin(); vertex != C.vertices_end(); ++vertex){
+    p.x=to_double(vertex->hx());
+    p.y=to_double(vertex->hy());
+    p.z=0;
+    marker.points.push_back(p);
 
-  marker.points.clear();
-  for(int i=0; i<obstacle_list_.size(); i++){
-    p.x = obstacle_list_[i].tan_l.x;
-    p.y = obstacle_list_[i].tan_l.y;
-    p.z = 0;
-    marker.points.push_back(p);
-    p.x = obstacle_list_[i].tan_r.x;
-    p.y = obstacle_list_[i].tan_r.y;
-    p.z = 0;
-    marker.points.push_back(p);
   }
+  p.x=to_double(C.vertices_begin()->hx());
+  p.y=to_double(C.vertices_begin()->hy());
+  p.z=0;
+  marker.points.push_back(p);
   marker_pub.publish(marker);
 
 }
@@ -432,7 +431,8 @@ bool reachable_avoidance_velocities(){
     C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
     C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH
     std::cout << "C = "; print_polygon (C);
-
+    // Draw cone
+    coneDraw(C);
     // Check to see if cone intersercts with RV diamond
     if ((CGAL::do_intersect (C, RV_))){
       std::cout << "The two polygons intersect." << std::endl;
