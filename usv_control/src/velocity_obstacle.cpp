@@ -361,8 +361,8 @@ void coneDraw(Polygon_2 C){
   marker.id = 0;
   marker.type = visualization_msgs::Marker::LINE_STRIP;
   marker.action = visualization_msgs::Marker::ADD;
-  marker.pose.position.x = 0;
-  marker.pose.position.y = 0;
+  marker.pose.position.x = pos_x_;
+  marker.pose.position.y = pos_y_;
   marker.pose.position.z = 0;
   marker.pose.orientation.x = 0.0;
   marker.pose.orientation.y = 0.0;
