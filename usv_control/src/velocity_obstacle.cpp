@@ -30,7 +30,6 @@
 #include <geometry_msgs/Vector3.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Float64.h>
-
 #include "../include/print_utils.h"
 #include "usv_perception/obstacles_list.h"
 
@@ -95,7 +94,6 @@ double max_vel_ = 1.5; //m/s
   * Rechable velocities diamond. 
   * */
 Polygon_2 RV_;
-
 /**
   * RAV poligon set. 
   * */
@@ -117,7 +115,7 @@ ros::Subscriber obstacles_sub_;
   * */
 ros::Publisher desiered_vel_pub_;
 ros::Publisher desiered_heading_pub_;
-ros::Publisher marker_pub;
+ros::Publisher marker_pub_;
 /**
   * Speed variables
   * */
@@ -143,7 +141,10 @@ Eigen::Vector3f goal_body_ = Eigen::Vector3f::Zero();
   * Obstacle list vector
   * */
 std::vector<Obstacle> obstacle_list_;
-
+/**
+  * Cone Marker
+  * */
+visualization_msgs::Marker marker;
 // LAUNCH PARAMETERS ---------------------------------------------------------
 /**
   * Topics
@@ -155,6 +156,7 @@ const std::string topic_goal_sub_ = "/usv_control/los/target";
 const std::string topic_obstacles_sub_ = "/usv_perception/lidar_detector/obstacles";
 const std::string topic_desiered_vel_pub_ = "/guidance/desired_speed";
 const std::string topic_desiered_heading_pub_ = "/guidance/desired_heading";
+const std::string topic_rviz_cone_ = "/usv_control/cone";
 /** 
   * Parameters
   * */
@@ -224,14 +226,12 @@ void NED2body();
   * Draw cone from target to obstacle. 
   * @return void.
   * */
-void coneDraw(Polygon_2 C);
-
+void cone_draw(Polygon_2 C);
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
   ros::init(argc, argv, "velocity_obstacle");
   ros::NodeHandle vo_node("velocity_obstacle");
   ros::Rate loop_rate(500);
-  marker_pub = vo_node.advertise<visualization_msgs::Marker>("/usv_control/cone", 10);
   
   initialize(vo_node);
   while (ros::ok()){
@@ -244,7 +244,6 @@ int main(int argc, char** argv){
     }
     loop_rate.sleep();
     ros::spinOnce();
-    
   }
   return 0;
 };
@@ -263,6 +262,9 @@ void initialize(ros::NodeHandle &vo_node){
     topic_desiered_vel_pub_, queue_size_);
   desiered_heading_pub_ = vo_node.advertise<std_msgs::Float64>(
     topic_desiered_heading_pub_, queue_size_);
+  marker_pub_ = vo_node.advertise<visualization_msgs::Marker>(
+    topic_rviz_cone_, 10);
+
   // Success
   ROS_INFO("Velocity obstacle node is Ready!");
 }
@@ -353,8 +355,7 @@ void reachable_velocities(){
   std::cout << "RV = "; print_polygon (RV_);
 }
 
-void coneDraw(Polygon_2 C){
-  visualization_msgs::Marker marker;
+void cone_draw(Polygon_2 C){
   marker.header.frame_id = "/world";
   marker.header.stamp = ros::Time::now();
   marker.ns = "cone_shape";
@@ -371,22 +372,20 @@ void coneDraw(Polygon_2 C){
   marker.color.b = 1.0;
   marker.color.a = 1.0;
   marker.scale.x = 0.1;
-  //marker.lifetime = ros::Duration();
+  marker.lifetime = ros::Duration();
   geometry_msgs::Point p;
-  //marker.points.clear();
+  marker.points.clear();
   for (Polygon_2::Vertex_const_iterator vertex = C.vertices_begin(); vertex != C.vertices_end(); ++vertex){
     p.x=to_double(vertex->hx());
     p.y=to_double(vertex->hy());
     p.z=0;
     marker.points.push_back(p);
-
   }
   p.x=to_double(C.vertices_begin()->hx());
   p.y=to_double(C.vertices_begin()->hy());
   p.z=0;
   marker.points.push_back(p);
-  marker_pub.publish(marker);
-
+  marker_pub_.publish(marker);
 }
 
 bool reachable_avoidance_velocities(){
@@ -432,7 +431,7 @@ bool reachable_avoidance_velocities(){
     C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH
     std::cout << "C = "; print_polygon (C);
     // Draw cone
-    coneDraw(C);
+    cone_draw(C);
     // Check to see if cone intersercts with RV diamond
     if ((CGAL::do_intersect (C, RV_))){
       std::cout << "The two polygons intersect." << std::endl;
