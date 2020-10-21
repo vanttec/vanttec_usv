@@ -30,9 +30,10 @@
 #include <geometry_msgs/Vector3.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Float64.h>
-
-#include "print_utils.h"
+#include "../include/print_utils.h"
 #include "usv_perception/obstacles_list.h"
+
+#include <visualization_msgs/Marker.h>
 
 // NAMESPACES ------------------------------------------------------------------
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
@@ -114,6 +115,7 @@ ros::Subscriber obstacles_sub_;
   * */
 ros::Publisher desiered_vel_pub_;
 ros::Publisher desiered_heading_pub_;
+ros::Publisher marker_pub_;
 /**
   * Speed variables
   * */
@@ -139,7 +141,10 @@ Eigen::Vector3f goal_body_ = Eigen::Vector3f::Zero();
   * Obstacle list vector
   * */
 std::vector<Obstacle> obstacle_list_;
-
+/**
+  * Cone Marker
+  * */
+visualization_msgs::Marker marker;
 // LAUNCH PARAMETERS ---------------------------------------------------------
 /**
   * Topics
@@ -151,6 +156,7 @@ const std::string topic_goal_sub_ = "/usv_control/los/target";
 const std::string topic_obstacles_sub_ = "/usv_perception/lidar_detector/obstacles";
 const std::string topic_desiered_vel_pub_ = "/guidance/desired_speed";
 const std::string topic_desiered_heading_pub_ = "/guidance/desired_heading";
+const std::string topic_rviz_cone_ = "/usv_control/cone";
 /** 
   * Parameters
   * */
@@ -216,12 +222,17 @@ void desiered_velocity(const Vertex& optimal);
   * @return void.
   * */
 void NED2body();
-
+/**
+  * Draw cone from target to obstacle. 
+  * @return void.
+  * */
+void cone_draw(Polygon_2 C);
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
   ros::init(argc, argv, "velocity_obstacle");
   ros::NodeHandle vo_node("velocity_obstacle");
   ros::Rate loop_rate(100);
+  
   initialize(vo_node);
   while (ros::ok()){
     if(collision_cone()){
@@ -229,10 +240,10 @@ int main(int argc, char** argv){
       if(reachable_avoidance_velocities()){
         optimal_velocity();
       }
-      return 0;
+      //return 0;
     }
-    ros::spinOnce();
     loop_rate.sleep();
+    ros::spinOnce();
   }
   return 0;
 };
@@ -251,6 +262,9 @@ void initialize(ros::NodeHandle &vo_node){
     topic_desiered_vel_pub_, queue_size_);
   desiered_heading_pub_ = vo_node.advertise<std_msgs::Float64>(
     topic_desiered_heading_pub_, queue_size_);
+  marker_pub_ = vo_node.advertise<visualization_msgs::Marker>(
+    topic_rviz_cone_, 10);
+
   // Success
   ROS_INFO("Velocity obstacle node is Ready!");
 }
@@ -341,6 +355,39 @@ void reachable_velocities(){
   std::cout << "RV = "; print_polygon (RV_);
 }
 
+void cone_draw(Polygon_2 C){
+  marker.header.frame_id = "/world";
+  marker.header.stamp = ros::Time::now();
+  marker.ns = "cone_shape";
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::LINE_STRIP;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.pose.position.x = pos_x_;
+  marker.pose.position.y = pos_y_;
+  marker.pose.position.z = 0;
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+  marker.color.b = 1.0;
+  marker.color.a = 1.0;
+  marker.scale.x = 0.1;
+  marker.lifetime = ros::Duration();
+  geometry_msgs::Point p;
+  marker.points.clear();
+  for (Polygon_2::Vertex_const_iterator vertex = C.vertices_begin(); vertex != C.vertices_end(); ++vertex){
+    p.x=to_double(vertex->hx());
+    p.y=to_double(vertex->hy());
+    p.z=0;
+    marker.points.push_back(p);
+  }
+  p.x=to_double(C.vertices_begin()->hx());
+  p.y=to_double(C.vertices_begin()->hy());
+  p.z=0;
+  marker.points.push_back(p);
+  marker_pub_.publish(marker);
+}
+
 bool reachable_avoidance_velocities(){
   Polygon_2 C;
   Polygon_with_holes_2 C_union;
@@ -383,7 +430,8 @@ bool reachable_avoidance_velocities(){
     C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
     C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH
     std::cout << "C = "; print_polygon (C);
-
+    // Draw cone
+    cone_draw(C);
     // Check to see if cone intersercts with RV diamond
     if ((CGAL::do_intersect (C, RV_))){
       std::cout << "The two polygons intersect." << std::endl;
