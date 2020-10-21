@@ -231,7 +231,7 @@ void cone_draw(Polygon_2 C);
 int main(int argc, char** argv){
   ros::init(argc, argv, "velocity_obstacle");
   ros::NodeHandle vo_node("velocity_obstacle");
-  ros::Rate loop_rate(500);
+  ros::Rate loop_rate(100);
   
   initialize(vo_node);
   while (ros::ok()){
