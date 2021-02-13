@@ -5,20 +5,35 @@ ros::NodeHandle nh;
 
 std_msgs::String str_msg;
 
-ros::Publisher datainput("/usv_comms/transceiver/data_input", &str_msg);
+ros::Publisher boatConfirmation("/usv_comms/transceiver/boat_confirmation", &str_msg);
+ros::Publisher boatStatus("/usv_comms/transceiver/boat_status", &str_msg);
+ros::Publisher stationCommands("/usv_comms/transceiver/station_commands", &str_msg);
 
-void messageCb( const std_msgs::String& toggle_msg){
-  datainput.publish(&toggle_msg);   // blink the led
+void messageConfirm( const std_msgs::String& toggle_msg){
+  boatConfirmation.publish(&toggle_msg);   // blink the led
 }
 
-ros::Subscriber<std_msgs::String> sub("/usv_comms/station_transceiver/boat_data", &messageCb );
+void messageStatus( const std_msgs::String& toggle_msg){
+  boatStatus.publish(&toggle_msg);   // blink the led
+}
+
+void messageCommands( const std_msgs::String& toggle_msg){
+  stationCommands.publish(&toggle_msg);   // blink the led
+}
+ros::Subscriber<std_msgs::String> confirmation("/usv_comms/boat_transceiver/course_confirmation", &messageConfirm );
+ros::Subscriber<std_msgs::String> status("/usv_comms/boat_transceiver/boat_status", &messageStatus );
+ros::Subscriber<std_msgs::String> commands("/usv_comms/station_transceiver/station_commands", &messageCommands );
 
 void setup()
 {
   nh.initNode();
-  nh.advertise(datainput);
-  nh.subscribe(sub);
+  nh.advertise(boatConfirmation);
+  nh.advertise(boatStatus);
+  nh.advertise(stationCommands);
 
+  nh.subscribe(confirmation);
+  nh.subscribe(status);
+  nh.subscribe(commands);
 }
 
 void loop()
