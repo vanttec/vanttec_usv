@@ -1,6 +1,6 @@
 <launch>
     
-    <include file="$(find usv_perception)/launch/usv_perception.launch" />
+    <!-- <include file="$(find usv_perception)/launch/usv_perception.launch" /> -->
     
     <include file="$(find usv_control)/launch/usv_control.launch" />
     
@@ -13,5 +13,9 @@
     </node> -->
 
     <node pkg="usv_master" type="usv_master.py" name="usv_master" />
-      
+
+    <node pkg="usv_master" type="gazebo_interface" name="gazebo_interface" />
+
+    <node pkg="usv_master" type="waypoints.py" name="waypoints" />
+
 </launch>

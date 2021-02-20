@@ -35,7 +35,8 @@ void SetState::stateCallback(const geometry_msgs::Pose2D::ConstPtr& msg){
 
 int main(int argc, char **argv){
     ros::init(argc,argv, "gazebo_interface");
-    ros::Rate rate(10);
+    SetState state;
+    ros::Rate rate(100);
 
     while (ros::ok){
         rate.sleep(); // wait 10 Hz
