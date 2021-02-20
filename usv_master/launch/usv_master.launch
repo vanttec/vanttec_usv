@@ -4,13 +4,13 @@
     
     <include file="$(find usv_control)/launch/usv_control.launch" />
     
-    <include file="$(find arduino-br)/launch/arduino_br.launch" />
+    <!-- <include file="$(find arduino-br)/launch/arduino_br.launch" /> -->
         
-    <node pkg="vectornav-ros" type="ins_2d" name="ins_2d" />
+    <!-- <node pkg="vectornav-ros" type="ins_2d" name="ins_2d" /> -->
     
-    <node pkg="usv_comms" type="boat_transceiver.py" name="boat_transceiver">
+    <!-- <node pkg="usv_comms" type="boat_transceiver.py" name="boat_transceiver">
     <param name = "xbee_port" value = "/dev/ttyUSB2" />
-    </node>
+    </node> -->
 
     <node pkg="usv_master" type="usv_master.py" name="usv_master" />
       
