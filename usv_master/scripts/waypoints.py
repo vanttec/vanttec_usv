@@ -8,8 +8,6 @@ from std_msgs.msg import Float64, Float32MultiArray
 
 class Test:
     def __init__(self):
-        self.testing = True
-
         self.path_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
 
     def desired(self, path):
@@ -17,24 +15,15 @@ class Test:
 
 def main():
     rospy.init_node('waypoints', anonymous=False)
-    rate = rospy.Rate(20) # 100hz
+    rate = rospy.Rate(100)
     t = Test()
     path_array = Float32MultiArray()
-    path_array.layout.data_offset = 5
-    path_array.data = [0, 4, 45, 4, 0]
-    while not rospy.is_shutdown() and t.testing:
-        time.sleep(1)
-        start_time = rospy.Time.now().secs
-        while (rospy.Time.now().secs - start_time) <= 50 and not rospy.is_shutdown():
-            t.desired(path_array)
-            rate.sleep()
-        path_array.layout.data_offset = 3
-        path_array.data = [0,0,2]
+    path_array.layout.data_offset = 9
+    path_array.data = [5,5,5,-5,10,0,0,0,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
+    while not rospy.is_shutdown():
         t.desired(path_array)
-        t.testing = False
-        rospy.logwarn("Finished")
-    rospy.spin()
-
+        rate.sleep()
+        
 if __name__ == "__main__":
     try:
         main()
