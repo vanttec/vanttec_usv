@@ -315,7 +315,7 @@ void VTPC<PointType>::ClusterGrid(const bool &tracking){
       //If not a new group number will be assign
       if((tracking) & (isFirstIteration_)){
 
-        dilate(contour_mask, contour_mask_mod, Mat(), Point(-1, -1), 3, 1, 1);      
+        dilate(contour_mask, contour_mask_mod, Mat(), Point(-1, -1), 2, 1, 1);      
         bitwise_and(contour_mask_mod, prevGridImg, contour_mask_mod);
         findNonZero(contour_mask_mod, non_zero_tracking);
         
