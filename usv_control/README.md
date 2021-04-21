@@ -8,7 +8,7 @@ To try the method just run in your terminal:
 ```
 roscore
 rviz
-roslaunch usv_control usv_simulation.launch
+roslaunch usv_control simulation_avoidance.launch
 rosrun usv_control velocity_obstacle
 rosrun usv_control lidar_obstacle_simulator.py
 ```
