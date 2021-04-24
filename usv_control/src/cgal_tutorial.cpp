@@ -136,6 +136,24 @@ int main (int argc, char** argv)
     print_polygon_with_holes (*it);
   }
 
+  // The polygon's outer boundary must be counter-clockwise oriented. 
+  Polygon_2 d_velocity; // Line
+  d_velocity.push_back(Point_2(0,0));
+  d_velocity.push_back(Point_2(0.1,0));
+  d_velocity.push_back(Point_2(3.1,3));
+  d_velocity.push_back(Point_2(3,3));
+
+  Polygon_set_2 ps;
+  ps.insert(P);
+
+  // Polygon::Segment_2 vel;
+
+  if(ps.do_intersect(d_velocity)){
+    std::cout << "LOS desired vel and hdng is inside the collision cones.\n";
+  } else {
+    std::cout << "LOS desired vel and hdng is outside the collision cones or in boundary.\n";
+  }
+
   Point_2 center = Point_2(0, 0);
   double radius = 2;
   Circle_2 circle(center, radius);
