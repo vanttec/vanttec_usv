@@ -417,8 +417,8 @@ void cone_draw(Polygon_2 C){
   marker.id = 0;
   marker.type = visualization_msgs::Marker::LINE_STRIP;
   marker.action = visualization_msgs::Marker::ADD;
-  marker.pose.position.x = pos_x_;
-  marker.pose.position.y = -pos_y_;
+  marker.pose.position.x = 0;
+  marker.pose.position.y = 0;
   marker.pose.position.z = 0;
   marker.pose.orientation.x = 0.0;
   marker.pose.orientation.y = 0.0;
@@ -555,10 +555,11 @@ bool reachable_avoidance_velocities(){
     p1.y = obstacle_list_[i].tan_l.y;
     p2.x = pos_x_;
     p2.y = pos_y_;
-    p3.x = b;
-    p3.y = 0;
+    p3.x = vel_th.x - (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
+    p3.y = vel_th.y - (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
     p4.x = vel_th.x;
     p4.y = vel_th.y;
+
     // Intersect tan_l
     numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
     denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
@@ -566,43 +567,28 @@ bool reachable_avoidance_velocities(){
     numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
     intersect_l.x =  numerator / denominator;
 
-    // numerator = (((obstacle_list_[i].tan_l.x*pos_y_)-(obstacle_list_[i].tan_l.y*pos_x_))*(vel_th.x-b)) - ((obstacle_list_[i].tan_l.x-pos_x_)*((vel_th.x*0)-(vel_th.y*b)));
-    // denominator = ((obstacle_list_[i].tan_l.x-pos_x_)*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-pos_y_)*(vel_th.x-b));
-    // intersect_l.x =  numerator / denominator;
-    // numerator = (((obstacle_list_[i].tan_l.x*pos_y_)-(obstacle_list_[i].tan_l.y*pos_x_))*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-pos_y_)*((vel_th.x*0)-(vel_th.y*b)));
-    // intersect_l.y =  numerator / denominator;
-
     // Intersect tan_r
     p1.x = obstacle_list_[i].tan_r.x;
     p1.y = obstacle_list_[i].tan_r.y;
     p3.x = vel_th.x;
     p3.y = vel_th.y;
-    p4.y = pos_y_;
-    p4.x = slope*p4.y+b;
+    p4.x = vel_th.x + (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
+    p4.y = vel_th.y + (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
     numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
     denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
     intersect_r.y =  numerator / denominator;
     numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
     intersect_r.x =  numerator / denominator;
-    // p2.x=obstacle_list_[i].tan_r.x;
-    // p2.y=obstacle_list_[i].tan_r.y;
-    // p4.x=slope*obstacle_list_[i].tan_r.y+b;
-    // p4.y=obstacle_list_[i].tan_r.y;
-    // numerator = (((obstacle_list_[i].tan_r.x*pos_y_)-(obstacle_list_[i].tan_r.y*pos_x_))*(vel_th.x-b)) - ((obstacle_list_[i].tan_r.x-pos_x_)*((vel_th.x*0)-(vel_th.y*b)));
-    // denominator = ((obstacle_list_[i].tan_r.x-pos_x_)*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-pos_y_)*(vel_th.x-b));
-    // intersect_r.x =  numerator / denominator;
-    // numerator = (((obstacle_list_[i].tan_r.x*pos_y_)-(obstacle_list_[i].tan_r.y*pos_x_))*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-pos_y_)*((vel_th.x*0)-(vel_th.y*b)));
-    // intersect_r.y =  numerator / denominator;
-    ROS_INFO("Todos los vertices generados\n");
-    ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
-    ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
+    // ROS_INFO("Todos los vertices generados\n");
+    // ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
+    // ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
     // Construct the input cone
     C.clear();
     C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
     C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y)); // Limit of input cone
     C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
     C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH
-    // std::cout << "C = "; print_polygon (C);
+    std::cout << "C = "; print_polygon (C);
     // Draw cone
     cone_draw(C);
     // Check to see if cone intersercts with RV diamond
