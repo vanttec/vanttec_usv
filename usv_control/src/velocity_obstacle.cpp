@@ -518,67 +518,81 @@ bool reachable_avoidance_velocities(){
   Coord intersect_l;
   Coord intersect_r;
   Coord vel_th;
-  double obstacle_theta = 0.0;
-  double speed_th = 0.0;
-  double slope = 0.0;
-  double b = 0.0;
-  double numerator = 0.0;
-  double denominator = 0.0;
-  double obs_dist = 0.0;
   Coord p1;
   Coord p2;
   Coord p3;
   Coord p4;
+  double obstacle_theta = 0.0;
+  double speed_th = 0.0;
+  double slope,slope1 = 0.0;
+  double b = 0.0;
+  double numerator = 0.0;
+  double denominator = 0.0;
+  double obs_dist = 0.0;
 
   CCs_.clear();
   RAV_.clear();
 
-  // Convencion usada por vanttec: x-frente, y-izq (para este metodo)
   for(int i = 0; i<obstacle_list_.size(); ++i){
     // Calculate VOH
     obs_dist = sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) - obstacle_list_[i].r;
     speed_th = obs_dist / time_horizon_;
     obstacle_theta = atan2(obstacle_list_[i].x, obstacle_list_[i].y); // Para atan2 derecha es x y y es frente
-    // Next> with origin in boat
     vel_th.x = speed_th * sin(obstacle_theta);
     vel_th.y = speed_th * cos(obstacle_theta);
-    slope = (vel_th.x - pos_x_) / (vel_th.y - pos_y_);
-    // b = vel_th.x - (slope * vel_th.y);    // (b,0) is a point
-
-    slope = -1/slope;
+    slope = -1 / ((vel_th.x - pos_x_) / (vel_th.y - pos_y_));
     b = vel_th.x - (slope * vel_th.y);    // (b,0) is a point
-
+    // std::cout<<"Slope val (=-1?)"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_) * slope<<"\n";
+    // std::cout<<"B:"<<b<<"\n";
+    // std::cout<<"slope1:"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_)<<"\n";
+    // std::cout<<"slope2:"<<slope<<"\n";
+    // std::cout<<"vel_th.x:"<<vel_th.x<<"\n";
+    // std::cout<<"vel_th.y:"<<vel_th.y<<"\n";
+    p1.x = obstacle_list_[i].tan_l.x;
+    p1.y = obstacle_list_[i].tan_l.y;
+    p2.x = pos_x_;
+    p2.y = pos_y_;
+    p3.x = b;
+    p3.y = 0;
+    p4.x = vel_th.x;
+    p4.y = vel_th.y;
     // Intersect tan_l
-    p1.x=pos_x_;
-    p1.y=pos_y_;
-    p2.x=obstacle_list_[i].tan_l.x;
-    p2.y=obstacle_list_[i].tan_l.y;
-    p3.x=vel_th.x;
-    p3.x=vel_th.y;
-    p4.x=slope*obstacle_list_[i].tan_l.y+b;
-    p4.y=obstacle_list_[i].tan_l.y;
-    // numerator = ((p1.y*p2.x-p1.x*p2.y)*(p3.y-p4.y))-((p1.y-p2.y)*(p3.y*p4.x-p3.x*p4.y));
-    // denominator = ((p1.y-p2.y)*(p3.x-p4.x))-((p1.x-p2.x)*(p3.y-p4.y));
-    numerator = (((obstacle_list_[i].tan_l.x*pos_y_)-(obstacle_list_[i].tan_l.y*pos_x_))*(vel_th.x-b)) - ((obstacle_list_[i].tan_l.x-pos_x_)*((vel_th.x*0)-(vel_th.y*b)));
-    denominator = ((obstacle_list_[i].tan_l.x-pos_x_)*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-pos_y_)*(vel_th.x-b));
-    intersect_l.x =  numerator / denominator;
-    // numerator = ((p1.y*p2.x-p1.x*p2.y)*(p3.y-p4.y))-((p1.y-p2.y)*(p3.y*p4.x-p3.x*p4.y));
-    numerator = (((obstacle_list_[i].tan_l.x*pos_y_)-(obstacle_list_[i].tan_l.y*pos_x_))*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-pos_y_)*((vel_th.x*0)-(vel_th.y*b)));
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
+    denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
     intersect_l.y =  numerator / denominator;
-    // Intersect tan_r
-    p2.x=obstacle_list_[i].tan_r.x;
-    p2.y=obstacle_list_[i].tan_r.y;
-    p4.x=slope*obstacle_list_[i].tan_r.y+b;
-    p4.y=obstacle_list_[i].tan_r.y;
-    // numerator = ((p1.y*p2.x-p1.x*p2.y)*(p3.y-p4.y))-((p1.y-p2.y)*(p3.y*p4.x-p3.x*p4.y));
-    // denominator = ((p1.y-p2.y)*(p3.x-p4.x))-((p1.x-p2.x)*(p3.y-p4.y));
-    numerator = (((obstacle_list_[i].tan_r.x*pos_y_)-(obstacle_list_[i].tan_r.y*pos_x_))*(vel_th.x-b)) - ((obstacle_list_[i].tan_r.x-pos_x_)*((vel_th.x*0)-(vel_th.y*b)));
-    denominator = ((obstacle_list_[i].tan_r.x-pos_x_)*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-pos_y_)*(vel_th.x-b));
-    intersect_r.x =  numerator / denominator;
-    // numerator = ((p1.y*p2.x-p1.x*p2.y)*(p3.y-p4.y))-((p1.y-p2.y)*(p3.y*p4.x-p3.x*p4.y));
-    numerator = (((obstacle_list_[i].tan_r.x*pos_y_)-(obstacle_list_[i].tan_r.y*pos_x_))*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-pos_y_)*((vel_th.x*0)-(vel_th.y*b)));
-    intersect_r.y =  numerator / denominator;
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
+    intersect_l.x =  numerator / denominator;
 
+    // numerator = (((obstacle_list_[i].tan_l.x*pos_y_)-(obstacle_list_[i].tan_l.y*pos_x_))*(vel_th.x-b)) - ((obstacle_list_[i].tan_l.x-pos_x_)*((vel_th.x*0)-(vel_th.y*b)));
+    // denominator = ((obstacle_list_[i].tan_l.x-pos_x_)*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-pos_y_)*(vel_th.x-b));
+    // intersect_l.x =  numerator / denominator;
+    // numerator = (((obstacle_list_[i].tan_l.x*pos_y_)-(obstacle_list_[i].tan_l.y*pos_x_))*(vel_th.y-0)) - ((obstacle_list_[i].tan_l.y-pos_y_)*((vel_th.x*0)-(vel_th.y*b)));
+    // intersect_l.y =  numerator / denominator;
+
+    // Intersect tan_r
+    p1.x = obstacle_list_[i].tan_r.x;
+    p1.y = obstacle_list_[i].tan_r.y;
+    p3.x = vel_th.x;
+    p3.y = vel_th.y;
+    p4.y = pos_y_;
+    p4.x = slope*p4.y+b;
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
+    denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
+    intersect_r.y =  numerator / denominator;
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
+    intersect_r.x =  numerator / denominator;
+    // p2.x=obstacle_list_[i].tan_r.x;
+    // p2.y=obstacle_list_[i].tan_r.y;
+    // p4.x=slope*obstacle_list_[i].tan_r.y+b;
+    // p4.y=obstacle_list_[i].tan_r.y;
+    // numerator = (((obstacle_list_[i].tan_r.x*pos_y_)-(obstacle_list_[i].tan_r.y*pos_x_))*(vel_th.x-b)) - ((obstacle_list_[i].tan_r.x-pos_x_)*((vel_th.x*0)-(vel_th.y*b)));
+    // denominator = ((obstacle_list_[i].tan_r.x-pos_x_)*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-pos_y_)*(vel_th.x-b));
+    // intersect_r.x =  numerator / denominator;
+    // numerator = (((obstacle_list_[i].tan_r.x*pos_y_)-(obstacle_list_[i].tan_r.y*pos_x_))*(vel_th.y-0)) - ((obstacle_list_[i].tan_r.y-pos_y_)*((vel_th.x*0)-(vel_th.y*b)));
+    // intersect_r.y =  numerator / denominator;
+    ROS_INFO("Todos los vertices generados\n");
+    ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
+    ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
     // Construct the input cone
     C.clear();
     C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
