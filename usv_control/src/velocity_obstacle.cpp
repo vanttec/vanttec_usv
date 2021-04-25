@@ -541,13 +541,16 @@ bool reachable_avoidance_velocities(){
     vel_th.x = speed_th * sin(obstacle_theta);
     vel_th.y = speed_th * cos(obstacle_theta);
     slope = -1 / ((vel_th.x - pos_x_) / (vel_th.y - pos_y_));
-    b = vel_th.x - (slope * vel_th.y);    // (b,0) is a point
+    b = vel_th.x - (slope * vel_th.y);
     // std::cout<<"Slope val (=-1?)"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_) * slope<<"\n";
     // std::cout<<"B:"<<b<<"\n";
     // std::cout<<"slope1:"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_)<<"\n";
     // std::cout<<"slope2:"<<slope<<"\n";
     // std::cout<<"vel_th.x:"<<vel_th.x<<"\n";
     // std::cout<<"vel_th.y:"<<vel_th.y<<"\n";
+    // std::cout<<"pos_x:"<<pos_x_<<"\n";
+    // std::cout<<"pos_y:"<<pos_y_<<"\n";
+    // std::cout<<"dist:"<<obs_dist<<"\n";
     p1.x = obstacle_list_[i].tan_l.x;
     p1.y = obstacle_list_[i].tan_l.y;
     p2.x = pos_x_;
