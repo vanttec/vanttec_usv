@@ -293,6 +293,8 @@ void check_cone_state(Coord,Obstacle&,double);
 Coord NED2body_(Coord &coord);
 Coord Body2NED_(Coord &coord);
 Eigen::Vector3f Body2NED();
+bool check_point_inside(Polygon_2 pol,Point_2 pt);
+
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
   ros::init(argc, argv, "velocity_obstacle");
@@ -746,7 +748,7 @@ bool reachable_avoidance_velocities(){
     // ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
     // ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
 
-    // If the boat hasn't collided
+    // If the boat hasn't collided with circumference
     if(sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) > obstacle_list_[i].r){
     // Construct the input cone
       C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
@@ -777,11 +779,15 @@ bool reachable_avoidance_velocities(){
       else{
         CCs_.join(C);
         std::cout << "The two polygons do not intersect." << std::endl;
+        return 0;
       }
     } else {
-      ROS_WARN("Collision!");  
+      ROS_WARN("Incoming collision!");  
+      // return 1;
+    }
+    if(sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) < obstacle_list_[i].r){
       return 1;
-    } 
+    }
   }
   if(!C_union.is_unbounded()){
     // Perform a sequence of operations.
@@ -794,17 +800,17 @@ bool reachable_avoidance_velocities(){
               << " components:" << std::endl;
     // Get vertices de C_union y llamar a check inside con velocidad deseada
     Pwh_list_2 res;
-    p1.x = pos_x_;
-    p1.y = pos_y_;
-    RAV_.polygons_with_holes (std::back_inserter (res));
-    cone_draw((*res.begin()).outer_boundary(),p1,pos_theta_,"RAV");
+    p1.x = 0;
+    p1.y = 0;
     if(0 < RAV_.number_of_polygons_with_holes()){
-      return 1;
+      RAV_.polygons_with_holes (std::back_inserter (res));
+      cone_draw((*res.begin()).outer_boundary(),p1,0,"RAV");
+      // return 1;
     }
     // print_polygon_with_holes((*res.begin()).outer_boundary());
   }
   // RAV_.join(RV_);
-  return 0;
+  return 1;
 }
 
 void optimal_velocity(){
@@ -822,47 +828,46 @@ void optimal_velocity(){
           // << " components:" << std::endl;
     RAV_.polygons_with_holes (std::back_inserter (res));
     for (it = res.begin(); it != res.end(); ++it) {
-      std::cout << "--> ";
+      // std::cout << "--> ";
       temp = *it;
       // Print polygon outer boundary
-      std::cout << "{ Outer boundary = ";
-      std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
+      // std::cout << "{ Outer boundary = ";
+      // std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
       for (vit = temp.outer_boundary().vertices_begin(); vit != temp.outer_boundary().vertices_end(); ++vit){
-        std::cout << " (" << *vit << ')';
+        // std::cout << " (" << *vit << ')';
         temp_point = *vit;
-        std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+        // std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
         Vertex temp_vertex;
         temp_vertex.x = CGAL::to_double(temp_point.x());
         temp_vertex.y = CGAL::to_double(temp_point.y());
-        temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
+        temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goalNED_(0),2)+pow(temp_vertex.y - goalNED_(1),2));
         queue.push(temp_vertex);
       }
-      std::cout << " ]" << std::endl;
-      std::cout<<"lega"<<"\n";
-      std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
+      // std::cout << " ]" << std::endl;
+      // std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
       unsigned int k = 1;
       for (hit = temp.holes_begin(); hit != temp.holes_end(); ++hit, ++k)
       {
-        std::cout << "    Hole #" << k << " = ";
+        // std::cout << "    Hole #" << k << " = ";
         print_polygon (*hit);
         temp_poly = *hit;
-        std::cout << "[ " << temp_poly.size() << " vertices:";
+        // std::cout << "[ " << temp_poly.size() << " vertices:";
         for (vit = temp_poly.vertices_begin(); vit != temp_poly.vertices_end(); ++vit){
-          std::cout << " (" << *vit << ')';
+          // std::cout << " (" << *vit << ')';
           temp_point = *vit;
-          std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+          // std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
           Vertex temp_vertex;
           temp_vertex.x = CGAL::to_double(temp_point.x());
           temp_vertex.y = CGAL::to_double(temp_point.y());
-          temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
+          temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goalNED_(0),2)+pow(temp_vertex.y - goalNED_(1),2));
           queue.push(temp_vertex);
         }
-        std::cout << " ]" << std::endl;
+        // std::cout << " ]" << std::endl;
       }
-      std::cout << " }" << std::endl;
+      // std::cout << " }" << std::endl;
 
-      std::cout << " queue size: " << queue.size() << std::endl;
-      std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
+      // std::cout << " queue size: " << queue.size() << std::endl;
+      // std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
       Coord p1,p_begin,p_end;
       p1.x = pos_x_;
       p1.y = pos_y_;
@@ -871,7 +876,7 @@ void optimal_velocity(){
       p_end.x = queue.top().x;
       p_end.y = queue.top().y;
       p_end = NED2body_(p_end);
-      line_draw(p_end,p_begin,p1,"RAV_des_velocity");
+      // line_draw(p_end,p_begin,p1,"RAV_des_velocity");
       Vertex vel;
       vel.x = p_end.x;
       vel.y = p_end.y;
@@ -910,73 +915,89 @@ Eigen::Vector3f Body2NED(){
   return ptNED;
 }
 
-bool check_vel_collision(){
-  std_msgs::Bool collision_flag;
-  collision_flag.data=0;
-  Pwh_list_2 res;
-  Pwh_list_2::const_iterator it;
-  // Polygon_2::Edge_const  _interator eit;
-  CCs_.polygons_with_holes (std::back_inserter (res));
-  Eigen::Vector3f pt = Body2NED();
-  Kernel::Segment_2 d_velocity(Point_2(pos_y_,pos_x_),Point_2(pt(1),pt(0)));
-  // std::cout<<"Vel: "<<d_velocity.source()<<" "<<d_velocity.target()<<"\n";
-  // Polygon_2 d_velocity;
-  // d_velocity.push_back(Point_2(pos_x_,pos_y_));
-  // d_velocity.push_back(Point_2(pos_x_+0.1,pos_y_));
-  // d_velocity.push_back(Point_2(pt(0)+0.1,pt(1)));
-  // d_velocity.push_back(Point_2(pt(0),pt(1)));
+// bool check_point_inside(Polygon_2 pol, Point_2 pt){
+//     switch(CGAL::bounded_side_2(pol.vertices_begin(), pol.vertices_end(), Point_2(pt(0),pt(1)), Kernel())) {
+//     case CGAL::ON_BOUNDED_SIDE:
+//       std::cout << "Collision incoming.\n";
+//       return 1;
+//       break;
+//     case CGAL::ON_BOUNDARY:
+//       // std::cout << "LOS desired vel and hdng is on the collision cones boundary.\n";
+//       break;
+//     case CGAL::ON_UNBOUNDED_SIDE:
+//       // std::cout << "LOS desired vel and hdng is outside the collision cones.\n";
+//       break;
+//   }
+//   return 0;
+// }
 
-  for (it = res.begin(); it != res.end(); ++it) {
-    // std::cout<<"Vel: "<<d_velocity.source()<<" "<<d_velocity.target()<<"\n";
+// bool check_vel_collision(){
+//   std_msgs::Bool collision_flag;
+//   collision_flag.data=0;
+//   Pwh_list_2 res;
+//   Pwh_list_2::const_iterator it;
+//   // Polygon_2::Edge_const  _interator eit;
+//   CCs_.polygons_with_holes (std::back_inserter (res));
+//   Eigen::Vector3f pt = Body2NED();
+//   Kernel::Segment_2 d_velocity(Point_2(pos_y_,pos_x_),Point_2(pt(1),pt(0)));
+//   // std::cout<<"Vel: "<<d_velocity.source()<<" "<<d_velocity.target()<<"\n";
+//   // Polygon_2 d_velocity;
+//   // d_velocity.push_back(Point_2(pos_x_,pos_y_));
+//   // d_velocity.push_back(Point_2(pos_x_+0.1,pos_y_));
+//   // d_velocity.push_back(Point_2(pt(0)+0.1,pt(1)));
+//   // d_velocity.push_back(Point_2(pt(0),pt(1)));
 
-    // std::cout << "--> ";
-    // print_polygon_with_holes (*it);
-    // std::cout << "Pt vel: " << pt << "\n";
+//   for (it = res.begin(); it != res.end(); ++it) {
+//     // std::cout<<"Vel: "<<d_velocity.source()<<" "<<d_velocity.target()<<"\n";
 
-    // std::cout << CGAL::is_simple_2((*it).outer_boundary().vertices_begin(), (*it).outer_boundary().vertices_end(), Kernel()) << "\n";
+//     // std::cout << "--> ";
+//     // print_polygon_with_holes (*it);
+//     // std::cout << "Pt vel: " << pt << "\n";
 
-    // CGAL uses same coordinate system as RVIZ? front - x left - y
-    // NEgar y cuando se trabaje con rviz
-    // if (CGAL::bounded_side_2((*it).outer_boundary().vertices_begin(), (*it).outer_boundary().vertices_end(), Point_2(pt(0),pt(1)), Kernel())
-    //     == CGAL::ON_BOUNDED_SIDE){
-    for (eit = (*it).outer_boundary().edges_begin(); eit != (*it).outer_boundary().edges_end(); ++eit){
-      if (CGAL::do_intersect(d_velocity, *eit)){
-        // std::cout << "LOS desired vel and hdng is inside the collision cones.\n";
-        collision_flag.data=1;
-        collision_pub_.publish(collision_flag);
-        return 1;
-      } else {
-      // std::cout << "LOS desired vel and hdng is outside the collision cones or in boundary.\n";
-        collision_pub_.publish(collision_flag);
-      }
-    }
-     // if(CGAL::do_intersect((*it).outer_boundary(),d_velocity)){
-      //   std::cout << "LOS desired vel and hdng is inside the collision cones.\n";
-      //   collision_flag.data=1;
-      //   collision_pub_.publish(collision_flag);
-      //   return 1;
-      // } else {
-      //   std::cout << "LOS desired vel and hdng is outside the collision cones or in boundary.\n";
-      //   collision_pub_.publish(collision_flag);
-      // }
-  }
-  return 0;
+//     // std::cout << CGAL::is_simple_2((*it).outer_boundary().vertices_begin(), (*it).outer_boundary().vertices_end(), Kernel()) << "\n";
+
+//     // CGAL uses same coordinate system as RVIZ? front - x left - y
+//     // NEgar y cuando se trabaje con rviz
+//     // if (CGAL::bounded_side_2((*it).outer_boundary().vertices_begin(), (*it).outer_boundary().vertices_end(), Point_2(pt(0),pt(1)), Kernel())
+//     //     == CGAL::ON_BOUNDED_SIDE){
+//     for (eit = (*it).outer_boundary().edges_begin(); eit != (*it).outer_boundary().edges_end(); ++eit){
+//       if (CGAL::do_intersect(d_velocity, *eit)){
+//         // std::cout << "LOS desired vel and hdng is inside the collision cones.\n";
+//         collision_flag.data=1;
+//         collision_pub_.publish(collision_flag);
+//         return 1;
+//       } else {
+//       // std::cout << "LOS desired vel and hdng is outside the collision cones or in boundary.\n";
+//         collision_pub_.publish(collision_flag);
+//       }
+//     }
+//      // if(CGAL::do_intersect((*it).outer_boundary(),d_velocity)){
+//       //   std::cout << "LOS desired vel and hdng is inside the collision cones.\n";
+//       //   collision_flag.data=1;
+//       //   collision_pub_.publish(collision_flag);
+//       //   return 1;
+//       // } else {
+//       //   std::cout << "LOS desired vel and hdng is outside the collision cones or in boundary.\n";
+//       //   collision_pub_.publish(collision_flag);
+//       // }
+//   }
+//   return 0;
 
 
-  //   switch(CGAL::bounded_side_2((*it).outer_boundary().vertices_begin(), (*it).outer_boundary().vertices_end(), Point_2(pt(0),pt(1)), Kernel())) {
-  //     case CGAL::ON_BOUNDED_SIDE:
-  //       std::cout << "LOS desired vel and hdng is inside the collision cones.\n";
-  //       collision_pub_.publish(collision_flag);
-  //       return 1;
-  //       break;
-  //     case CGAL::ON_BOUNDARY:
-  //       std::cout << "LOS desired vel and hdng is on the collision cones boundary.\n";
-  //       break;
-  //     case CGAL::ON_UNBOUNDED_SIDE:
-  //       std::cout << "LOS desired vel and hdng is outside the collision cones.\n";
-  //       break;
-  //   }
-  // }
-  // return 0;
-}
+//   //   switch(CGAL::bounded_side_2((*it).outer_boundary().vertices_begin(), (*it).outer_boundary().vertices_end(), Point_2(pt(0),pt(1)), Kernel())) {
+//   //     case CGAL::ON_BOUNDED_SIDE:
+//   //       std::cout << "LOS desired vel and hdng is inside the collision cones.\n";
+//   //       collision_pub_.publish(collision_flag);
+//   //       return 1;
+//   //       break;
+//   //     case CGAL::ON_BOUNDARY:
+//   //       std::cout << "LOS desired vel and hdng is on the collision cones boundary.\n";
+//   //       break;
+//   //     case CGAL::ON_UNBOUNDED_SIDE:
+//   //       std::cout << "LOS desired vel and hdng is outside the collision cones.\n";
+//   //       break;
+//   //   }
+//   // }
+//   // return 0;
+// }
 
