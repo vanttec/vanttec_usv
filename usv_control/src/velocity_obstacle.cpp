@@ -47,6 +47,11 @@ typename CGAL::Polygon_2<Kernel>::Vertex_const_iterator   vit;
 typename CGAL::Polygon_2<Kernel>::Edge_const_iterator     eit;
 typename CGAL::Polygon_with_holes_2<Kernel>::Hole_const_iterator  hit;
 
+// enum Cone_State_ {SAFE,        // Safe: when Vth coord > Obstacle pos coord  (Here the polygon disappears)
+//                   COL_RISK,    // Risk of collision: when Boat pos coord <= Vth coord <= Obstacle pos
+//                   IMM_COL,     // Imminent collision: when Vth cood < Boat pos coord (Here the polygon becomes a cone)
+//                   COL};        // The boat entered the obstacle circumference. Vth <= 0 
+
 // STRUCTS ---------------------------------------------------------------------
 struct Coord{
   // Position
@@ -64,6 +69,8 @@ struct Obstacle{
   Coord tan_r = {0,0};
   // Left tangent angle
   Coord tan_l = {0,0};
+  // Cone state for the obstacle
+  // Cone_State_ Col_State_;
 };
 struct Vertex{
   // Position
@@ -102,6 +109,7 @@ Polygon_2 RV_;
 Polygon_set_2 RAV_;
 
 Polygon_set_2 CCs_;
+
 /**
   * Size of buffer queue
   * */
@@ -242,12 +250,15 @@ void NED2body();
   * @return void.
   * */
 void cone_draw(Polygon_2 C);
+void line_draw(Coord p1,Coord p2,Coord orig, std::string ns);
 void circle_draw(double,double,double,std::string);
 /**
  * Check if los desired velocity lies inside the Collision Cone
  * @return bool.
  **/
 bool check_vel_collision();
+void check_cone_state(Coord,Obstacle&,double); 
+Coord Body2NED_(Coord &coord);
 Eigen::Vector3f Body2NED();
 // MAIN PROGRAM ----------------------------------------------------------------
 int main(int argc, char** argv){
@@ -337,6 +348,25 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg){
     obstacle_list_.push_back(obstacle);
   }
 }
+
+// void check_cone_state(Coord vel_th, Obstacle &obs, double obs_circum_dist){
+//   if((vel_th.x > obs.x) && (vel_th.y > obs.y)){
+//     obs.Col_State_ = SAFE;
+//   } else {
+//     if((pos_x_< vel_th.x) && (pos_y_< vel_th.y) && (vel_th.x <= obs.x) && (vel_th.y <= obs.y)){
+//       obs.Col_State_ = COL_RISK;
+//     } else {
+//       if((vel_th.x <= pos_x_) && (vel_th.y <= pos_y_)){
+//         obs.Col_State_ = IMM_COL;
+//       } else {
+//         double vth = sqrt(pow(vel_th.x,2)+pow(vel_th.y,2));
+//         if(vth < obs_circum_dist){
+//           obs.Col_State_ = COL;
+//         }
+//       }
+//     }
+//   }
+// }
 
 bool collision_cone(){
   if(0 < obstacle_list_.size()){
@@ -443,6 +473,38 @@ void cone_draw(Polygon_2 C){
   marker_pub_.publish(marker);
 }
 
+
+void line_draw(Coord p1,Coord p2,Coord org, std::string ns){
+  marker.header.frame_id = "/world";
+  marker.header.stamp = ros::Time::now();
+  marker.ns = ns;
+  marker.id = 0;
+  marker.type = visualization_msgs::Marker::LINE_STRIP;
+  marker.action = visualization_msgs::Marker::ADD;
+  marker.pose.position.x = org.x;
+  marker.pose.position.y = -org.y;
+  marker.pose.position.z = 0;
+  marker.pose.orientation.x = 0.0;
+  marker.pose.orientation.y = 0.0;
+  marker.pose.orientation.z = 0.0;
+  marker.pose.orientation.w = 1.0;
+  marker.color.b = 0.9;
+  marker.color.a = 0.9;
+  marker.scale.x = 0.1;
+  marker.lifetime = ros::Duration();
+  geometry_msgs::Point p;
+  marker.points.clear();
+  p.y=-p1.y;
+  p.x=p1.x;
+  p.z=0;
+  marker.points.push_back(p);
+  p.y=-p2.y;
+  p.x=p2.y;
+  p.z=0;
+  marker.points.push_back(p);
+  marker_pub_.publish(marker);
+}
+
 void circle_draw(double h,double k,double r,std::string ns){
   marker.header.frame_id = "/world";
   marker.header.stamp = ros::Time::now();
@@ -512,6 +574,20 @@ void circle_draw(double h,double k,double r,std::string ns){
   marker_pub_.publish(marker);
 }
 
+Coord Body2NED_(Coord &coord){
+  Coord pt;
+  Eigen::Vector3f ptBody(coord.x,coord.y,0);
+  Eigen::Vector3f ptNED;
+  Eigen::Matrix3f R;
+  R << cos(pos_theta_), -sin(pos_theta_), 0,
+  sin(pos_theta_), cos(pos_theta_), 0,
+  0, 0, 1;
+  ptNED = R*ptBody;
+  pt.x = ptNED(0) + pos_x_;
+  pt.y = ptNED(1) + pos_y_;
+  return pt;
+}
+
 bool reachable_avoidance_velocities(){
   Polygon_2 C;
   Polygon_with_holes_2 C_union;
@@ -522,6 +598,8 @@ bool reachable_avoidance_velocities(){
   Coord p2;
   Coord p3;
   Coord p4;
+  Coord p_end;
+  Coord p_begin;
   double obstacle_theta = 0.0;
   double speed_th = 0.0;
   double slope,slope1 = 0.0;
@@ -532,62 +610,80 @@ bool reachable_avoidance_velocities(){
 
   CCs_.clear();
   RAV_.clear();
+  C.clear();
 
   for(int i = 0; i<obstacle_list_.size(); ++i){
-    // Calculate VOH
-    obs_dist = sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) - obstacle_list_[i].r;
-    speed_th = obs_dist / time_horizon_;
-    obstacle_theta = atan2(obstacle_list_[i].x, obstacle_list_[i].y); // Para atan2 derecha es x y y es frente
-    vel_th.x = speed_th * sin(obstacle_theta);
-    vel_th.y = speed_th * cos(obstacle_theta);
-    slope = -1 / ((vel_th.x - pos_x_) / (vel_th.y - pos_y_));
-    b = vel_th.x - (slope * vel_th.y);
-    // std::cout<<"Slope val (=-1?)"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_) * slope<<"\n";
-    // std::cout<<"B:"<<b<<"\n";
-    // std::cout<<"slope1:"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_)<<"\n";
-    // std::cout<<"slope2:"<<slope<<"\n";
-    // std::cout<<"vel_th.x:"<<vel_th.x<<"\n";
-    // std::cout<<"vel_th.y:"<<vel_th.y<<"\n";
-    // std::cout<<"pos_x:"<<pos_x_<<"\n";
-    // std::cout<<"pos_y:"<<pos_y_<<"\n";
-    // std::cout<<"dist:"<<obs_dist<<"\n";
-    p1.x = obstacle_list_[i].tan_l.x;
-    p1.y = obstacle_list_[i].tan_l.y;
-    p2.x = pos_x_;
-    p2.y = pos_y_;
-    p3.x = vel_th.x - (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
-    p3.y = vel_th.y - (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
-    p4.x = vel_th.x;
-    p4.y = vel_th.y;
+    // if(obstacle_list_[i].Col_State_ != SAFE){
+    //   if(obstacle_list_[i].Col_State_ != COL){
+        // Calculate VOH
+        obs_dist = sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) - obstacle_list_[i].r;
+        speed_th = obs_dist / time_horizon_;    // Body
+        obstacle_theta = atan2(obstacle_list_[i].x-pos_x_, obstacle_list_[i].y-pos_y_); // Body
+        vel_th.x = speed_th * sin(obstacle_theta) + pos_x_;
+        vel_th.y = speed_th * cos(obstacle_theta) + pos_y_;
 
-    // Intersect tan_l
-    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
-    denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
-    intersect_l.y =  numerator / denominator;
-    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
-    intersect_l.x =  numerator / denominator;
+        p1.x = pos_x_;
+        p1.y = pos_y_;
+        p_begin.x = 0;
+        p_begin.y = 0;
+        p_end.x = vel_th.x-pos_x_;
+        p_end.y = vel_th.y-pos_y_;
+        line_draw(p_end,p_begin,p1,"V_th");
+        // slope = -1 / ((vel_th.x - pos_x_) / (vel_th.y - pos_y_));
+        // b = vel_th.x - (slope * vel_th.y);
+        // std::cout<<"Slope val (=-1?)"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_) * slope<<"\n";
+        // std::cout<<"B:"<<b<<"\n";
+        // std::cout<<"slope1:"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_)<<"\n";
+        // std::cout<<"slope2:"<<slope<<"\n";
+        // std::cout<<"vel_th:"<<sqrt(pow(vel_th.x,2)+pow(vel_th.y,2))<<"\n";
+        // std::cout<<"vel_th.x:"<<vel_th.x<<"\n";
+        // std::cout<<"vel_th.y:"<<vel_th.y<<"\n";
+        // std::cout<<"pos_x:"<<pos_x_<<"\n";
+        // std::cout<<"pos_y:"<<pos_y_<<"\n";
+        // std::cout<<"dist:"<<obs_dist<<"\n";
+        p1.x = obstacle_list_[i].tan_l.x;
+        p1.y = obstacle_list_[i].tan_l.y;
+        p2.x = pos_x_;
+        p2.y = pos_y_;
+        p3.x = vel_th.x - (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
+        p3.y = vel_th.y - (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
+        p4.x = vel_th.x;
+        p4.y = vel_th.y;
 
-    // Intersect tan_r
-    p1.x = obstacle_list_[i].tan_r.x;
-    p1.y = obstacle_list_[i].tan_r.y;
-    p3.x = vel_th.x;
-    p3.y = vel_th.y;
-    p4.x = vel_th.x + (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
-    p4.y = vel_th.y + (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
-    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
-    denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
-    intersect_r.y =  numerator / denominator;
-    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
-    intersect_r.x =  numerator / denominator;
-    // ROS_INFO("Todos los vertices generados\n");
-    // ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
-    // ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
-    // Construct the input cone
-    C.clear();
-    C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
-    C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y)); // Limit of input cone
-    C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
-    C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH
+        // Intersect tan_l
+        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
+        denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
+        intersect_l.y =  numerator / denominator;
+        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
+        intersect_l.x =  numerator / denominator;
+
+        // Intersect tan_r
+        p1.x = obstacle_list_[i].tan_r.x;
+        p1.y = obstacle_list_[i].tan_r.y;
+        p3.x = vel_th.x;
+        p3.y = vel_th.y;
+        p4.x = vel_th.x + (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
+        p4.y = vel_th.y + (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
+        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
+        denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
+        intersect_r.y =  numerator / denominator;
+        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
+        intersect_r.x =  numerator / denominator;
+        // ROS_INFO("Todos los vertices generados\n");
+        ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
+        ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
+        // Construct the input cone
+        C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
+        C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y)); // Limit of input cone
+        C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
+        C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH      
+        // } else {
+        // C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
+        // C.push_back (Point_2 (pos_x_,pos_y_);
+        // C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH   
+    //   }
+    // }
+    // check_cone_state(vel_th,obstacle_list_[i],obs_dist);
     std::cout << "C = "; print_polygon (C);
     // Draw cone
     cone_draw(C);
@@ -716,7 +812,7 @@ Eigen::Vector3f Body2NED(){
   R << cos(pos_theta_), -sin(pos_theta_), 0,
   sin(pos_theta_), cos(pos_theta_), 0,
   0, 0, 1;
-  ptNED = R.inverse()*ptBody;
+  ptNED = R*ptBody; //falta sumarle la distancia al barco
   return ptNED;
 }
 
