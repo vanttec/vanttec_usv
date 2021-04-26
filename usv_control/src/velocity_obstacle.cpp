@@ -640,99 +640,97 @@ bool reachable_avoidance_velocities(){
   C.clear();
 
   for(int i = 0; i<obstacle_list_.size(); ++i){
-    // if(obstacle_list_[i].Col_State_ != SAFE){
-    //   if(obstacle_list_[i].Col_State_ != COL){
-        // Calculate VOH
-        obs_dist = sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) - obstacle_list_[i].r;
-        speed_th = obs_dist / time_horizon_;    // Body
-        obstacle_theta = atan2(obstacle_list_[i].x-pos_x_, obstacle_list_[i].y-pos_y_); // Body
-        vel_th.x = speed_th * sin(obstacle_theta) + pos_x_;
-        vel_th.y = speed_th * cos(obstacle_theta) + pos_y_;
+    // Calculate VOH
+    obs_dist = sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) - obstacle_list_[i].r;
+    speed_th = obs_dist / time_horizon_;    // Body
+    obstacle_theta = atan2(obstacle_list_[i].x-pos_x_, obstacle_list_[i].y-pos_y_); // Body
+    vel_th.x = speed_th * sin(obstacle_theta) + pos_x_;
+    vel_th.y = speed_th * cos(obstacle_theta) + pos_y_;
 
-        p1.x = pos_x_;
-        p1.y = pos_y_;
-        p_begin.x = 0;
-        p_begin.y = 0;
-        p_end.x = vel_th.x-pos_x_;
-        p_end.y = vel_th.y-pos_y_;
-        line_draw(p_end,p_begin,p1,"V_th");
-        // slope = -1 / ((vel_th.x - pos_x_) / (vel_th.y - pos_y_));
-        // b = vel_th.x - (slope * vel_th.y);
-        // std::cout<<"Slope val (=-1?)"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_) * slope<<"\n";
-        // std::cout<<"B:"<<b<<"\n";
-        // std::cout<<"slope1:"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_)<<"\n";
-        // std::cout<<"slope2:"<<slope<<"\n";
-        // std::cout<<"vel_th:"<<sqrt(pow(vel_th.x,2)+pow(vel_th.y,2))<<"\n";
-        // std::cout<<"vel_th.x:"<<vel_th.x<<"\n";
-        // std::cout<<"vel_th.y:"<<vel_th.y<<"\n";
-        // std::cout<<"pos_x:"<<pos_x_<<"\n";
-        // std::cout<<"pos_y:"<<pos_y_<<"\n";
-        // std::cout<<"dist:"<<obs_dist<<"\n";
-        p1.x = obstacle_list_[i].tan_l.x;
-        p1.y = obstacle_list_[i].tan_l.y;
-        p2.x = pos_x_;
-        p2.y = pos_y_;
-        p3.x = vel_th.x - (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
-        p3.y = vel_th.y - (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
-        p4.x = vel_th.x;
-        p4.y = vel_th.y;
+    p1.x = pos_x_;
+    p1.y = pos_y_;
+    p_begin.x = 0;
+    p_begin.y = 0;
+    p_end.x = vel_th.x-pos_x_;
+    p_end.y = vel_th.y-pos_y_;
+    line_draw(p_end,p_begin,p1,"V_th");
+    // slope = -1 / ((vel_th.x - pos_x_) / (vel_th.y - pos_y_));
+    // b = vel_th.x - (slope * vel_th.y);
+    // std::cout<<"Slope val (=-1?)"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_) * slope<<"\n";
+    // std::cout<<"B:"<<b<<"\n";
+    // std::cout<<"slope1:"<<(vel_th.x - pos_x_) / (vel_th.y - pos_y_)<<"\n";
+    // std::cout<<"slope2:"<<slope<<"\n";
+    std::cout<<"vel_th:"<<sqrt(pow(vel_th.x-pos_x_,2)+pow(vel_th.y-pos_y_,2))<<"\n";
+    // std::cout<<"vel_th.x:"<<vel_th.x<<"\n";
+    // std::cout<<"vel_th.y:"<<vel_th.y<<"\n";
+    // std::cout<<"pos_x:"<<pos_x_<<"\n";
+    // std::cout<<"pos_y:"<<pos_y_<<"\n";
+    // std::cout<<"dist:"<<obs_dist<<"\n";
+    p1.x = obstacle_list_[i].tan_l.x;
+    p1.y = obstacle_list_[i].tan_l.y;
+    p2.x = pos_x_;
+    p2.y = pos_y_;
+    p3.x = vel_th.x - (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
+    p3.y = vel_th.y - (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
+    p4.x = vel_th.x;
+    p4.y = vel_th.y;
 
-        // Intersect tan_l
-        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
-        denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
-        intersect_l.y =  numerator / denominator;
-        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
-        intersect_l.x =  numerator / denominator;
+    // Intersect tan_l
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
+    denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
+    intersect_l.y =  numerator / denominator;
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
+    intersect_l.x =  numerator / denominator;
 
-        // Intersect tan_r
-        p1.x = obstacle_list_[i].tan_r.x;
-        p1.y = obstacle_list_[i].tan_r.y;
-        p3.x = vel_th.x;
-        p3.y = vel_th.y;
-        p4.x = vel_th.x + (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
-        p4.y = vel_th.y + (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
-        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
-        denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
-        intersect_r.y =  numerator / denominator;
-        numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
-        intersect_r.x =  numerator / denominator;
-        // ROS_INFO("Todos los vertices generados\n");
-        ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
-        ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
-        // Construct the input cone
-        C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
-        C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y)); // Limit of input cone
-        C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
-        C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH      
-        // } else {
-        // C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
-        // C.push_back (Point_2 (pos_x_,pos_y_);
-        // C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH   
-    //   }
-    // }
-    // check_cone_state(vel_th,obstacle_list_[i],obs_dist);
-    std::cout << "C = "; print_polygon (C);
-    // Draw cone
-    cone_draw(C);
-    // Check to see if cone intersercts with RV diamond
-    if ((CGAL::do_intersect (C, RV_))){
-      std::cout << "The two polygons intersect." << std::endl;
-      if(C_union.is_unbounded()){
-        std::cout << "Unbounded" << std::endl;
-        Polygon_with_holes_2 temp(C); // insert first cone
-        C_union = temp;
+    // Intersect tan_r
+    p1.x = obstacle_list_[i].tan_r.x;
+    p1.y = obstacle_list_[i].tan_r.y;
+    p3.x = vel_th.x;
+    p3.y = vel_th.y;
+    p4.x = vel_th.x + (obstacle_list_[i].tan_r.x-obstacle_list_[i].tan_l.x)/2;
+    p4.y = vel_th.y + (obstacle_list_[i].tan_r.y-obstacle_list_[i].tan_l.y)/2;
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.y-p4.y)) - ((p1.y-p2.y)*((p3.y*p4.x)-(p3.x*p4.y)));
+    denominator = (p1.y-p2.y)*(p3.x-p4.x) - (p1.x-p2.x)*(p3.y-p4.y);
+    intersect_r.y =  numerator / denominator;
+    numerator = (((p1.y*p2.x)-(p1.x*p2.y))*(p3.x-p4.x)) - ((p1.x-p2.x)*((p3.y*p4.x)-(p3.x*p4.y)));
+    intersect_r.x =  numerator / denominator;
+    // ROS_INFO("Todos los vertices generados\n");
+    // ROS_INFO("Intersection izquierda %f, %f\n",intersect_l.x,intersect_l.y);
+    // ROS_INFO("Intersection derecha %f, %f\n",intersect_r.x,intersect_r.y);
+
+    // If the boat hasn't collided
+    if(sqrt(pow(obstacle_list_[i].x-pos_x_,2)+pow(obstacle_list_[i].y-pos_y_,2)) > obstacle_list_[i].r){
+    // Construct the input cone
+      C.push_back (Point_2 (intersect_l.x, intersect_l.y)); // From VOH
+      C.push_back (Point_2 (obstacle_list_[i].tan_l.x, obstacle_list_[i].tan_l.y)); // Limit of input cone
+      C.push_back (Point_2 (obstacle_list_[i].tan_r.x, obstacle_list_[i].tan_r.y)); // Limit of input cone
+      C.push_back (Point_2 (intersect_r.x, intersect_r.y)); // From VOH
+      // check_cone_state(vel_th,obstacle_list_[i],obs_dist);
+      // std::cout << "C = "; print_polygon (C);
+      // Draw cone
+      cone_draw(C);
+      // Check to see if cone intersercts with RV diamond
+      if ((CGAL::do_intersect (C, RV_))){
+        std::cout << "The two polygons intersect." << std::endl;
+        if(C_union.is_unbounded()){
+          std::cout << "Unbounded" << std::endl;
+          Polygon_with_holes_2 temp(C); // insert first cone
+          C_union = temp;
+        }
+        else{
+          //Join cone with other cones
+          CGAL::join (C, C_union, C_union);
+          std::cout << "Joined." << std::endl;
+        }
+        print_polygon_with_holes (C_union);
       }
       else{
-        //Join cone with other cones
-        CGAL::join (C, C_union, C_union);
-        std::cout << "Joined." << std::endl;
+        CCs_.join(C);
+        std::cout << "The two polygons do not intersect." << std::endl;
       }
-      print_polygon_with_holes (C_union);
-    }
-    else{
-      CCs_.join(C);
-      std::cout << "The two polygons do not intersect." << std::endl;
-    }
+    } else {
+      ROS_WARN("Collision!");  
+    } 
   }
   if(!C_union.is_unbounded()){
     // Perform a sequence of operations.
