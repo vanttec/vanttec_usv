@@ -104,12 +104,13 @@ double max_vel_ = 1.5; //m/s
   * */
 Polygon_2 RV_;
 /**
-  * RAV poligon set.
+  * RAV polygon set.
   * */
 Polygon_set_2 RAV_;
-
+/**
+  * Collision cone polygon set.
+  * */
 Polygon_set_2 CCs_;
-
 /**
   * Size of buffer queue
   * */
@@ -194,9 +195,19 @@ void initialize(ros::NodeHandle &vo_node);
   * @param speed[in]: Received velocity vector.
   * @return void.
   * */
-void on_dspeed_msg(const std_msgs::Float64::ConstPtr &msg);
-void on_dhead_msg(const std_msgs::Float64::ConstPtr &msg);
 void on_speed_msg(const geometry_msgs::Vector3::ConstPtr &speed);
+/**
+  * Callback to obtain los desired speed.
+  * @param dspeed[in]: Received speed.
+  * @return void.
+  * */
+void on_dspeed_msg(const std_msgs::Float64::ConstPtr &dspeed);
+/**
+  * Callback to obtain los desired heading.
+  * @param dheading[in]: Received heading.
+  * @return void.
+  * */
+void on_dhead_msg(const std_msgs::Float64::ConstPtr &dheading);
 /**
   * Callback to obtain current NED pose.
   * @param pose[in]: Received pose.
@@ -246,12 +257,28 @@ void desiered_velocity(const Vertex& optimal);
   * */
 void NED2body();
 /**
-  * Draw cone from target to obstacle.
+  * Draw cone from boat to obstacle.
   * @return void.
   * */
 void cone_draw(Polygon_2 C);
-void line_draw(Coord p1,Coord p2,Coord orig, std::string ns);
-void circle_draw(double,double,double,std::string);
+/**
+  * Draw Vth vector.
+  * @param p_begin[in]: Initial point.
+  * @param p_end[in]: Final point.
+  * @param p_ref[in]: Reference point.
+  * @param ns[in]: Name of marker.
+  * @return void.
+  * */
+void line_draw(Coord p_begin, Coord p_end,Coord p_ref, std::string ns);
+/**
+  * Draw circles around bodies.
+  * @param h[in]: X reference coordinate.
+  * @param k[in]: Y reference coordinate.
+  * @param r[in]: Body radius.
+  * @param ns[in]: Name of marker.
+  * @return void.
+  * */
+void circle_draw(double h,double k,double r,std::string ns);
 /**
  * Check if los desired velocity lies inside the Collision Cone
  * @return bool.
