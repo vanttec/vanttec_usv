@@ -290,6 +290,7 @@ void circle_draw(double h,double k,double r,std::string ns);
  **/
 bool check_vel_collision();
 void check_cone_state(Coord,Obstacle&,double); 
+Coord NED2body_(Coord &coord);
 Coord Body2NED_(Coord &coord);
 Eigen::Vector3f Body2NED();
 // MAIN PROGRAM ----------------------------------------------------------------
@@ -495,7 +496,7 @@ void reachable_velocities(){
   p_ref.x = 0;
   p_ref.y = 0;
   cone_draw(RV_,p_ref,0, "RV");
-  std::cout << "RV = "; print_polygon (RV_);
+  // std::cout << "RV = "; print_polygon (RV_);
 }
 
 void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns){
@@ -648,6 +649,20 @@ Coord Body2NED_(Coord &coord){
   return pt;
 }
 
+Coord NED2body_(Coord &coord){
+  Coord pt;
+  Eigen::Matrix3f R;
+  Eigen::Vector3f ptBody;
+  Eigen::Vector3f ptNED(coord.x,coord.y,0);
+  R << cos(pos_theta_), -sin(pos_theta_), 0,
+  sin(pos_theta_), cos(pos_theta_), 0,
+  0, 0, 1;
+  ptBody = R.inverse()*ptNED;
+  pt.x = ptBody(0) - pos_x_;
+  pt.y = ptBody(1) - pos_x_;
+  return pt;
+}
+
 bool reachable_avoidance_velocities(){
   Polygon_2 C;
   Polygon_with_holes_2 C_union;
@@ -757,7 +772,7 @@ bool reachable_avoidance_velocities(){
           CGAL::join (C, C_union, C_union);
           std::cout << "Joined." << std::endl;
         }
-        print_polygon_with_holes (C_union);
+        // print_polygon_with_holes (C_union);
       }
       else{
         CCs_.join(C);
@@ -765,6 +780,7 @@ bool reachable_avoidance_velocities(){
       }
     } else {
       ROS_WARN("Collision!");  
+      return 1;
     } 
   }
   if(!C_union.is_unbounded()){
@@ -777,14 +793,15 @@ bool reachable_avoidance_velocities(){
     std::cout << "The result contains " << RAV_.number_of_polygons_with_holes()
               << " components:" << std::endl;
     // Get vertices de C_union y llamar a check inside con velocidad deseada
-    if(0 < RAV_.number_of_polygons_with_holes()){
-      return 1;
-    }
     Pwh_list_2 res;
     p1.x = pos_x_;
     p1.y = pos_y_;
     RAV_.polygons_with_holes (std::back_inserter (res));
     cone_draw((*res.begin()).outer_boundary(),p1,pos_theta_,"RAV");
+    if(0 < RAV_.number_of_polygons_with_holes()){
+      return 1;
+    }
+    // print_polygon_with_holes((*res.begin()).outer_boundary());
   }
   // RAV_.join(RV_);
   return 0;
@@ -805,48 +822,60 @@ void optimal_velocity(){
           // << " components:" << std::endl;
     RAV_.polygons_with_holes (std::back_inserter (res));
     for (it = res.begin(); it != res.end(); ++it) {
-      // std::cout << "--> ";
+      std::cout << "--> ";
       temp = *it;
       // Print polygon outer boundary
-      // std::cout << "{ Outer boundary = ";
-      // std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
+      std::cout << "{ Outer boundary = ";
+      std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
       for (vit = temp.outer_boundary().vertices_begin(); vit != temp.outer_boundary().vertices_end(); ++vit){
-        // std::cout << " (" << *vit << ')';
+        std::cout << " (" << *vit << ')';
         temp_point = *vit;
-        // std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+        std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
         Vertex temp_vertex;
         temp_vertex.x = CGAL::to_double(temp_point.x());
         temp_vertex.y = CGAL::to_double(temp_point.y());
         temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
         queue.push(temp_vertex);
       }
-      // std::cout << " ]" << std::endl;
-
-      // std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
+      std::cout << " ]" << std::endl;
+      std::cout<<"lega"<<"\n";
+      std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
       unsigned int k = 1;
       for (hit = temp.holes_begin(); hit != temp.holes_end(); ++hit, ++k)
       {
-        // std::cout << "    Hole #" << k << " = ";
+        std::cout << "    Hole #" << k << " = ";
         print_polygon (*hit);
         temp_poly = *hit;
-        // std::cout << "[ " << temp_poly.size() << " vertices:";
+        std::cout << "[ " << temp_poly.size() << " vertices:";
         for (vit = temp_poly.vertices_begin(); vit != temp_poly.vertices_end(); ++vit){
-          // std::cout << " (" << *vit << ')';
+          std::cout << " (" << *vit << ')';
           temp_point = *vit;
-          // std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+          std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
           Vertex temp_vertex;
           temp_vertex.x = CGAL::to_double(temp_point.x());
           temp_vertex.y = CGAL::to_double(temp_point.y());
           temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goal_body_(0),2)+pow(temp_vertex.y - goal_body_(1),2));
           queue.push(temp_vertex);
         }
-        // std::cout << " ]" << std::endl;
+        std::cout << " ]" << std::endl;
       }
-      // std::cout << " }" << std::endl;
+      std::cout << " }" << std::endl;
 
-      // std::cout << " queue size: " << queue.size() << std::endl;
-      // std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
-      desiered_velocity(queue.top());
+      std::cout << " queue size: " << queue.size() << std::endl;
+      std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
+      Coord p1,p_begin,p_end;
+      p1.x = pos_x_;
+      p1.y = pos_y_;
+      p_begin.x = 0;
+      p_begin.y = 0;
+      p_end.x = queue.top().x;
+      p_end.y = queue.top().y;
+      p_end = NED2body_(p_end);
+      line_draw(p_end,p_begin,p1,"RAV_des_velocity");
+      Vertex vel;
+      vel.x = p_end.x;
+      vel.y = p_end.y;
+      desiered_velocity(vel);
     }
   }
 }
@@ -854,7 +883,7 @@ void optimal_velocity(){
 void desiered_velocity(const Vertex& optimal){
   std_msgs::Float64 desiered_heading;
   std_msgs::Float64 desiered_speed;
-  desiered_heading.data = atan2(optimal.y, optimal.x) + pos_theta_;
+  desiered_heading.data = atan2(optimal.x, optimal.y) + pos_theta_;
   desiered_speed.data = sqrt(pow(optimal.x,2) + pow(optimal.y,2));
   desiered_heading_pub_.publish(desiered_heading);
   desiered_vel_pub_.publish(desiered_speed);
