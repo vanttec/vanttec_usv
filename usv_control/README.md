@@ -1,7 +1,7 @@
 ## Velocity Obstacles
 
 Velocity obstacles is a method used for computing avoidance velocities for static and dynamic obstacles.
-The implementation proposed here considers only static and round-shaped obstacles.
+The implementation proposed here considers only static and round-shaped obstacles; currentlty for a single obstacle.
 
 To try the method just run in your terminal:
 
