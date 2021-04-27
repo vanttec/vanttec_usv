@@ -103,7 +103,8 @@ class LOS:
         for i in range(int(leng)-1):
             waypoints.append(msg.data[i])
         self.waypoint_mode = msg.data[-1] # 0 for NED, 1 for GPS, 2 for body
-        self.waypoint_array = waypoints
+        if waypoints != self.waypoint_array:
+            self.waypoint_array = waypoints
     
     def collision_callback(self, msg):
         self.collision = msg.data
@@ -268,25 +269,25 @@ def main():
         if los.last_waypoint_array != los.waypoint_array:
             los.k = 1
             los.last_waypoint_array = los.waypoint_array
-            aux_waypoint_array = los.last_waypoint_array
+            NED_waypoint_array = list(los.last_waypoint_array) # Make a copy, not a reference
             x_0 = los.ned_x
             y_0 = los.ned_y
-            
+
             if los.waypoint_mode == 0:
-                aux_waypoint_array.insert(0,x_0)
-                aux_waypoint_array.insert(1,y_0)
+                pass
             elif los.waypoint_mode == 1:
-                for i in range(0, len(aux_waypoint_array), 2):
-                    aux_waypoint_array[i], aux_waypoint_array[i+1] = los.gps_to_ned(aux_waypoint_array[i],aux_waypoint_array[i+1])
-                aux_waypoint_array.insert(0,x_0)
-                aux_waypoint_array.insert(1,y_0)
+                for i in range(0, len(NED_waypoint_array), 2):
+                    NED_waypoint_array[i], NED_waypoint_array[i+1] = los.gps_to_ned(NED_waypoint_array[i],NED_waypoint_array[i+1])
             elif los.waypoint_mode == 2:
-                for i in range(0, len(aux_waypoint_array), 2):
-                    aux_waypoint_array[i], aux_waypoint_array[i+1] = los.body_to_ned(aux_waypoint_array[i],aux_waypoint_array[i+1])
-                aux_waypoint_array.insert(0,x_0)
-                aux_waypoint_array.insert(1,y_0)
-        if len(aux_waypoint_array) > 1:
-            los.los_manager(los.last_waypoint_array)
+                for i in range(0, len(NED_waypoint_array), 2):
+                    NED_waypoint_array[i], NED_waypoint_array[i+1] = los.body_to_ned(NED_waypoint_array[i],NED_waypoint_array[i+1])
+
+            # Starting point
+            NED_waypoint_array.insert(0,x_0)
+            NED_waypoint_array.insert(1,y_0)
+
+        if len(NED_waypoint_array) > 1:
+            los.los_manager(NED_waypoint_array)
         rate.sleep()
     los.desired(0, los.yaw)
     rospy.logwarn('Finished')
