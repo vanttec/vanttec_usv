@@ -3,12 +3,22 @@
  * @date: September 1, 2020
  * @author: Ivana Collado
  * @email: a00569475@itesm.mx
+ * @author: Sebastian Martinez
+ * @email: sebas.martp@gmail.com
  *
- * @brief: Subscribes to robot and obstacles states and publishes desired
- * velocity and angle to avoid obatcles using the velocity obstacle model.
+ * @brief: Subscribes to robot, obstacles states and los desired speed and heading, 
+ * and publishes desired velocity and angle to avoid obatcles using the velocity 
+ * obstacle model.
  * ---------------------------------------------------------------------------*/
 /** ----------------------------------------------------------------------------
  * @todo:
+ * Tests with multiple obstacles
+ * Refactor of the whole node
+ * Check RAV generation
+ * Check time horizon when < 0.7 sec
+ * Check that rviz marker generation is correct (for RV set)
+ * Solution applied when obstacle is on/inside the circumference of obstacle the
+ * best one?
  * Waypoint pose2D array msg
  * Perception msgs names uppercase
  * Update ASMC and dynamic model codes to c++11
