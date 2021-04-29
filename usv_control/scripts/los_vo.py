@@ -263,8 +263,7 @@ def main():
     rate = rospy.Rate(100) # 100hz
     los = LOS()
     los.last_waypoint_array = []
-    aux_waypoint_array = []
-
+    NED_waypoint_array = []
     while (not rospy.is_shutdown()) and los.active:
         if los.last_waypoint_array != los.waypoint_array:
             los.k = 1

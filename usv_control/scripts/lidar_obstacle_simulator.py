@@ -58,7 +58,7 @@ class ObstacleSimulator:
     def simulate(self):
         '''
         @name: simulate
-        @brief: Simulates the obstacles the USV should be looking at any moment in time. In NED
+        @brief: Simulates the obstacles the USV should be looking at any moment in time
         @param: --
         @return: --
         '''
@@ -75,7 +75,7 @@ class ObstacleSimulator:
                 #if x > -0.5:
                 obstacle = Vector3()
                 obstacle.x = x
-                obstacle.y = y
+                obstacle.y = -y
                 obstacle.z = self.obstacle_list[i]['R']
                 list_length += 1
                 object_detected_list.obstacles.append(obstacle)
@@ -130,7 +130,7 @@ class ObstacleSimulator:
     def rviz_markers(self):
         '''
         @name: rviz_markers
-        @brief: Publishes obstacles as rviz markers. From NED to RViz Coordinate System
+        @brief: Publishes obstacles as rviz markers.
         @param: --
         @return: --
         '''
@@ -165,19 +165,19 @@ def main():
     obstacleSimulator = ObstacleSimulator()
     if obstacleSimulator.challenge == 0:
 
-        # Taken as NED
-        obstacleSimulator.obstacle_list.append({'X' : 4.0,      
+
+        obstacleSimulator.obstacle_list.append({'X' : 4.0,
                                     'Y' : -3.0,
                                     'R' : 1.5})
 
-        # obstacleSimulator.obstacle_list.append({'X' : 5.0,
-        #                             'Y' : -1.0,
-        #                             'R' : 0.2})
+        obstacleSimulator.obstacle_list.append({'X' : 5.0,
+                                    'Y' : -1.0,
+                                    'R' : 0.2})
 
 
-        # obstacleSimulator.obstacle_list.append({'X' : 0.9,
-        #                             'Y' : -1.1,
-        #                             'R' : 0.5})
+        obstacleSimulator.obstacle_list.append({'X' : 0.9,
+                                    'Y' : 2.1,
+                                    'R' : 0.5})
         '''
         obstacleSimulator.obstacle_list.append({'X' : 10.0,
                                     'Y' : 0.0,
