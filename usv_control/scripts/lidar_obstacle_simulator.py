@@ -170,14 +170,14 @@ def main():
                                     'Y' : -3.0,
                                     'R' : 1.5})
 
-        # obstacleSimulator.obstacle_list.append({'X' : 5.0,
-        #                             'Y' : -1.0,
-        #                             'R' : 0.2})
+        obstacleSimulator.obstacle_list.append({'X' : 5.0,
+                                    'Y' : -1.0,
+                                    'R' : 0.2})
 
 
-        # obstacleSimulator.obstacle_list.append({'X' : 0.9,
-        #                             'Y' : -1.1,
-        #                             'R' : 0.5})
+        obstacleSimulator.obstacle_list.append({'X' : 0.9,
+                                    'Y' : 2.1,
+                                    'R' : 0.5})
         '''
         obstacleSimulator.obstacle_list.append({'X' : 10.0,
                                     'Y' : 0.0,
