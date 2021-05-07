@@ -128,8 +128,7 @@ double col_time_horizon_ = 5;      //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1;  //rad/s^2
 double max_vel_ = 1.5;               //m/s
-
-
+int max_distance = INT_MAX;
 int closest_obst = 0;
 bool imminent_collision = 0;
 /**
@@ -434,7 +433,13 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg)
     obstacle.y = msg->obstacles[i].y;
     obstacle.r = msg->obstacles[i].z + robot_radius_;
     obstacle_list_.push_back(obstacle);
+    if(max_distance > obstacle_list_[i].boat_distance)
+    {
+      max_distance = obstacle_list_[i].boat_distance;
+      closest_obst = i;
+    }
   }
+
 }
 
 // void check_cone_state(Coord vel_th, Obstacle &obs, double obs_circum_dist){
@@ -858,13 +863,14 @@ bool reachable_avoidance_velocities()
     {
       // RAV_.polygons_with_holes(std::back_inserter(res));
       // cone_draw((*res.begin()).outer_boundary(), p1, 0, "RAV", 0);
-      for(int i=0; i<obstacle_list_.size(); i++){
+      /*for(int i=0; i<obstacle_list_.size(); i++){
         if(max_distance > obstacle_list_[i].boat_distance)
         {
           max_distance = obstacle_list_[i].boat_distance;
           closest_obst = i;
         }
-      }
+      }*/
+
       // return 1;
     }
     return obstacle_list_[closest_obst].col_state;
@@ -939,7 +945,26 @@ void optimal_velocity()
 
         desired_velocity(queue.top());
       }
+
     }
+  }
+  else
+  {
+    Point_2 temp_point;
+    std::priority_queue<Vertex, std::vector<Vertex>, Comparator1> queue;
+    for (vit = RV_.vertices_begin(); vit != RV_.vertices_end(); ++vit)
+    {
+      std::cout << " (" << *vit << ')';
+      temp_point = *vit;
+      std::cout << " (" << temp_point.x() << ',' << temp_point.y() << ')';
+      Vertex temp_vertex;
+      temp_vertex.x = CGAL::to_double(temp_point.x());
+      temp_vertex.y = CGAL::to_double(temp_point.y());
+      temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - obstacle_list_[closest_obst].x, 2) + pow(temp_vertex.y - obstacle_list_[closest_obst].y, 2));
+      std::cout << temp_vertex.goal_dist << "\n";
+      queue.push(temp_vertex);
+    }
+    desired_velocity(queue.top());
   }
   else
   {
@@ -977,6 +1002,7 @@ void desired_velocity(const Vertex &optimal)
   color.r = 1.0;
   color.a = 1.0;
   line_draw(p_end,p_begin,p1,"RAV_desired_velocity", color);
+
   desired_heading.data = atan2(-optimal.y,optimal.x) + pos_theta_;//-atan2(-optimal.y,optimal.x);
   ROS_INFO("Pos boat: %f, %f and heading: %f", pos_x_, pos_y_,pos_theta_);
   ROS_INFO("Vo ned speed: %f, %f and heading %f", optimal.x, optimal.y,desired_heading.data);
