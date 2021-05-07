@@ -129,7 +129,7 @@ double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1;  //rad/s^2
 double max_vel_ = 1.5;               //m/s
 
-
+int max_distance = INT_MAX;
 int closest_obst = 0;
 bool imminent_collision = 0;
 /**
@@ -432,7 +432,13 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg)
     obstacle.y = msg->obstacles[i].y;
     obstacle.r = msg->obstacles[i].z + robot_radius_;
     obstacle_list_.push_back(obstacle);
+    if(max_distance > obstacle_list_[i].boat_distance)
+    {
+      max_distance = obstacle_list_[i].boat_distance;
+      closest_obst = i;
+    }
   }
+
 }
 
 // void check_cone_state(Coord vel_th, Obstacle &obs, double obs_circum_dist){
@@ -841,20 +847,12 @@ bool reachable_avoidance_velocities()
     // << " components:" << std::endl;
     // Get vertices de C_union y llamar a check inside con velocidad deseada
     Pwh_list_2 res;
-    int max_distance = INT_MAX;
     p1.x = 0;
     p1.y = 0;
     if (0 < RAV_.number_of_polygons_with_holes())
     {
       // RAV_.polygons_with_holes(std::back_inserter(res));
       // cone_draw((*res.begin()).outer_boundary(), p1, 0, "RAV", 0);
-      for(int i=0; i<obstacle_list_.size(); i++){
-        if(max_distance > obstacle_list_[i].boat_distance)
-        {
-          max_distance = obstacle_list_[i].boat_distance;
-          closest_obst = i;
-        }
-      }
       // return 1;
     }
     return obstacle_list_[closest_obst].col_state;
