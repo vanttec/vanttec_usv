@@ -128,7 +128,8 @@ double col_time_horizon_ = 5;      //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1;  //rad/s^2
 double max_vel_ = 1.5;               //m/s
-int max_distance = INT_MAX;
+double min_distance = DBL_MAX;
+
 int closest_obst = 0;
 bool imminent_collision = 0;
 /**
@@ -433,13 +434,7 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg)
     obstacle.y = msg->obstacles[i].y;
     obstacle.r = msg->obstacles[i].z + robot_radius_;
     obstacle_list_.push_back(obstacle);
-    if(max_distance > obstacle_list_[i].boat_distance)
-    {
-      max_distance = obstacle_list_[i].boat_distance;
-      closest_obst = i;
-    }
   }
-
 }
 
 // void check_cone_state(Coord vel_th, Obstacle &obs, double obs_circum_dist){
@@ -710,8 +705,8 @@ Coord NED2body_(Coord &coord)
   ptBody = R.inverse() * ptNED;
   pt.x = ptBody(0);
   pt.y = ptBody(1);
-  std::cout << "Pt body x: " << pt.x << "\n";
-  std::cout << "Pt body y: " << pt.y << "\n";
+  // std::cout << "Pt body x: " << pt.x << "\n";
+  // std::cout << "Pt body y: " << pt.y << "\n";
   return pt;
 }
 
@@ -844,6 +839,19 @@ bool reachable_avoidance_velocities()
       }
     }
   }
+  for(int i=0; i<obstacle_list_.size(); i++){
+    // ROS_INFO("Obstacle (%f,%f)",obstacle_list_[i].x, obstacle_list_[i].y);
+    // ROS_INFO("Obstacle %i: distance to obst: %f",i,obstacle_list_[i].boat_distance);
+    if(
+      > obstacle_list_[i].boat_distance)
+    { 
+      min_distance = obstacle_list_[i].boat_distance;
+      closest_obst = i;
+    }
+    // ROS_INFO("Min distance %f",min_distance);
+    // ROS_INFO("Closest obstacle: (%f,%f)",obstacle_list_[closest_obst].x,obstacle_list_[closest_obst].y);
+
+  }
   if (!C_union.is_unbounded())
   {
     // Perform a sequence of operations.
@@ -870,10 +878,10 @@ bool reachable_avoidance_velocities()
           closest_obst = i;
         }
       }*/
-
-      // return 1;
+      return 1;
     }
-    return obstacle_list_[closest_obst].col_state;
+    // ROS_INFO("Obstacle %i: (%f,%f)",closest_obst,obstacle_list_[closest_obst].x,obstacle_list_[closest_obst].y);
+    // return obstacle_list_[closest_obst].col_state;
     // print_polygon_with_holes((*res.begin()).outer_boundary());
   }
   // RAV_.join(RV_);
@@ -899,49 +907,49 @@ void optimal_velocity()
       RAV_.polygons_with_holes(std::back_inserter(res));
       for (it = res.begin(); it != res.end(); ++it)
       {
-        std::cout << "--> ";
+        // std::cout << "--> ";
         temp = *it;
         // Print polygon outer boundary
-        std::cout << "{ Outer boundary = ";
-        std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
+        // std::cout << "{ Outer boundary = ";
+        // std::cout << "[ " << temp.outer_boundary().size() << " vertices:";
         for (vit = temp.outer_boundary().vertices_begin(); vit != temp.outer_boundary().vertices_end(); ++vit)
         {
-          std::cout << " (" << *vit << ')';
+          // std::cout << " (" << *vit << ')';
           temp_point = *vit;
-          std::cout << " (" << temp_point.x() << ',' << temp_point.y() << ')';
+          // std::cout << " (" << temp_point.x() << ',' << temp_point.y() << ')';
           Vertex temp_vertex;
           temp_vertex.x = CGAL::to_double(temp_point.x());
           temp_vertex.y = CGAL::to_double(temp_point.y());
           temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goalNED_(0), 2) + pow(temp_vertex.y - goalNED_(1), 2));
-          std::cout << temp_vertex.goal_dist << "\n";
+          // std::cout << temp_vertex.goal_dist << "\n";
           queue.push(temp_vertex);
         }
-        std::cout << " ]" << std::endl;
-        std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
+        // std::cout << " ]" << std::endl;
+        // std::cout << "  " << temp.number_of_holes() << " holes:" << std::endl;
         unsigned int k = 1;
         for (hit = temp.holes_begin(); hit != temp.holes_end(); ++hit, ++k)
         {
-          std::cout << "    Hole #" << k << " = ";
+          // std::cout << "    Hole #" << k << " = ";
           // print_polygon(*hit);
           temp_poly = *hit;
-          std::cout << "[ " << temp_poly.size() << " vertices:";
+          // std::cout << "[ " << temp_poly.size() << " vertices:";
           for (vit = temp_poly.vertices_begin(); vit != temp_poly.vertices_end(); ++vit)
           {
-            std::cout << " (" << *vit << ')';
+            // std::cout << " (" << *vit << ')';
             temp_point = *vit;
-            std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
+            // std::cout << " (" << temp_point.x() << ',' << temp_point.y()<< ')';
             Vertex temp_vertex;
             temp_vertex.x = CGAL::to_double(temp_point.x());
             temp_vertex.y = CGAL::to_double(temp_point.y());
             temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - goalNED_(0), 2) + pow(temp_vertex.y - goalNED_(1), 2));
             queue.push(temp_vertex);
           }
-          std::cout << " ]" << std::endl;
+          // std::cout << " ]" << std::endl;
         }
-        std::cout << " }" << std::endl;
+        // std::cout << " }" << std::endl;
 
-        std::cout << " queue size: " << queue.size() << std::endl;
-        std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
+        // std::cout << " queue size: " << queue.size() << std::endl;
+        // std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
 
         desired_velocity(queue.top());
       }
@@ -972,14 +980,14 @@ void optimal_velocity()
     std::priority_queue<Vertex, std::vector<Vertex>, Comparator1> queue;
     for (vit = RV_.vertices_begin(); vit != RV_.vertices_end(); ++vit)
     {
-      std::cout << " (" << *vit << ')';
+      // std::cout << " (" << *vit << ')';
       temp_point = *vit;
-      std::cout << " (" << temp_point.x() << ',' << temp_point.y() << ')';
+      // std::cout << " (" << temp_point.x() << ',' << temp_point.y() << ')';
       Vertex temp_vertex;
       temp_vertex.x = CGAL::to_double(temp_point.x());
       temp_vertex.y = CGAL::to_double(temp_point.y());
       temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - obstacle_list_[closest_obst].x, 2) + pow(temp_vertex.y - obstacle_list_[closest_obst].y, 2));
-      std::cout << temp_vertex.goal_dist << "\n";
+      // std::cout << temp_vertex.goal_dist << "\n";
       queue.push(temp_vertex);
     }
     desired_velocity(queue.top());
@@ -1004,9 +1012,9 @@ void desired_velocity(const Vertex &optimal)
   line_draw(p_end,p_begin,p1,"RAV_desired_velocity", color);
 
   desired_heading.data = atan2(-optimal.y,optimal.x) + pos_theta_;//-atan2(-optimal.y,optimal.x);
-  ROS_INFO("Pos boat: %f, %f and heading: %f", pos_x_, pos_y_,pos_theta_);
-  ROS_INFO("Vo ned speed: %f, %f and heading %f", optimal.x, optimal.y,desired_heading.data);
-  ROS_INFO("Difference %f, %f", optimal.x-pos_x_, optimal.y-pos_y_);
+  // ROS_INFO("Pos boat: %f, %f and heading: %f", pos_x_, pos_y_,pos_theta_);
+  // ROS_INFO("Vo ned speed: %f, %f and heading %f", optimal.x, optimal.y,desired_heading.data);
+  // ROS_INFO("Difference %f, %f", optimal.x-pos_x_, optimal.y-pos_y_);
   desired_speed.data = sqrt(pow(p_end.x, 2) + pow(p_end.y, 2));
   // ROS_INFO("Desired vo speed: %f", desired_speed.data);
   // ROS_INFO("Desired vo heading: %f", desired_heading.data);
@@ -1021,7 +1029,7 @@ void NED2body()
       sin(pos_theta_), cos(pos_theta_), 0,
       0, 0, 1;
   goal_body_ = R * goalNED_;
-  ROS_INFO("Body goal: %f, %f", goal_body_(0), goal_body_(1));
+  // ROS_INFO("Body goal: %f, %f", goal_body_(0), goal_body_(1));
 }
 
 Eigen::Vector3f Body2NED()
