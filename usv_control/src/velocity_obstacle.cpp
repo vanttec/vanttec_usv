@@ -842,8 +842,7 @@ bool reachable_avoidance_velocities()
   for(int i=0; i<obstacle_list_.size(); i++){
     // ROS_INFO("Obstacle (%f,%f)",obstacle_list_[i].x, obstacle_list_[i].y);
     // ROS_INFO("Obstacle %i: distance to obst: %f",i,obstacle_list_[i].boat_distance);
-    if(
-      > obstacle_list_[i].boat_distance)
+    if(min_distance > obstacle_list_[i].boat_distance)
     { 
       min_distance = obstacle_list_[i].boat_distance;
       closest_obst = i;
@@ -974,24 +973,6 @@ void optimal_velocity()
     }
     desired_velocity(queue.top());
   }
-  else
-  {
-    Point_2 temp_point;
-    std::priority_queue<Vertex, std::vector<Vertex>, Comparator1> queue;
-    for (vit = RV_.vertices_begin(); vit != RV_.vertices_end(); ++vit)
-    {
-      // std::cout << " (" << *vit << ')';
-      temp_point = *vit;
-      // std::cout << " (" << temp_point.x() << ',' << temp_point.y() << ')';
-      Vertex temp_vertex;
-      temp_vertex.x = CGAL::to_double(temp_point.x());
-      temp_vertex.y = CGAL::to_double(temp_point.y());
-      temp_vertex.goal_dist = sqrt(pow(temp_vertex.x - obstacle_list_[closest_obst].x, 2) + pow(temp_vertex.y - obstacle_list_[closest_obst].y, 2));
-      // std::cout << temp_vertex.goal_dist << "\n";
-      queue.push(temp_vertex);
-    }
-    desired_velocity(queue.top());
-  }
 }
 
 void desired_velocity(const Vertex &optimal)
@@ -1009,7 +990,7 @@ void desired_velocity(const Vertex &optimal)
   std_msgs::ColorRGBA color;
   color.r = 1.0;
   color.a = 1.0;
-  line_draw(p_end,p_begin,p1,"RAV_desired_velocity", color);
+  line_draw(p_end,p_begin,p1,"RAV_desired_velocity", color); //Hacerla rotar
 
   desired_heading.data = atan2(-optimal.y,optimal.x) + pos_theta_;//-atan2(-optimal.y,optimal.x);
   // ROS_INFO("Pos boat: %f, %f and heading: %f", pos_x_, pos_y_,pos_theta_);
