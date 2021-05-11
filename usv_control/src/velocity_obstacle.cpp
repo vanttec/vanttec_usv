@@ -100,7 +100,7 @@ struct Vertex
 
 // CLASS DECLARATION -----------------------------------------------------------
 // To compare two points
-class Comparator
+class Closest
 {
 public:
   int operator()(const Vertex &v1, const Vertex &v2)
@@ -109,7 +109,8 @@ public:
   }
 };
 
-class Comparator1
+class Farthest // Se puede usar el Closest junto con el [ultimo] elemento del 
+               // queue en vez de crear otra
 {
 public:
   int operator()(const Vertex &v1, const Vertex &v2)
@@ -123,14 +124,23 @@ public:
   * Input Parameters
   * */
 double robot_radius_ = 0.4;          //meters
-double time_horizon_ = 1;          //seconds
-double col_time_horizon_ = 5;      //seconds
+double time_horizon_ = 1;            //seconds
+double col_time_horizon_ = 7;        //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1;  //rad/s^2
 double max_vel_ = 1.5;               //m/s
 
+/**
+  * Distance to the closest obstacle
+  * */
 double min_distance = DBL_MAX;
+/**
+  * Idex of closest obstacle
+  * */
 int closest_obst = 0;
+/**
+  * Imminent collision flag
+  * */
 bool imminent_collision = 0;
 /**
   * Rechable velocities diamond.
@@ -497,7 +507,7 @@ bool collision_cone()
       obstacle_list_[i].tan_r.x = p2.x - (h / d) * (obstacle_list_[i].y - pos_y_);
       obstacle_list_[i].tan_r.y = p2.y + (h / d) * (obstacle_list_[i].x - pos_x_);
       marker.points.clear();
-      circle_draw(pos_x_, pos_y_, r0, "boat_circle", i);
+      // circle_draw(pos_x_, pos_y_, r0, "boat_circle", i); 
       circle_draw(obstacle_list_[i].x, obstacle_list_[i].y, r1, "obstacle_circle", i);
       // ROS_INFO("Obstacle origin: %f, %f",obstacle_list_[i].x,obstacle_list_[i].y);
       // // obstacle_list_[i].tan_r.y = (b+d)/2 + ((d-b)*(r0*r0-r1*r1))/(2*D*D) - 2*((a-c)/(D*D))*delta;
@@ -693,8 +703,8 @@ Coord NED2body_(Coord &coord)
       sin(pos_theta_), cos(pos_theta_), 0,
       0, 0, 1;
   ptBody = R.inverse() * ptNED;
-  pt.x = ptBody(0);
-  pt.y = ptBody(1);
+  pt.x = ptBody(0) - pos_x_;
+  pt.y = ptBody(1) - pos_y_;
   // std::cout << "Pt body x: " << pt.x << "\n";
   // std::cout << "Pt body y: " << pt.y << "\n";
   return pt;
@@ -861,8 +871,6 @@ bool reachable_avoidance_velocities()
       // cone_draw((*res.begin()).outer_boundary(), p1, 0, "RAV", 0);
       return 1;
     }
-    // ROS_INFO("Obstacle %i: (%f,%f)",closest_obst,obstacle_list_[closest_obst].x,obstacle_list_[closest_obst].y);
-    // return obstacle_list_[closest_obst].col_state;
     // print_polygon_with_holes((*res.begin()).outer_boundary());
   }
   // RAV_.join(RV_);
@@ -881,7 +889,7 @@ void optimal_velocity()
       Polygon_2 temp_poly;
       Point_2 temp_point;
       // Creates a Min heap of points (order by goal_dist)
-      std::priority_queue<Vertex, std::vector<Vertex>, Comparator> queue;
+      std::priority_queue<Vertex, std::vector<Vertex>, Closest> queue;
       //Iterate over set of polygon with holes
       // std::cout << "The result contains " << RAV_.number_of_polygons_with_holes()
       // << " components:" << std::endl;
@@ -939,7 +947,7 @@ void optimal_velocity()
   else
   {
     Point_2 temp_point;
-    std::priority_queue<Vertex, std::vector<Vertex>, Comparator1> queue;
+    std::priority_queue<Vertex, std::vector<Vertex>, Farthest> queue;
     for (vit = RV_.vertices_begin(); vit != RV_.vertices_end(); ++vit)
     {
       // std::cout << " (" << *vit << ')';
@@ -969,10 +977,7 @@ void desired_velocity(const Vertex &optimal)
   p_end.y = optimal.y;
   p_end = NED2body_(p_end);
   line_draw(p_end,p_begin,p1,"RAV_desired_velocity");
-  desired_heading.data = atan2(-optimal.y,optimal.x) + pos_theta_;//-atan2(-optimal.y,optimal.x);
-  // ROS_INFO("Pos boat: %f, %f and heading: %f", pos_x_, pos_y_,pos_theta_);
-  // ROS_INFO("Vo ned speed: %f, %f and heading %f", optimal.x, optimal.y,desired_heading.data);
-  // ROS_INFO("Difference %f, %f", optimal.x-pos_x_, optimal.y-pos_y_);
+  desired_heading.data = atan2(-(optimal.y-pos_y_),optimal.x-pos_x_);
   desired_speed.data = sqrt(pow(p_end.x, 2) + pow(p_end.y, 2));
   // ROS_INFO("Desired vo speed: %f", desired_speed.data);
   // ROS_INFO("Desired vo heading: %f", desired_heading.data);

@@ -17,7 +17,7 @@
 import math
 import time
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import rospy
 from std_msgs.msg import Float32MultiArray, Int32, String

@@ -167,16 +167,20 @@ def main():
 
 
         obstacleSimulator.obstacle_list.append({'X' : 4.0,
-                                    'Y' : -3.0,
+                                    'Y' : 0.0,
                                     'R' : 1.5})
 
-        obstacleSimulator.obstacle_list.append({'X' : 7.0,
-                                    'Y' : -6.0,
-                                    'R' : 0.5})
+        # obstacleSimulator.obstacle_list.append({'X' : 7.0,
+        #                             'Y' : -6.0,
+        #                             'R' : 0.5})
 
-        obstacleSimulator.obstacle_list.append({'X' : 5.5,
-                                    'Y' : -3.0,
-                                    'R' : 1})
+        # obstacleSimulator.obstacle_list.append({'X' : 5.5,
+        #                             'Y' : -3.0,
+        #                             'R' : 1})
+
+        # obstacleSimulator.obstacle_list.append({'X' : 4.0,
+        #                             'Y' : -1.0,   
+        #                             'R' : 0.5})
 
     elif obstacleSimulator.challenge == 1:
 

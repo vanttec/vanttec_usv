@@ -21,8 +21,10 @@ import os
 import numpy as np
 import rospy
 from geometry_msgs.msg import Pose2D
+from geometry_msgs.msg import Vector3
 from usv_perception.msg import obj_detected
 from usv_perception.msg import obj_detected_list
+from usv_perception.msg import obstacles_list
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
@@ -36,7 +38,7 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 1 #0 for AutonomousNavigation, 1 for SpeedChallenge, 2 for ObstacleChannel
+        self.challenge = 2 #0 for AutonomousNavigation, 1 for SpeedChallenge, 2 for ObstacleChannel
         self.obstacle_list = []
 
         self.max_visible_radius = 10
@@ -44,6 +46,7 @@ class ObstacleSimulator:
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
 
+        self.lid_detector_pub = rospy.Publisher('/usv_perception/lidar_detector/obstacles', obstacles_list, queue_size=10)
         self.detector_pub = rospy.Publisher('/usv_perception/yolo_zed/objects_detected', obj_detected_list, queue_size=10)
         self.marker_pub = rospy.Publisher("/usv_perception/lidar_detector/markers", MarkerArray, queue_size=10)
 
@@ -60,7 +63,9 @@ class ObstacleSimulator:
         @return: --
         '''
         object_detected_list = obj_detected_list()
+        obs_list = obstacles_list()
         list_length = 0
+        list_length2 = 0
         for i in range(len(self.obstacle_list)):
             x = self.obstacle_list[i]['X']
             y = self.obstacle_list[i]['Y']
@@ -68,17 +73,25 @@ class ObstacleSimulator:
             delta_y = y - self.ned_y
             distance = math.pow(delta_x*delta_x + delta_y*delta_y, 0.5)
             if (distance < self.max_visible_radius):
-                x, y = self.ned_to_body(x, y)
-                if x > 1:
+                x_body, y_body = self.ned_to_body(x, y)
+                obs_vo = Vector3()
+                obs_vo.x = x
+                obs_vo.y = y
+                obs_vo.z = self.obstacle_list[i]['R']
+                obs_list.obstacles.append(obs_vo)
+                if x_body > 1:
                     obstacle = obj_detected()
-                    obstacle.X = x - self.sensor_to_usv_offset
-                    obstacle.Y = -y
+                    obstacle.X = x_body - self.sensor_to_usv_offset
+                    obstacle.Y = -y_body
                     obstacle.color = self.obstacle_list[i]['color']
                     obstacle.clase = self.obstacle_list[i]['class']
-                    list_length += 1
                     object_detected_list.objects.append(obstacle)
+                    list_length += 1
+                list_length2 += 1
         object_detected_list.len = list_length
+        obs_list.len = list_length2
         self.detector_pub.publish(object_detected_list)
+        self.lid_detector_pub.publish(obs_list)
 
 
     def body_to_ned(self, x2, y2):
@@ -221,82 +234,102 @@ def main():
         obstacleSimulator.max_visible_radius = 50
         obstacleSimulator.obstacle_list.append({'X' : 7,
                                     'Y' : 2,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 7,
                                     'Y' : 5,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' :14,
                                     'Y' : 4.7,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 14,
                                     'Y' : 7.7,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 16,
-                                    'Y' : 5.5,
+                                    'Y' : 6.5,
+                                    'R' : 0.4,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 21,
                                     'Y' : 5.2,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' :21,
                                     'Y' : 8.2,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 28,
                                     'Y' : 4.3,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 28,
                                     'Y' : 7.3,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 35,
                                     'Y' : 1,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' :35,
                                     'Y' : 4,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 40,
-                                    'Y' : 3,
+                                    'Y' : 2.1,
+                                    'R' : 0.4,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 42,
                                     'Y' : 0.8,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 42,
                                     'Y' : 3.8,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' :49,
                                     'Y' : 1.5,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 49,
                                     'Y' : 4.5,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 56,
                                     'Y' : 3,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 56,
                                     'Y' : 6,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' :63,
                                     'Y' : 5,
+                                    'R' : 0.2,
                                     'color' : 'green', 
                                     'class' : 'bouy'})
         obstacleSimulator.obstacle_list.append({'X' : 63,
                                     'Y' : 8,
+                                    'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
     while not rospy.is_shutdown() and obstacleSimulator.active:
