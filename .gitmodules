@@ -10,3 +10,6 @@
 [submodule "zed_ros_wrapper"]
 	path = zed_ros_wrapper
 	url = http://github.com/vanttec/zed_ros_wrapper.git
+[submodule "acados"]
+	path = usv_avoidance/include/acados
+	url = https://github.com/acados/acados.git
