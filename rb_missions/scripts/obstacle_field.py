@@ -88,7 +88,7 @@ class ObsField:
         '''
         rospy.loginfo("Marker waypoints has just started")
             
-        radius = 2.5
+        radius = 2.0
 
         w1 = [buoy_x, buoy_y + radius]
         w2 = [buoy_x + radius, buoy_y]
@@ -143,7 +143,6 @@ def main():
     last_detection = []
     while not rospy.is_shutdown() and obsField.activated:
         if obsField.objects_list != last_detection:
-            rospy.loginfo("on")
             if obsField.state == -1:
                 while (not rospy.is_shutdown()) and (len(obsField.objects_list) < 0):
                     obsField.test.publish(obsField.state)
@@ -164,7 +163,7 @@ def main():
                     ind_0 = np.argsort(distance_list)[0]
                 if ((len(obsField.objects_list) >= 1)):
                     marker_x = obsField.objects_list[ind_0]['X']
-                    marker_y = obsField.objects_list[ind_0]['Y']
+                    marker_y = - obsField.objects_list[ind_0]['Y']
                     obsField.state = 1
                 last_detection = obsField.objects_list
             if obsField.state == 1:

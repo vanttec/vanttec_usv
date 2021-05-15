@@ -328,87 +328,87 @@ def main():
     elif obstacleSimulator.challenge == 3:
         obstacleSimulator.max_visible_radius = 50
         obstacleSimulator.obstacle_list.append({'X' : 3.1,
-                                    'Y' : 1.1, 
+                                    'Y' : 5.1, 
                                     'color' : 'green', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 3.3,
-                                    'Y' : 2.2,
+                                    'Y' : 7.2,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 3.2,
-                                    'Y' : -3.3,
+                                    'Y' : 1.3,
                                     'color' : 'yellow', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 6.2,
-                                    'Y' : 1.2,
+                                    'Y' : 5.2,
                                     'color' : 'green', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 4.1,
-                                    'Y' : -4.2,
+                                    'Y' : 0.2,
                                     'color' : 'yellow', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 4.4,
-                                    'Y' : -2.5,
+                                    'Y' : 3.5,
                                     'color' : 'yellow', 
                                     'class' : 'buoy'})
-        obstacleSimulator.obstacle_list.append({'X' : 5.3,
-                                    'Y' : -3.4,
+        obstacleSimulator.obstacle_list.append({'X' : 5.8,
+                                    'Y' : 1.4,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
-        obstacleSimulator.obstacle_list.append({'X' : 6.2,
-                                    'Y' : 2.3,
+        obstacleSimulator.obstacle_list.append({'X' : 6.4,
+                                    'Y' : 6.3,
                                     'color' : 'green', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 9.1,
-                                    'Y' : -4.4,
+                                    'Y' : 0.4,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 9.6,
-                                    'Y' : -3.6,
+                                    'Y' : 1.6,
                                     'color' : 'green', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 12.6,
-                                    'Y' : 3.4,
+                                    'Y' : 7.4,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 10.7,
-                                    'Y' : -4.6,
+                                    'Y' : 0.6,
                                     'color' : 'green', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 10.3,
-                                    'Y' : 6.1,
+                                    'Y' : 10.1,
                                     'color' : 'yellow', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 9.3,
-                                    'Y' : 4.1,
+                                    'Y' : 8.1,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 12.4,
-                                    'Y' : -3.3,
+                                    'Y' : 1.3,
                                     'color' : 'yellow', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 13.6,
-                                    'Y' : -1.6,
+                                    'Y' : 3.6,
                                     'color' : 'green', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 13.4,
-                                    'Y' : 2.4,
+                                    'Y' : 6.4,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 14.2,
-                                    'Y' : -0.2,
+                                    'Y' : 4.2,
                                     'color' : 'green', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 5.1,
-                                    'Y' : 4.2,
+                                    'Y' : 8.2,
                                     'color' : 'yellow', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 7.7,
-                                    'Y' : 5.6,
+                                    'Y' : 9.6,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
         obstacleSimulator.obstacle_list.append({'X' : 10.0,
-                                    'Y' : 0.0,
+                                    'Y' : 4.0,
                                     'color' : 'blue', 
                                     'class' : 'marker'})
                                 
