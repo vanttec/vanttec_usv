@@ -5,7 +5,7 @@
 ----------------------------------------------------------
     @file: speed_challenge.py
     @date: Thu 02 Jan, 2020
-    @modified: Sat Mar 21, 2020
+    @modified: Sat May 15, 2021
 	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @co-author: Rodolfo Cuan Urquizo
@@ -58,7 +58,8 @@ class SpeedChallenge:
         
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
-        rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        #rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        rospy.Subscriber("/usv_perception/lidar/objects_detected", obj_detected_list, self.objs_callback)
 
         # ROS Publishers
         self.path_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
@@ -73,7 +74,7 @@ class SpeedChallenge:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'bouy':
+            if str(data.objects[i].clase) == 'buoy':
                 self.objects_list.append({'X' : data.objects[i].X + self.offset,
                                           'Y' : data.objects[i].Y,
                                           'color' : data.objects[i].color, 
@@ -323,8 +324,9 @@ def main():
                 class_list.append(speedChallenge.objects_list[i]['class'])
                 distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                 ind_0 = np.argsort(distance_list)[0]
-            if (len(speedChallenge.objects_list) >= 1 and
-            (str(speedChallenge.objects_list[ind_0]['color']) == 'blue')):
+            #if (len(speedChallenge.objects_list) >= 1 and
+            #(str(speedChallenge.objects_list[ind_0]['color']) == 'blue')):
+            if (len(speedChallenge.objects_list) >= 1):
                 speedChallenge.state = 2
             else:
                 initTime = rospy.Time.now().secs
@@ -349,8 +351,8 @@ def main():
                     ind_0 = np.argsort(distance_list)[0]
                 if ((len(speedChallenge.objects_list) >= 1) and
                     (speedChallenge.objects_list[ind_0]['X'] < 7)):
-                    buoy_x = speedChallenge.objects_list[0]['X']
-                    buoy_y = speedChallenge.objects_list[0]['Y']
+                    buoy_x = speedChallenge.objects_list[ind_0]['X']
+                    buoy_y = speedChallenge.objects_list[ind_0]['Y']
                     speedChallenge.state = 3
                 else:
                     initTime = rospy.Time.now().secs
