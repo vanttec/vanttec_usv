@@ -5,7 +5,7 @@
 ----------------------------------------------------------
     @file: speed_challenge.py
     @date: Thu 02 Jan, 2020
-    @modified: Sat Mar 21, 2020
+    @modified: Sat May 15, 2021
 	@author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @co-author: Rodolfo Cuan Urquizo
@@ -331,6 +331,7 @@ def main():
                 class_list.append(speedChallenge.objects_list[i]['class'])
                 distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                 ind_0 = np.argsort(distance_list)[0]
+<<<<<<< HEAD
 
 
             print("*"*10)
@@ -338,6 +339,11 @@ def main():
             print(ind_0)
             if (len(speedChallenge.objects_list) >= 1 and
             (str(speedChallenge.objects_list[ind_0]['color']) == '')):
+=======
+            #if (len(speedChallenge.objects_list) >= 1 and
+            #(str(speedChallenge.objects_list[ind_0]['color']) == 'blue')):
+            if (len(speedChallenge.objects_list) >= 1):
+>>>>>>> ada7545ead39f16488749a68a200e5c5a9e77b72
                 speedChallenge.state = 2
             else:
                 initTime = rospy.Time.now().secs
@@ -365,9 +371,15 @@ def main():
                 print(speedChallenge.objects_list)
                 print(ind_0)
                 if ((len(speedChallenge.objects_list) >= 1) and
+<<<<<<< HEAD
                     (speedChallenge.objects_list[ind_0]['X'] < 7) and (speedChallenge.objects_list[ind_0]['X'] > 0)):
                     buoy_x = speedChallenge.objects_list[0]['X']
                     buoy_y = speedChallenge.objects_list[0]['Y']
+=======
+                    (speedChallenge.objects_list[ind_0]['X'] < 7)):
+                    buoy_x = speedChallenge.objects_list[ind_0]['X']
+                    buoy_y = speedChallenge.objects_list[ind_0]['Y']
+>>>>>>> ada7545ead39f16488749a68a200e5c5a9e77b72
                     speedChallenge.state = 3
                 else:
                     initTime = rospy.Time.now().secs

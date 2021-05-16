@@ -5,7 +5,7 @@
 ----------------------------------------------------------
     @file: auto_nav_position.py
     @date: Thu Dec 26, 2019
-    @modified: Sat Mar 21, 2020
+    @modified: Sat May 15, 2021
     @author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @co-author: Rodolfo Cuan Urquizo

@@ -5,6 +5,7 @@
 ----------------------------------------------------------
     @file: obstacle_channel.py
     @date: Mon Jun 8, 2020
+    @modified: Sat May 15, 2021
     @author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @brief: Motion planning. Script to navigate a USV through
@@ -362,7 +363,7 @@ def main():
         elif obsChan.state == 1:
             obsChan.test.publish(obsChan.state)
             time.sleep(1)
-            obsChan.status_pub.publish(1)
+            obsChan.status_pub.publish(3)
 
         rate.sleep()
     rospy.spin()

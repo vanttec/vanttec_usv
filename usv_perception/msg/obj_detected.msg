@@ -7,3 +7,4 @@ string clase
 float32 X
 float32 Y
 int64 id
+float32 R
