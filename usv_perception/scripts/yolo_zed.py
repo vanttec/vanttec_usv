@@ -174,20 +174,20 @@ class Detection_Node:
 
                     d_list = []
                     """
-                    d_list = []
                     for yidx in range(-h/2,h/2):
                         ind_y = ind + yidx*640
                         d_list.append(curr_point_list[ind_y-w/2:ind_y+w/2])
                     """
-                    d_list = curr_point_list[ind:ind+1]
+                    d_list = curr_point_list[ind-5:ind+5]
 
+                    print(d_list)
 
                     d_list_Y = np.array([point[2] for point in d_list])
                     d_list_X = np.array([point[0] for point in d_list])
 
 
                     if len(d_list_X) != 0:
-                        dist_x = np.mean(d_list_X[np.isfinite(d_list_X)])
+                        dist_x = np.mean(d_list_X[np.isfinite(d_list_X)])*-1
                     else:
                         dist_x = 'nan'
 
@@ -241,10 +241,10 @@ class Detection_Node:
                 cv2.putText(frame, text, (10, det.get_h() - ((i * 20) + 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
             # Show current frame
-            cv2.imshow("Frame", frame)
+            #cv2.imshow("Frame", frame)
             #print(self.depth)
 
-            cv2.waitKey(1)
+            #cv2.waitKey(1)
             rate.sleep()
 
 

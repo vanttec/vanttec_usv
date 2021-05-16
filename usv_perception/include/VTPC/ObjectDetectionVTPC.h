@@ -31,18 +31,19 @@ class gridObj{
 public:
     bool occupy;
     int density;
-    float maxZ;
-    float minZ;
     int groupNum;
     pcl::PointXYZ centerPoint;
+
+    pcl::PointXYZ pt_min_x, pt_min_y, pt_max_x, pt_max_y; 
+    pcl::PointXYZ pt_min, pt_max;
+
     std::vector<int> indices;
     Eigen::Vector3f voxel_min, voxel_max;
+    //Eigen::Vector4f pt_min, pt_max;
 
     inline gridObj(){
         occupy = false;
         density = 0;
-        maxZ = 0;
-        minZ = 0;
         groupNum = 0;
         indices.clear();
 
@@ -50,9 +51,14 @@ public:
 
     gridObj operator+(const gridObj& b){
         gridObj res;
-        res.density = this->density + b.density;
-        res.maxZ = max(this->maxZ , b.maxZ);
-        res.minZ = min(this->minZ , b.minZ);
+        res.density = this->density + b.density;        
+    
+        res.pt_max.z = max(this->pt_max.z , b.pt_max.z);
+        res.pt_min.z = min(this->pt_min.z , b.pt_min.z);
+        res.pt_max.y = max(this->pt_max.y , b.pt_max.y);
+        res.pt_min.y = min(this->pt_min.y , b.pt_min.y);
+        res.pt_max.x = max(this->pt_max.x , b.pt_max.x);
+        res.pt_min.x = min(this->pt_min.x , b.pt_min.x);
 
         res.indices.insert(res.indices.end(),this->indices.begin(), this->indices.end());
         res.indices.insert(res.indices.end(),b.indices.begin(), b.indices.end());
@@ -68,7 +74,7 @@ public:
 
         res.centerPoint.x = (res.voxel_max(0) + res.voxel_min(0)) /2;
         res.centerPoint.y = (res.voxel_max(1) + res.voxel_min(1)) /2;
-        res.centerPoint.z = (res.maxZ + res.minZ)/2;
+        res.centerPoint.z = (res.pt_max.z + res.pt_min.z)/2;
 
         res.groupNum = this->groupNum;
 
@@ -76,8 +82,8 @@ public:
     }
 
     void display(){
-        cout<<"MaxZ: "<<this->maxZ<<endl;
-        cout<<"minZ: "<<this->minZ<<endl;
+        cout<<"ind max: "<<this->pt_max<<endl;
+        cout<<"ind min: "<<this->pt_min<<endl;
         cout<<"voxel_min: "<<this->voxel_min(0)<<" "<<this->voxel_min(1)<<" "<<this->voxel_min(2)<<endl;
         cout<<"voxel_max: "<<this->voxel_max(0)<<" "<<this->voxel_max(1)<<" "<<this->voxel_max(2)<<endl;
         cout<<"groupNum: "<<this->groupNum<<endl;

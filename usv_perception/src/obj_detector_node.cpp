@@ -35,6 +35,10 @@ ros::Subscriber cloud_sub_;
   * */
 ros::Publisher cloud_pub_;
 ros::Publisher obj_detected_pub_;
+/**
+ * Services
+ */
+ros::ServiceClient dock_corners_client_;
 
 
 
@@ -75,16 +79,17 @@ int main(int argc, char** argv)
   while (ros::ok())
   { 
     
+
     vtpc_.SetCloud(cloud_);
 
     //Testing Functions
-    vtpc_.PassThrough("z", -0.4, 2.0);
-    vtpc_.RadiusFilter(100);
+    //vtpc_.PassThrough("z", -0.4, 2.0);
+    vtpc_.RadiusFilter(200);
 
     
     if (vtpc_.GetCloud().size() != 0){
       vtpc_.CreateGrid(0.2);
-      vtpc_.ClusterGrid(true);
+      vtpc_.ClusterGrid(false);
       vtpc_.ObjectDetectionPublish(obj_detected_pub_);
       if(viewPointCloudParam_){
         vtpc_.viewPointCloud();
@@ -123,6 +128,10 @@ void initialize(ros::NodeHandle &node){
 
   obj_detected_pub_ = node.advertise<usv_perception::obj_detected_list>(
     topic_objdet_pub_, queue_size_);
+
+  dock_corners_client_ =  node.serviceClient<usv_perception::dock_corners>("/get_dock_corners");
+  vtpc_.setDockService(dock_corners_client_);
+  
   //Success
   ROS_INFO("Velocity obstacle node is Ready!");
 }

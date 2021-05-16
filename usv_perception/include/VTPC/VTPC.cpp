@@ -160,36 +160,44 @@ void VTPC<PointType>::viewPointCloud(){
   }
   */
 
+  std::vector<pcl::PointXYZ> dockcorners;
 
-  for(auto const object : objDetVec_){
-
-    
+  for(auto const &object : objDetVec_){
 
     auto obj = object.second.second;
 
-    viewer_->addCube 
-    (obj.voxel_min(0),obj.voxel_max(0),
-    obj.voxel_min(1),obj.voxel_max(1), 
-    obj.minZ, obj.maxZ, 
-      1, 1, 1, "cube" + to_string(cubeCnt++), 0); 
+    
 
     viewer_->addSphere(obj.centerPoint, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
-
+    //viewer_->addSphere(obj.pt_max, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+    //viewer_->addSphere(obj.pt_min, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
 
     pcl::PointXYZ ptText;
     std::stringstream ss;
 
     ptText.x = obj.voxel_max(0);
     ptText.y = obj.voxel_max(1);
-    ptText.z = obj.maxZ;
+    ptText.z = obj.pt_max.z;
+    
+    ss<<ObjectClassifier(obj)<<"_"<<object.first;
 
-    if(abs(obj.maxZ-obj.minZ) < 0.4){
-      ss <<"Buoy_"<<object.first;
-    }else{
-      ss<<"Poste_"<<object.first;
+    if(ObjectClassifier(obj) == "dock"){
+      dockcorners = FindDockCorners(object.second.second); 
+
+
+      for(int i = 0; i < dockcorners.size(); i++){
+        viewer_->addSphere(dockcorners[i], 0.05, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+      }
+
+
     }
-
-
+    
+      viewer_->addCube 
+      (obj.voxel_min(0),obj.voxel_max(0),
+      obj.voxel_min(1),obj.voxel_max(1), 
+      obj.pt_min.z, obj.pt_max.z, 
+        1, 1, 1, "cube" + to_string(cubeCnt++), 0); 
+    
 
     viewer_->addText3D(ss.str(), ptText ,0.1,1,1,1, "text"+ to_string(cubeCnt++), 0);
     
@@ -249,14 +257,24 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
       leaf.getPointIndices(point_indices);
       octree.getVoxelBounds(it, voxel_min, voxel_max);
       pcl::getMinMax3D(*cloudPtr_, point_indices, min_point, max_point);
+
+
       
       //Filling a gridObj Information
       gridObj.centerPoint.x = voxel_min(0) + gridDim/2;
       gridObj.centerPoint.y = voxel_min(1) + gridDim/2;
       gridObj.centerPoint.z = 0;
       gridObj.density = point_indices.size();
-      gridObj.minZ = min_point[2];
-      gridObj.maxZ = max_point[2];
+
+
+      
+
+      gridObj.pt_min.x = min_point(0);
+      gridObj.pt_min.y = min_point(1);
+      gridObj.pt_min.z = min_point(2);
+      gridObj.pt_max.x = max_point(0);
+      gridObj.pt_max.y = max_point(1);
+      gridObj.pt_max.z = max_point(2);
       gridObj.voxel_min = voxel_min;
       gridObj.voxel_max = voxel_max;
       gridObj.groupNum = -1;
@@ -293,7 +311,8 @@ void VTPC<PointType>::ClusterGrid(const bool &tracking){
 
   //If not tracking reset objects detected vector
   if(!tracking){
-    objDetVec_.clear();   
+    objDetVec_.clear(); 
+    groupNumCnt_ = 0;  
   }
 
   curr_time = float(cloudPtr_->header.stamp / 1000000.0);
@@ -378,7 +397,6 @@ void VTPC<PointType>::ObjectDetectionPublish(const ros::Publisher &objDetPub){
 
   usv_perception::obj_detected_list objDetList;
   objDetList.len = objDetVec_.size();
-  std::stringstream ss;
 
   cout<<objDetVec_.size()<<endl;
 
@@ -388,18 +406,13 @@ void VTPC<PointType>::ObjectDetectionPublish(const ros::Publisher &objDetPub){
     
     objDetVec_[obj.first].second.display();
 
-    ss.str("");
-    if(abs(obj.second.second.maxZ-obj.second.second.minZ) < 0.4){
-      ss <<"buoy";
-    }else{
-      ss<<"marker";
-    }
+    
 
     usv_perception::obj_detected objDet;
 
     objDet.X = obj.second.second.centerPoint.x;
     objDet.Y = obj.second.second.centerPoint.y;
-    objDet.clase = ss.str();
+    objDet.clase = ObjectClassifier(obj.second.second);
     objDet.id = obj.second.second.groupNum;
 
     objDetList.objects.push_back(objDet);
@@ -424,6 +437,97 @@ void VTPC<PointType>::eraseDisapearingObjects(const float &seconds){
   }
 }
 
+template<class PointType> 
+string VTPC<PointType>::ObjectClassifier(const gridObj &obj){
+  std::stringstream ss;
+  ss.str("");
+  if(abs(obj.pt_max.z-obj.pt_min.z) < 0.4){
+    ss <<"bouy";
+  }else if(
+    (abs(obj.voxel_max(0) - obj.voxel_min(0)) > 0.5 ) ||
+    (abs(obj.voxel_max(1) - obj.voxel_min(1)) > 0.5 )
+    ){
+
+
+     
+    ss<<"dock";
+  }else{
+    ss<<"marker";
+  }
+
+  return ss.str();
+}
+
+template<class PointType> 
+void VTPC<PointType>::setDockService(const ros::ServiceClient &dockClientServer){
+  dock_service_ = dockClientServer;
+}
+
+template<class PointType> 
+std::vector<pcl::PointXYZ> VTPC<PointType>::FindDockCorners(const gridObj &obj){
+  
+  pcl::ExtractIndices<PointType> extract;
+  typename pcl::PointCloud<PointType>::Ptr cloud_p(new pcl::PointCloud<PointType>);
+  pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+  inliers->indices = obj.indices;
+  
+  extract.setInputCloud(cloudPtr_);
+  extract.setIndices(inliers);
+  extract.setNegative(false);
+  extract.filter(*cloud_p);
+
+  Mat img = Mat::zeros(Size(500, 500) , CV_8U );
+  Mat img2;
+  cvtColor( img,img2, CV_GRAY2RGB);
+
+  usv_perception::dock_corners srv;
+  std::vector<geometry_msgs::Point32> points;
+
+  for(auto& pt : *cloud_p){
+
+
+    geometry_msgs::Point32 point;
+
+    point.x = pt.x - obj.centerPoint.x;
+    point.y = pt.y - obj.centerPoint.y;
+    point.z = pt.z;
+
+    points.push_back(point);
+
+    pt.x = ceil((pt.x - obj.centerPoint.x)*100)+ 250;
+    pt.y = ceil((pt.y - obj.centerPoint.y)*100)+ 250;
+
+    img.at<Vec3b>(pt.y,pt.x) = 255;
+
+  }
+
+  srv.request.pointCoordinates = points;
+
+  dock_service_.call(srv);
+
+  std::vector<pcl::PointXYZ> dockcorners;
+  for(auto &pt: srv.response.dockCoordinates){
+
+    pt.x += obj.centerPoint.x;
+    pt.y += obj.centerPoint.y;
+    pt.z = obj.pt_max.z;
+
+    pcl::PointXYZ pt2(pt.x, pt.y, pt.z);
+
+    cout<<pt2<<endl;
+
+    dockcorners.push_back(pt2);
+
+  }
+
+  //cout<<"Response "<<srv.response.dockCoordinates.size()<<endl;
+
+  
+  
+  return dockcorners;
+  
+  
+}
 
 //template class VTPC<pcl::PointXYZ>;
 template class VTPC<pcl::PointXYZI>;

@@ -58,7 +58,8 @@ class SpeedChallenge:
         
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
-        rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        #rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        rospy.Subscriber("/usv_perception/lidar/objects_detected", obj_detected_list, self.objs_callback)
 
         # ROS Publishers
         self.path_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
@@ -73,7 +74,7 @@ class SpeedChallenge:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'bouy':
+            if str(data.objects[i].clase) == 'bouy' and data.objects[i].X > 0.0:
                 self.objects_list.append({'X' : data.objects[i].X + self.offset,
                                           'Y' : data.objects[i].Y,
                                           'color' : data.objects[i].color, 
@@ -131,6 +132,9 @@ class SpeedChallenge:
 
         xm, ym = self.gate_to_body(2,0,alpha,xc,yc)
         self.target_x, self.target_y = self.body_to_ned(xm, ym)
+
+        print(x1,y1,x2,y2,xc,yc)
+
         self.gate_x, self.gate_y = self.body_to_ned(xc, yc)
         
         path_array = Float32MultiArray()
@@ -180,6 +184,8 @@ class SpeedChallenge:
             
         radius = 3
 
+        print(buoy_x, buoy_y, self.gate_x, self.gate_y)
+
         w1 = [buoy_x, buoy_y + radius]
         w2 = [buoy_x + radius, buoy_y]
         w3 = [buoy_x, buoy_y - radius]
@@ -193,6 +199,8 @@ class SpeedChallenge:
         w5_x, w5_y = self.gate_to_ned(-5, 0, self.ned_alpha, self.gate_x, self.gate_y)
         path_array.data = [w1_x, w1_y, w2_x, w2_y, w3_x, w3_y,
                           self.gate_x, self.gate_y, w5_x, w5_y, 0]
+
+        print(path_array.data)
         self.desired(path_array)
 
         return(w5_x, w5_y)
@@ -323,8 +331,13 @@ def main():
                 class_list.append(speedChallenge.objects_list[i]['class'])
                 distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                 ind_0 = np.argsort(distance_list)[0]
+
+
+            print("*"*10)
+            print(speedChallenge.objects_list)
+            print(ind_0)
             if (len(speedChallenge.objects_list) >= 1 and
-            (str(speedChallenge.objects_list[ind_0]['color']) == 'blue')):
+            (str(speedChallenge.objects_list[ind_0]['color']) == '')):
                 speedChallenge.state = 2
             else:
                 initTime = rospy.Time.now().secs
@@ -347,8 +360,12 @@ def main():
                     class_list.append(speedChallenge.objects_list[i]['class'])
                     distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                     ind_0 = np.argsort(distance_list)[0]
+
+                print("*"*10)
+                print(speedChallenge.objects_list)
+                print(ind_0)
                 if ((len(speedChallenge.objects_list) >= 1) and
-                    (speedChallenge.objects_list[ind_0]['X'] < 7)):
+                    (speedChallenge.objects_list[ind_0]['X'] < 7) and (speedChallenge.objects_list[ind_0]['X'] > 0)):
                     buoy_x = speedChallenge.objects_list[0]['X']
                     buoy_y = speedChallenge.objects_list[0]['Y']
                     speedChallenge.state = 3

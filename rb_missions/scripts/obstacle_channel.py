@@ -49,7 +49,8 @@ class ObsChan:
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
-        rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        #rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        rospy.Subscriber("/usv_perception/lidar/objects_detected", obj_detected_list, self.objs_callback)
 
         # ROS Publishers
         self.path_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
@@ -64,7 +65,7 @@ class ObsChan:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'bouy':
+            if str(data.objects[i].clase) == 'bouy' and data.objects[i].X > 0.0:
                 self.objects_list.append({'X' : data.objects[i].X + self.offset, 
                                       'Y' : -data.objects[i].Y, #Negate sensor input in Y
                                       'color' : data.objects[i].color, 

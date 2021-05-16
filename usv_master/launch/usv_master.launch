@@ -12,10 +12,10 @@
     <param name = "xbee_port" value = "/dev/ttyUSB2" />
     </node> -->
 
-    <node pkg="usv_master" type="usv_master.py" name="usv_master" />
+   <node pkg="usv_master" type="usv_master.py" name="usv_master" />
 
     <node pkg="usv_master" type="gazebo_interface" name="gazebo_interface" />
 
-    <node pkg="usv_master" type="waypoints.py" name="waypoints" />
+    <!-- <node pkg="usv_master" type="waypoints.py" name="waypoints" /> -->
 
 </launch>

@@ -18,10 +18,14 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/Point32.h>
+
 
 //Custom Msgs
 #include <usv_perception/obj_detected.h>
 #include <usv_perception/obj_detected_list.h>
+#include <usv_perception/dock_corners.h>
+
 
 // PCL
 #include <pcl/point_cloud.h>
@@ -40,6 +44,10 @@
 #include <pcl/octree/octree_pointcloud_adjacency.h>
 #include <pcl/visualization/cloud_viewer.h>
 #include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/common/pca.h>
+#include <pcl/keypoints/harris_3d.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/concave_hull.h>
 
 // STD
 #include <vector> 
@@ -148,11 +156,30 @@ public:
    */
   void viewPointCloud();
   /**
-   * Publishes the objects detected along their location
+   * Classifies and Publishes the objects detected along their location
    * @param objDetPub[in]: Ros Publisher which will publish the objects detected
    * @return void
    */
   void ObjectDetectionPublish(const ros::Publisher &objDetPub);
+  /**
+   * Given a gridObj it Classifies it by its dimension as a marker, bouy or marker. 
+   * @param obj[in]: gridObj in quary
+   * @return string: with the class.
+   */
+  string ObjectClassifier(const gridObj &obj);
+  /**
+   * 
+   * 
+   * 
+   */
+  std::vector<pcl::PointXYZ> FindDockCorners(const gridObj  &obj);
+
+
+  /**
+   * 
+   */
+  void setDockService(const ros::ServiceClient &dockClientServer);
+
   // MEMBERS -------------------------------------------------------------------
   
 
@@ -206,6 +233,12 @@ private:
    * Flag to start tracking in the second frame.
    */ 
   bool isFirstIteration_;
+
+
+  /**
+   * ROS Server for calculating dock corners
+   */
+  ros::ServiceClient dock_service_;
 
 
 }; // End of class VTPC
