@@ -8,7 +8,7 @@
 #include <geometry_msgs/Pose2D.h>
 #include <visualization_msgs/Marker.h>
 
-#include <usv_perception/obstacles_list.h>
+#include <usv_perception/obj_detected_list.h>
 
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
@@ -140,6 +140,7 @@ class NMPC
     const unsigned int obs_num_ = 8;
     const unsigned int init_obs_pos_ = 1000;
     const double safety_radius_ = 0.2;
+    const double lidar_offset_ = 0.55;
  
     // acados struct
     solver_input acados_in;
@@ -181,7 +182,7 @@ public:
         local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 1, &NMPC::velocityCallback, this);
         ins_pos_sub = n.subscribe("/vectornav/ins_2d/ins_pose", 1, &NMPC::positionCallback, this);
         waypoints_sub = n.subscribe("/mission/waypoints", 1, &NMPC::waypointsCallback, this);
-        obstacles_sub = n.subscribe("/usv_perception/lidar_detector/obstacles", 1, &NMPC::obstaclesCallback, this);
+        obstacles_sub = n.subscribe("/usv_perception/lidar/objects_detected", 1, &NMPC::obstaclesCallback, this);
 
         // Initializing control inputs
         for(unsigned int i=0; i < NU; i++) acados_out.u0[i] = 0.0;
@@ -249,7 +250,7 @@ public:
         }
     }
 
-    void obstaclesCallback(const usv_perception::obstacles_list::ConstPtr& _msg)
+    void obstaclesCallback(const usv_perception::obj_detected_list::ConstPtr& _msg)
     {
         Eigen::Vector3f obstacle_body;
         Eigen::Vector3f obstacle_ned;
@@ -262,9 +263,9 @@ public:
           // Calculate the distance to all obstacles
           for (int i = 0; i < _msg->len; i++)
           {
-            double body_x = _msg->obstacles[i].x;
-            double body_y = -(_msg->obstacles[i].y);
-            double radius = _msg->obstacles[i].z + boat_radius_;
+            double body_x = _msg->objects[i].X + lidar_offset_;
+            double body_y = -(_msg->objects[i].Y);
+            double radius = _msg->objects[i].R + boat_radius_;
             double distance =  sqrt(body_x*body_x + body_y*body_y) - radius;
             obstacle_distances(i) = distance;
           }
@@ -284,9 +285,9 @@ public:
           for (int i = 0; i < obs_num_; i++)
           {
             int index = index_vec[i];
-            double body_x = _msg->obstacles[index].x;
-            double body_y = _msg->obstacles[index].y;
-            double radius = _msg->obstacles[index].z + boat_radius_;
+            double body_x = _msg->objects[index].X + lidar_offset_;
+            double body_y = -(_msg->objects[index].Y);
+            double radius = _msg->objects[index].R + boat_radius_;
             obstacle_body << body_x, body_y, 0;
             obstacle_ned = body2NED(obstacle_body);
             obstacle_ned(2) = radius;
@@ -314,9 +315,9 @@ public:
           // Obstain obstacle values
           for (int i = 0; i < _msg->len; i++)
           {
-            double body_x = _msg->obstacles[i].x;
-            double body_y = _msg->obstacles[i].y;
-            double radius = _msg->obstacles[i].z + boat_radius_;
+            double body_x = _msg->objects[i].X + lidar_offset_;
+            double body_y = -(_msg->objects[i].Y);
+            double radius = _msg->objects[i].R + boat_radius_;
 
             double distance =  sqrt(body_x*body_x + body_y*body_y);
             //std::cout<<"Obstacle "<< i << " distance "<< distance << " radius "<< radius << ".\n";
