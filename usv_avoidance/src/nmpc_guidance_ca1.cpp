@@ -452,7 +452,7 @@ public:
             double distance = pow(x_squared + y_squared, 0.5);
             double ak = atan2(y2-y1, x2-x1);
             //std::cout<<"Distance:"<<distance<<".\n";
-            d_speed.data = 0.7;
+            d_speed.data = 0.5;
             if (distance > 1)
             {
                 waypoint_path.x = x2;
