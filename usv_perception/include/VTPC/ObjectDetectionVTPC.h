@@ -39,6 +39,7 @@ public:
 
     std::vector<int> indices;
     Eigen::Vector3f voxel_min, voxel_max;
+
     //Eigen::Vector4f pt_min, pt_max;
 
     inline gridObj(){

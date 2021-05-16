@@ -225,6 +225,7 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
   double octree_min_x, octree_min_y, octree_min_z, 
             octree_max_x, octree_max_y, octree_max_z;
   int x_grid_index, y_grid_index;
+  
   gridObj gridObj;
 
   //clear gridImg
@@ -258,6 +259,8 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
       octree.getVoxelBounds(it, voxel_min, voxel_max);
       pcl::getMinMax3D(*cloudPtr_, point_indices, min_point, max_point);
 
+
+      
 
       
       //Filling a gridObj Information
@@ -400,16 +403,28 @@ void VTPC<PointType>::ObjectDetectionPublish(const ros::Publisher &objDetPub){
 
   cout<<objDetVec_.size()<<endl;
 
+  float minR, maxR;
+
   for( auto const &obj : objDetVec_){
 
     cout<<obj.first<<"-----------------"<<endl;
     
     objDetVec_[obj.first].second.display();
 
-    
-
     usv_perception::obj_detected objDet;
 
+    minR = 0;
+    maxR = 0;
+
+    minR = pow(obj.second.second.pt_min.x - obj.second.second.centerPoint.x, 2);
+    minR += pow(obj.second.second.pt_min.y - obj.second.second.centerPoint.y, 2);
+    minR = pow(minR, 0.5);
+
+    maxR = pow(obj.second.second.pt_max.x - obj.second.second.centerPoint.x, 2);
+    maxR += pow(obj.second.second.pt_max.y - obj.second.second.centerPoint.y, 2);
+    maxR = pow(maxR, 0.5);
+
+    objDet.R = max(minR, maxR);;
     objDet.X = obj.second.second.centerPoint.x;
     objDet.Y = obj.second.second.centerPoint.y;
     objDet.clase = ObjectClassifier(obj.second.second);
