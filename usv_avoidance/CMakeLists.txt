@@ -29,6 +29,8 @@ find_package(
 
 set(acados_include "${PROJECT_SOURCE_DIR}/include/acados/include")
 set(acados_lib "${PROJECT_SOURCE_DIR}/include/acados/lib")
+#set(acados_include "/home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/include")
+#set(acados_lib "/home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/lib")
 
 set(full_model_guidance_ca1 ${PROJECT_SOURCE_DIR}/scripts/usv_guidance_ca1/c_generated_code)
 
@@ -63,6 +65,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
 	${catkin_INCLUDE_DIRS}
+	include
 	${full_model_guidance_ca1}
 	${acados_include}
 	${acados_include}/blasfeo/include/

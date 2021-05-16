@@ -178,10 +178,10 @@ public:
         marker_pub = n.advertise<visualization_msgs::Marker>("/nmpc_ca/safety_vizualization", 1);
 
         // ROS Subscribers
-        local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 5, &NMPC::velocityCallback, this);
-        ins_pos_sub = n.subscribe("/vectornav/ins_2d/ins_pose", 5, &NMPC::positionCallback, this);
-        waypoints_sub = n.subscribe("/mission/waypoints", 5, &NMPC::waypointsCallback, this);
-        obstacles_sub = n.subscribe("/usv_perception/lidar_detector/obstacles",  5, &NMPC::obstaclesCallback, this);
+        local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 1, &NMPC::velocityCallback, this);
+        ins_pos_sub = n.subscribe("/vectornav/ins_2d/ins_pose", 1, &NMPC::positionCallback, this);
+        waypoints_sub = n.subscribe("/mission/waypoints", 1, &NMPC::waypointsCallback, this);
+        obstacles_sub = n.subscribe("/usv_perception/lidar_detector/obstacles", 1, &NMPC::obstaclesCallback, this);
 
         // Initializing control inputs
         for(unsigned int i=0; i < NU; i++) acados_out.u0[i] = 0.0;
@@ -263,7 +263,7 @@ public:
           for (int i = 0; i < _msg->len; i++)
           {
             double body_x = _msg->obstacles[i].x;
-            double body_y = _msg->obstacles[i].y;
+            double body_y = -(_msg->obstacles[i].y);
             double radius = _msg->obstacles[i].z + boat_radius_;
             double distance =  sqrt(body_x*body_x + body_y*body_y) - radius;
             obstacle_distances(i) = distance;
@@ -463,7 +463,7 @@ public:
             }
             else
             {
-                std::cout<<"Next waypoint"<<std::endl;
+                //std::cout<<"Next waypoint"<<std::endl;
                 k += 1;
                 x1 = last_waypoints[2*k - 2];
                 y1 = last_waypoints[2*k - 1];
@@ -605,7 +605,8 @@ public:
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "nmpc_guidance_ca");
+
+    ros::init(argc, argv, "nmpc_guidance_ca1");
 
     ros::NodeHandle n("~");
     NMPC nmpc(n);
