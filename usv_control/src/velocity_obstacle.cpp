@@ -920,7 +920,7 @@ void optimal_velocity()
       Polygon_with_holes_2 temp;
       Polygon_2 temp_poly;
       Point_2 temp_point;
-      Vertex v1,v2,v3;
+      Vertex v1,v1_g,v2,v2_g,v3;
       double v1_angle = 0.0;
       double v2_angle = 0.0;
       Coord c;
@@ -996,7 +996,11 @@ void optimal_velocity()
         p_begin.y = 0.0;
         p1.x = v1.x;
         p1.y = v1.y;
-        line_draw(p_end,p_begin,p1,"V1");
+        std_msgs::ColorRGBA color;
+        // Rojo oscuro
+        color.r = 0.5;
+        color.a = 0.5;
+        line_draw(p_end,p_begin,p1,"V1",color);
 
         intersect1 = check_vel_collision(obstacle_list_[obst_risk].voh_l, obstacle_list_[obst_risk].voh_r,
                                               obstacle_list_[obst_risk].tan_l, obstacle_list_[obst_risk].tan_r,
@@ -1004,45 +1008,89 @@ void optimal_velocity()
 
         c.x = v2.x + (obstacle_list_[obst_risk].boat_distance+5)*cos(v2_angle);
         c.y = v2.y + (obstacle_list_[obst_risk].boat_distance+5)*sin(v2_angle);
-        p_end.x = c.x-v1.x;
-        p_end.y = c.y-v1.y;
+        p_end.x = c.x-v2.x;
+        p_end.y = c.y-v2.y;
         p_begin.x = 0.0;
         p_begin.y = 0.0;
-        p1.x = v1.x;
-        p1.y = v1.y;
-        line_draw(p_end,p_begin,p1,"V2");
+        p1.x = v2.x;
+        p1.y = v2.y;
+        // Rojo fuerte
+        color.r = 1.0;
+        color.a = 1.0;
+        line_draw(p_end,p_begin,p1,"V2",color);
 
         intersect2 = check_vel_collision(obstacle_list_[obst_risk].voh_l, obstacle_list_[obst_risk].voh_r,
                                               obstacle_list_[obst_risk].tan_l, obstacle_list_[obst_risk].tan_r,
                                               c);
+
+        // For some reason tan_l and tan_r seam to be interchanged
+        // For some reason voh_l and voh_r seam to be interchanged
+
+        double l_angle = -atan2(-(obstacle_list_[obst_risk].tan_l.y-pos_y_),obstacle_list_[obst_risk].tan_l.x-pos_x_);
+        double r_angle = -atan2(-(obstacle_list_[obst_risk].tan_r.y-pos_y_),obstacle_list_[obst_risk].tan_r.x-pos_x_);
+        Coord v1_aux;
+        Vertex v2_aux;
+
         if(intersect1){
           if(intersect2){
-            ROS_WARN("Both intersect");
+            // ROS_WARN("Both intersect");
             if(sqrt(pow(goalNED_(0)-v1.x,2)+pow(goalNED_(1)-v1.y,2)) == sqrt(pow(goalNED_(0)-v2.x,2)+pow(goalNED_(1)-v2.y,2))){
-              ROS_WARN("Both equal");
+              // ROS_WARN("Both equal");
               dist_aux1 = sqrt(pow(v1.x-obstacle_list_[obst_risk].voh_l.x,2)+pow(v1.y-obstacle_list_[obst_risk].voh_l.y,2));
               dist_aux2 = sqrt(pow(v2.x-obstacle_list_[obst_risk].voh_l.x,2)+pow(v2.y-obstacle_list_[obst_risk].voh_l.y,2));
               if(dist_aux1 < dist_aux2){
-                ROS_WARN("V1 chosen");
-                ftst_chosen_vel = v1;
+                // ROS_WARN("V1 chosen");
+                v1_aux.x = obstacle_list_[obst_risk].voh_l.x;
+                v1_aux.y = obstacle_list_[obst_risk].voh_l.y;
+                // v1_aux = NED2body_(v1_aux);
+                // v1_aux.x -= v1_aux.x*0.5;
+                // v1_aux.y += v1_aux.y*0.5;
+                // v1_aux = Body2NED_(v1_aux);
+                ftst_chosen_vel.x = v1_aux.x;
+                ftst_chosen_vel.y = v1_aux.y;
+                // ftst_chosen_vel.x = obstacle_list_[obst_risk].voh_l.x;
+                // ftst_chosen_vel.y = obstacle_list_[obst_risk].voh_l.y;
+                // ftst_chosen_vel = v1;
                 desired_velocity(ftst_chosen_vel);
               } else {
-                ROS_WARN("V2 chosen");
-                ftst_chosen_vel = v2;
+                // ROS_WARN("V2 chosen");
+                v1_aux.x = obstacle_list_[obst_risk].voh_l.x;
+                v1_aux.y = obstacle_list_[obst_risk].voh_l.y;
+                // v1_aux = NED2body_(v1_aux);
+                // v1_aux.x -= v1_aux.x*0.5;
+                // v1_aux.y += v1_aux.y*0.5;
+                // v1_aux = Body2NED_(v1_aux);
+                ftst_chosen_vel.x = v1_aux.x;
+                ftst_chosen_vel.y = v1_aux.y;
+                // ftst_chosen_vel.x = obstacle_list_[obst_risk].voh_l.x;
+                // ftst_chosen_vel.y = obstacle_list_[obst_risk].voh_l.y;
+                // ftst_chosen_vel = v2;
                 desired_velocity(ftst_chosen_vel);
               }
             } else {
-              ROS_WARN("Both different");
-              ROS_WARN("V1 chosen");
-              ftst_chosen_vel = v1;
-              desired_velocity(v1);
+              // ROS_WARN("Both different");
+              // ROS_WARN("V1 chosen");
+              v1_aux.x = obstacle_list_[obst_risk].voh_l.x;
+              v1_aux.y = obstacle_list_[obst_risk].voh_l.y;
+              // v1_aux = NED2body_(v1_aux);
+              // v1_aux.x = sqrt(pow(v1_aux.x,2)+pow(v1_aux.y,2))*cos(l_angle);
+              // v1_aux.y = sqrt(pow(v1_aux.x,2)+pow(v1_aux.y,2))*sin(l_angle);
+              // v1_aux.y += v1_aux.y*0.5;
+              // v1_aux = Body2NED_(v1_aux);
+              ftst_chosen_vel.x = v1_aux.x;
+              ftst_chosen_vel.y = v1_aux.y;
+              ROS_INFO("(%f,%f)",ftst_chosen_vel.x,ftst_chosen_vel.y);
+              // ftst_chosen_vel.x = obstacle_list_[obst_risk].voh_l.x;
+              // ftst_chosen_vel.y = obstacle_list_[obst_risk].voh_l.y;
+              // ftst_chosen_vel = v1;
+              desired_velocity(ftst_chosen_vel);
             }
           } else {
-            ROS_WARN("V2 doesnt intersect");
+            // ROS_WARN("V2 doesnt intersect");
             desired_velocity(v2);
           }
         } else {
-          ROS_WARN("V1 doesnt intersect");
+          // ROS_WARN("V1 doesnt intersect");
           desired_velocity(v1);
         }
       }
@@ -1050,7 +1098,7 @@ void optimal_velocity()
     }
   }
   else{
-    ROS_WARN("For imm col");
+    // ROS_WARN("Imm col");
     desired_velocity(ftst_chosen_vel);
   }
 }
@@ -1059,18 +1107,20 @@ void desired_velocity(const Vertex &optimal)
 {
   std_msgs::Float64 desired_heading;
   std_msgs::Float64 desired_speed;
-  Coord p1, p_begin, p_end;
-  p1.x = pos_x_;
-  p1.y = pos_y_;
-  p_begin.x = 0;
-  p_begin.y = 0;
-  p_end.x = optimal.x;
-  p_end.y = optimal.y;
-  p_end = NED2body_(p_end);
   std_msgs::ColorRGBA color;
   color.r = 1.0;
   color.a = 1.0;
-  line_draw(p_end,p_begin,p1,"RAV_desired_velocity", color); //Hacerla rotar
+  Coord p1, p_begin, p_end;
+  // p1.x = pos_x_;
+  // p1.y = pos_y_;
+  // p_begin.x = 0;
+  // p_begin.y = 0;
+  // p_end.x = optimal.x;
+  // p_end.y = optimal.y; 
+  // line_draw(p_end,p_begin,p1,"RAV_desired_velocity", color); //Hacerla rotar
+  p_end.x = optimal.x;
+  p_end.y = optimal.y;
+  p_end = NED2body_(p_end);
   desired_heading.data = atan2(-(optimal.y-pos_y_),optimal.x-pos_x_);
   // ROS_INFO("Pos boat: %f, %f and heading: %f", pos_x_, pos_y_,pos_theta_);
   // ROS_INFO("Vo ned speed: %f, %f and heading %f", optimal.x, optimal.y,desired_heading.data);
