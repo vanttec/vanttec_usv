@@ -22,7 +22,7 @@ def main():
     # path_array.data = [4,-5.5, 6,-5, 7, -5, 0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
 
     path_array.layout.data_offset = 5
-    path_array.data = [8,-7, 0, 0, 0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
+    path_array.data = [6,0, 0, 0, 0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
     while not rospy.is_shutdown():
         t.desired(path_array)
         rate.sleep()
