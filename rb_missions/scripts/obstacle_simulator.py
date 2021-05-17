@@ -252,8 +252,8 @@ def main():
                                     'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 16,
-                                    'Y' : 6.5,
+        obstacleSimulator.obstacle_list.append({'X' : 18.5,
+                                    'Y' : 7,
                                     'R' : 0.4,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})
@@ -287,8 +287,8 @@ def main():
                                     'R' : 0.2,
                                     'color' : 'red', 
                                     'class' : 'bouy'})
-        obstacleSimulator.obstacle_list.append({'X' : 40,
-                                    'Y' : 2.1,
+        obstacleSimulator.obstacle_list.append({'X' : 38,
+                                    'Y' : 2.3,
                                     'R' : 0.4,
                                     'color' : 'yellow', 
                                     'class' : 'bouy'})

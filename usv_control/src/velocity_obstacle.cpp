@@ -89,8 +89,8 @@ struct Obstacle
   Coord voh_r = {0, 0};
   // Left cut angle
   Coord voh_l = {0, 0};
-  // Cone state for the obstacle
-  bool col_state = 0;
+  // If this obstacle represents a risk
+  bool obst_risk = 0;
   // Distance to the boat
   double boat_distance = 0;
 };
@@ -129,11 +129,12 @@ public:
   * */
 double robot_radius_ = 0.4;          //meters
 double time_horizon_ = 1;            //seconds
-double col_time_horizon_ = 7;        //seconds
+double col_time_horizon_ = 1.8;        //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1;  //rad/s^2
 double max_vel_ = 1.5;               //m/s
 Vertex ftst_chosen_vel;
+int obst_risk = 0;
 /**
   * Distance to the closest obstacle
   * */
@@ -461,25 +462,6 @@ void on_obstacles_msg(const usv_perception::obstacles_list::ConstPtr &msg)
     obstacle_list_.push_back(obstacle);
   }
 }
-
-// void check_cone_state(Coord vel_th, Obstacle &obs, double obs_circum_dist){
-//   if((vel_th.x > obs.x) && (vel_th.y > obs.y)){
-//     obs.Col_State_ = SAFE;
-//   } else {
-//     if((pos_x_< vel_th.x) && (pos_y_< vel_th.y) && (vel_th.x <= obs.x) && (vel_th.y <= obs.y)){
-//       obs.Col_State_ = COL_RISK;
-//     } else {
-//       if((vel_th.x <= pos_x_) && (vel_th.y <= pos_y_)){
-//         obs.Col_State_ = IMM_COL;
-//       } else {
-//         double vth = sqrt(pow(vel_th.x,2)+pow(vel_th.y,2));
-//         if(vth < obs_circum_dist){
-//           obs.Col_State_ = COL;
-//         }
-//       }
-//     }
-//   }
-// }
 
 bool collision_cone()
 {
@@ -841,14 +823,15 @@ bool reachable_avoidance_velocities()
           // std::cout << "Joined." << std::endl;
         }
         // print_polygon_with_holes (C_union);
-        obstacle_list_[i].col_state = 1;
+        obstacle_list_[i].obst_risk = 1;
+        obst_risk = i;
       }
       else
       {
         // CCs_.join(C);
         // std::cout << "The two polygons do not intersect." << std::endl;
         // return 0;
-        obstacle_list_[i].col_state = 0;
+        obstacle_list_[i].obst_risk = 0;
       }
       if(check_poly_inside(C)){
         imminent_collision=1;
@@ -860,19 +843,23 @@ bool reachable_avoidance_velocities()
       if (obs_center_dist < obstacle_list_[i].r)
       {
         // ROS_WARN("Incoming collision!");
-        obstacle_list_[i].col_state = 1;
+        obstacle_list_[i].obst_risk = 1;
+        obst_risk = i;
         imminent_collision = 1;
         return 1;           // Evade at all costs
       }
     }
   }
+  // ROS_WARN("Obstacle risk: (%f,%f):",obstacle_list_[obst_risk].x,obstacle_list_[obst_risk].y);
+  min_distance = DBL_MAX;
   for(int i=0; i<obstacle_list_.size(); i++){
     // ROS_INFO("Obstacle (%f,%f)",obstacle_list_[i].x, obstacle_list_[i].y);
     // ROS_INFO("Obstacle %i: distance to obst: %f",i,obstacle_list_[i].boat_distance);
     if(min_distance > obstacle_list_[i].boat_distance)
     { 
       min_distance = obstacle_list_[i].boat_distance;
-      closest_obst = i;
+      // if(sqrt(pow(obstacle_list_[i].x,2)+pow(obstacle_list_[i].y,2)) > sqrt(pow(pos_x_,2)+pow(pos_y_,2)))
+        closest_obst = i;
     }
     // ROS_INFO("Min distance %f",min_distance);
     // ROS_INFO("Closest obstacle: (%f,%f)",obstacle_list_[closest_obst].x,obstacle_list_[closest_obst].y);
@@ -907,10 +894,6 @@ bool reachable_avoidance_velocities()
 void optimal_velocity()
 {
   // NED2body();
-  if(ftst_chosen_vel.x == 0 && ftst_chosen_vel.y == 0){
-    ftst_chosen_vel.x = obstacle_list_[closest_obst].voh_l.x;
-    ftst_chosen_vel.y = obstacle_list_[closest_obst].voh_l.y;
-  }
   if(!imminent_collision){
     if (!(0 == (goalNED_(0)-pos_x_) && 0 == (goalNED_(1)-pos_y_)))
     {
@@ -919,6 +902,15 @@ void optimal_velocity()
       Polygon_with_holes_2 temp;
       Polygon_2 temp_poly;
       Point_2 temp_point;
+      Vertex v1,v2,v3;
+      double v1_angle = 0.0;
+      double v2_angle = 0.0;
+      Coord c;
+      bool intersect1 = 0;
+      bool intersect2 = 0;
+      double dist_aux1 = 0.0;
+      double dist_aux2 = 0.0;
+
       // Creates a Min heap of points (order by goal_dist)
       std::priority_queue<Vertex, std::vector<Vertex>, Closest> queue;
       //Iterate over set of polygon with holes
@@ -971,42 +963,75 @@ void optimal_velocity()
         // std::cout << " queue size: " << queue.size() << std::endl;
         // std::cout << " closest vertex: " << queue.top().x << ',' << queue.top().y << std::endl;
 
-        Vertex v1,v2,v3;
+        Coord p_end, p_begin, p1;
         v1 = queue.top();
         queue.pop();
         v2 = queue.top();
         queue.pop();
-        double v1_angle = -atan2(-(v1.y-pos_y_),v1.x-pos_x_);
-        double v2_angle = -atan2(-(v2.y-pos_y_),v2.x-pos_x_);
-        Coord c,d;
-        c.x = v1.x + obstacle_list_[closest_obst].boat_distance*cos(v1_angle);
-        c.y = v1.y + obstacle_list_[closest_obst].boat_distance*sin(v1_angle);
-        
-        bool intersect1 = check_vel_collision(obstacle_list_[closest_obst].voh_l, obstacle_list_[closest_obst].voh_r,
-                                              obstacle_list_[closest_obst].tan_l, obstacle_list_[closest_obst].tan_r,
+        v1_angle = -atan2(-(v1.y-pos_y_),v1.x-pos_x_);
+        v2_angle = -atan2(-(v2.y-pos_y_),v2.x-pos_x_);
+        c.x = v1.x + (obstacle_list_[obst_risk].boat_distance+5)*cos(v1_angle);
+        c.y = v1.y + (obstacle_list_[obst_risk].boat_distance+5)*sin(v1_angle);
+        p_end.x = c.x-v1.x;
+        p_end.y = c.y-v1.y;
+        p_begin.x = 0.0;
+        p_begin.y = 0.0;
+        p1.x = v1.x;
+        p1.y = v1.y;
+        line_draw(p_end,p_begin,p1,"V1");
+
+        intersect1 = check_vel_collision(obstacle_list_[obst_risk].voh_l, obstacle_list_[obst_risk].voh_r,
+                                              obstacle_list_[obst_risk].tan_l, obstacle_list_[obst_risk].tan_r,
                                               c);
 
-        c.x = v2.x + obstacle_list_[closest_obst].boat_distance*cos(v2_angle);
-        c.y = v2.y + obstacle_list_[closest_obst].boat_distance*sin(v2_angle);
+        c.x = v2.x + (obstacle_list_[obst_risk].boat_distance+5)*cos(v2_angle);
+        c.y = v2.y + (obstacle_list_[obst_risk].boat_distance+5)*sin(v2_angle);
+        p_end.x = c.x-v1.x;
+        p_end.y = c.y-v1.y;
+        p_begin.x = 0.0;
+        p_begin.y = 0.0;
+        p1.x = v1.x;
+        p1.y = v1.y;
+        line_draw(p_end,p_begin,p1,"V2");
 
-        bool intersect2 = check_vel_collision(obstacle_list_[closest_obst].voh_l, obstacle_list_[closest_obst].voh_r,
-                                              obstacle_list_[closest_obst].tan_l, obstacle_list_[closest_obst].tan_r,
+        intersect2 = check_vel_collision(obstacle_list_[obst_risk].voh_l, obstacle_list_[obst_risk].voh_r,
+                                              obstacle_list_[obst_risk].tan_l, obstacle_list_[obst_risk].tan_r,
                                               c);
-
         if(intersect1){
           if(intersect2){
-            desired_velocity(ftst_chosen_vel);
+            ROS_WARN("Both intersect");
+            if(sqrt(pow(goalNED_(0)-v1.x,2)+pow(goalNED_(1)-v1.y,2)) == sqrt(pow(goalNED_(0)-v2.x,2)+pow(goalNED_(1)-v2.y,2))){
+              ROS_WARN("Both equal");
+              dist_aux1 = sqrt(pow(v1.x-obstacle_list_[obst_risk].voh_l.x,2)+pow(v1.y-obstacle_list_[obst_risk].voh_l.y,2));
+              dist_aux2 = sqrt(pow(v2.x-obstacle_list_[obst_risk].voh_l.x,2)+pow(v2.y-obstacle_list_[obst_risk].voh_l.y,2));
+              if(dist_aux1 < dist_aux2){
+                ROS_WARN("V1 chosen");
+                ftst_chosen_vel = v1;
+                desired_velocity(ftst_chosen_vel);
+              } else {
+                ROS_WARN("V2 chosen");
+                ftst_chosen_vel = v2;
+                desired_velocity(ftst_chosen_vel);
+              }
+            } else {
+              ROS_WARN("Both different");
+              ROS_WARN("V1 chosen");
+              ftst_chosen_vel = v1;
+              desired_velocity(v1);
+            }
           } else {
+            ROS_WARN("V2 doesnt intersect");
             desired_velocity(v2);
           }
         } else {
+          ROS_WARN("V1 doesnt intersect");
           desired_velocity(v1);
         }
       }
     }
   }
-  else
-  {
+  else{
+    ROS_WARN("For imm col");
     desired_velocity(ftst_chosen_vel);
   }
 }
