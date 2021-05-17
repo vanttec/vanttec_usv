@@ -129,7 +129,7 @@ public:
   * */
 double robot_radius_ = 0.4;          //meters
 double time_horizon_ = 1;            //seconds
-double col_time_horizon_ = 1.8;        //seconds
+double col_time_horizon_ = 3;        //seconds
 double max_long_acceleration_ = 0.3; //m/s^3
 double max_yaw_acceleration_ = 0.1;  //rad/s^2
 double max_vel_ = 1.5;               //m/s

@@ -40,7 +40,7 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 0 #1 for AutonomousNavigation, 2 for SpeedChallenge
+        self.challenge = 1 #1 for AutonomousNavigation, 2 for SpeedChallenge
         self.obstacle_list = []
 
         self.max_visible_radius = 100
