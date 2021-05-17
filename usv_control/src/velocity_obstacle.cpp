@@ -314,6 +314,8 @@ void NED2body();
   * @return void.
   * */
 void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns, int i);
+void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns, int i, std_msgs::ColorRGBA color);
+
 /**
   * Draw Vth vector.
   * @param p_begin[in]: Initial point.
@@ -323,7 +325,7 @@ void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns, int i);
   * @param i marker id
   * @return void.
   * */
-void line_draw(Coord p_begin, Coord p_end, Coord p_ref, std::string ns);
+void line_draw(Coord p_begin, Coord p_end, Coord p_ref, std::string ns, std_msgs::ColorRGBA color);
 /**
   * Draw circles around bodies.
   * @param h[in]: X reference coordinate.
@@ -566,11 +568,20 @@ void reachable_velocities()
   Coord p_ref;
   p_ref.x = 0;
   p_ref.y = 0;
-  cone_draw(RV_, p_ref, 0, "RV", 0);
+  std_msgs::ColorRGBA color;
+  color.g = 1.0;
+  color.a = 1.0;
+  cone_draw(RV_, p_ref, 0, "RV", 0, color);
   // std::cout << "RV = "; print_polygon (RV_);
 }
-
 void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns, int i)
+{
+  std_msgs::ColorRGBA color;
+  color.b = 1.0;
+  color.a = 1.0;
+  cone_draw(C, p_ref, yaw, ns, i, color);
+}
+void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns, int i, std_msgs::ColorRGBA color)
 {
   tf2::Quaternion quat, q2;
   geometry_msgs::Quaternion quat_msg;
@@ -583,12 +594,12 @@ void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns, int i)
   marker.id = i;
   marker.type = visualization_msgs::Marker::LINE_STRIP;
   marker.action = visualization_msgs::Marker::ADD;
+  marker.color = color;
   marker.pose.position.x = p_ref.x;
   marker.pose.position.y = -p_ref.y;
   marker.pose.position.z = 0;
   marker.pose.orientation = quat_msg;
-  marker.color.b = 1.0;
-  marker.color.a = 1.0;
+
   marker.scale.x = 0.1;
   marker.lifetime = ros::Duration();
   geometry_msgs::Point p;
@@ -607,7 +618,7 @@ void cone_draw(Polygon_2 C, Coord p_ref, double yaw, std::string ns, int i)
   marker_pub_.publish(marker);
 }
 
-void line_draw(Coord p1, Coord p2, Coord org, std::string ns)
+void line_draw(Coord p1, Coord p2, Coord org, std::string ns, std_msgs::ColorRGBA color)
 {
   marker.header.frame_id = "/world";
   marker.header.stamp = ros::Time::now();
@@ -622,8 +633,7 @@ void line_draw(Coord p1, Coord p2, Coord org, std::string ns)
   marker.pose.orientation.y = 0.0;
   marker.pose.orientation.z = 0.0;
   marker.pose.orientation.w = 1.0;
-  marker.color.b = 0.9;
-  marker.color.a = 0.9;
+  marker.color = color;
   marker.scale.x = 0.1;
   marker.lifetime = ros::Duration();
   geometry_msgs::Point p;
@@ -877,12 +887,20 @@ bool reachable_avoidance_velocities()
     // << " components:" << std::endl;
     // Get vertices de C_union y llamar a check inside con velocidad deseada
     Pwh_list_2 res;
+    int max_distance = INT_MAX;
     p1.x = 0;
     p1.y = 0;
     if (0 < RAV_.number_of_polygons_with_holes())
     {
       // RAV_.polygons_with_holes(std::back_inserter(res));
       // cone_draw((*res.begin()).outer_boundary(), p1, 0, "RAV", 0);
+      /*for(int i=0; i<obstacle_list_.size(); i++){
+        if(max_distance > obstacle_list_[i].boat_distance)
+        {
+          max_distance = obstacle_list_[i].boat_distance;
+          closest_obst = i;
+        }
+      }*/
       return 1;
     }
     // print_polygon_with_holes((*res.begin()).outer_boundary());
@@ -1028,6 +1046,7 @@ void optimal_velocity()
           desired_velocity(v1);
         }
       }
+
     }
   }
   else{
@@ -1048,8 +1067,14 @@ void desired_velocity(const Vertex &optimal)
   p_end.x = optimal.x;
   p_end.y = optimal.y;
   p_end = NED2body_(p_end);
-  // line_draw(p_end,p_begin,p1,"RAV_desired_velocity");
+  std_msgs::ColorRGBA color;
+  color.r = 1.0;
+  color.a = 1.0;
+  line_draw(p_end,p_begin,p1,"RAV_desired_velocity", color); //Hacerla rotar
   desired_heading.data = atan2(-(optimal.y-pos_y_),optimal.x-pos_x_);
+  // ROS_INFO("Pos boat: %f, %f and heading: %f", pos_x_, pos_y_,pos_theta_);
+  // ROS_INFO("Vo ned speed: %f, %f and heading %f", optimal.x, optimal.y,desired_heading.data);
+  // ROS_INFO("Difference %f, %f", optimal.x-pos_x_, optimal.y-pos_y_);
   desired_speed.data = sqrt(pow(p_end.x, 2) + pow(p_end.y, 2));
   // ROS_WARN("RAV choosen vertex: %f,%f", optimal.x, optimal.y);
   // ROS_INFO("Desired vo speed: %f", desired_speed.data);
