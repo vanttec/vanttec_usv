@@ -1079,7 +1079,7 @@ void optimal_velocity()
               // v1_aux = Body2NED_(v1_aux);
               ftst_chosen_vel.x = v1_aux.x;
               ftst_chosen_vel.y = v1_aux.y;
-              ROS_INFO("(%f,%f)",ftst_chosen_vel.x,ftst_chosen_vel.y);
+              // ROS_INFO("(%f,%f)",ftst_chosen_vel.x,ftst_chosen_vel.y);
               // ftst_chosen_vel.x = obstacle_list_[obst_risk].voh_l.x;
               // ftst_chosen_vel.y = obstacle_list_[obst_risk].voh_l.y;
               // ftst_chosen_vel = v1;
