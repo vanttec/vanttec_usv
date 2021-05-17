@@ -1,6 +1,6 @@
 /** ----------------------------------------------------------------------------
  * @file: velocity_obstacle.cpp
- * @date: September 1, 2020
+ * @date: May 17th, 2021
  * @author: Ivana Collado
  * @email: a00569475@itesm.mx
  * @author: Sebastian Martinez
@@ -13,13 +13,13 @@
 /** ----------------------------------------------------------------------------
  * @todo:
  * Tests with multiple obstacles
- * Refactor of the whole node
+ * General refactor and optimize
  * Check RAV generation. Specially for max angular acceleration (could it be larger?)
  * Check time horizon when < 0.7 sec -- error cuando se genera RV
  * Check max accel min limit. If == 1 RV has self-intersecting edges
- * Check that rviz marker generation is correct (for RV set)
- * Solution applied when obstacle is on/inside the circumference of obstacle the
- * best one?
+ * Improvements on special case, when top velocities from RAV queue lie on the short
+ * base of the collision cone trapezoid. It computes velocities that could get you out
+ * of there, but needs to be improved.
  * Waypoint pose2D array msg
  * Perception msgs names uppercase
  * Update ASMC and dynamic model codes to c++11
