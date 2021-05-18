@@ -129,6 +129,9 @@ void initialize(ros::NodeHandle &node){
   obj_detected_pub_ = node.advertise<usv_perception::obj_detected_list>(
     topic_objdet_pub_, queue_size_);
 
+
+  
+
   dock_corners_client_ =  node.serviceClient<usv_perception::dock_corners>("/get_dock_corners");
   vtpc_.setDockService(dock_corners_client_);
   

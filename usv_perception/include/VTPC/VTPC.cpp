@@ -516,15 +516,21 @@ std::vector<pcl::PointXYZ> VTPC<PointType>::FindDockCorners(const gridObj &obj){
 
   }
 
+  geometry_msgs::Point32 pointCenter;
+
+  pointCenter.x =obj.centerPoint.x;
+  pointCenter.y= obj.centerPoint.y;
+
   srv.request.pointCoordinates = points;
+  srv.request.centerPoint = pointCenter;
 
   dock_service_.call(srv);
 
   std::vector<pcl::PointXYZ> dockcorners;
   for(auto &pt: srv.response.dockCoordinates){
 
-    pt.x += obj.centerPoint.x;
-    pt.y += obj.centerPoint.y;
+    //pt.x += obj.centerPoint.x;
+    //pt.y += obj.centerPoint.y;
     pt.z = obj.pt_max.z;
 
     pcl::PointXYZ pt2(pt.x, pt.y, pt.z);

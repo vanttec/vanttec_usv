@@ -5,20 +5,23 @@ import cv2
 import numpy as np
 import math 
 from usv_perception.srv import dock_corners,dock_cornersResponse
-from geometry_msgs.msg import Point32
-from scipy.spatial import ConvexHull, convex_hull_plot_2d
+from geometry_msgs.msg import Point32, PoseArray, Pose
+from scipy.spatial import ConvexHull, convex_hull_plot_2d, distance
 import matplotlib.pyplot as plt
 
 from cv_bridge import CvBridge, CvBridgeError
 
 
 
+
+
 c = 0
+
+pub = rospy.Publisher('/usv_perception/lidar_detector/dock', PoseArray, queue_size=10)
 
 
 def callback(req):
     global c
-
 
     points = np.round(np.array([[point.x, point.y] for point in req.pointCoordinates]), 2) * 100 + 250
 
@@ -51,6 +54,10 @@ def callback(req):
 
     res = dock_cornersResponse()
 
+    poseArray = PoseArray()
+
+    cornersArray = []
+
     for i in contours:
         M = cv2.moments(i)
         cX = int(M["m10"] / M["m00"])
@@ -60,12 +67,55 @@ def callback(req):
         cX = (cX - 250 )/100.0
         cY = (cY - 250 )/100.0
 
-        print(cX, cY)
+        #print(cX, cY)
 
-        point = Point32(cX,cY,0)
+        
+
+
+        cornersArray.append((cX + req.centerPoint.x, cX + req.centerPoint.y))
+
+
+        #poseArray.poses.append(pose)
+
+        point = Point32(cX+ req.centerPoint.x ,cY + req.centerPoint.y,0)
         res.dockCoordinates.append(point)
     
     c+=1
+
+
+    for point in cornersArray:
+        for point2 in cornersArray:
+
+
+            #print(distance.euclidean(point, point2))
+
+            if(distance.euclidean(point, point2) > 4):
+
+
+                pose = Pose()
+                pose2 = Pose()
+                pose.position.x = point[0] + req.centerPoint.x
+                pose.position.y = point[1] + req.centerPoint.y
+
+                pose2.position.x = point2[0] + req.centerPoint.x
+                pose2.position.y = point2[1] + req.centerPoint.y
+
+                poseArray.poses.append(pose)
+                poseArray.poses.append(pose2)
+
+
+                break
+        else:
+            continue
+        break
+        
+
+
+    
+
+    pub.publish(poseArray)
+
+
 
     return res
 
@@ -76,6 +126,8 @@ if __name__ == '__main__':
     rospy.loginfo("Node created!")
 
     service = rospy.Service("/get_dock_corners", dock_corners, callback)
+
+    
 
     rate = rospy.Rate(10)
 

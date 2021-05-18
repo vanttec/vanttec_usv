@@ -1,3 +1,4 @@
 geometry_msgs/Point32[] pointCoordinates
+geometry_msgs/Point32 centerPoint
 ---
 geometry_msgs/Point32[] dockCoordinates
