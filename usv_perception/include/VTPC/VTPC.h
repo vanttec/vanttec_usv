@@ -215,14 +215,15 @@ private:
   /**
    * Current grid containing the pointcloud and image representation
    */ 
-  gridObj grid_[256][256];
-  uint8_t gridImg_[256][256];
+
+  gridObj grid_[512][512];
+  uint8_t gridImg_[512][512];
 
   /**
    * Previous grid information
    */ 
-  gridObj prevGrid_[256][256];
-  uint8_t prevGridImg_[256][256];
+  gridObj prevGrid_[512][512];
+  uint8_t prevGridImg_[512][512];
   
   /**
    * Map storing the detected objects. <Group Number, < time of frame, Object> >.

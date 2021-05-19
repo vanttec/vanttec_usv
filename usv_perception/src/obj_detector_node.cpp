@@ -76,6 +76,9 @@ int main(int argc, char** argv)
   ros::Rate loop_rate(20);
   initialize(obj_detector_node);
 
+
+  
+
   while (ros::ok())
   { 
     
@@ -83,10 +86,17 @@ int main(int argc, char** argv)
     vtpc_.SetCloud(cloud_);
     //vtpc_.addNoise(200);
 
-    vtpc_.RadiusFilter(100);
 
+    //vtpc_.RadiusFilter(0.2);
+    vtpc_.PassThrough("z", -10.0, 10.0);
+    vtpc_.PassThrough("x", -10.0, 10.0);
+    vtpc_.PassThrough("y", -10.0, 10.0);
+
+    
     if (vtpc_.GetCloud().size() != 0){
+
       vtpc_.CreateGrid(0.2);
+
       vtpc_.ClusterGrid(false);
       vtpc_.ObjectDetectionPublish(obj_detected_pub_);
       if(viewPointCloudParam_){
@@ -94,6 +104,8 @@ int main(int argc, char** argv)
       }
       
     }
+    
+    
     
     
     cloud_pub_.publish(vtpc_.GetCloudMsg());

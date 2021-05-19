@@ -94,8 +94,8 @@ void VTPC<PointType>::RadiusFilter(const float &radius){
   pcl::RadiusOutlierRemoval<PointType> outrem;
 
   outrem.setInputCloud(cloudPtr_);
-  outrem.setRadiusSearch(radius/100);
-  outrem.setMinNeighborsInRadius(5);
+  outrem.setRadiusSearch(radius);
+  outrem.setMinNeighborsInRadius(1);
   outrem.setNegative(false);
   outrem.setKeepOrganized(false);
 
@@ -229,7 +229,7 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
   gridObj gridObj;
 
   //clear gridImg
-  memset(gridImg_, 0, 256*256);
+  memset(gridImg_, 0, 512*512);
 
   //Copy cloud content to modify
   *cloudProjectionPtr = *cloudPtr_;
@@ -248,11 +248,11 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
   octree.getBoundingBox(octree_min_x, octree_min_y, octree_min_z, 
         octree_max_x, octree_max_y, octree_max_z);
 
+
   for(auto it = octree.leaf_begin(); it != octree.leaf_end(); ++it)
   {
       
       
-
       
       auto leaf = it.getLeafContainer();
       
@@ -262,33 +262,47 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
       octree.getVoxelBounds(it, voxel_min, voxel_max);
       pcl::getMinMax3D(*cloudPtr_, point_indices, min_point, max_point);
 
-        if(point_indices.size() > 10){
+      cout<<"1"<<endl;
+
+        if(point_indices.size() > 0){
         
-        //Filling a gridObj Information
-        gridObj.centerPoint.x = voxel_min(0) + gridDim/2;
-        gridObj.centerPoint.y = voxel_min(1) + gridDim/2;
-        gridObj.centerPoint.z = 0;
-        gridObj.density = point_indices.size();
+          cout<<"2"<<endl;
+          //Filling a gridObj Information
+          gridObj.centerPoint.x = voxel_min(0) + gridDim/2;
+          gridObj.centerPoint.y = voxel_min(1) + gridDim/2;
+          gridObj.centerPoint.z = 0;
+          gridObj.density = point_indices.size();
 
-        gridObj.pt_min.x = min_point(0);
-        gridObj.pt_min.y = min_point(1);
-        gridObj.pt_min.z = min_point(2);
-        gridObj.pt_max.x = max_point(0);
-        gridObj.pt_max.y = max_point(1);
-        gridObj.pt_max.z = max_point(2);
-        gridObj.voxel_min = voxel_min;
-        gridObj.voxel_max = voxel_max;
-        gridObj.groupNum = -1;
-        gridObj.indices = point_indices;
-        gridObj.occupy = true;
 
-        //Calculating coordinates in XY plane for indexing gridObj
-        x_grid_index = round((gridObj.centerPoint.x+(abs(octree_min_x)-(gridDim/2.0)))/gridDim);
-        y_grid_index = round((gridObj.centerPoint.y+(abs(octree_min_y)-(gridDim/2.0)))/gridDim);
+          gridObj.pt_min.x = min_point(0);
+          gridObj.pt_min.y = min_point(1);
+          gridObj.pt_min.z = min_point(2);
+          gridObj.pt_max.x = max_point(0);
+          gridObj.pt_max.y = max_point(1);
+          gridObj.pt_max.z = max_point(2);
+          gridObj.voxel_min = voxel_min;
+          gridObj.voxel_max = voxel_max;
+          gridObj.groupNum = -1;
+          gridObj.indices = point_indices;
+          gridObj.occupy = true;
 
-        //Assigning gridObj to its corresponding coordinate in the coarseGrid and gridImg
-        grid_[x_grid_index][y_grid_index] = gridObj;
-        gridImg_[x_grid_index][y_grid_index] = 255;
+          cout<<"3"<<endl;
+
+          //Calculating coordinates in XY plane for indexing gridObj
+          x_grid_index = round((gridObj.centerPoint.x+(abs(octree_min_x)-(gridDim/2.0)))/gridDim);
+          y_grid_index = round((gridObj.centerPoint.y+(abs(octree_min_y)-(gridDim/2.0)))/gridDim);
+
+
+          //Assigning gridObj to its corresponding coordinate in the coarseGrid and gridImg
+
+
+          grid_[x_grid_index][y_grid_index] = gridObj;
+          gridImg_[x_grid_index][y_grid_index] = 255;
+          
+
+          
+
+          cout<<"5"<<endl;
 
         }
   }
@@ -298,8 +312,8 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
 template<class PointType> 
 void VTPC<PointType>::ClusterGrid(const bool &tracking){
 
-  Mat gridImg = Mat(256, 256, CV_8U, gridImg_);
-  Mat prevGridImg = Mat(256, 256, CV_8U, prevGridImg_);
+  Mat gridImg = Mat(512, 512, CV_8U, gridImg_);
+  Mat prevGridImg = Mat(512, 512, CV_8U, prevGridImg_);
   Mat contour_mask = Mat::zeros( gridImg.size(), CV_8U );
   Mat contour_mask_mod = Mat::zeros( gridImg.size(), CV_8U );
 
@@ -549,7 +563,6 @@ std::vector<pcl::PointXYZ> VTPC<PointType>::FindDockCorners(const gridObj &obj){
   
   
 }
-
 
 template<class PointType> 
 void VTPC<PointType>::addNoise(const int &n){
