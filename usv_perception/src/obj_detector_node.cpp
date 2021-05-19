@@ -81,12 +81,10 @@ int main(int argc, char** argv)
     
 
     vtpc_.SetCloud(cloud_);
+    //vtpc_.addNoise(200);
 
-    //Testing Functions
-    //vtpc_.PassThrough("z", -0.4, 2.0);
-    vtpc_.RadiusFilter(200);
+    vtpc_.RadiusFilter(100);
 
-    
     if (vtpc_.GetCloud().size() != 0){
       vtpc_.CreateGrid(0.2);
       vtpc_.ClusterGrid(false);

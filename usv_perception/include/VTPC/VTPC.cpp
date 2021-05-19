@@ -251,46 +251,46 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
   for(auto it = octree.leaf_begin(); it != octree.leaf_end(); ++it)
   {
       
+      
+
+      
       auto leaf = it.getLeafContainer();
-       
+      
       //Getting leaf's indices, leaf's Bounds, min and max points 
       point_indices.clear();
       leaf.getPointIndices(point_indices);
       octree.getVoxelBounds(it, voxel_min, voxel_max);
       pcl::getMinMax3D(*cloudPtr_, point_indices, min_point, max_point);
 
+        if(point_indices.size() > 10){
+        
+        //Filling a gridObj Information
+        gridObj.centerPoint.x = voxel_min(0) + gridDim/2;
+        gridObj.centerPoint.y = voxel_min(1) + gridDim/2;
+        gridObj.centerPoint.z = 0;
+        gridObj.density = point_indices.size();
 
-      
+        gridObj.pt_min.x = min_point(0);
+        gridObj.pt_min.y = min_point(1);
+        gridObj.pt_min.z = min_point(2);
+        gridObj.pt_max.x = max_point(0);
+        gridObj.pt_max.y = max_point(1);
+        gridObj.pt_max.z = max_point(2);
+        gridObj.voxel_min = voxel_min;
+        gridObj.voxel_max = voxel_max;
+        gridObj.groupNum = -1;
+        gridObj.indices = point_indices;
+        gridObj.occupy = true;
 
-      
-      //Filling a gridObj Information
-      gridObj.centerPoint.x = voxel_min(0) + gridDim/2;
-      gridObj.centerPoint.y = voxel_min(1) + gridDim/2;
-      gridObj.centerPoint.z = 0;
-      gridObj.density = point_indices.size();
+        //Calculating coordinates in XY plane for indexing gridObj
+        x_grid_index = round((gridObj.centerPoint.x+(abs(octree_min_x)-(gridDim/2.0)))/gridDim);
+        y_grid_index = round((gridObj.centerPoint.y+(abs(octree_min_y)-(gridDim/2.0)))/gridDim);
 
+        //Assigning gridObj to its corresponding coordinate in the coarseGrid and gridImg
+        grid_[x_grid_index][y_grid_index] = gridObj;
+        gridImg_[x_grid_index][y_grid_index] = 255;
 
-      
-
-      gridObj.pt_min.x = min_point(0);
-      gridObj.pt_min.y = min_point(1);
-      gridObj.pt_min.z = min_point(2);
-      gridObj.pt_max.x = max_point(0);
-      gridObj.pt_max.y = max_point(1);
-      gridObj.pt_max.z = max_point(2);
-      gridObj.voxel_min = voxel_min;
-      gridObj.voxel_max = voxel_max;
-      gridObj.groupNum = -1;
-      gridObj.indices = point_indices;
-      gridObj.occupy = true;
-
-      //Calculating coordinates in XY plane for indexing gridObj
-      x_grid_index = round((gridObj.centerPoint.x+(abs(octree_min_x)-(gridDim/2.0)))/gridDim);
-      y_grid_index = round((gridObj.centerPoint.y+(abs(octree_min_y)-(gridDim/2.0)))/gridDim);
-
-      //Assigning gridObj to its corresponding coordinate in the coarseGrid and gridImg
-      grid_[x_grid_index][y_grid_index] = gridObj;
-      gridImg_[x_grid_index][y_grid_index] = 255;
+        }
   }
   
 }
@@ -457,10 +457,10 @@ string VTPC<PointType>::ObjectClassifier(const gridObj &obj){
   std::stringstream ss;
   ss.str("");
   if(abs(obj.pt_max.z-obj.pt_min.z) < 0.4){
-    ss <<"bouy";
+    ss <<"buoy";
   }else if(
-    (abs(obj.voxel_max(0) - obj.voxel_min(0)) > 0.5 ) ||
-    (abs(obj.voxel_max(1) - obj.voxel_min(1)) > 0.5 )
+    (abs(obj.voxel_max(0) - obj.voxel_min(0)) > 1 ) ||
+    (abs(obj.voxel_max(1) - obj.voxel_min(1)) > 1 )
     ){
 
 
@@ -549,6 +549,29 @@ std::vector<pcl::PointXYZ> VTPC<PointType>::FindDockCorners(const gridObj &obj){
   
   
 }
+
+
+template<class PointType> 
+void VTPC<PointType>::addNoise(const int &n){
+
+
+  
+
+  for(int i = 0; i < n; i++){
+
+    pcl::PointXYZI p;
+
+
+    p.x = (float) rand()/RAND_MAX*10 - 5;
+    p.y = (float) rand()/RAND_MAX*10 - 5;
+    p.z = 0;
+
+    cloudPtr_->points.push_back(p);
+  }
+  
+
+}
+
 
 //template class VTPC<pcl::PointXYZ>;
 template class VTPC<pcl::PointXYZI>;

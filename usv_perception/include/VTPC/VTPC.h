@@ -55,6 +55,7 @@
 #include <ctime>
 #include <iostream>
 #include <map>
+#include <boost/random.hpp> 
 
 //OpenCV
 
@@ -168,17 +169,22 @@ public:
    */
   string ObjectClassifier(const gridObj &obj);
   /**
-   * 
-   * 
-   * 
+   * Transforms the objet'c pointcloud to an image and sent to the Dock Server
    */
   std::vector<pcl::PointXYZ> FindDockCorners(const gridObj  &obj);
-
-
   /**
-   * 
+   * Set the server to calculate the dock Corners
+   * @param dockClientServer[in]: Dock Calc Server
+   * @return void
    */
   void setDockService(const ros::ServiceClient &dockClientServer);
+
+  /**
+   * Adds random noise
+   * @param n[in]: number of noise points
+   * @return void
+   */
+  void addNoise(const int &n); 
 
   // MEMBERS -------------------------------------------------------------------
   
