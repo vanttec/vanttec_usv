@@ -11,7 +11,7 @@
 If on PC 64bit architecture platform:
 ```
   cd build
-  cmake -DACADOS_WITH_QPOASES=ON -DACADOS_WITH_OSQP=OFF/ON ..
+  cmake -DACADOS_WITH_QPOASES=ON -DACADOS_WITH_OSQP=ON ..
   make install 
 ```
 If on JetsonTX2 platform:
