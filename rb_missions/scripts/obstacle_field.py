@@ -95,12 +95,13 @@ class ObsField:
         w3 = [buoy_x, buoy_y - radius]
 
         path_array = Float32MultiArray()
-        path_array.layout.data_offset = 9
+        path_array.layout.data_offset = 11
         
         w1_x, w1_y = self.body_to_ned(w1[0], w1[1])
         w2_x, w2_y = self.body_to_ned(w2[0], w2[1])
         w3_x, w3_y = self.body_to_ned(w3[0], w3[1])
-        path_array.data = [w1_x, w1_y, w2_x, w2_y, w3_x, w3_y,
+        path_array.data = [self.ned_x, self.ned_y, 
+                          w1_x, w1_y, w2_x, w2_y, w3_x, w3_y,
                           self.ned_x, self.ned_y, 0]
         self.desired(path_array)
 

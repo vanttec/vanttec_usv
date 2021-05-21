@@ -1,0 +1,18 @@
+<launch>
+
+
+    <!--include file="$(find zed_wrapper)/launch/zed.launch" /-->
+    <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" />
+
+    <node pkg="usv_perception" type="yolo_zed.py" name="yolo_zed" />
+    <node pkg="usv_perception" type="color_srv.py" name="color_srv" />
+
+    <node name="object_detection_lidar" pkg="usv_perception" output="screen" type="obj_detector_node">
+		<param name="input_cloud" value="/velodyne_points"/>
+		<param name="output_cloud" value="/output_cloud"/>
+		<param name="obj_detected_list" value="/usv_perception/lidar/objects_detected"/>
+		<param name="view_pointcloud" type="bool" value="true"/>
+	</node>
+
+
+</launch>

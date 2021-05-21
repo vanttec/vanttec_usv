@@ -70,7 +70,7 @@ class ObstacleSimulator:
             distance = math.pow(delta_x*delta_x + delta_y*delta_y, 0.5)
             if (distance < self.max_visible_radius):
                 x, y = self.ned_to_body(x, y)
-                if x > 1:
+                if x > 1 or self.challenge == 3:
                     obstacle = obj_detected()
                     obstacle.X = x - self.sensor_to_usv_offset
                     obstacle.Y = -y
@@ -139,14 +139,7 @@ class ObstacleSimulator:
             if self.obstacle_list[i]['class'] == 'buoy':
                 x = self.obstacle_list[i]['X']
                 y = -self.obstacle_list[i]['Y']
-                if self.challenge == 0:
-                    diameter = 0.254
-                if self.challenge == 1:
-                    diameter = 0.39
-                if self.challenge == 2:
-                    diameter = 0.21
-                if self.challenge == 3:
-                    diameter = 0.21
+                diameter = 2*self.obstacle_list[i]['R']
                 marker = Marker()
                 marker.header.frame_id = "/world"
                 marker.type = marker.SPHERE
@@ -156,8 +149,6 @@ class ObstacleSimulator:
                     marker.color.r = 1.0
                     marker.color.g = 1.0
                     marker.color.b = 0.0
-                    if self.challenge == 2:
-                        diameter = 0.39
                 elif self.obstacle_list[i]['color'] == 'red':
                     marker.color.a = 1.0
                     marker.color.r = 1.0
@@ -189,7 +180,7 @@ class ObstacleSimulator:
             elif self.obstacle_list[i]['class'] == 'marker':
                 x = self.obstacle_list[i]['X']
                 y = -self.obstacle_list[i]['Y']
-                diameter = 0.2286
+                diameter = 2*self.obstacle_list[i]['R']
                 marker = Marker()
                 marker.header.frame_id = "/world"
                 marker.type = marker.CYLINDER
@@ -455,9 +446,9 @@ def main():
                                     'R' : 0.105,
                                     'color' : 'red', 
                                     'class' : 'buoy'})
-        obstacleSimulator.obstacle_list.append({'X' : 10.0,
-                                    'Y' : 4.0,
-                                    'R' : 0.105,
+        obstacleSimulator.obstacle_list.append({'X' : 9.0,
+                                    'Y' : 5.0,
+                                    'R' : 0.114,
                                     'color' : 'blue', 
                                     'class' : 'marker'})
                                 
