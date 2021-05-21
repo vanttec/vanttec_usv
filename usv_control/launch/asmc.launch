@@ -1,6 +1,6 @@
 <launch>
 
-    <node name="asmc" pkg="sensors" type="asmc" >
+    <node name="asmc" pkg="usv_control" type="asmc" >
 	<!--param name = "k_u" value = "0.1" /-->
 	<!--param name = "k_u" value = "0.2" /-->
     <param name = "k_u" value = "2" />
