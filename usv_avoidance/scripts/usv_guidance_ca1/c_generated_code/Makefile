@@ -64,8 +64,8 @@ OBJ+= $(OCP_OBJ)
 EXTERNAL_DIR=
 EXTERNAL_LIB=
 
-INCLUDE_PATH = /home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/include
-LIB_PATH = /home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/lib
+INCLUDE_PATH = /home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/include
+LIB_PATH = /home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/lib
 all: clean casadi_fun example_sim example
 shared_lib: bundled_shared_lib ocp_shared_lib sim_shared_lib
 

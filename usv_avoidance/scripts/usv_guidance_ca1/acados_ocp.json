@@ -1,6 +1,6 @@
 {
-    "acados_include_path": "/home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/include",
-    "acados_lib_path": "/home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/lib",
+    "acados_include_path": "/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/include",
+    "acados_lib_path": "/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/lib",
     "constraints": {
         "C": [],
         "C_e": [],
