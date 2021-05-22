@@ -65,7 +65,7 @@ class AutoNav:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'buoy':
+            if str(data.objects[i].clase) == 'bouy' and (data.objects[i].X > 0.5):
                 self.objects_list.append({'X' : data.objects[i].X + self.offset, 
                                       'Y' : data.objects[i].Y, 
                                       'color' : data.objects[i].color, 
@@ -270,7 +270,7 @@ def main():
                     initTime = rospy.Time.now().secs
                     while ((not rospy.is_shutdown()) and 
                         (len(autoNav.objects_list) < 2 or autoNav.distance < 2)):
-                        if rospy.Time.now().secs - initTime > 2:
+                        if rospy.Time.now().secs - initTime > 5:
                             autoNav.state = 1
                             rate.sleep()
                             break
@@ -278,6 +278,7 @@ def main():
 
         if autoNav.state == 1:
             autoNav.test.publish(autoNav.state)
+            print(autoNav.objects_list)
             if len(autoNav.objects_list) >= 2:
                 autoNav.state = 2
             else:

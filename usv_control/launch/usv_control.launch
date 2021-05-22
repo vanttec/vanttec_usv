@@ -1,7 +1,12 @@
 <launch>
 
+	<!--USV Model-->
+    <node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" />
+
+	<!-- Guidance Law -->
     <node pkg="usv_control" type="los.py" name="los" />
 
+    <!--Controler-->
     <node name="asmc" pkg="usv_control" type="asmc" >
 	<param name = "k_u" value = "0.1" />
 	<param name = "k_psi" value = "0.2" />

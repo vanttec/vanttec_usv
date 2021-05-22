@@ -44,23 +44,8 @@ class Detection_Node:
         self.depth = np.zeros((560,1000,3),np.uint8)
         self.points_list = [[0,0,0]]
 
-
-        #rospy.Subscriber("/zed/zed_node/left/image_rect_color", Image, self.callback_zed_img)
-        #rospy.Subscriber("/zed/zed_node/point_cloud/cloud_registered", PointCloud2, self.callback_zed_cp)
-        rospy.Subscriber("/r200/camera/color/image_raw", Image, self.callback_zed_img)
-        rospy.Subscriber("/r200/camera/depth_registered/points", PointCloud2, self.callback_zed_cp)
-
         self.detector_pub = rospy.Publisher('/usv_perception/yolo_zed/objects_detected', obj_detected_list, queue_size=10)
 
-
-    def callback_zed_img(self,img):
-        """ ZED rect_image callback"""
-        self.image = self.bridge.imgmsg_to_cv2(img, "bgr8")
-
-
-    def callback_zed_cp(self,ros_cloud):
-        """ ZED pointcloud callback"""
-        self.points_list = list(pc2.read_points(ros_cloud, skip_nans=False, field_names = ("x", "y", "z")))
 
     def send_message(self, color, msg):
         """ Publish message to ros node. """
@@ -110,14 +95,18 @@ class Detection_Node:
         fps = FPS().start()
         boxes, confidences, indices, cls_ids, colors, ids, distances = [], [], [], [], [], [], []
         
+        path = "/home/fitocuan/Downloads/colorTest/"
+        fileInPath = os.listdir(path)
 
         ret = True
         while not rospy.is_shutdown():
             # Grab next frame
 
-            
+            self.image = cv2.imread(path + fileInPath[counter],1)
+            counter+=1
             zed_cam_size = self.image.shape[1]
-            frame = self.image
+            frame = self.image.copy()
+            print_frame = self.image.copy()
             curr_point_list =  self.points_list
       
             color = ""
@@ -135,6 +124,7 @@ class Detection_Node:
             #frame = imutils.resize(frame, width=1000)
 
             (H, W) = frame.shape[:2]
+            print(H,W)
 
             det.set_h(H)
             det.set_w(W)
@@ -161,11 +151,13 @@ class Detection_Node:
                 box = boxes[i]
                 x, y, w, h = box
                 x, y, w, h = int(x), int(y), int(w), int(h)
-
+                print(len(indices))
                 
 
                 if detect == True:
+
                     color = self.calculate_color(frame,x,y,h,w)
+                    print("color: " + color.color)
 
                     p1= int((x+w/2)) #1.28 hd
                     p2= int((y+h/2))
@@ -174,20 +166,20 @@ class Detection_Node:
 
                     d_list = []
                     """
+                    d_list = []
                     for yidx in range(-h/2,h/2):
                         ind_y = ind + yidx*640
                         d_list.append(curr_point_list[ind_y-w/2:ind_y+w/2])
                     """
-                    d_list = curr_point_list[ind-5:ind+5]
+                    d_list = curr_point_list[ind:ind+1]
 
-                    print(d_list)
 
                     d_list_Y = np.array([point[2] for point in d_list])
                     d_list_X = np.array([point[0] for point in d_list])
 
 
                     if len(d_list_X) != 0:
-                        dist_x = np.mean(d_list_X[np.isfinite(d_list_X)])*-1
+                        dist_x = np.mean(d_list_X[np.isfinite(d_list_X)])
                     else:
                         dist_x = 'nan'
 
@@ -202,7 +194,7 @@ class Detection_Node:
                     else:
                         diststring = str(dist) + " m"
                     
-                    diststring = str(round(float(dist),2)) + " m, " +str(round(float(dist_x),2)) + "m"
+                    diststring = str(dist) + " m, " +str(dist_x) + "m"
                     color = str(color.color)
                     colors.append(color)
                     distances.append(dist)
@@ -215,13 +207,12 @@ class Detection_Node:
                         obj.w = w
                         obj.X = dist
                         obj.Y = dist_x
-                        obj.id = -1
                         obj.color = color
                         obj.clase = 'bouy' if cls_ids[i] == 0 else 'marker'
                         len_list += 1
                         obj_list.objects.append(obj)
 
-                    det.draw_prediction(frame, cls_ids[i], confidences[i], color,diststring, x, y, x+w, y+h)
+                    det.draw_prediction(print_frame, cls_ids[i], confidences[i], color,diststring, x, y, x+w, y+h)
 
             det_str = "Det: {}, BBoxes {}, Colors {}, Distance {}".format(dets, boxes, colors, distances)
             self.send_message(Color.BLUE, det_str)
@@ -238,13 +229,14 @@ class Detection_Node:
             ]
             for (i, (k, v)) in enumerate(info):
                 text = "{}: {}".format(k, v)
-                cv2.putText(frame, text, (10, det.get_h() - ((i * 20) + 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                cv2.putText(print_frame, text, (10, det.get_h() - ((i * 20) + 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
             # Show current frame
-            cv2.imshow("Frame", frame)
+            cv2.imshow("Frame", print_frame)
+            
             #print(self.depth)
 
-            cv2.waitKey(1)
+            cv2.waitKey(0)
             rate.sleep()
 
 

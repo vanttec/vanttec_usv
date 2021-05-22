@@ -66,7 +66,7 @@ class ObsChan:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'buoy':
+            if str(data.objects[i].clase) == 'bouy' and data.objects[i].X > 0.0:
                 self.objects_list.append({'X' : data.objects[i].X + self.offset, 
                                       'Y' : -data.objects[i].Y, #Negate sensor input in Y
                                       'color' : data.objects[i].color, 
