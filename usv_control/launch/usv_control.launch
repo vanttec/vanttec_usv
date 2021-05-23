@@ -1,7 +1,7 @@
 <launch>
 
 	<!--USV Model-->
-    <node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" />
+  <!--node name="dynamic_model_simulate" type="dynamic_model_simulate" pkg="usv_control" /-->
 
 	<!-- Guidance Law -->
     <node pkg="usv_control" type="los.py" name="los" />
@@ -18,6 +18,6 @@
 	<param name = "mu_psi" value = "0.1" />
 	<param name = "lambda_u" value = "0.001" />
 	<param name = "lambda_psi" value = "1" />
-    </node>
+  </node>
 
 </launch>
