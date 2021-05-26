@@ -8,9 +8,9 @@
 
   <include file="$(find usv_control)/launch/asmc.launch" />
 
-  <node pkg="usv_avoidance" type="nmpc_guidance_ca1" name="nmpc_guidance_ca1" />
+  <!--node pkg="usv_avoidance" type="nmpc_guidance_ca1" name="nmpc_guidance_ca1" /-->
 
   <!--Launch rosbag to record topics -->
-  <!--node type="record" pkg="rosbag" name="recorder" args="record -a -o $(find usv_research)/bags/mpc_guidance_exp0/sim" /-->
+  <node type="record" pkg="rosbag" name="recorder" args="record -a -o $(find usv_research)/bags/mpc_guidance_exp0/sim" />
 
 </launch>

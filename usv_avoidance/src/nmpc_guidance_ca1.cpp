@@ -9,6 +9,7 @@
 #include <visualization_msgs/Marker.h>
 
 #include <usv_perception/obj_detected_list.h>
+#include <usv_perception/obstacles_list.h>
 
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
@@ -111,6 +112,7 @@ class NMPC
     ros::Publisher desired_heading_pub;
     ros::Publisher desired_r_pub;
     ros::Publisher marker_pub;
+    ros::Publisher obstacles_pub;
     
     ros::Subscriber local_vel_sub;
     ros::Subscriber ins_pos_sub;
@@ -141,6 +143,7 @@ class NMPC
     const unsigned int init_obs_pos_ = 1000;
     const double safety_radius_ = 0.2;
     const double lidar_offset_ = 0.55;
+    usv_perception::obstacles_list obstacle_ned_list_;
  
     // acados struct
     solver_input acados_in;
@@ -178,6 +181,7 @@ public:
         desired_heading_pub = n.advertise<std_msgs::Float64>("/guidance/desired_heading", 1);
         desired_r_pub = n.advertise<std_msgs::Float64>("/guidance/desired_r", 1);
         marker_pub = n.advertise<visualization_msgs::Marker>("/nmpc_ca/safety_vizualization", 1);
+        obstacles_pub = n.advertise<usv_perception::obstacles_list>("/nmpc_ca/obstacle_list", 1);
 
         // ROS Subscribers
         local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 1, &NMPC::velocityCallback, this);
@@ -211,6 +215,7 @@ public:
         acados_in.x0[psied] = 0.0;
 
         //Initialize Obstacles
+        obstacle_ned_list_.len = obs_num_;
         initializeObstacles();
 
         waypoints.clear();
@@ -255,6 +260,7 @@ public:
     {
         Eigen::Vector3f obstacle_body;
         Eigen::Vector3f obstacle_ned;
+        geometry_msgs::Vector3 obs;
 
         // If there are more obstacles than MPC algorithim can handle
         if (_msg->len > obs_num_)
@@ -269,6 +275,10 @@ public:
             double radius = _msg->objects[i].R + boat_radius_;
             double distance =  sqrt(body_x*body_x + body_y*body_y) - radius;
             obstacle_distances(i) = distance;
+            if (distance<radius)
+            {
+              ROS_WARN("COLLISION Obstacle %i distance %f", i, distance);
+            }
           }
 
           // Sort obstacles in terms of ditances (closest to farthest)
@@ -304,6 +314,11 @@ public:
                        obstacle_ned(2) + safety_radius_, 
                        "obstacle_circle", 
                        i + obs_num_);
+            //Obstacle msg
+            obs.x = obstacle_ned(0);
+            obs.y = obstacle_ned(1);
+            obs.z = obstacle_ned(2);
+            obstacle_ned_list_.obstacles.push_back(obs);
           }
         }
 
@@ -342,8 +357,16 @@ public:
                        obstacle_ned(2) + safety_radius_, 
                        "obstacle_circle", 
                        i + obs_num_);
+            //Obstacle msg
+            obs.x = obstacle_ned(0);
+            obs.y = obstacle_ned(1);
+            obs.z = obstacle_ned(2);
+            obstacle_ned_list_.obstacles.push_back(obs);
           }
+
         }
+        
+        obstacles_pub.publish(obstacle_ned_list_);
 
     }
 
@@ -367,12 +390,18 @@ public:
     void initializeObstacles()
     {
         obstacles_list_.clear();
+        geometry_msgs::Vector3 obs;
+
         Eigen::Vector3f obstacle;
         obstacle << init_obs_pos_, init_obs_pos_, 0;
-
-        for(i=0; i<obs_num_; i++)
+        
+        for(int i = 0; i < obs_num_; i++)
         {
           obstacles_list_.push_back(obstacle);
+          obs.x = 1000.0;//init_obs_pos_;
+          obs.y = 1000.0;//init_obs_pos_;
+          obs.z = 0.0;
+          obstacle_ned_list_.obstacles.push_back(obs);
         }
 
     }
