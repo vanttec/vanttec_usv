@@ -292,6 +292,7 @@ public:
           std::cout<<"Positioning the position in the original vector corresponding to each element of the vector"<<endl;
           std::cout<<index_vec<<std::endl;*/
 
+          obstacle_ned_list_.obstacles.clear();
           // Use only 8 closest obstacles
           for (int i = 0; i < obs_num_; i++)
           {
@@ -390,6 +391,7 @@ public:
     void initializeObstacles()
     {
         obstacles_list_.clear();
+        obstacle_ned_list_.obstacles.clear();
         geometry_msgs::Vector3 obs;
 
         Eigen::Vector3f obstacle;
