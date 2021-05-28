@@ -276,7 +276,7 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
       cout<<"1"<<endl;
 
 
-      float min_height = 0;
+      float min_height = 0.05;
       float max_height = 0.5;
       float min_density = 5;
       float max_density = 0;
