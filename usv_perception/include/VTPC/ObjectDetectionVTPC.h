@@ -37,6 +37,8 @@ public:
     pcl::PointXYZ pt_min_x, pt_min_y, pt_max_x, pt_max_y; 
     pcl::PointXYZ pt_min, pt_max;
 
+    string clase;
+
     std::vector<int> indices;
     Eigen::Vector3f voxel_min, voxel_max;
 

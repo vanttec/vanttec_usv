@@ -136,29 +136,32 @@ void VTPC<PointType>::viewPointCloud(){
 
   std::vector<cv::Point> insidePoints;
 
-  Mat gridImg = Mat(256, 256, CV_8U, gridImg_);
+  Mat gridImg = Mat(512, 512, CV_8U, gridImg_);
+
+  
 
   insidePoints.clear();
 
   cv::findNonZero(gridImg, insidePoints);
-  int cubeCnt = 0;
 
+
+  
+  int cubeCnt = 0;
 
   /*
-  int cubeCnt = 0;
   for( auto const &point : insidePoints){
 
-    cout<<coarseGrid_[point.y][point.x].minZ<<" "<< coarseGrid_[point.y][point.x].maxZ<<endl;
 
     viewer_->addCube 
-    (coarseGrid_[point.y][point.x].voxel_min(0),coarseGrid_[point.y][point.x].voxel_max(0),
-    coarseGrid_[point.y][point.x].voxel_min(1),coarseGrid_[point.y][point.x].voxel_max(1), 
-    coarseGrid_[point.y][point.x].minZ, coarseGrid_[point.y][point.x].maxZ, 
-      1, 1, 1, "cube" + to_string(cubeCnt++), 0);  
+    (grid_[point.y][point.x].voxel_min(0),grid_[point.y][point.x].voxel_max(0),
+    grid_[point.y][point.x].voxel_min(1),grid_[point.y][point.x].voxel_max(1), 
+    0, 1, 
+      1, 1, 1, "cubee" + to_string(cubeCnt++), 0);  
     
 
   }
   */
+  
 
   std::vector<pcl::PointXYZ> dockcorners;
 
@@ -168,42 +171,50 @@ void VTPC<PointType>::viewPointCloud(){
 
     
 
-    viewer_->addSphere(obj.centerPoint, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
-    //viewer_->addSphere(obj.pt_max, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
-    //viewer_->addSphere(obj.pt_min, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+    if(obj.clase != "undefined"){
 
-    pcl::PointXYZ ptText;
-    std::stringstream ss;
-
-    ptText.x = obj.voxel_max(0);
-    ptText.y = obj.voxel_max(1);
-    ptText.z = obj.pt_max.z;
     
-    ss<<ObjectClassifier(obj)<<"_"<<object.first;
 
-    if(ObjectClassifier(obj) == "dock"){
-      dockcorners = FindDockCorners(object.second.second); 
+      viewer_->addSphere(obj.centerPoint, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+      //viewer_->addSphere(obj.pt_max, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+      //viewer_->addSphere(obj.pt_min, 0.01, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+
+      pcl::PointXYZ ptText;
+      std::stringstream ss;
+
+      ptText.x = obj.voxel_max(0);
+      ptText.y = obj.voxel_max(1);
+      ptText.z = obj.pt_max.z;
+      
+      ss<<ObjectClassifier(obj)<<"_"<<object.first;
+
+      if(ObjectClassifier(obj) == "dock"){
+        dockcorners = FindDockCorners(object.second.second); 
 
 
-      for(int i = 0; i < dockcorners.size(); i++){
-        viewer_->addSphere(dockcorners[i], 0.05, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+        for(int i = 0; i < dockcorners.size(); i++){
+          viewer_->addSphere(dockcorners[i], 0.05, 255,0,0,"Sphere" + to_string(cubeCnt++), 0);
+        }
+
+
       }
+      
+        viewer_->addCube 
+        (obj.voxel_min(0),obj.voxel_max(0),
+        obj.voxel_min(1),obj.voxel_max(1), 
+        obj.pt_min.z, obj.pt_max.z, 
+          1, 1, 1, "cube" + to_string(cubeCnt++), 0); 
+      
 
+      viewer_->addText3D(ss.str(), ptText ,0.1,1,1,1, "text"+ to_string(cubeCnt++), 0);
+    
 
     }
-    
-      viewer_->addCube 
-      (obj.voxel_min(0),obj.voxel_max(0),
-      obj.voxel_min(1),obj.voxel_max(1), 
-      obj.pt_min.z, obj.pt_max.z, 
-        1, 1, 1, "cube" + to_string(cubeCnt++), 0); 
-    
-
-    viewer_->addText3D(ss.str(), ptText ,0.1,1,1,1, "text"+ to_string(cubeCnt++), 0);
-    
   }
 
   
+  
+
   viewer_->spinOnce(100);
   
   viewer_->removeAllPointClouds();
@@ -264,13 +275,23 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
 
       cout<<"1"<<endl;
 
-        if(point_indices.size() > 0){
+
+      float min_height = 0;
+      float max_height = 0.3;
+      float min_density = 5;
+      float max_density = 0;
+
+        if((point_indices.size() > min_density)  && 
+            (abs(min_point(2) - max_point(2)) > min_height) &&
+            (abs(min_point(2) - max_point(2)) < max_height)
+            
+            ){
         
           cout<<"2"<<endl;
           //Filling a gridObj Information
           gridObj.centerPoint.x = voxel_min(0) + gridDim/2;
           gridObj.centerPoint.y = voxel_min(1) + gridDim/2;
-          gridObj.centerPoint.z = 0;
+          gridObj.centerPoint.z = max_point(2) - (abs(max_point(2) - min_point(2))/2);
           gridObj.density = point_indices.size();
 
 
@@ -419,7 +440,7 @@ void VTPC<PointType>::ObjectDetectionPublish(const ros::Publisher &objDetPub){
 
   float minR, maxR;
 
-  for( auto const &obj : objDetVec_){
+  for( auto &obj : objDetVec_){
 
     cout<<obj.first<<"-----------------"<<endl;
     
@@ -442,9 +463,12 @@ void VTPC<PointType>::ObjectDetectionPublish(const ros::Publisher &objDetPub){
     objDet.X = obj.second.second.centerPoint.x;
     objDet.Y = obj.second.second.centerPoint.y;
     objDet.clase = ObjectClassifier(obj.second.second);
+    obj.second.second.clase = objDet.clase;
     objDet.id = obj.second.second.groupNum;
-
-    objDetList.objects.push_back(objDet);
+  
+    if(objDet.clase != "undefined")
+      objDetList.objects.push_back(objDet);
+    
 
   }
 
@@ -470,18 +494,24 @@ template<class PointType>
 string VTPC<PointType>::ObjectClassifier(const gridObj &obj){
   std::stringstream ss;
   ss.str("");
-  if(abs(obj.pt_max.z-obj.pt_min.z) < 0.4){
+  if((abs(obj.pt_max.z-obj.pt_min.z) < 0.4) &&
+      (abs(obj.pt_min.x - obj.pt_max.x) < 0.4) &&
+        (abs(obj.pt_min.y - obj.pt_max.y) < 0.4) &&
+      (abs(obj.pt_min.x - obj.pt_max.x) > 0) &&
+        (abs(obj.pt_min.y - obj.pt_max.y) > 0)
+  ){
     ss <<"buoy";
-  }else if(
+  }
+
+  /*else if(
     (abs(obj.voxel_max(0) - obj.voxel_min(0)) > 1 ) ||
     (abs(obj.voxel_max(1) - obj.voxel_min(1)) > 1 )
-    ){
-
-
-     
-    ss<<"dock";
-  }else{
+  
     ss<<"marker";
+  }*/
+  
+  else{
+    ss<<"undefined";
   }
 
   return ss.str();
