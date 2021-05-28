@@ -1,5 +1,5 @@
 %declare name of the bag
-experimentbag = rosbag('mpc_guidance_exp0/sim_2021-05-26-23-35-03.bag');
+experimentbag = rosbag('mpc_guidance_exp0/sim_2021-05-27-22-50-55.bag');
 desiredheading = select(experimentbag, "Topic", '/guidance/desired_heading');
 desiredheadingts = timeseries(desiredheading, 'Data');
 start_time = desiredheadingts.get.TimeInfo.Start;
@@ -142,25 +142,27 @@ ylabel('$u$ [m/s]', 'Interpreter', 'latex')
 title('Speed MPC')
 
 %Publish desired Path
-desired_path = select(experimentbag, 'Topic', '/guidance/target');
-msgStructs = readMessages(desired_path,'DataFormat','struct');
-msgStructs{1};
-figure
-xPoints = cellfun(@(m) double(m.X),msgStructs);
-yPoints = cellfun(@(m) double(m.Y),msgStructs);
-plot(yPoints,xPoints)
-xlabel('Y(m)', 'Interpreter', 'latex') 
-ylabel('X(m)', 'Interpreter', 'latex')
-hold on 
+%desired_path = select(experimentbag, 'Topic', '/guidance/target');
+%msgStructs = readMessages(desired_path,'DataFormat','struct');
+%msgStructs{1};
+%figure
+%xPoints = cellfun(@(m) double(m.X),msgStructs);
+%yPoints = cellfun(@(m) double(m.Y),msgStructs);
+%plot(yPoints,xPoints)
+%xlabel('Y(m)', 'Interpreter', 'latex') 
+%ylabel('X(m)', 'Interpreter', 'latex')
+%hold on 
 
 %publish actual path
-position = select(experimentbag, 'Topic', '/vectornav/ins_2d/ins_pose');
-msgStructs = readMessages(position,'DataFormat','struct');
-msgStructs{1};
-xPoints = cellfun(@(m) double(m.X),msgStructs);
-yPoints = cellfun(@(m) double(m.Y),msgStructs);
-plot(yPoints,xPoints)
-legend('Desired Path', 'Actual Path', 'Interpreter', 'latex')
+%position = select(experimentbag, 'Topic', '/vectornav/ins_2d/ins_pose');
+%msgStructs = readMessages(position,'DataFormat','struct');
+%msgStructs{1};
+%xPoints = cellfun(@(m) double(m.X),msgStructs);
+%yPoints = cellfun(@(m) double(m.Y),msgStructs);
+%plot(yPoints,xPoints)
+%hold off
+%legend('Desired Path', 'Actual Path', 'Interpreter', 'latex')
+%title('Path')
 
 %publish obstacles
 position = select(experimentbag, 'Topic', '/nmpc_ca/obstacle_list');
@@ -177,5 +179,7 @@ for j=1:length(msgStructs)
         viscircles([xPoints(i, j), yPoints(i, j)], zPoints(i, j));
     end
 end
+holf off
 xlabel('Y(m)', 'Interpreter', 'latex') 
 ylabel('X(m)', 'Interpreter', 'latex')
+title('Obstacles')

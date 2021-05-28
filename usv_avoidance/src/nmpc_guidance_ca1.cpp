@@ -319,7 +319,7 @@ public:
             obs.x = obstacle_ned(0);
             obs.y = obstacle_ned(1);
             obs.z = obstacle_ned(2);
-            obstacle_ned_list_.obstacles.push_back(obs);
+            obstacle_ned_list_.obstacles[i] = obs;
           }
         }
 
@@ -362,7 +362,7 @@ public:
             obs.x = obstacle_ned(0);
             obs.y = obstacle_ned(1);
             obs.z = obstacle_ned(2);
-            obstacle_ned_list_.obstacles.push_back(obs);
+            obstacle_ned_list_.obstacles[i] = obs;
           }
 
         }
