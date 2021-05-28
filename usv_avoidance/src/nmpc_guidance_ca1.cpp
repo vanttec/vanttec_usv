@@ -142,7 +142,7 @@ class NMPC
     const unsigned int obs_num_ = 8;
     const unsigned int init_obs_pos_ = 1000;
     const double safety_radius_ = 0.2;
-    const double lidar_offset_ = 0.55;
+    const double lidar_offset_ = 0.25;
     usv_perception::obstacles_list obstacle_ned_list_;
  
     // acados struct

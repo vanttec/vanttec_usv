@@ -40,7 +40,7 @@ class ObstacleSimulator:
         self.obstacle_list = []
 
         self.max_visible_radius = 10
-        self.sensor_to_usv_offset = 0.55
+        self.sensor_to_usv_offset = 0.25
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
 
