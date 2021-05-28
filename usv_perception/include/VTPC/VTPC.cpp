@@ -277,7 +277,7 @@ void VTPC<PointType>::CreateGrid(const float &gridDim){
 
 
       float min_height = 0;
-      float max_height = 0.3;
+      float max_height = 0.5;
       float min_density = 5;
       float max_density = 0;
 
@@ -494,9 +494,9 @@ template<class PointType>
 string VTPC<PointType>::ObjectClassifier(const gridObj &obj){
   std::stringstream ss;
   ss.str("");
-  if((abs(obj.pt_max.z-obj.pt_min.z) < 0.4) &&
-      (abs(obj.pt_min.x - obj.pt_max.x) < 0.4) &&
-        (abs(obj.pt_min.y - obj.pt_max.y) < 0.4) &&
+  if((abs(obj.pt_max.z-obj.pt_min.z) < 0.45) &&
+      (abs(obj.pt_min.x - obj.pt_max.x) < 0.45) &&
+        (abs(obj.pt_min.y - obj.pt_max.y) < 0.45) &&
       (abs(obj.pt_min.x - obj.pt_max.x) > 0) &&
         (abs(obj.pt_min.y - obj.pt_max.y) > 0)
   ){
