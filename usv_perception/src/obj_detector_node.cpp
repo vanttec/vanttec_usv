@@ -88,9 +88,9 @@ int main(int argc, char** argv)
 
 
     //vtpc_.RadiusFilter(0.2);
-    vtpc_.PassThrough("z", -10.0, 10.0);
-    vtpc_.PassThrough("x", -10.0, 10.0);
-    vtpc_.PassThrough("y", -10.0, 10.0);
+    vtpc_.PassThrough("z", -1, -0.1);
+    vtpc_.PassThrough("x", -5.0, 5.0);
+    vtpc_.PassThrough("y", -5.0, 5.0);
 
     
     if (vtpc_.GetCloud().size() != 0){
