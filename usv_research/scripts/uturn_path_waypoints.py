@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os
 import time
@@ -17,7 +18,7 @@ def main():
     rospy.init_node('uturn_path_waypoints', anonymous=False)
     rate = rospy.Rate(100)
     t = Test()
-    time.sleep(2)
+    time.sleep(5)
     path_array = Float32MultiArray()
     path_array.layout.data_offset = 9
     path_array.data = [0,-1,0,-15,4,-15,4,-1,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
