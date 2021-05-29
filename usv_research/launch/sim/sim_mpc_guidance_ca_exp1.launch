@@ -1,6 +1,6 @@
 <launch>
 
-  <!-- MPC Guidance Experiment 1: straight line experiment with avoidance of multiple obstacle -->
+  <!-- MPC Guidance Experiment 1: straight line experiment with avoidance of multiple obstacles -->
 
   <include file="$(find sensors)/launch/usv_simulation.launch" />
 
