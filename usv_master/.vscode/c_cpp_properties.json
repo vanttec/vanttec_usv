@@ -1,0 +1,32 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/edison/vanttec_uv_sim_ws/devel/include",
+        "/home/edison/vanttec_ws/devel/include",
+        "/home/edison/vanttec_uuv_ws/devel/include",
+        "/home/edison/student_ws/devel/include",
+        "/home/edison/turtle_ws1/devel/include",
+        "/home/edison/turtlebot3_ws/devel/include",
+        "/home/edison/turtle_ws/devel/include",
+        "/home/edison/niryo_ws/devel/include",
+        "/home/edison/vanttec_usv_ws/devel/include",
+        "/home/edison/catkin_ws/devel/include",
+        "/home/edison/intel_ws/devel/include",
+        "/home/edison/vision_ws/devel/include",
+        "/opt/ros/kinetic/include",
+        "/home/edison/vanttec_uv_sim_ws/src/sensors/realsense_gazebo_plugin/include",
+        "/home/edison/vanttec_uv_sim_ws/src/vtec_usv_ros_pkg/include",
+        "/home/edison/vanttec_uv_sim_ws/src/vanttec_usv/usv_avoidance/include",
+        "/home/edison/vanttec_uv_sim_ws/src/sensors/velodyne_simulator/velodyne_gazebo_plugins/include",
+        "/home/edison/vanttec_uv_sim_ws/src/vtec_u3_description/include",
+        "/usr/include"
+      ],
+      "name": "Linux"
+    }
+  ]
+}
