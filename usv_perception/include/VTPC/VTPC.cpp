@@ -434,7 +434,7 @@ template<class PointType>
 void VTPC<PointType>::ObjectDetectionPublish(const ros::Publisher &objDetPub){
 
   usv_perception::obj_detected_list objDetList;
-  objDetList.len = objDetVec_.size();
+ // objDetList.len = objDetVec_.size();
 
   cout<<objDetVec_.size()<<endl;
 
@@ -472,6 +472,7 @@ void VTPC<PointType>::ObjectDetectionPublish(const ros::Publisher &objDetPub){
 
   }
 
+  objDetList.len = objDetList.objects.size();
   objDetPub.publish(objDetList);
 
 }
