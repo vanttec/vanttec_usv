@@ -142,44 +142,48 @@ ylabel('$u$ [m/s]', 'Interpreter', 'latex')
 title('Speed MPC')
 
 %Publish desired Path
-%desired_path = select(experimentbag, 'Topic', '/guidance/target');
-%msgStructs = readMessages(desired_path,'DataFormat','struct');
+desired_path = select(experimentbag, 'Topic', '/guidance/target');
+msgStructs = readMessages(desired_path,'DataFormat','struct');
 %msgStructs{1};
-%figure
-%xPoints = cellfun(@(m) double(m.X),msgStructs);
-%yPoints = cellfun(@(m) double(m.Y),msgStructs);
-%plot(yPoints,xPoints)
-%xlabel('Y(m)', 'Interpreter', 'latex') 
-%ylabel('X(m)', 'Interpreter', 'latex')
-%hold on 
+figure
+xPoints = cellfun(@(m) double(m.X),msgStructs);
+yPoints = cellfun(@(m) double(m.Y),msgStructs);
+plot(yPoints,xPoints)
+hold on 
 
 %publish actual path
-%position = select(experimentbag, 'Topic', '/vectornav/ins_2d/ins_pose');
-%msgStructs = readMessages(position,'DataFormat','struct');
+position = select(experimentbag, 'Topic', '/vectornav/ins_2d/NED_pose');
+msgStructs = readMessages(position,'DataFormat','struct');
 %msgStructs{1};
-%xPoints = cellfun(@(m) double(m.X),msgStructs);
-%yPoints = cellfun(@(m) double(m.Y),msgStructs);
-%plot(yPoints,xPoints)
-%hold off
-%legend('Desired Path', 'Actual Path', 'Interpreter', 'latex')
-%title('Path')
+xlim([-30 0]), ylim([0 10])
+xPoints = cellfun(@(m) double(m.X),msgStructs);
+yPoints = cellfun(@(m) double(m.Y),msgStructs);
+plot(yPoints,xPoints)
+xlabel('Y(m)', 'Interpreter', 'latex') 
+ylabel('X(m)', 'Interpreter', 'latex')
+legend('Desired Path', 'Actual Path', 'Interpreter', 'latex')
+title('Path')
+hold on
 
 %publish obstacles
 position = select(experimentbag, 'Topic', '/nmpc_ca/obstacle_list');
 msgStructs = readMessages(position,'DataFormat','struct');
-figure
+%figure
+%xlim([-30 0]), ylim([0 10])
 xPoints = zeros(8,length(msgStructs));
 yPoints = zeros(8,length(msgStructs));
 zPoints = zeros(8,length(msgStructs));
 for j=1:length(msgStructs)
     for i=1:8
-        xPoints(i, j) = msgStructs{200}.Obstacles(i).X;
-        yPoints(i, j) = msgStructs{200}.Obstacles(i).Y;
-        zPoints(i, j) = msgStructs{200}.Obstacles(i).Z;
-        viscircles([xPoints(i, j), yPoints(i, j)], zPoints(i, j));
+        xPoints(i, j) = msgStructs{j}.Obstacles(i).X;
+        yPoints(i, j) = msgStructs{j}.Obstacles(i).Y;
+        zPoints(i, j) = msgStructs{j}.Obstacles(i).Z;
+        if zPoints(i,j)>0
+            viscircles([yPoints(i, j), xPoints(i, j)], zPoints(i, j));
+        end 
     end
 end
-holf off
-xlabel('Y(m)', 'Interpreter', 'latex') 
-ylabel('X(m)', 'Interpreter', 'latex')
+%xlabel('Y(m)', 'Interpreter', 'latex') 
+%ylabel('X(m)', 'Interpreter', 'latex')
 title('Obstacles')
+hold off
