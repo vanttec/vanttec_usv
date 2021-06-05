@@ -1,0 +1,8 @@
+<launch>
+
+  <node pkg="usv_master" type="gazebo_interface2.py" name="gazebo_interface2">
+    <param name = "boatname" value = "boat1" />
+  </node>
+
+</launch>
+ 

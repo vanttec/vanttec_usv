@@ -28,9 +28,9 @@ def main():
     matlabposition = sio.loadmat(dir_name + '/mat/finalposition.mat')
     matlabposition = matlabposition['finalposition']
     positions = []
-    positions.append(0)
     for i in range(32):
         positions.extend((matlabposition[i,1],matlabposition[i,2]))
+    positions.append(0)
                 
     #path_array.data = [0, 4, 45, 4, 0]
     path_array.data = positions
