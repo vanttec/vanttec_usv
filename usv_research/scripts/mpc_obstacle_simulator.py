@@ -70,7 +70,8 @@ class ObstacleSimulator:
             distance = math.pow(delta_x*delta_x + delta_y*delta_y, 0.5)
             if (distance < self.max_visible_radius):
                 x, y = self.ned_to_body(x, y)
-                if x > 1 or self.challenge == 3:
+                #if x > 1 or self.challenge == 3:
+                if x != 0:
                     obstacle = obj_detected()
                     obstacle.X = x - self.sensor_to_usv_offset
                     obstacle.Y = -y

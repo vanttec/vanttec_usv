@@ -1,6 +1,6 @@
 <launch>
 
-  <!-- MPC Guidance Experiment 0: straight line experiment with avoidance of single obstacle -->
+  <!-- MPC Guidance Experiment 0: straight line experiment with avoidance of 1 obstacle -->
 
   <node pkg="vectornav-ros" type="ins_2d" name="ins_2d" />
 
