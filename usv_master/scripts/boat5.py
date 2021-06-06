@@ -12,12 +12,13 @@ import scipy.io as sio
 import math
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
-boatname = rospy.get_param("gazebo_interface2/boatname")
+boatname = rospy.get_param("boat5/boatname")
 def main():
     dir_name = os.path.dirname(__file__)
     path_array = Float32MultiArray()
     path_array.layout.data_offset = 33
-    matlabposition = sio.loadmat(dir_name + '/mat/finalposition.mat')
+    address = '/mat/finalposition{}.mat'.format(boatname)
+    matlabposition = sio.loadmat(dir_name +address)
     matlabposition = matlabposition['finalposition']
     state_msg = ModelState() 
     state_msg.model_name = boatname

@@ -1,8 +1,25 @@
 <launch>
 
-  <node pkg="usv_master" type="gazebo_interface2.py" name="gazebo_interface2">
+  <node pkg="usv_master" type="boat1.py" name="boat1">
     <param name = "boatname" value = "boat1" />
   </node>
-
+  <node pkg="usv_master" type="boat2.py" name="boat2">
+    <param name = "boatname" value = "boat2" />
+  </node>
+  <node pkg="usv_master" type="boat3.py" name="boat3">
+    <param name = "boatname" value = "boat3" />
+  </node>
+  <node pkg="usv_master" type="boat4.py" name="boat4">
+    <param name = "boatname" value = "boat4" />
+  </node>
+  <node pkg="usv_master" type="boat5.py" name="boat5">
+    <param name = "boatname" value = "boat5" />
+  </node>
+  <node pkg="usv_master" type="boat6.py" name="boat6">
+    <param name = "boatname" value = "boat6" />
+  </node>
+  <node pkg="usv_master" type="boat7.py" name="boat7">
+    <param name = "boatname" value = "boat7" />
+  </node>
 </launch>
  
