@@ -18,10 +18,10 @@ def main():
     rospy.init_node('straight_path_waypoints', anonymous=False)
     rate = rospy.Rate(100)
     t = Test()
-    time.sleep(5)
+    time.sleep(10)
     path_array = Float32MultiArray()
     path_array.layout.data_offset = 5
-    path_array.data = [4.0,0,4.0,-30.0,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
+    path_array.data = [3.0,0,3.0,-30.0,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
     while not rospy.is_shutdown():
         t.desired(path_array)
         rate.sleep()

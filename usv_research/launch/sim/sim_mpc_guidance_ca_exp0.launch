@@ -2,7 +2,7 @@
 
   <!-- MPC Guidance Experiment 0: straight line experiment with avoidance of 1 obstacle -->
 
-  <include file="$(find sensors)/launch/usv_simulation.launch" />
+  <include file="$(find usv_control)/launch/usv_simulation.launch" />
 
   <node pkg="usv_research" type="straight_path_waypoints.py" name="straight_path_waypoints" />
 
