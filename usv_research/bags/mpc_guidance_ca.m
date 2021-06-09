@@ -1,5 +1,5 @@
 %declare name of the bag
-experimentbag = rosbag('mpc_guidance_exp0/sim_2021-05-27-22-50-55.bag');
+experimentbag = rosbag('mpc_guidance_exp0/vn_2021-06-08-15-17-05.bag');
 desiredheading = select(experimentbag, "Topic", '/guidance/desired_heading');
 desiredheadingts = timeseries(desiredheading, 'Data');
 start_time = desiredheadingts.get.TimeInfo.Start;
@@ -11,7 +11,7 @@ t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
 plot(t,headingdata)
-legend('$\heading gain$', 'Interpreter', 'latex')
+legend('$heading gain$', 'Interpreter', 'latex')
 xlabel('Time [s]', 'Interpreter', 'latex') 
 ylabel('$\psi$ [rad]', 'Interpreter', 'latex')
 title('Heading Gain')
@@ -90,6 +90,12 @@ title('Heading MPC')
 
 %x plot
 figure
+desiredheading = select(experimentbag, "Topic", '/vectornav/ins_2d/NED_pose');
+desiredheadingts = timeseries(desiredheading, 'X');
+t = desiredheadingts.get.Time - start_time;
+desiredheadingdata = desiredheadingts.get.Data;
+plot(t,desiredheadingdata)
+hold on
 %y plot
 desiredheading = select(experimentbag, "Topic", '/vectornav/ins_2d/NED_pose');
 desiredheadingts = timeseries(desiredheading, 'Y');
@@ -187,3 +193,40 @@ end
 %ylabel('X(m)', 'Interpreter', 'latex')
 title('Obstacles')
 hold off
+
+%speed gain plot
+heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_gain');
+headingts = timeseries(heading, 'Data');
+t = headingts.get.Time - start_time;
+headingdata = headingts.get.Data;
+figure
+plot(t,headingdata)
+legend('$speed gain$', 'Interpreter', 'latex')
+xlabel('Time [s]', 'Interpreter', 'latex') 
+ylabel('$u$ [m/s]', 'Interpreter', 'latex')
+title('Speed Gain')
+
+
+%speed error plot
+heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_error');
+headingts = timeseries(heading, 'Data');
+t = headingts.get.Time - start_time;
+headingdata = headingts.get.Data;
+figure
+plot(t,headingdata)
+legend('$speed error$', 'Interpreter', 'latex')
+xlabel('Time [s]', 'Interpreter', 'latex') 
+ylabel('$u$ [m/s]', 'Interpreter', 'latex')
+title('Speed Error')
+
+%speed sigma plot
+heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_sigma');
+headingts = timeseries(heading, 'Data');
+t = headingts.get.Time - start_time;
+headingdata = headingts.get.Data;
+figure
+plot(t,headingdata)
+legend('$speed sigma$', 'Interpreter', 'latex')
+xlabel('Time [s]', 'Interpreter', 'latex') 
+ylabel('$u$ [m/s]', 'Interpreter', 'latex')
+title('Speed Sigma')
