@@ -319,6 +319,11 @@ public:
             obs.x = obstacle_ned(0);
             obs.y = obstacle_ned(1);
             obs.z = obstacle_ned(2);
+            double dist = sqrt((obs.x-nedx_callback)*(obs.x-nedx_callback)+(obs.y-nedy_callback)*(obs.y-nedy_callback));
+            if (dist > 3.0)
+            {
+              obs.z = 0.0;
+            }
             obstacle_ned_list_.obstacles[i] = obs;
           }
         }
@@ -362,6 +367,11 @@ public:
             obs.x = obstacle_ned(0);
             obs.y = obstacle_ned(1);
             obs.z = obstacle_ned(2);
+            double dist = sqrt((obs.x-nedx_callback)*(obs.x-nedx_callback)+(obs.y-nedy_callback)*(obs.y-nedy_callback));
+            if (dist > 3.0)
+            {
+              obs.z = 0.0;
+            }
             obstacle_ned_list_.obstacles[i] = obs;
           }
 
