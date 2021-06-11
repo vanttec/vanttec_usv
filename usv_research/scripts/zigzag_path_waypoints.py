@@ -18,7 +18,7 @@ def main():
     rospy.init_node('zigzag_path_waypoints', anonymous=False)
     rate = rospy.Rate(100)
     t = Test()
-    time.sleep(5)
+    time.sleep(10)
     path_array = Float32MultiArray()
     path_array.layout.data_offset = 11
     path_array.data = [-1,-1,3.5,-6,-1,-15,2,-23,-1.5,-30,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
