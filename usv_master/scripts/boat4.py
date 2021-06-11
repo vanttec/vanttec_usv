@@ -29,14 +29,14 @@ def main():
         set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
         yaw = -math.pi/2
         yawf = 0
-        for i in range(32):
-            if i >=1 and i<= 6:
+        for i in range(72):
+            if i >=1 and i<= 13:
                 yawf = 0
-            elif i >=7 and i<=19:
+            elif i >=14 and i<=43:
                 yawf = yaw
-            elif i>=20 and i<=27:
+            elif i>=44 and i<=61:
                 yawf = yaw*2
-            elif i >=28:
+            elif i >=62:
                 yawf = yaw*3
             rospy.logwarn(yawf)
             quaternion = quaternion_from_euler(0, 0, yawf)

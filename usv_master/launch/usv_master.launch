@@ -14,7 +14,7 @@
 
     <node pkg="usv_master" type="usv_master.py" name="usv_master" />
 
-    <node pkg="usv_master" type="gazebo_interface" name="gazebo_interface">
+    <node pkg="usv_master" type="gazebo_interfaceboat" name="gazebo_interfaceboat">
     <param name = "boatname" value = "vtec_s3" />/>
     </node>
 

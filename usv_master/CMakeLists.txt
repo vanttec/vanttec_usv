@@ -138,7 +138,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/vanttec_usv_node.cpp)
-add_executable(gazebo_interface src/gazebo_interface.cpp)
+add_executable(gazebo_interfaceboat src/gazebo_interfaceboat.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -151,7 +151,7 @@ add_executable(gazebo_interface src/gazebo_interface.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(gazebo_interface
+target_link_libraries(gazebo_interfaceboat
   ${catkin_LIBRARIES}
 )
 
