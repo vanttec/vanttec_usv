@@ -271,7 +271,7 @@ def main():
                     initTime = rospy.Time.now().secs
                     while ((not rospy.is_shutdown()) and 
                         (len(autoNav.objects_list) < 2 or autoNav.distance < 2)):
-                        if rospy.Time.now().secs - initTime > 0.5:
+                        if rospy.Time.now().secs - initTime > 1:
                             autoNav.state = 1
                             rate.sleep()
                             break
