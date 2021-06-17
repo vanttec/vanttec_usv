@@ -74,7 +74,7 @@ class SpeedChallenge:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'bouy' and data.objects[i].X > 0.0:
+            if str(data.objects[i].clase) == 'buoy' and data.objects[i].X > 0.0:
                 self.objects_list.append({'X' : data.objects[i].X + self.offset,
                                           'Y' : data.objects[i].Y,
                                           'color' : data.objects[i].color, 
@@ -130,7 +130,7 @@ class SpeedChallenge:
         if (abs(self.ned_alpha) > (math.pi)):
             self.ned_alpha = (self.ned_alpha/abs(self.ned_alpha))*(abs(self.ned_alpha) - 2*math.pi)
 
-        xm, ym = self.gate_to_body(2,0,alpha,xc,yc)
+        xm, ym = self.gate_to_body(5,0,alpha,xc,yc)
         self.target_x, self.target_y = self.body_to_ned(xm, ym)
 
         print(x1,y1,x2,y2,xc,yc)
@@ -296,6 +296,7 @@ def main():
     speedChallenge = SpeedChallenge()
     speedChallenge.distance = 4
     last_detection = []
+    time.sleep(10)
     while not rospy.is_shutdown() and speedChallenge.activated:
         if speedChallenge.objects_list != last_detection:
             if speedChallenge.state == -1:
@@ -304,21 +305,27 @@ def main():
                     rate.sleep()
                 speedChallenge.state = 0
                 last_detection = speedChallenge.objects_list
-            if speedChallenge.state == 0:
-                speedChallenge.test.publish(speedChallenge.state)
-                if len(speedChallenge.objects_list) >= 2:
-                    speedChallenge.calculate_distance_to_boat()
-                if len(speedChallenge.objects_list) >= 2 and speedChallenge.distance >= 2:
-                    speedChallenge.center_point()
-                else:
-                    initTime = rospy.Time.now().secs
-                    while ((not rospy.is_shutdown()) and
-                        (len(speedChallenge.objects_list) < 2 or speedChallenge.distance < 2)):
-                        if rospy.Time.now().secs - initTime > 2:
-                            speedChallenge.state = 1
-                            rate.sleep()
-                            break
-                last_detection = speedChallenge.objects_list
+        if speedChallenge.state == 0:
+            speedChallenge.test.publish(speedChallenge.state)
+            if len(speedChallenge.objects_list) >= 2:
+                speedChallenge.calculate_distance_to_boat()
+            if len(speedChallenge.objects_list) >= 2 and speedChallenge.distance >= 2:
+                speedChallenge.center_point()
+            else:
+                x_dif = speedChallenge.target_x - speedChallenge.ned_x
+                y_dif = speedChallenge.target_y - speedChallenge.ned_y
+                dist = math.pow(x_dif**2 + y_dif**2, 0.5) 
+                if dist < 2:
+                    speedChallenge.state = 1
+            '''else:
+                initTime = rospy.Time.now().secs
+                while ((not rospy.is_shutdown()) and
+                    (len(speedChallenge.objects_list) < 2 or speedChallenge.distance < 2)):
+                    if rospy.Time.now().secs - initTime > 2:
+                        speedChallenge.state = 1
+                        rate.sleep()
+                        break'''
+            last_detection = speedChallenge.objects_list
         if speedChallenge.state == 1:
             speedChallenge.test.publish(speedChallenge.state)
             x_list = []
@@ -331,19 +338,9 @@ def main():
                 class_list.append(speedChallenge.objects_list[i]['class'])
                 distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                 ind_0 = np.argsort(distance_list)[0]
-<<<<<<< HEAD
-
-
-            print("*"*10)
-            print(speedChallenge.objects_list)
-            print(ind_0)
-            if (len(speedChallenge.objects_list) >= 1 and
-            (str(speedChallenge.objects_list[ind_0]['color']) == '')):
-=======
             #if (len(speedChallenge.objects_list) >= 1 and
             #(str(speedChallenge.objects_list[ind_0]['color']) == 'blue')):
             if (len(speedChallenge.objects_list) >= 1):
->>>>>>> ada7545ead39f16488749a68a200e5c5a9e77b72
                 speedChallenge.state = 2
             else:
                 initTime = rospy.Time.now().secs
@@ -366,20 +363,10 @@ def main():
                     class_list.append(speedChallenge.objects_list[i]['class'])
                     distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                     ind_0 = np.argsort(distance_list)[0]
-
-                print("*"*10)
-                print(speedChallenge.objects_list)
-                print(ind_0)
                 if ((len(speedChallenge.objects_list) >= 1) and
-<<<<<<< HEAD
-                    (speedChallenge.objects_list[ind_0]['X'] < 7) and (speedChallenge.objects_list[ind_0]['X'] > 0)):
-                    buoy_x = speedChallenge.objects_list[0]['X']
-                    buoy_y = speedChallenge.objects_list[0]['Y']
-=======
-                    (speedChallenge.objects_list[ind_0]['X'] < 7)):
+                    (speedChallenge.objects_list[ind_0]['X'] < 5)):
                     buoy_x = speedChallenge.objects_list[ind_0]['X']
                     buoy_y = speedChallenge.objects_list[ind_0]['Y']
->>>>>>> ada7545ead39f16488749a68a200e5c5a9e77b72
                     speedChallenge.state = 3
                 else:
                     initTime = rospy.Time.now().secs

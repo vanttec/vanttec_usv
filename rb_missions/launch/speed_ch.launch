@@ -1,0 +1,13 @@
+<launch>
+
+  <!-- Auto Nav -->
+
+  <include file="$(find vectornav)/launch/vectornav.launch" />
+
+  <include file="$(find arduino-br)/launch/arduino_br.launch" />
+
+  <node pkg="rb_missions" type="speed_challenge.py" name="speed_challenge" />
+
+  <include file="$(find usv_control)/launch/usv_control.launch" />
+
+</launch>

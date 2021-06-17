@@ -8,6 +8,8 @@
 
   <node pkg="rb_missions" type="obstacle_channel.py" name="obstacle_channel" />
 
-  <include file="$(find usv_control)/launch/usv_control.launch" />
+  <include file="$(find usv_control)/launch/asmc.launch" />
+
+  <node pkg="usv_avoidance" type="nmpc_guidance_ca1" name="nmpc_guidance_ca1" />
 
 </launch>

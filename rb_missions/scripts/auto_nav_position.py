@@ -129,6 +129,8 @@ class AutoNav:
         path_array.layout.data_offset = 5
         path_array.data = [xc, yc, xm, ym, 2]
 
+
+
         self.desired(path_array)
 
     def calculate_distance_to_boat(self):
@@ -261,21 +263,28 @@ def main():
                 autoNav.state = 0
                 last_detection = autoNav.objects_list
 
-            if autoNav.state == 0:
-                autoNav.test.publish(autoNav.state)
-                if len(autoNav.objects_list) >= 2:
-                    autoNav.calculate_distance_to_boat()
-                if (len(autoNav.objects_list) >= 2) and (autoNav.distance >= 2):
-                    autoNav.center_point()
-                else:
-                    initTime = rospy.Time.now().secs
-                    while ((not rospy.is_shutdown()) and 
-                        (len(autoNav.objects_list) < 2 or autoNav.distance < 2)):
-                        if rospy.Time.now().secs - initTime > 0.5:
-                            autoNav.state = 1
-                            rate.sleep()
-                            break
-                last_detection = autoNav.objects_list
+        if autoNav.state == 0:
+            autoNav.test.publish(autoNav.state)
+            if len(autoNav.objects_list) >= 2:
+                autoNav.calculate_distance_to_boat()
+            if (len(autoNav.objects_list) >= 2) and (autoNav.distance >= 2):
+                autoNav.center_point()
+            else:
+                x_dif = autoNav.target_x - autoNav.ned_x
+                y_dif = autoNav.target_y - autoNav.ned_y
+                dist = math.pow(x_dif**2 + y_dif**2, 0.5) 
+                if dist < 3:
+                    autoNav.state = 1
+                    rate.sleep()
+            '''else:
+                initTime = rospy.Time.now().secs
+                while ((not rospy.is_shutdown()) and 
+                    (len(autoNav.objects_list) < 2 or autoNav.distance < 2)):
+                    if rospy.Time.now().secs - initTime > 0.5:
+                        autoNav.state = 1
+                        rate.sleep()
+                        break'''
+            last_detection = autoNav.objects_list
 
         if autoNav.state == 1:
             autoNav.test.publish(autoNav.state)
@@ -300,13 +309,20 @@ def main():
                 if len(autoNav.objects_list) >= 2 and autoNav.distance >= 2:
                     autoNav.center_point()
                 else:
+                    x_dif = autoNav.target_x - autoNav.ned_x
+                    y_dif = autoNav.target_y - autoNav.ned_y
+                    dist = math.pow(x_dif**2 + y_dif**2, 0.5) 
+                    if dist < 3:
+                        autoNav.state = 3
+                        rate.sleep()
+                '''else:
                     initTime = rospy.Time.now().secs
                     while ((not rospy.is_shutdown()) and 
                         (len(autoNav.objects_list) < 2 or autoNav.distance < 2)):
                         if rospy.Time.now().secs - initTime > 2:
                             autoNav.state = 3
                             rate.sleep()
-                            break
+                            break'''
                 last_detection = autoNav.objects_list
 
         elif autoNav.state == 3:

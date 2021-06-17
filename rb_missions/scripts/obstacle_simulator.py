@@ -26,6 +26,7 @@ from usv_perception.msg import obj_detected_list
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
+challenge_number = rospy.get_param("obstacle_simulator/challenge_number", 0)
 
 class ObstacleSimulator:
     def __init__(self):
@@ -36,11 +37,11 @@ class ObstacleSimulator:
         self.ned_y = 0
         self.yaw = 0
 
-        self.challenge = 3 #0 for AutonomousNavigation, 1 for SpeedChallenge, 2 for ObstacleChannel, 3 for ObstacleField
+        self.challenge = challenge_number #0 for AutonomousNavigation, 1 for SpeedChallenge, 2 for ObstacleChannel, 3 for ObstacleField
         self.obstacle_list = []
 
         self.max_visible_radius = 10
-        self.sensor_to_usv_offset = 0.55
+        self.sensor_to_usv_offset = 0.25
 
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
 
