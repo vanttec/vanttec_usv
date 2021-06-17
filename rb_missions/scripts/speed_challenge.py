@@ -182,7 +182,7 @@ class SpeedChallenge:
         '''
         rospy.loginfo("Buoy waypoints has just started")
             
-        radius = 3
+        radius = 2
 
         print(buoy_x, buoy_y, self.gate_x, self.gate_y)
 
