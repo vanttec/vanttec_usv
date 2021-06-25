@@ -1,5 +1,5 @@
 %declare name of the bag
-experimentbag = rosbag('mpc_guidance_exp0/vn_2021-06-08-15-17-05.bag');
+experimentbag = rosbag('mpc_guidance_exp4/vn_2021-06-11-13-37-23.bag');
 desiredheading = select(experimentbag, "Topic", '/guidance/desired_heading');
 desiredheadingts = timeseries(desiredheading, 'Data');
 start_time = desiredheadingts.get.TimeInfo.Start;
@@ -176,17 +176,20 @@ position = select(experimentbag, 'Topic', '/nmpc_ca/obstacle_list');
 msgStructs = readMessages(position,'DataFormat','struct');
 %figure
 %xlim([-30 0]), ylim([0 10])
-xPoints = zeros(8,length(msgStructs));
-yPoints = zeros(8,length(msgStructs));
-zPoints = zeros(8,length(msgStructs));
+xobs = zeros(8,length(msgStructs));
+yobs = zeros(8,length(msgStructs));
+zobs = zeros(8,length(msgStructs));
 for j=1:length(msgStructs)
     for i=1:8
-        xPoints(i, j) = msgStructs{j}.Obstacles(i).X;
-        yPoints(i, j) = msgStructs{j}.Obstacles(i).Y;
-        zPoints(i, j) = msgStructs{j}.Obstacles(i).Z;
-        if zPoints(i,j)>0
-            viscircles([yPoints(i, j), xPoints(i, j)], zPoints(i, j));
-        end 
+        fprintf('length %i index i %i index j %i. \n', length(msgStructs{j}.Obstacles), i ,j)
+        if length(msgStructs{j}.Obstacles)>0
+            xobs(i, j) = msgStructs{j}.Obstacles(i).X;
+            yobs(i, j) = msgStructs{j}.Obstacles(i).Y;
+            zobs(i, j) = msgStructs{j}.Obstacles(i).Z;
+            if zobs(i,j)>0
+                viscircles([yobs(i, j), xobs(i, j)], zobs(i, j));
+            end 
+        end
     end
 end
 %xlabel('Y(m)', 'Interpreter', 'latex') 
