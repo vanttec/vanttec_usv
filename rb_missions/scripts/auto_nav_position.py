@@ -42,7 +42,7 @@ class AutoNav:
         self.state = -1
         self.distance = 0
         self.InitTime = rospy.Time.now().secs
-        self.offset = .55 #camera to ins offset
+        self.offset = .25 #camera to ins offset
         self.target_x = 0
         self.target_y = 0
         self.ned_alpha = 0
@@ -65,7 +65,7 @@ class AutoNav:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'bouy' and (data.objects[i].X > 0.5):
+            if str(data.objects[i].clase) == 'buoy' and (data.objects[i].X > 0.5) and (data.objects[i].X < 10):
                 self.objects_list.append({'X' : data.objects[i].X + self.offset, 
                                       'Y' : data.objects[i].Y, 
                                       'color' : data.objects[i].color, 
@@ -251,6 +251,7 @@ def main():
     autoNav = AutoNav()
     autoNav.distance = 4
     last_detection = []
+    time.sleep(10)
     while not rospy.is_shutdown() and autoNav.activated:
         if autoNav.objects_list != last_detection:
             if autoNav.state == -1:
@@ -270,7 +271,7 @@ def main():
                     initTime = rospy.Time.now().secs
                     while ((not rospy.is_shutdown()) and 
                         (len(autoNav.objects_list) < 2 or autoNav.distance < 2)):
-                        if rospy.Time.now().secs - initTime > 5:
+                        if rospy.Time.now().secs - initTime > 0.5:
                             autoNav.state = 1
                             rate.sleep()
                             break
