@@ -19,6 +19,7 @@ def main():
     rate = rospy.Rate(100)
     t = Test()
     time.sleep(10)
+    rospy.logwarn("Start")
     path_array = Float32MultiArray()
     path_array.layout.data_offset = 5
     path_array.data = [3.0,0,3.0,-30.0,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
