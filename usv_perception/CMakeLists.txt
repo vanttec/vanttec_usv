@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(usv_perception)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++14)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -18,6 +18,9 @@ message_generation
 )
 find_package(OpenCV 3 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
+
+find_package(PCL REQUIRED)
+include_directories(${PCL_INCLUDE_DIRS})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -64,6 +67,7 @@ add_message_files(
 add_service_files(
    FILES
    color_id.srv
+   dock_corners.srv
  )
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -110,10 +114,8 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES usv_perception
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES lib_VTPC
 )
 
 ###########
@@ -123,14 +125,22 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/usv_perception.cpp
-# )
+add_library(lib_VTPC
+  include/VTPC/VTPC.cpp 
+  include/VTPC/VTPC.h 
+  include/VTPC/ObjectDetectionVTPC.h 
+)
+target_link_libraries(lib_VTPC
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -141,6 +151,15 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/usv_perception_node.cpp)
+
+add_executable(preprocessing_node 
+  src/preprocessing_node.cpp
+)
+add_executable(obj_detector_node
+  src/obj_detector_node.cpp
+)
+
+
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -156,7 +175,17 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+target_link_libraries(obj_detector_node
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+  lib_VTPC
+)
 
+target_link_libraries(preprocessing_node
+  ${catkin_LIBRARIES} 
+  ${PCL_LIBRARIES}
+  lib_VTPC
+)
 #############
 ## Install ##
 #############
@@ -211,3 +240,4 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+

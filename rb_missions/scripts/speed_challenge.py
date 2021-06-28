@@ -74,7 +74,7 @@ class SpeedChallenge:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'buoy':
+            if str(data.objects[i].clase) == 'buoy' and data.objects[i].X > 0.0:
                 self.objects_list.append({'X' : data.objects[i].X + self.offset,
                                           'Y' : data.objects[i].Y,
                                           'color' : data.objects[i].color, 
@@ -130,8 +130,11 @@ class SpeedChallenge:
         if (abs(self.ned_alpha) > (math.pi)):
             self.ned_alpha = (self.ned_alpha/abs(self.ned_alpha))*(abs(self.ned_alpha) - 2*math.pi)
 
-        xm, ym = self.gate_to_body(2,0,alpha,xc,yc)
+        xm, ym = self.gate_to_body(5,0,alpha,xc,yc)
         self.target_x, self.target_y = self.body_to_ned(xm, ym)
+
+        print(x1,y1,x2,y2,xc,yc)
+
         self.gate_x, self.gate_y = self.body_to_ned(xc, yc)
         
         path_array = Float32MultiArray()
@@ -179,7 +182,9 @@ class SpeedChallenge:
         '''
         rospy.loginfo("Buoy waypoints has just started")
             
-        radius = 3
+        radius = 2
+
+        print(buoy_x, buoy_y, self.gate_x, self.gate_y)
 
         w1 = [buoy_x, buoy_y + radius]
         w2 = [buoy_x + radius, buoy_y]
@@ -194,6 +199,8 @@ class SpeedChallenge:
         w5_x, w5_y = self.gate_to_ned(-5, 0, self.ned_alpha, self.gate_x, self.gate_y)
         path_array.data = [w1_x, w1_y, w2_x, w2_y, w3_x, w3_y,
                           self.gate_x, self.gate_y, w5_x, w5_y, 0]
+
+        print(path_array.data)
         self.desired(path_array)
 
         return(w5_x, w5_y)
@@ -289,6 +296,7 @@ def main():
     speedChallenge = SpeedChallenge()
     speedChallenge.distance = 4
     last_detection = []
+    time.sleep(10)
     while not rospy.is_shutdown() and speedChallenge.activated:
         if speedChallenge.objects_list != last_detection:
             if speedChallenge.state == -1:
@@ -297,21 +305,27 @@ def main():
                     rate.sleep()
                 speedChallenge.state = 0
                 last_detection = speedChallenge.objects_list
-            if speedChallenge.state == 0:
-                speedChallenge.test.publish(speedChallenge.state)
-                if len(speedChallenge.objects_list) >= 2:
-                    speedChallenge.calculate_distance_to_boat()
-                if len(speedChallenge.objects_list) >= 2 and speedChallenge.distance >= 2:
-                    speedChallenge.center_point()
-                else:
-                    initTime = rospy.Time.now().secs
-                    while ((not rospy.is_shutdown()) and
-                        (len(speedChallenge.objects_list) < 2 or speedChallenge.distance < 2)):
-                        if rospy.Time.now().secs - initTime > 2:
-                            speedChallenge.state = 1
-                            rate.sleep()
-                            break
-                last_detection = speedChallenge.objects_list
+        if speedChallenge.state == 0:
+            speedChallenge.test.publish(speedChallenge.state)
+            if len(speedChallenge.objects_list) >= 2:
+                speedChallenge.calculate_distance_to_boat()
+            if len(speedChallenge.objects_list) >= 2 and speedChallenge.distance >= 2:
+                speedChallenge.center_point()
+            else:
+                x_dif = speedChallenge.target_x - speedChallenge.ned_x
+                y_dif = speedChallenge.target_y - speedChallenge.ned_y
+                dist = math.pow(x_dif**2 + y_dif**2, 0.5) 
+                if dist < 2:
+                    speedChallenge.state = 1
+            '''else:
+                initTime = rospy.Time.now().secs
+                while ((not rospy.is_shutdown()) and
+                    (len(speedChallenge.objects_list) < 2 or speedChallenge.distance < 2)):
+                    if rospy.Time.now().secs - initTime > 2:
+                        speedChallenge.state = 1
+                        rate.sleep()
+                        break'''
+            last_detection = speedChallenge.objects_list
         if speedChallenge.state == 1:
             speedChallenge.test.publish(speedChallenge.state)
             x_list = []
@@ -350,7 +364,7 @@ def main():
                     distance_list.append(math.pow(x_list[i]**2 + y_list[i]**2, 0.5))
                     ind_0 = np.argsort(distance_list)[0]
                 if ((len(speedChallenge.objects_list) >= 1) and
-                    (speedChallenge.objects_list[ind_0]['X'] < 7)):
+                    (speedChallenge.objects_list[ind_0]['X'] < 5)):
                     buoy_x = speedChallenge.objects_list[ind_0]['X']
                     buoy_y = speedChallenge.objects_list[ind_0]['Y']
                     speedChallenge.state = 3

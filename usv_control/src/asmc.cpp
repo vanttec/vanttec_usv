@@ -45,7 +45,7 @@ public:
   static const float m = 30;
   static const float Iz = 4.1;
   static const float B = 0.41;
-  static const float c = 1.0;//0.78;
+  static const float c = 0.78;
   
   float Tx;
   float Tz;
@@ -301,6 +301,8 @@ public:
         o_last = 0;
         o_dot_last = 0;
         o_dot_dot_last = 0;
+        psi_d = theta;
+        psi_d_last =theta;
       }
 
       port_t = (Tx / 2) + (Tz / B);

@@ -6,12 +6,15 @@
     @file: los.py
     @date: Nov 2019
     @date_modif: Sat Mar 21, 2020
+    @date_modif: Sun Mar 28, 2021
     @author: Alejandro Gonzalez
     @e-mail: alexglzg97@gmail.com
     @co-author: Sebastian Martinez Perez
     @e-mail: sebas.martp@gmail.com
     @brief: Implementation of line-of-sight (LOS) algorithm with inputs on
       NED, geodetic and body reference frames
+    @Note: Be careful when copying waypoint lists. la = lb, la is not 
+        a copy, but a reference to lb, so modifying la will change lb.
     Open source
 ----------------------------------------------------------
 '''
@@ -91,7 +94,8 @@ class LOS:
         for i in range(int(leng)-1):
             waypoints.append(msg.data[i])
         self.waypoint_mode = msg.data[-1] # 0 for NED, 1 for GPS, 2 for body
-        self.waypoint_array = waypoints
+        if waypoints != self.waypoint_array:
+            self.waypoint_array = waypoints
 
     def los_manager(self, listvar):
         '''
@@ -230,31 +234,31 @@ def main():
     rate = rospy.Rate(100) # 100hz
     los = LOS()
     los.last_waypoint_array = []
-    aux_waypoint_array = []
+    NED_waypoint_array = []
 
     while (not rospy.is_shutdown()) and los.active:
         if los.last_waypoint_array != los.waypoint_array:
             los.k = 1
             los.last_waypoint_array = los.waypoint_array
-            aux_waypoint_array = los.last_waypoint_array
+            NED_waypoint_array = list(los.last_waypoint_array) # Make a copy, not a reference
             x_0 = los.ned_x
             y_0 = los.ned_y
-            
+
             if los.waypoint_mode == 0:
-                aux_waypoint_array.insert(0,x_0)
-                aux_waypoint_array.insert(1,y_0)
+                pass
             elif los.waypoint_mode == 1:
-                for i in range(0, len(aux_waypoint_array), 2):
-                    aux_waypoint_array[i], aux_waypoint_array[i+1] = los.gps_to_ned(aux_waypoint_array[i],aux_waypoint_array[i+1])
-                aux_waypoint_array.insert(0,x_0)
-                aux_waypoint_array.insert(1,y_0)
+                for i in range(0, len(NED_waypoint_array), 2):
+                    NED_waypoint_array[i], NED_waypoint_array[i+1] = los.gps_to_ned(NED_waypoint_array[i],NED_waypoint_array[i+1])
             elif los.waypoint_mode == 2:
-                for i in range(0, len(aux_waypoint_array), 2):
-                    aux_waypoint_array[i], aux_waypoint_array[i+1] = los.body_to_ned(aux_waypoint_array[i],aux_waypoint_array[i+1])
-                aux_waypoint_array.insert(0,x_0)
-                aux_waypoint_array.insert(1,y_0)
-        if len(aux_waypoint_array) > 1:
-            los.los_manager(los.last_waypoint_array)
+                for i in range(0, len(NED_waypoint_array), 2):
+                    NED_waypoint_array[i], NED_waypoint_array[i+1] = los.body_to_ned(NED_waypoint_array[i],NED_waypoint_array[i+1])
+
+            # Starting point
+            NED_waypoint_array.insert(0,x_0)
+            NED_waypoint_array.insert(1,y_0)
+
+        if len(NED_waypoint_array) > 1:
+            los.los_manager(NED_waypoint_array)
         rate.sleep()
     los.desired(0, los.yaw)
     rospy.logwarn('Finished')

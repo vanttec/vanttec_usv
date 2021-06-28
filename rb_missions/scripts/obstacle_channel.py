@@ -37,7 +37,7 @@ class ObsChan:
         self.state = -1
         self.distance = 0
         self.distance_to_last = 0
-        self.offset = .55 #camera to ins offset
+        self.offset = .25 #camera to ins offset
         self.ned_channel_origin_x = 0
         self.ned_channel_origin_y = 0
         self.ned_alpha = 0
@@ -66,7 +66,7 @@ class ObsChan:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'buoy':
+            if str(data.objects[i].clase) == 'buoy' and data.objects[i].X > 0.0:
                 self.objects_list.append({'X' : data.objects[i].X + self.offset, 
                                       'Y' : -data.objects[i].Y, #Negate sensor input in Y
                                       'color' : data.objects[i].color, 
@@ -337,6 +337,7 @@ def main():
     rate = rospy.Rate(20)
     obsChan = ObsChan()
     last_detection = []
+    time.sleep(10)
     while not rospy.is_shutdown() and obsChan.activated:
         if obsChan.objects_list != last_detection:
             if obsChan.state == -1:
