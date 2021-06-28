@@ -11,6 +11,6 @@
   <node pkg="usv_avoidance" type="nmpc_guidance_ca1" name="nmpc_guidance_ca1" />
 
   <!--Launch rosbag to record topics -->
-  <!--node type="record" pkg="rosbag" name="recorder" args="record /guidance/desired_heading /usv_control/asmc/heading_gain /usv_control/asmc/heading_sigma /usv_control/controller/heading_error /usv_control/asmc/speed_gain /usv_control/asmc/speed_sigma /usv_control/asmc/speed_error /usv_control/controller/control_input /vectornav/ins_2d/NED_pose /usv_control/controller/right_thruster /usv_control/controller/left_thruster /vectornav/ins_2d/local_vel /guidance/desired_speed /guidance/target  /nmpc_ca/obstacle_list /mission/waypoints -o $(find usv_research)/bags/mpc_guidance_exp0/sim" /-->
+  <!--node type="record" pkg="rosbag" name="recorder" args="record /guidance/desired_heading /usv_control/asmc/heading_gain /usv_control/asmc/heading_sigma /usv_control/controller/heading_error /usv_control/asmc/speed_gain /usv_control/asmc/speed_sigma /usv_control/asmc/speed_error /usv_control/controller/control_input /vectornav/ins_2d/NED_pose /usv_control/controller/right_thruster /usv_control/controller/left_thruster /vectornav/ins_2d/local_vel /guidance/desired_speed /guidance/target /nmpc_ca/obstacle_list /nmpc_ca/safety_vizualization /mission/waypoints -o $(find usv_research)/bags/mpc_guidance_exp0/sim" /-->
 
 </launch>
