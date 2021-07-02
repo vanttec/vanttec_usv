@@ -19,8 +19,8 @@ find_package(
     tf2
     tf2_ros
     tf2_geometry_msgs
-		usv_perception
-		visualization_msgs
+	usv_perception
+	visualization_msgs
 )
 
 find_package(
@@ -33,7 +33,7 @@ set(acados_lib "${PROJECT_SOURCE_DIR}/include/acados/lib")
 #set(acados_lib "/home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/lib")
 
 set(full_model_guidance_ca1 ${PROJECT_SOURCE_DIR}/scripts/usv_guidance_ca1/c_generated_code)
-
+set(full_model_pf_ca ${PROJECT_SOURCE_DIR}/scripts/usv_pf_ca/c_generated_code)
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -67,6 +67,7 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 	include
 	${full_model_guidance_ca1}
+	${full_model_pf_ca}
 	${acados_include}
 	${acados_include}/blasfeo/include/
 	${acados_include}/hpipm/include/
@@ -75,6 +76,7 @@ include_directories(
 )
 
 link_directories(${full_model_guidance_ca1})
+link_directories(${full_model_pf_ca})
 
 # NODE
 add_executable(nmpc_guidance_ca1 src/nmpc_guidance_ca1.cpp)
@@ -85,3 +87,23 @@ target_link_libraries(nmpc_guidance_ca1
 	${catkin_LIBRARIES}
 )
 add_dependencies(nmpc_guidance_ca1 ${catkin_EXPORTED_TARGETS})
+
+# NODE
+add_executable(nmpc_pf_ca src/nmpc_pf_ca.cpp)
+target_link_libraries(nmpc_pf_ca
+	${full_model_pf_ca}/libacados_ocp_solver_usv_model_pf_ca.so
+	#${acados_lib}/libacados.a
+	${acados_lib}/libacados.so
+	${catkin_LIBRARIES}
+)
+add_dependencies(nmpc_pf_ca ${catkin_EXPORTED_TARGETS})
+
+# NODE
+add_executable(nmpc_traj_plan src/nmpc_traj_plan.cpp)
+target_link_libraries(nmpc_traj_plan
+	${full_model_pf_ca}/libacados_ocp_solver_usv_model_pf_ca.so
+	#${acados_lib}/libacados.a
+	${acados_lib}/libacados.so
+	${catkin_LIBRARIES}
+)
+add_dependencies(nmpc_traj_plan ${catkin_EXPORTED_TARGETS})
