@@ -16,7 +16,7 @@ sensor_msgs
 tf2
 tf2_ros
 tf2_geometry_msgs
-
+message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -53,11 +53,11 @@ tf2_geometry_msgs
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  trajectory.msg
+
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -74,10 +74,12 @@ tf2_geometry_msgs
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  sensor_msgs
+  geometry_msgs
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -216,6 +218,8 @@ include_directories(
 add_executable(asmc src/asmc.cpp)
 add_executable(dynamic_model_simulate src/dynamic_model_simulate.cpp)
 add_executable(boat_tf2_broadcaster src/boat_tf2_broadcaster.cpp)
+add_executable(tracking_control_asmc src/tracking_control_asmc.cpp)
 target_link_libraries(asmc ${catkin_LIBRARIES})
 target_link_libraries(dynamic_model_simulate ${catkin_LIBRARIES})
 target_link_libraries(boat_tf2_broadcaster ${catkin_LIBRARIES})
+target_link_libraries(tracking_control_asmc ${catkin_LIBRARIES})
