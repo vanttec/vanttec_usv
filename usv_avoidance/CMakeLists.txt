@@ -34,6 +34,7 @@ set(acados_lib "${PROJECT_SOURCE_DIR}/include/acados/lib")
 
 set(full_model_guidance_ca1 ${PROJECT_SOURCE_DIR}/scripts/usv_guidance_ca1/c_generated_code)
 set(full_model_pf_ca ${PROJECT_SOURCE_DIR}/scripts/usv_pf_ca/c_generated_code)
+set(full_model_pf ${PROJECT_SOURCE_DIR}/scripts/usv_pf/c_generated_code)
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -68,6 +69,7 @@ include_directories(
 	include
 	${full_model_guidance_ca1}
 	${full_model_pf_ca}
+	${full_model_pf}
 	${acados_include}
 	${acados_include}/blasfeo/include/
 	${acados_include}/hpipm/include/
@@ -107,3 +109,13 @@ target_link_libraries(nmpc_traj_plan
 	${catkin_LIBRARIES}
 )
 add_dependencies(nmpc_traj_plan ${catkin_EXPORTED_TARGETS})
+
+# NODE
+add_executable(nmpc_pf src/nmpc_pf.cpp)
+target_link_libraries(nmpc_pf
+	${full_model_pf}/libacados_ocp_solver_usv_model_pf.so
+	#${acados_lib}/libacados.a
+	${acados_lib}/libacados.so
+	${catkin_LIBRARIES}
+)
+add_dependencies(nmpc_pf ${catkin_EXPORTED_TARGETS})
