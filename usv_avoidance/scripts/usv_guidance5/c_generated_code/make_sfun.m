@@ -38,7 +38,7 @@ SOURCES = [ ...
             'acados_solver_usv_model_guidance5.c '
           ];
 
-INC_PATH = '/home/alex/Documents/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/include';
+INC_PATH = '/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/include';
 
 INCS = [ ' -I', fullfile(INC_PATH, 'blasfeo', 'include'), ...
          ' -I', fullfile(INC_PATH, 'hpipm', 'include'), ...
@@ -50,7 +50,7 @@ CFLAGS  = ' -O';
 
 
 
-LIB_PATH = '/home/alex/Documents/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/lib';
+LIB_PATH = '/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/lib';
 
 LIBS = '-lacados -lhpipm -lblasfeo';
 

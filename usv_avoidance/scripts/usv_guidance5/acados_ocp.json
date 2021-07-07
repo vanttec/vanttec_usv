@@ -1,6 +1,6 @@
 {
-    "acados_include_path": "/home/alex/Documents/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/include",
-    "acados_lib_path": "/home/alex/Documents/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/lib",
+    "acados_include_path": "/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/include",
+    "acados_lib_path": "/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/lib",
     "constraints": {
         "C": [],
         "C_e": [],
@@ -219,25 +219,25 @@
             [
                 0.0,
                 0.0,
-                0.4,
-                0.0,
-                0.0,
-                0.0
-            ],
-            [
-                0.0,
-                0.0,
-                0.0,
                 0.1,
                 0.0,
+                0.0,
                 0.0
             ],
             [
-                0.0,
                 0.0,
                 0.0,
                 0.0,
                 0.05,
+                0.0,
+                0.0
+            ],
+            [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
                 0.0
             ],
             [
@@ -267,7 +267,7 @@
             [
                 0.0,
                 0.0,
-                0.3,
+                0.2,
                 0.0,
                 0.0
             ],
@@ -275,7 +275,7 @@
                 0.0,
                 0.0,
                 0.0,
-                0.5,
+                0.1,
                 0.0
             ],
             [
@@ -283,7 +283,7 @@
                 0.0,
                 0.0,
                 0.0,
-                0.05
+                0.0
             ]
         ],
         "Zl": [],

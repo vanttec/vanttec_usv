@@ -70,6 +70,7 @@ def acados_settings(Tf, N):
     ocp.dims.N = N
     ns = 8
     nsh = 8
+    safety = 0.3
 
     # set cost
     Q = np.diag([0, 0, 0.05, 0.01, 0, 0, 0, 0])
@@ -153,14 +154,14 @@ def acados_settings(Tf, N):
     
     ocp.constraints.lsh = np.array(
         [
-             -0.2,
-             -0.2,
-             -0.2,
-             -0.2,
-             -0.2,
-             -0.2,
-             -0.2,
-             -0.2
+             -safety,
+             -safety,
+             -safety,
+             -safety,
+             -safety,
+             -safety,
+             -safety,
+             -safety
         ]
     )
     ocp.constraints.ush = np.array(

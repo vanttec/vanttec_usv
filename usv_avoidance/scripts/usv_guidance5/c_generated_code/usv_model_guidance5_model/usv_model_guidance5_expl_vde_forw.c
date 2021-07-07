@@ -79,8 +79,8 @@ void casadi_project(const casadi_real* x, const casadi_int* sp_x, casadi_real* y
   }
 }
 
-static const casadi_int casadi_s0[7] = {5, 1, 0, 3, 2, 3, 4};
-static const casadi_int casadi_s1[5] = {5, 1, 0, 1, 4};
+static const casadi_int casadi_s0[5] = {5, 1, 0, 1, 4};
+static const casadi_int casadi_s1[7] = {5, 1, 0, 3, 2, 3, 4};
 static const casadi_int casadi_s2[6] = {5, 1, 0, 2, 2, 3};
 static const casadi_int casadi_s3[9] = {5, 1, 0, 5, 0, 1, 2, 3, 4};
 static const casadi_int casadi_s4[33] = {5, 5, 0, 5, 10, 15, 20, 25, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4};
@@ -353,7 +353,7 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   for (rr=(&w5)+0, ss=(&w15); rr!=(&w5)+1; rr+=1) *rr = *ss++;
   /* #119: @5 = @5' */
   /* #120: @22 = project(@5) */
-  casadi_project((&w5), casadi_s1, w22, casadi_s0, w);
+  casadi_project((&w5), casadi_s0, w22, casadi_s1, w);
   /* #121: @23 = 00 */
   /* #122: @24 = 00 */
   /* #123: @13 = input[2][0] */
@@ -411,7 +411,7 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   *rr++ = w4;
   *rr++ = w21;
   /* #148: @27 = project(@26) */
-  casadi_project(w26, casadi_s2, w27, casadi_s0, w);
+  casadi_project(w26, casadi_s2, w27, casadi_s1, w);
   /* #149: @22 = (@22+@27) */
   for (i=0, rr=w22, cs=w27; i<3; ++i) (*rr++) += (*cs++);
   /* #150: output[2][0] = @22 */
@@ -492,7 +492,7 @@ CASADI_SYMBOL_EXPORT const casadi_int* usv_model_guidance5_expl_vde_forw_sparsit
   switch (i) {
     case 0: return casadi_s3;
     case 1: return casadi_s7;
-    case 2: return casadi_s0;
+    case 2: return casadi_s1;
     default: return 0;
   }
 }

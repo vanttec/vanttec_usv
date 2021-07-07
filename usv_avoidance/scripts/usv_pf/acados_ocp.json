@@ -1,6 +1,6 @@
 {
-    "acados_include_path": "/home/alex/vanttec_usv_ws/src/usv_avoidance/include/acados/include",
-    "acados_lib_path": "/home/alex/vanttec_usv_ws/src/usv_avoidance/include/acados/lib",
+    "acados_include_path": "/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/include",
+    "acados_lib_path": "/home/nvidia/vanttec_usv_ws/src/usv_avoidance/include/acados/lib",
     "constraints": {
         "C": [],
         "C_e": [],

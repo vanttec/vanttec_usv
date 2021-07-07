@@ -922,21 +922,21 @@ int acados_create()
     double lsh[NSH];
     double ush[NSH];
     
-    lsh[0] = -0.2;
+    lsh[0] = -0.3;
     ush[0] = 0;
-    lsh[1] = -0.2;
+    lsh[1] = -0.3;
     ush[1] = 0;
-    lsh[2] = -0.2;
+    lsh[2] = -0.3;
     ush[2] = 0;
-    lsh[3] = -0.2;
+    lsh[3] = -0.3;
     ush[3] = 0;
-    lsh[4] = -0.2;
+    lsh[4] = -0.3;
     ush[4] = 0;
-    lsh[5] = -0.2;
+    lsh[5] = -0.3;
     ush[5] = 0;
-    lsh[6] = -0.2;
+    lsh[6] = -0.3;
     ush[6] = 0;
-    lsh[7] = -0.2;
+    lsh[7] = -0.3;
     ush[7] = 0;
 
     for (int i = 0; i < N; i++)

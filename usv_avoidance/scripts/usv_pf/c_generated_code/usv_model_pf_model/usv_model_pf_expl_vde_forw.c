@@ -116,8 +116,8 @@ void casadi_project(const casadi_real* x, const casadi_int* sp_x, casadi_real* y
   }
 }
 
-static const casadi_int casadi_s0[7] = {14, 2, 0, 1, 2, 12, 13};
-static const casadi_int casadi_s1[19] = {2, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1};
+static const casadi_int casadi_s0[19] = {2, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 1};
+static const casadi_int casadi_s1[7] = {14, 2, 0, 1, 2, 12, 13};
 static const casadi_int casadi_s2[25] = {14, 2, 0, 10, 20, 0, 1, 2, 3, 4, 5, 6, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 10, 11, 13};
 static const casadi_int casadi_s3[23] = {14, 2, 0, 9, 18, 0, 1, 2, 3, 4, 5, 6, 10, 11, 0, 1, 2, 3, 4, 5, 6, 10, 11};
 static const casadi_int casadi_s4[18] = {14, 1, 0, 14, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
@@ -4738,9 +4738,9 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   /* #2257: (@101[:2] = @115) */
   for (rr=w101+0, ss=w115; rr!=w101+2; rr+=1) *rr = *ss++;
   /* #2258: @115 = @101' */
-  casadi_trans(w101,casadi_s1, w115, casadi_s0, iw);
+  casadi_trans(w101,casadi_s0, w115, casadi_s1, iw);
   /* #2259: @116 = project(@115) */
-  casadi_project(w115, casadi_s0, w116, casadi_s2, w);
+  casadi_project(w115, casadi_s1, w116, casadi_s2, w);
   /* #2260: @117 = input[2][0] */
   casadi_copy(arg[2], 28, w117);
   /* #2261: {@65, @64} = horzsplit(@117) */

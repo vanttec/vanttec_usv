@@ -45,10 +45,10 @@ class Detection_Node:
         self.points_list = [[0,0,0]]
 
 
-        #rospy.Subscriber("/zed/zed_node/left/image_rect_color", Image, self.callback_zed_img)
-        #rospy.Subscriber("/zed/zed_node/point_cloud/cloud_registered", PointCloud2, self.callback_zed_cp)
-        rospy.Subscriber("/r200/camera/color/image_raw", Image, self.callback_zed_img)
-        rospy.Subscriber("/r200/camera/depth_registered/points", PointCloud2, self.callback_zed_cp)
+        rospy.Subscriber("/zed/zed_node/left/image_rect_color", Image, self.callback_zed_img)
+        rospy.Subscriber("/zed/zed_node/point_cloud/cloud_registered", PointCloud2, self.callback_zed_cp)
+        #rospy.Subscriber("/r200/camera/color/image_raw", Image, self.callback_zed_img)
+        #rospy.Subscriber("/r200/camera/depth_registered/points", PointCloud2, self.callback_zed_cp)
 
         self.detector_pub = rospy.Publisher('/usv_perception/yolo_zed/objects_detected', obj_detected_list, queue_size=10)
 
@@ -252,7 +252,7 @@ if __name__ == '__main__':
     try:
         rospy.init_node('yolo_zed')
 
-        rate = rospy.Rate(20) # 20Hz
+        rate = rospy.Rate(10) # 20Hz
         D = Detection_Node()
         D.detect()
     except rospy.ROSInterruptException:
