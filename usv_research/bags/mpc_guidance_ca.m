@@ -1,5 +1,5 @@
 %declare name of the bag
-experimentbag = rosbag('mpc_guidance_exp4/vn_2021-06-11-13-37-23.bag');
+experimentbag = rosbag('mpc_guidance_exp4/vn_2021-06-26-15-41-51.bag');
 desiredheading = select(experimentbag, "Topic", '/guidance/desired_heading');
 desiredheadingts = timeseries(desiredheading, 'Data');
 start_time = desiredheadingts.get.TimeInfo.Start;
@@ -23,14 +23,7 @@ t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
 plot(t,headingdata)
-hold on
-heading = select(experimentbag, "Topic", '/usv_control/controller/heading_error');
-headingts = timeseries(heading, 'Data');
-t = headingts.get.Time - start_time;
-headingdata = headingts.get.Data;
-plot(t,headingdata)
-hold off
-legend('$\heading sigma$', '$\heading error$', 'Interpreter', 'latex')
+legend( '$\heading sigma$', 'Interpreter', 'latex')
 xlabel('Time [s]', 'Interpreter', 'latex') 
 ylabel('$\psi$ [rad]', 'Interpreter', 'latex')
 title('Heading Sigma')
@@ -181,21 +174,23 @@ yobs = zeros(8,length(msgStructs));
 zobs = zeros(8,length(msgStructs));
 for j=1:length(msgStructs)
     for i=1:8
-        fprintf('length %i index i %i index j %i. \n', length(msgStructs{j}.Obstacles), i ,j)
+        %fprintf('length %i index i %i index j %i. \n', length(msgStructs{j}.Obstacles), i ,j)
         if length(msgStructs{j}.Obstacles)>0
             xobs(i, j) = msgStructs{j}.Obstacles(i).X;
             yobs(i, j) = msgStructs{j}.Obstacles(i).Y;
-            zobs(i, j) = msgStructs{j}.Obstacles(i).Z;
+            zobs(i, j) = msgStructs{j}.Obstacles(i).Z-0.1;
             if zobs(i,j)>0
-                viscircles([yobs(i, j), xobs(i, j)], zobs(i, j));
-            end 
+                %zobs(i, j) = 0.105;
+                %viscircles([yobs(i, j), xobs(i, j)], zobs(i, j));
+                rectangle('Position',[yobs(i, j)-zobs(i,j),xobs(i, j)-zobs(i,j),2*zobs(i,j),2*zobs(i,j)],'Curvature',[1,1],'FaceColor','r','EdgeColor', 'r')
+            end
         end
     end
 end
+
 %xlabel('Y(m)', 'Interpreter', 'latex') 
 %ylabel('X(m)', 'Interpreter', 'latex')
 title('Obstacles')
-hold off
 
 %speed gain plot
 heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_gain');
@@ -209,19 +204,6 @@ xlabel('Time [s]', 'Interpreter', 'latex')
 ylabel('$u$ [m/s]', 'Interpreter', 'latex')
 title('Speed Gain')
 
-
-%speed error plot
-heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_error');
-headingts = timeseries(heading, 'Data');
-t = headingts.get.Time - start_time;
-headingdata = headingts.get.Data;
-figure
-plot(t,headingdata)
-legend('$speed error$', 'Interpreter', 'latex')
-xlabel('Time [s]', 'Interpreter', 'latex') 
-ylabel('$u$ [m/s]', 'Interpreter', 'latex')
-title('Speed Error')
-
 %speed sigma plot
 heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_sigma');
 headingts = timeseries(heading, 'Data');
@@ -233,3 +215,29 @@ legend('$speed sigma$', 'Interpreter', 'latex')
 xlabel('Time [s]', 'Interpreter', 'latex') 
 ylabel('$u$ [m/s]', 'Interpreter', 'latex')
 title('Speed Sigma')
+
+heading = select(experimentbag, "Topic", '/usv_control/controller/heading_error');
+headingts = timeseries(heading, 'Data');
+t = headingts.get.Time - start_time;
+headingdata = headingts.get.Data;
+figure
+plot(t,headingdata)
+legend( '$\heading error$', 'Interpreter', 'latex')
+xlabel('Time [s]', 'Interpreter', 'latex') 
+ylabel('$\psi$ [rad]', 'Interpreter', 'latex')
+title('Heading Error')
+
+heading = select(experimentbag, "Topic", '/usv_control/controller/speed_error');
+headingts = timeseries(heading, 'Data');
+t = headingts.get.Time - start_time;
+headingdata = headingts.get.Data;
+figure
+plot(t,headingdata)
+legend( '$\speed error$', 'Interpreter', 'latex')
+xlabel('Time [s]', 'Interpreter', 'latex') 
+ylabel('$\psi$ [rad]', 'Interpreter', 'latex')
+title('Speed Error')
+
+
+
+
