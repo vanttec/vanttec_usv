@@ -1,12 +1,14 @@
 %declare name of the bag
-experimentbag = rosbag('mpc_guidance_exp4/vn_2021-06-26-15-41-51.bag');
+experimentbag = rosbag('mpc_guidance_exp1/sim_2021-07-07-18-20-16.bag');
 desiredheading = select(experimentbag, "Topic", '/guidance/desired_heading');
 desiredheadingts = timeseries(desiredheading, 'Data');
 start_time = desiredheadingts.get.TimeInfo.Start;
+end_time = desiredheadingts.get.TimeInfo.End;
 
 %heading gain plot
 heading = select(experimentbag, "Topic", '/usv_control/asmc/heading_gain');
 headingts = timeseries(heading, 'Data');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
@@ -19,6 +21,7 @@ title('Heading Gain')
 %heading sigma plot
 heading = select(experimentbag, "Topic", '/usv_control/asmc/heading_sigma');
 headingts = timeseries(heading, 'Data');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
@@ -31,6 +34,7 @@ title('Heading Sigma')
 %control input plot
 heading = select(experimentbag, "Topic", '/usv_control/controller/control_input');
 headingts = timeseries(heading, 'Theta');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
@@ -64,6 +68,7 @@ title('Control input')
 %heading plot
 heading = select(experimentbag, "Topic", '/vectornav/ins_2d/NED_pose');
 headingts = timeseries(heading, 'Theta');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
@@ -72,6 +77,7 @@ hold on
 %desired heading plot
 desiredheading = select(experimentbag, "Topic", '/guidance/desired_heading');
 desiredheadingts = timeseries(desiredheading, 'Data');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = desiredheadingts.get.Time - start_time;
 desiredheadingdata = desiredheadingts.get.Data;
 plot(t,desiredheadingdata)
@@ -85,6 +91,7 @@ title('Heading MPC')
 figure
 desiredheading = select(experimentbag, "Topic", '/vectornav/ins_2d/NED_pose');
 desiredheadingts = timeseries(desiredheading, 'X');
+desiredheadingts = getsampleusingtime(desiredheadingts, start_time, end_time);
 t = desiredheadingts.get.Time - start_time;
 desiredheadingdata = desiredheadingts.get.Data;
 plot(t,desiredheadingdata)
@@ -92,6 +99,7 @@ hold on
 %y plot
 desiredheading = select(experimentbag, "Topic", '/vectornav/ins_2d/NED_pose');
 desiredheadingts = timeseries(desiredheading, 'Y');
+desiredheadingts = getsampleusingtime(desiredheadingts, start_time, end_time);
 t = desiredheadingts.get.Time - start_time;
 desiredheadingdata = desiredheadingts.get.Data;
 plot(t,desiredheadingdata)
@@ -104,6 +112,7 @@ title('Pose')
 %right thruster plot
 right = select(experimentbag, "Topic", '/usv_control/controller/right_thruster');
 rightts = timeseries(right, 'Data');
+rightts = getsampleusingtime(rightts, start_time, end_time);
 t = rightts.get.Time - start_time;
 rightdata = rightts.get.Data;
 figure
@@ -112,6 +121,7 @@ hold on
 %left thruster plot
 left = select(experimentbag, "Topic", '/usv_control/controller/left_thruster');
 leftts = timeseries(left, 'Data');
+leftts = getsampleusingtime(leftts, start_time, end_time);
 t = leftts.get.Time - start_time;
 leftdata = leftts.get.Data;
 plot(t,leftdata)
@@ -123,6 +133,7 @@ title('Thruster MPC')
 %speed plot
 speed = select(experimentbag, "Topic", '/vectornav/ins_2d/local_vel');
 speedts = timeseries(speed, 'X');
+speedts = getsampleusingtime(speedts, start_time, end_time);
 t = speedts.get.Time - start_time;
 speeddata = speedts.get.Data;
 figure
@@ -131,6 +142,7 @@ hold on
 %desired speed plot
 desiredspeed = select(experimentbag, "Topic", '/guidance/desired_speed');
 desiredspeedts = timeseries(desiredspeed, 'Data');
+desiredspeedts = getsampleusingtime(desiredspeedts, start_time, end_time);
 t = desiredspeedts.get.Time - start_time;
 desiredspeeddata = desiredspeedts.get.Data;
 plot(t,desiredspeeddata)
@@ -141,14 +153,27 @@ ylabel('$u$ [m/s]', 'Interpreter', 'latex')
 title('Speed MPC')
 
 %Publish desired Path
+%desired_path = select(experimentbag, 'Topic', '/guidance/target');
+%msgStructs = readMessages(desired_path,'DataFormat','struct');
+%%msgStructs{1};
+%figure
+%xPoints = cellfun(@(m) double(m.X),msgStructs);
+%yPoints = cellfun(@(m) double(m.Y),msgStructs);
+%plot(yPoints,xPoints)
+%hold on 
+
 desired_path = select(experimentbag, 'Topic', '/guidance/target');
-msgStructs = readMessages(desired_path,'DataFormat','struct');
-%msgStructs{1};
+desiredxs = timeseries(desired_path, 'X');
+desiredxs = getsampleusingtime(desiredxs, start_time-10, start_time);
+desiredxdata = desiredxs.get.Data;
+
+desiredys = timeseries(desired_path, 'Y');
+desiredys = getsampleusingtime(desiredys, start_time-10, start_time);
+desiredydata = desiredys.get.Data;
 figure
-xPoints = cellfun(@(m) double(m.X),msgStructs);
-yPoints = cellfun(@(m) double(m.Y),msgStructs);
-plot(yPoints,xPoints)
-hold on 
+plot(desiredydata,desiredxdata)
+hold on
+
 
 %publish actual path
 position = select(experimentbag, 'Topic', '/vectornav/ins_2d/NED_pose');
@@ -178,7 +203,7 @@ for j=1:length(msgStructs)
         if length(msgStructs{j}.Obstacles)>0
             xobs(i, j) = msgStructs{j}.Obstacles(i).X;
             yobs(i, j) = msgStructs{j}.Obstacles(i).Y;
-            zobs(i, j) = msgStructs{j}.Obstacles(i).Z-0.1;
+            zobs(i, j) = msgStructs{j}.Obstacles(i).Z;
             if zobs(i,j)>0
                 %zobs(i, j) = 0.105;
                 %viscircles([yobs(i, j), xobs(i, j)], zobs(i, j));
@@ -195,6 +220,7 @@ title('Obstacles')
 %speed gain plot
 heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_gain');
 headingts = timeseries(heading, 'Data');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
@@ -207,6 +233,7 @@ title('Speed Gain')
 %speed sigma plot
 heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_sigma');
 headingts = timeseries(heading, 'Data');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
@@ -218,6 +245,7 @@ title('Speed Sigma')
 
 heading = select(experimentbag, "Topic", '/usv_control/controller/heading_error');
 headingts = timeseries(heading, 'Data');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
@@ -229,6 +257,7 @@ title('Heading Error')
 
 heading = select(experimentbag, "Topic", '/usv_control/controller/speed_error');
 headingts = timeseries(heading, 'Data');
+headingts = getsampleusingtime(headingts, start_time, end_time);
 t = headingts.get.Time - start_time;
 headingdata = headingts.get.Data;
 figure
