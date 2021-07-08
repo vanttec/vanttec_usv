@@ -1,0 +1,16 @@
+<launch>
+
+  <!-- MPC Guidance Experiment 2: zigzag experiment with avoidance of multiple obstacle -->
+
+  <include file="$(find vectornav)/launch/vectornav.launch" />
+
+  <include file="$(find arduino-br)/launch/arduino_br.launch" /> 
+
+  <node pkg="usv_research" type="zigzag_path_waypoints.py" name="zigzag_path_waypoints" />
+
+  <node pkg="usv_avoidance" type="nmpc_pf" name="nmpc_pf" />
+
+  <!--Launch rosbag to record topics -->
+  <node type="record" pkg="rosbag" name="recorder" args="record /guidance/desired_heading /usv_control/asmc/heading_gain /usv_control/asmc/heading_sigma /usv_control/controller/heading_error /usv_control/asmc/speed_gain /usv_control/asmc/speed_sigma /usv_control/asmc/speed_error /usv_control/controller/control_input /vectornav/ins_2d/NED_pose /usv_control/controller/right_thruster /usv_control/controller/left_thruster /vectornav/ins_2d/local_vel /guidance/desired_speed /guidance/target /nmpc_ca/obstacle_list /nmpc_ca/safety_vizualization /mission/waypoints -o $(find usv_research)/bags/mpc_pf_exp2/zz" />
+
+</launch>

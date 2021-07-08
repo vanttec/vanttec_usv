@@ -154,7 +154,7 @@ public:
 
         // ROS Subscribers
         local_vel_sub = n.subscribe("/vectornav/ins_2d/local_vel", 1000, &NMPC::velocityCallback, this);
-        ins_pos_sub = n.subscribe("/vectornav/ins_2d/ins_pose", 1000, &NMPC::positionCallback, this);
+        ins_pos_sub = n.subscribe("/vectornav/ins_2d/NED_pose", 1000, &NMPC::positionCallback, this);
         waypoints_sub = n.subscribe("/mission/waypoints", 1000, &NMPC::waypointsCallback, this);
 
         // Initializing control inputs
