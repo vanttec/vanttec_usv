@@ -20,8 +20,8 @@ def main():
     t = Test()
     time.sleep(10)
     path_array = Float32MultiArray()
-    path_array.layout.data_offset = 11
-    path_array.data = [-1,-1,3.5,-6,-1,-15,2,-23,-1.5,-30,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
+    path_array.layout.data_offset = 9#11
+    path_array.data = [-1,-1,3.5,-6,-1,-15,2,-23,0]#-1.5,-30,0] # Last should be waypoint mode: 0 for NED, 1 for GPS, 2 for body
     while not rospy.is_shutdown():
         t.desired(path_array)
         rate.sleep()

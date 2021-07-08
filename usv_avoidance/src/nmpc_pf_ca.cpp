@@ -507,7 +507,7 @@ public:
             double y_squared = pow(y2 - nedy_callback, 2);
             double distance = pow(x_squared + y_squared, 0.5);
             //std::cout<<"Distance:"<<distance<<".\n";
-            u_des = 0.7;
+            u_des = 1.4;
             d_speed.data = u_des;
             
             if (distance > 1)
