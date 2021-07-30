@@ -1,5 +1,5 @@
 %declare name of the bag
-experimentbag = rosbag('mpc_guidance_exp1/sim_2021-07-07-18-20-16.bag');
+experimentbag = rosbag('mpc_guidance_exp2/vn_2021-07-08-13-49-14.bag');
 desiredheading = select(experimentbag, "Topic", '/guidance/desired_heading');
 desiredheadingts = timeseries(desiredheading, 'Data');
 start_time = desiredheadingts.get.TimeInfo.Start;
@@ -164,58 +164,77 @@ title('Speed MPC')
 
 desired_path = select(experimentbag, 'Topic', '/guidance/target');
 desiredxs = timeseries(desired_path, 'X');
-desiredxs = getsampleusingtime(desiredxs, start_time-10, start_time);
+%desiredxs = getsampleusingtime(desiredxs, start_time-10, start_time);
+desiredxs = getsampleusingtime(desiredxs, start_time-10, end_time-5);
 desiredxdata = desiredxs.get.Data;
 
 desiredys = timeseries(desired_path, 'Y');
-desiredys = getsampleusingtime(desiredys, start_time-10, start_time);
+%desiredys = getsampleusingtime(desiredys, start_time-10, start_time);
+desiredys = getsampleusingtime(desiredys, start_time-10, end_time-5);
 desiredydata = desiredys.get.Data;
 figure
 plot(desiredydata,desiredxdata)
 hold on
 
 
-%publish actual path
-position = select(experimentbag, 'Topic', '/vectornav/ins_2d/NED_pose');
-msgStructs = readMessages(position,'DataFormat','struct');
-%msgStructs{1};
-xlim([-30 0]), ylim([0 10])
-xPoints = cellfun(@(m) double(m.X),msgStructs);
-yPoints = cellfun(@(m) double(m.Y),msgStructs);
-plot(yPoints,xPoints)
-xlabel('Y(m)', 'Interpreter', 'latex') 
-ylabel('X(m)', 'Interpreter', 'latex')
-legend('Desired Path', 'Actual Path', 'Interpreter', 'latex')
-title('Path')
-hold on
-
-%publish obstacles
-position = select(experimentbag, 'Topic', '/nmpc_ca/obstacle_list');
-msgStructs = readMessages(position,'DataFormat','struct');
-%figure
+%%publish actual path
+%position = select(experimentbag, 'Topic', '/vectornav/ins_2d/NED_pose');
+%msgStructs = readMessages(position,'DataFormat','struct');
+%%msgStructs{1};
 %xlim([-30 0]), ylim([0 10])
-xobs = zeros(8,length(msgStructs));
-yobs = zeros(8,length(msgStructs));
-zobs = zeros(8,length(msgStructs));
-for j=1:length(msgStructs)
-    for i=1:8
-        %fprintf('length %i index i %i index j %i. \n', length(msgStructs{j}.Obstacles), i ,j)
-        if length(msgStructs{j}.Obstacles)>0
-            xobs(i, j) = msgStructs{j}.Obstacles(i).X;
-            yobs(i, j) = msgStructs{j}.Obstacles(i).Y;
-            zobs(i, j) = msgStructs{j}.Obstacles(i).Z;
-            if zobs(i,j)>0
-                %zobs(i, j) = 0.105;
-                %viscircles([yobs(i, j), xobs(i, j)], zobs(i, j));
-                rectangle('Position',[yobs(i, j)-zobs(i,j),xobs(i, j)-zobs(i,j),2*zobs(i,j),2*zobs(i,j)],'Curvature',[1,1],'FaceColor','r','EdgeColor', 'r')
-            end
-        end
-    end
-end
-
+%xPoints = cellfun(@(m) double(m.X),msgStructs);
+%yPoints = cellfun(@(m) double(m.Y),msgStructs);
+%plot(yPoints,xPoints)
 %xlabel('Y(m)', 'Interpreter', 'latex') 
 %ylabel('X(m)', 'Interpreter', 'latex')
-title('Obstacles')
+%legend('Desired Path', 'Actual Path', 'Interpreter', 'latex')
+%title('Path')
+%%hold on
+%x plot
+
+desiredheading = select(experimentbag, "Topic", '/vectornav/ins_2d/NED_pose');
+desiredheadingts = timeseries(desiredheading, 'X');
+desiredheadingts = getsampleusingtime(desiredheadingts, start_time, end_time);
+xdata = desiredheadingts.get.Data;
+%y plot
+desiredheading = select(experimentbag, "Topic", '/vectornav/ins_2d/NED_pose');
+desiredheadingts = timeseries(desiredheading, 'Y');
+desiredheadingts = getsampleusingtime(desiredheadingts, start_time, end_time);
+ydata = desiredheadingts.get.Data;
+plot(ydata,xdata)
+xlabel('$y$ (m)', 'Interpreter', 'latex') 
+ylabel('$x$ (m)', 'Interpreter', 'latex')
+legend('Desired Path', 'Actual Path', 'Interpreter', 'latex')
+title('Path')
+
+
+%%publish obstacles
+%position = select(experimentbag, 'Topic', '/nmpc_ca/obstacle_list');
+%msgStructs = readMessages(position,'DataFormat','struct');
+%%figure
+%%xlim([-30 0]), ylim([0 10])
+%xobs = zeros(8,length(msgStructs));
+%yobs = zeros(8,length(msgStructs));
+%zobs = zeros(8,length(msgStructs));
+%for j=1:length(msgStructs)
+%    for i=1:8
+%        %fprintf('length %i index i %i index j %i. \n', length(msgStructs{j}.Obstacles), i ,j)
+%        if length(msgStructs{j}.Obstacles)>0
+%            xobs(i, j) = msgStructs{j}.Obstacles(i).X;
+%            yobs(i, j) = msgStructs{j}.Obstacles(i).Y;
+%            zobs(i, j) = msgStructs{j}.Obstacles(i).Z-0.2;
+%            if zobs(i,j)>0
+%                %zobs(i, j) = 0.105;
+%                %viscircles([yobs(i, j), xobs(i, j)], zobs(i, j));
+%                rectangle('Position',[yobs(i, j)-zobs(i,j),xobs(i, j)-zobs(i,j),2*zobs(i,j),2*zobs(i,j)],'Curvature',[1,1],'FaceColor','r','EdgeColor', 'r')
+%            end
+%        end
+%    end
+%end
+
+%%xlabel('Y(m)', 'Interpreter', 'latex') 
+%%ylabel('X(m)', 'Interpreter', 'latex')
+%title('Obstacles')
 
 %speed gain plot
 heading = select(experimentbag, "Topic", '/usv_control/asmc/speed_gain');
