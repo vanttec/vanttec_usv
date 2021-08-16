@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+
+'''
+----------------------------------------------------------
+    @file: DataSetCapture.py
+    @date: Ago 2021
+    @date_modif: Sun Ago 15, 2021
+    @date_modif: Sun Ago 15, 2021
+    @author: Raul David Dominguez Sanchez
+    @e-mail: rauldavidds@hotmail.com
+    @brief: Node to capture sinchronoulsy Point clouds 
+    and Images
+    @Note: Modify path,cntr and path2 accordingly
+----------------------------------------------------------
+'''
+
 import rospy
 import pypcd
 from sensor_msgs.msg import PointCloud2, Image
@@ -8,13 +23,23 @@ import numpy as np
 import message_filters
 
 bridge = CvBridge()
+#counter of the dataset
 cntr=124
+#dataset path
 path='/home/rauldds/catkin_ws/src/vttc/dataset/'
-path2='/home/rauldds/Desktop/labelCloud/pointclouds/'
+#path for labeling
+path2='/home/rauldds/Desktop/labelCloud/pointclouds/' 
 
 rospy.init_node("Dataset_Capture",anonymous=True)
 
 def imgname(x):
+    '''
+        @name: imgname
+        @brief: function to define the name of a image/point cloud file
+        @param: x: current counter value
+        @return: string with the name of the image/point cloud file
+    '''
+
     return{
         '1': '00000'+str(cntr),
         '2': '0000'+str(cntr),
@@ -25,6 +50,15 @@ def imgname(x):
     }[x]
 
 def CB(img, PC2):
+    '''
+        @name: CB
+        @brief: function to store sinchronous point clouds and images
+        in "bin" and "png" format files
+        @param: img: Image message
+                PC2: PointCLoud2 message
+        @return: --
+    '''
+
     global cntr
     cntr=cntr+1
     print(cntr)
@@ -61,5 +95,3 @@ ts = message_filters.TimeSynchronizer([img_sub, pc2_sub], 10)
 print("hola")
 ts.registerCallback(CB)
 rospy.spin()
-
-
