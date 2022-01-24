@@ -27,13 +27,12 @@ find_package(
 	Eigen3 REQUIRED
 )
 
-set(acados_include "${PROJECT_SOURCE_DIR}/include/acados/include")
+set(acados_include "${PROJECT_SOURCE_DIR}/include/acados")
 set(acados_lib "${PROJECT_SOURCE_DIR}/include/acados/lib")
 #set(acados_include "/home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/include")
 #set(acados_lib "/home/ivana/MPC_CollisionAvoidance/catkin_ws/src/nmpc_ca/acados/lib")
 
 set(full_model_guidance_ca1 ${PROJECT_SOURCE_DIR}/scripts/usv_guidance_ca1/c_generated_code)
-
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
@@ -67,21 +66,28 @@ include_directories(
 	${catkin_INCLUDE_DIRS}
 	include
 	${full_model_guidance_ca1}
+	${PROJECT_SOURCE_DIR}/include/acados/external
+	${PROJECT_SOURCE_DIR}/include/acados/external/hpipm/include
+	${PROJECT_SOURCE_DIR}/include/acados/interfaces
 	${acados_include}
-	${acados_include}/blasfeo/include/
-	${acados_include}/hpipm/include/
+	${acados_include}/external/blasfeo/include/
 	${acados_include}/acados/
 	${acados_include}/qpOASES_e/
+
 )
 
 link_directories(${full_model_guidance_ca1})
 
+execute_process(
+	COMMAND "cd ${PROJECT_SOURCE_DIR}/scripts/usv_guidance_ca1/c_generated_code/ && make bundled_shared_lib"
+	)
+
 # NODE
-add_executable(nmpc_guidance_ca1 src/nmpc_guidance_ca1.cpp)
+add_executable(nmpc_guidance_ca1 src/nmpc_guidance_ca1.cpp ${ModelSources})
 target_link_libraries(nmpc_guidance_ca1
-	${full_model_guidance_ca1}/libacados_ocp_solver_usv_model_guidance_ca1.so
+	${full_model_guidance_ca1}/libacados_solver_usv_model_guidance_ca1.so
 	#${acados_lib}/libacados.a
-	${acados_lib}/libacados.so
+	acados
 	${catkin_LIBRARIES}
 )
 add_dependencies(nmpc_guidance_ca1 ${catkin_EXPORTED_TARGETS})

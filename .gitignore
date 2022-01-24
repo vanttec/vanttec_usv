@@ -1,0 +1,8 @@
+usv_avoidance/scripts/usv_guidance_ca1/c_generated_code/*.o
+usv_avoidance/scripts/usv_guidance_ca1/c_generated_code/*.so
+**.o
+**.so
+*/__pycache__/*
+usv_avoidance/scripts/usv_guidance_ca1/__pycache__/*
+usv_avoidance/scripts/usv_guidance_ca1/np
+usv_avoidance/scripts/usv_guidance_ca1/os
