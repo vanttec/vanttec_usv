@@ -19,10 +19,9 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 
 *TODO: Dependencies*
 
-**How to start working?**
 
-Enter the following commands into your **Ubuntu 16.04** terminal:
-
+## Usage guide
+Enter the following commands into your **Ubuntu 18.04** terminal:
 ```Shell
 cd
 git clone http://github.com/vanttec/vanttec_usv.git
@@ -30,4 +29,10 @@ cd vanttec_usv
 ./init_worskpace.sh
 ```
 
-
+### Important
+Acados must be installed! Run `init_workspace.sh` first.
+`usv_guidance_ca1` must be generated! Run `init_workspace.sh` or
+```Shell
+cd ~/vanttec_usv_ws/src/vanttec_usv/usv_avoidance/scripts/usv_guidance_ca1/c_generated_code
+make bundled_shared_lib
+```

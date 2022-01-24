@@ -78,10 +78,6 @@ include_directories(
 
 link_directories(${full_model_guidance_ca1})
 
-execute_process(
-	COMMAND "cd ${PROJECT_SOURCE_DIR}/scripts/usv_guidance_ca1/c_generated_code/ && make bundled_shared_lib"
-	)
-
 # NODE
 add_executable(nmpc_guidance_ca1 src/nmpc_guidance_ca1.cpp ${ModelSources})
 target_link_libraries(nmpc_guidance_ca1
