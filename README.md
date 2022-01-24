@@ -29,9 +29,16 @@ cd vanttec_usv
 ./init_worskpace.sh
 ```
 
+## Docker
+The docker enviorment can be built and used with the following commands:
+```Shell
+docker build --tag vanttec_usv_docker --rm .
+docker run -v ${PWD}:/ws -it  vanttec_docker bash
+```
+
 ### Important
 Acados must be installed! Run `init_workspace.sh` first.
-`usv_guidance_ca1` must be generated! Run `init_workspace.sh` or
+`usv_guidance_ca1` must be generated! Run `init_workspace.sh` or run:
 ```Shell
 cd ~/vanttec_usv_ws/src/vanttec_usv/usv_avoidance/scripts/usv_guidance_ca1/c_generated_code
 make bundled_shared_lib
