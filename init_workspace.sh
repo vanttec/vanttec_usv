@@ -3,19 +3,19 @@
 #install acados
 echo "Installing acados"
 ORIG_DIR=$(pwd)
-cd / 
-sudo git clone https://github.com/acados/acados.git 
+cd ~/ 
+git clone https://github.com/acados/acados.git 
 cd acados
 git submodule update --recursive --init 
 mkdir -p build
 cd build
-cmake -DACADOS_INSTALL_DIR=/acados ..
+cmake -DACADOS_INSTALL_DIR=~/acados ..
 make install -j4 
-sudo cp /acados/lib/*.so /usr/lib
+sudo cp ~/acados/lib/*.so /usr/lib
 sudo ldconfig
 
-echo "ACADOS_SOURCE_DIR=/acados" | sudo tee -a /etc/environment
-export ACADOS_SOURCE_DIR=/acados
+echo "ACADOS_SOURCE_DIR=$HOME/acados" | sudo tee -a /etc/environment
+export ACADOS_SOURCE_DIR=$HOME/acados
 
 echo "Setting up ROS WS"
 cd ${ORIG_DIR}/..
