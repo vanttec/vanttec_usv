@@ -13,3 +13,6 @@
 [submodule "usv_avoidance/include/acados"]
 	path = usv_avoidance/include/acados
 	url = https://github.com/acados/acados.git
+[submodule "darknet_ros"]
+	path = darknet_ros
+	url = https://github.com/leggedrobotics/darknet_ros.git
