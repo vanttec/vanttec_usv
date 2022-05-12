@@ -9,7 +9,14 @@
 	url = http://github.com/vanttec/velodyne_ros.git
 [submodule "zed_ros_wrapper"]
 	path = zed_ros_wrapper
-  url = http://github.com/vanttec/zed_ros_wrapper.git
+	url = http://github.com/vanttec/zed_ros_wrapper.git
 [submodule "usv_avoidance/include/acados"]
 	path = usv_avoidance/include/acados
 	url = https://github.com/acados/acados.git
+# [submodule "darknet_ros"]
+# 	path = darknet_ros
+# 	url = https://github.com/vanttec/darknet_ros/
+# 	branch = melodic
+[submodule "darknet_ros_zed"]
+	path = darknet_ros_zed
+	url = https://github.com/vSebas/darknet_ros_zed.git
