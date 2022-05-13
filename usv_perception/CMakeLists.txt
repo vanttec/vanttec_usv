@@ -61,6 +61,8 @@ add_message_files(
    obj_detected.msg
    obj_detected_list.msg
    obstacles_list.msg
+   obj_registered_list.msg
+   obj_registered.msg
  )
 
 ## Generate services in the 'srv' folder
