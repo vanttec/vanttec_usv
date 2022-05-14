@@ -3,7 +3,7 @@ import rospy
 from std_msgs.msg import String
 from digi.xbee.devices import XBeeDevice, XBee64BitAddress, RemoteXBeeDevice, XBeeNetwork
 
-PORT = "/dev/ttyUSB1"
+PORT = "/dev/ttyUSB0"
 BAUD_RATE = 9600
 STATION_TO_BOAT = "..."
 REMOTE_NODE_ID = "BOAT_XBEE"
