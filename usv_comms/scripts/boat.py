@@ -5,7 +5,7 @@ from std_msgs.msg import String
 from digi.xbee.devices import XBeeDevice, XBee64BitAddress, RemoteXBeeDevice, XBeeNetwork
 
 # TODO: Replace with the serial port where your local module is connected to.
-PORT = "/dev/ttyUSB0"
+PORT = "/dev/xbee_boat"
 # TODO: Replace with the baud rate of your local module.
 BAUD_RATE = 9600
 
