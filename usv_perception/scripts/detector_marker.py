@@ -38,7 +38,7 @@ class marker_detector_node:
                 obj.X = objt.x
                 obj.Y = objt.y
                 obj_list.objects.append(obj)
-            obj_list.len = len(data.bounding_boxes)
+            # obj_list.len = len(data.bounding_boxes)
         self.objects_detected_yolo = obj_list
         # rospy.loginfo(obj_list)
 
@@ -96,10 +96,6 @@ class marker_detector_node:
             tempMarker.scale.y = 0.3
             tempMarker.scale.z = 0.3
             temp_marker_array.markers.append(tempMarker)
-            rospy.loginfo(tempMarker.id)
-            rospy.loginfo(tempMarker.pose.position.x)
-            rospy.loginfo(tempMarker.pose.position.y)
-            rospy.loginfo(tempMarker.pose.position.z)
 
         self.detection_markers = temp_marker_array
 
