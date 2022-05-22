@@ -20,3 +20,6 @@
 [submodule "darknet_ros_zed"]
 	path = darknet_ros_zed
 	url = https://github.com/vSebas/darknet_ros_zed.git
+[submodule "sbg_ros_driver"]
+	path = sbg_ros_driver
+	url = https://github.com/vanttec/sbg_ros_driver
