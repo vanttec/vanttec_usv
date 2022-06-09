@@ -26,11 +26,11 @@ import rospy
 from std_msgs.msg import String
 
 # Replace with the serial port where your local module is connected to.
-PORT = rospy.get_param("station_transceiver/xbee_port")
+PORT = "/dev/xbee_station"
 # Replace with the baud rate of your local module.
 BAUD_RATE = 9600
 # The XBee node you are trying to communicate with
-REMOTE_NODE_ID = "vtecboat"
+REMOTE_NODE_ID = "BOAT_XBEE"
 # Frequency in Hz in which the node will be run at.
 ROS_RATE = 100
 

@@ -21,16 +21,16 @@ import argparse
 import sys
 import time
 
-from digi.xbee.devices import XBeeDevice
+from digi.xbee.devices import XBeeDevice, XBee64BitAddress, RemoteXBeeDevice, XBeeNetwork
 import rospy
 from std_msgs.msg import Empty, String
 
 # Replace with the serial port where your local module is connected to.
-PORT = "/dev/xbee_boat"
+PORT = "dev/xbee_boat"
 # Replace with the baud rate of your local module.
 BAUD_RATE = 9600
 # The XBee node you are trying to communicate with
-REMOTE_NODE_ID = "STATION_xBEE"
+REMOTE_NODE_ID = "STATION_XBEE"
 # Frequency in Hz in which the node will be run at.
 ROS_RATE = 100
 

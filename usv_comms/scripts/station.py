@@ -13,9 +13,8 @@ def topic_callback(data):
     STATION_TO_BOAT = data.data
 
 def data_callback(xbee_message):
-            rospy.loginfo("From %s >> %s" % (xbee_message.remote_device.get_64bit_addr(),
-                                     xbee_message.data.decode()))
-            publisher.pub(xbee_message.data.decode())
+    rospy.loginfo("From %s >> %s" % (xbee_message.remote_device.get_64bit_addr(), xbee_message.data.decode()))
+    publisher.pub(xbee_message.data.decode())
 
 def station():
     # In ROS, nodes are uniquely named. If two nodes with the same
