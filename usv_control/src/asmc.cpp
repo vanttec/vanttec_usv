@@ -21,7 +21,7 @@ public:
   float v;
   float r;
 
-  static const float integral_step = 0.01;
+  static constexpr float integral_step = 0.01;
 
   int testing;
   int arduino;
@@ -38,14 +38,14 @@ public:
   //Model pysical parameters
   float Xu;
   float Nr;
-  static const float X_u_dot = -2.25;
-  static const float Y_v_dot = -23.13;
-  static const float N_r_dot = -2.79;
+  static constexpr float X_u_dot = -2.25;
+  static constexpr float Y_v_dot = -23.13;
+  static constexpr float N_r_dot = -2.79;
   float Xuu;
-  static const float m = 30;
-  static const float Iz = 4.1;
-  static const float B = 0.41;
-  static const float c = 0.78;
+  static constexpr float m = 30;
+  static constexpr float Iz = 4.1;
+  static constexpr float B = 0.41;
+  static constexpr float c = 0.78;
   
   float Tx;
   float Tz;
@@ -64,9 +64,9 @@ public:
   float o_last;
   float o_dot_last;
   float o_dot_dot_last;
-  static const float f1 = 2;
-  static const float f2 = 2;
-  static const float f3 = 2;
+  static constexpr float f1 = 2;
+  static constexpr float f2 = 2;
+  static constexpr float f3 = 2;
 
   //Controller gains
   float k_u;
