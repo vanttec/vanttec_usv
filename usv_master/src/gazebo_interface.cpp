@@ -4,15 +4,15 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 class SetState{
-private:
-    ros::NodeHandle nh;
-    ros::Publisher pub_state = nh.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 1000);
-    ros::Subscriber sub_state = nh.subscribe("/vectornav/ins_2d/NED_pose", 1000, &SetState::stateCallback, this);
-    tf2::Quaternion q;
-    gazebo_msgs::ModelState model_msg;
+    private:
+        ros::NodeHandle nh;
+        ros::Publisher pub_state = nh.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 1000);
+        ros::Subscriber sub_state = nh.subscribe("/vectornav/ins_2d/NED_pose", 1000, &SetState::stateCallback, this);
+        tf2::Quaternion q;
+        gazebo_msgs::ModelState model_msg;
 
-public:
-    void stateCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
+    public:
+        void stateCallback(const geometry_msgs::Pose2D::ConstPtr& msg);
 };
 
 void SetState::stateCallback(const geometry_msgs::Pose2D::ConstPtr& msg){
