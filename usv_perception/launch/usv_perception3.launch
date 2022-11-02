@@ -2,7 +2,7 @@
 
 
     <!--include file="$(find zed_wrapper)/launch/zed.launch" /-->
-    <include file="$(find usv_perception)/launch/VLP16_points.launch" />
+    <include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" />
 
     <!--node pkg="usv_perception" type="yolo_zed.py" name="yolo_zed" /-->
     <!--node pkg="usv_perception" type="color_srv.py" name="color_srv" /-->
