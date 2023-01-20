@@ -5,7 +5,7 @@
     <!--include file="$(find velodyne_pointcloud)/launch/VLP16_points.launch" /-->
 
     <node pkg="usv_perception" type="yolo_zed.py" name="yolo_zed" />
-    <node pkg="usv_perception" type="lidar_detector.py" name="lidar_detector" />
+    <!-- <node pkg="usv_perception" type="lidar_detector.py" name="lidar_detector" /> -->
     <node pkg="usv_perception" type="color_srv.py" name="color_srv" />
 
 

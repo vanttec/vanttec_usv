@@ -8,13 +8,14 @@ add_compile_options(-std=c++14)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-cv_bridge
-roscpp
-rospy
-std_msgs
-geometry_msgs
-sensor_msgs
-message_generation
+  cv_bridge
+  roscpp
+  rospy
+  std_msgs
+  geometry_msgs
+  sensor_msgs
+  message_generation
+  darknet_ros_msgs
 )
 find_package(OpenCV 3 REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -61,6 +62,8 @@ add_message_files(
    obj_detected.msg
    obj_detected_list.msg
    obstacles_list.msg
+   obj_registered_list.msg
+   obj_registered.msg
  )
 
 ## Generate services in the 'srv' folder
