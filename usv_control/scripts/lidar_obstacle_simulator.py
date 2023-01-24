@@ -65,8 +65,8 @@ class ObstacleSimulator:
         object_detected_list = obstacles_list()
         list_length = 0
         for i in range(len(self.obstacle_list)):
-            x = self.obstacle_list[i]['X'] + 1.5
-            y = self.obstacle_list[i]['Y'] - 4.0
+            x = self.obstacle_list[i]['X']
+            y = self.obstacle_list[i]['Y'] 
             delta_x = x - self.ned_x
             delta_y = y - self.ned_y
             distance = math.pow(delta_x*delta_x + delta_y*delta_y, 0.5)
@@ -75,7 +75,7 @@ class ObstacleSimulator:
                 #if x > -0.5:
                 obstacle = Vector3()
                 obstacle.x = x 
-                obstacle.y = -y
+                obstacle.y = y
                 obstacle.z = self.obstacle_list[i]['R']
                 list_length += 1
                 object_detected_list.obstacles.append(obstacle)
@@ -143,16 +143,16 @@ class ObstacleSimulator:
             marker.header.frame_id = "/world"
             marker.type = marker.SPHERE
             marker.action = marker.ADD
-            marker.scale.x = radius +.5
-            marker.scale.y = radius +.5
-            marker.scale.z = radius +.5
+            marker.scale.x = 2*radius 
+            marker.scale.y = 2*radius 
+            marker.scale.z = 2*radius 
             marker.color.a = 1.0
             marker.color.r = 1.0
             marker.color.g = 1.0
             marker.color.b = 0.0
             marker.pose.orientation.w = 1.0
-            marker.pose.position.x = x + 1.5
-            marker.pose.position.y = y + 4.0
+            marker.pose.position.x = x 
+            marker.pose.position.y = y 
             marker.pose.position.z = 0
             marker.id = i
             marker_array.markers.append(marker)
