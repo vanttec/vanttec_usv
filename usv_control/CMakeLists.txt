@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(usv_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
+#add_compile_options(-std=c++14)
+#add_compile_options(-DQt5_DIR=/usr/lib/x86_64-linux-gnu/cmake/Qt5)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -16,11 +16,15 @@ sensor_msgs
 tf2
 tf2_ros
 tf2_geometry_msgs
+usv_perception
 message_generation
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED)
+#find_package(Qt4 REQUIRED)
+find_package(CGAL REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -111,10 +115,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES usv_control
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+	#INCLUDE_DIRS include
+  #LIBRARIES usv_control
+  CATKIN_DEPENDS roscpp rospy std_msgs
+  DEPENDS CGAL
 )
 
 ###########
@@ -124,9 +128,9 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
-  include/cpp/include
+	${CGAL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -219,7 +223,26 @@ add_executable(asmc src/asmc.cpp)
 add_executable(dynamic_model_simulate src/dynamic_model_simulate.cpp)
 add_executable(boat_tf2_broadcaster src/boat_tf2_broadcaster.cpp)
 add_executable(tracking_control_asmc src/tracking_control_asmc.cpp)
+
 target_link_libraries(asmc ${catkin_LIBRARIES})
+
+add_executable(dynamic_model_simulate src/dynamic_model_simulate.cpp)
 target_link_libraries(dynamic_model_simulate ${catkin_LIBRARIES})
+
+add_executable(boat_tf2_broadcaster src/boat_tf2_broadcaster.cpp)
 target_link_libraries(boat_tf2_broadcaster ${catkin_LIBRARIES})
+
+add_executable(velocity_obstacle src/velocity_obstacle.cpp)
+target_link_libraries(velocity_obstacle 
+	${catkin_LIBRARIES}
+	${usv_perception_LIBRARIES}
+	CGAL::CGAL
+)
+add_dependencies(velocity_obstacle ${catkin_EXPORTED_TARGETS})
+
+add_executable(cgal_tutorial src/cgal_tutorial.cpp)
+target_link_libraries(cgal_tutorial
+	${catkin_LIBRARIES}
+	CGAL::CGAL
+)
 target_link_libraries(tracking_control_asmc ${catkin_LIBRARIES})
