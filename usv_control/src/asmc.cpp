@@ -130,7 +130,6 @@ class AdaptiveSlidingModeControl{
             psi_d_last = 0;
             testing = 0;
             arduino = 0;
-
         }
 
         void desiredSpeedCallback(const Float64::ConstPtr& _ud){
