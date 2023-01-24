@@ -7,6 +7,16 @@ from usv_perception.srv import color_id
 from cv_bridge import CvBridge, CvBridgeError
 
 bridge = CvBridge()
+red=['red' for i in range(2)]
+orange=['orange' for i in range(2)]
+yellow=['yellow' for i in range(3)]
+green=['green' for i in range(11)]
+blue=['blue' for i in range(8)]
+pink=['-' for i in range(8)]
+colors = red + orange + yellow + green + blue + pink + red
+
+
+
 
 def callback_color(img):
     global bridge
@@ -19,36 +29,25 @@ def callback_color(img):
     image = bridge.imgmsg_to_cv2(image, "bgr8")
 
     image = image[y:y+h,x:x+w]
-
+    
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
 
     # split each channel from hsv tensor
     (h, s, v) = cv2.split(image)
 
+
     ret = ""
-    if np.median(s) < 50:
+    
+    
+    hist = cv2.calcHist([hsv], [0], None, [36], [0, 180])
+    
 
-        predicted_color = "white"
+    hist_list = [hist[i][0] for i in range(len(hist))]
 
-    else:
-        red=['red' for i in range(2)]
-        orange=['orange' for i in range(2)]
-        yellow=['yellow' for i in range(3)]
-        green=['green' for i in range(11)]
-        blue=['blue' for i in range(8)]
-        pink=['-' for i in range(8)]
+    max_index = hist_list.index(max(hist_list))
 
-        hist = cv2.calcHist([hsv], [0], None, [36], [0, 180])
-        colors = red + orange + yellow + green + blue + pink + red
-
-        hist_list = [hist[i][0] for i in range(len(hist))]
-        hist_dic = dict(zip(hist_list, colors))
-
-        # uncomment to see the frequencies of each color region
-        # print(hist_dic)
-
-        # predicted_color contains the region of maximum frequency
-        ret = str(hist_dic[max(hist_dic)])
+    ret = colors[max_index]
 
     return ret
 

@@ -5,6 +5,7 @@
 ----------------------------------------------------------
     @file: obstacle_channel.py
     @date: Mon Jun 8, 2020
+    @modified: Sat May 15, 2021
     @author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @brief: Motion planning. Script to navigate a USV through
@@ -36,7 +37,7 @@ class ObsChan:
         self.state = -1
         self.distance = 0
         self.distance_to_last = 0
-        self.offset = .55 #camera to ins offset
+        self.offset = .25 #camera to ins offset
         self.ned_channel_origin_x = 0
         self.ned_channel_origin_y = 0
         self.ned_alpha = 0
@@ -49,7 +50,8 @@ class ObsChan:
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
-        rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        #rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        rospy.Subscriber("/usv_perception/lidar/objects_detected", obj_detected_list, self.objs_callback)
 
         # ROS Publishers
         self.path_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
@@ -64,7 +66,7 @@ class ObsChan:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'bouy':
+            if str(data.objects[i].clase) == 'buoy' and data.objects[i].X > 0.0:
                 self.objects_list.append({'X' : data.objects[i].X + self.offset, 
                                       'Y' : -data.objects[i].Y, #Negate sensor input in Y
                                       'color' : data.objects[i].color, 
@@ -335,6 +337,7 @@ def main():
     rate = rospy.Rate(20)
     obsChan = ObsChan()
     last_detection = []
+    time.sleep(10)
     while not rospy.is_shutdown() and obsChan.activated:
         if obsChan.objects_list != last_detection:
             if obsChan.state == -1:
@@ -361,7 +364,7 @@ def main():
         elif obsChan.state == 1:
             obsChan.test.publish(obsChan.state)
             time.sleep(1)
-            obsChan.status_pub.publish(1)
+            obsChan.status_pub.publish(3)
 
         rate.sleep()
     rospy.spin()

@@ -5,7 +5,7 @@
 ----------------------------------------------------------
     @file: auto_nav_position.py
     @date: Thu Dec 26, 2019
-    @modified: Sat Mar 21, 2020
+    @modified: Sat May 15, 2021
     @author: Alejandro Gonzalez Garcia
     @e-mail: alexglzg97@gmail.com
     @co-author: Rodolfo Cuan Urquizo
@@ -42,14 +42,15 @@ class AutoNav:
         self.state = -1
         self.distance = 0
         self.InitTime = rospy.Time.now().secs
-        self.offset = .55 #camera to ins offset
+        self.offset = .25 #camera to ins offset
         self.target_x = 0
         self.target_y = 0
         self.ned_alpha = 0
 
         # ROS Subscribers
         rospy.Subscriber("/vectornav/ins_2d/NED_pose", Pose2D, self.ins_pose_callback)
-        rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        #rospy.Subscriber("/usv_perception/yolo_zed/objects_detected", obj_detected_list, self.objs_callback)
+        rospy.Subscriber("/usv_perception/lidar/objects_detected", obj_detected_list, self.objs_callback)
 
         # ROS Publishers
         self.path_pub = rospy.Publisher("/mission/waypoints", Float32MultiArray, queue_size=10)
@@ -64,7 +65,7 @@ class AutoNav:
     def objs_callback(self,data):
         self.objects_list = []
         for i in range(data.len):
-            if str(data.objects[i].clase) == 'bouy':
+            if str(data.objects[i].clase) == 'buoy' and (data.objects[i].X > 0.5) and (data.objects[i].X < 10):
                 self.objects_list.append({'X' : data.objects[i].X + self.offset, 
                                       'Y' : data.objects[i].Y, 
                                       'color' : data.objects[i].color, 
@@ -250,6 +251,7 @@ def main():
     autoNav = AutoNav()
     autoNav.distance = 4
     last_detection = []
+    time.sleep(10)
     while not rospy.is_shutdown() and autoNav.activated:
         if autoNav.objects_list != last_detection:
             if autoNav.state == -1:
@@ -269,7 +271,7 @@ def main():
                     initTime = rospy.Time.now().secs
                     while ((not rospy.is_shutdown()) and 
                         (len(autoNav.objects_list) < 2 or autoNav.distance < 2)):
-                        if rospy.Time.now().secs - initTime > 2:
+                        if rospy.Time.now().secs - initTime > 1:
                             autoNav.state = 1
                             rate.sleep()
                             break
@@ -277,6 +279,7 @@ def main():
 
         if autoNav.state == 1:
             autoNav.test.publish(autoNav.state)
+            print(autoNav.objects_list)
             if len(autoNav.objects_list) >= 2:
                 autoNav.state = 2
             else:
