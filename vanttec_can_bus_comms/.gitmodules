@@ -1,0 +1,3 @@
+[submodule "libs/vanttec_CANLib"]
+	path = libs/vanttec_CANLib
+	url = https://github.com/vanttec/vanttec_CANLib.git

@@ -1,0 +1,5 @@
+<launch>
+
+  <node type="record" pkg="rosbag" name="recorder" args="record /zed/zed_node/left_raw/camera_info zed/zed_node/left_raw/image_raw_color /velodyne_points -o /media/nvidia/SD/" />
+
+</launch>

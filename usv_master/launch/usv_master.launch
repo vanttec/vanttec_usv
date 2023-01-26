@@ -6,7 +6,7 @@
     
     <!-- <include file="$(find arduino-br)/launch/arduino_br.launch" /> -->
         
-    <!-- <node pkg="vectornav-ros" type="ins_2d" name="ins_2d" /> -->
+    <!-- <node pkg="sbg-ros-driver" type="sbg_ellipseD" name="sbg_ellipseD" /> -->
     
     <!-- <node pkg="usv_comms" type="boat_transceiver.py" name="boat_transceiver">
     <param name = "xbee_port" value = "/dev/ttyUSB2" />
