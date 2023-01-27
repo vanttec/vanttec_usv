@@ -7,9 +7,6 @@
 [submodule "zed_ros_wrapper"]
 	path = zed_ros_wrapper
 	url = https://github.com/vanttec/zed_ros_wrapper
-[submodule "usv_avoidance/include/acados"]
-	path = usv_avoidance/include/acados
-	url = https://github.com/acados/acados.git
 [submodule "teleop_twist_keyboard"]
 	path = teleop_twist_keyboard
 	url = https://github.com/ros-teleop/teleop_twist_keyboard.git
