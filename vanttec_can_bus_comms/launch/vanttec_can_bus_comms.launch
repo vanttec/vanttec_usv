@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="vanttec_can_bus_comms" type="vanttec_can_bus_comms_individual_thrusters" name="vanttec_can_bus_comms_individual_thrusters" />
+  <node pkg="vanttec_can_bus_comms" type="vanttec_can_bus_comms_node" name="vanttec_can_bus_comms_node" />
+
+</launch>
+
