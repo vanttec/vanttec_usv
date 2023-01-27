@@ -8,8 +8,8 @@ sudo vim /etc/udev/rules.d/99-usb-serial.rules
 sudo nano /etc/udev/rules.d/99-usb-serial.rules
 
 3. Write the following in the file:
-ACTION=="add", SUBSYSTEM=="usb", ATTRS{idProduct}=="6015", ATTRS{idVendor}=="0403", ATTRS{serial}=="D309S1FR", SYMLINK="xbee_boat", NAME="xbee_boat"
-ACTION=="add", SUBSYSTEM=="usb", ATTRS{idProduct}=="6015", ATTRS{idVendor}=="0403", ATTRS{serial}=="D309R0S4", SYMLINK="xbee_station", NAME="xbee_station"
+SUBSYSTEM=="usb", ATTRS{idProduct}=="6015", ATTRS{idVendor}=="0403", ATTRS{serial}=="D309S1FR", SYMLINK="xbee_boat", NAME="xbee_boat"
+SUBSYSTEM=="usb", ATTRS{idProduct}=="6015", ATTRS{idVendor}=="0403", ATTRS{serial}=="D309R0S4", SYMLINK="xbee_station", NAME="xbee_station"
 
 4. Unplug the xbee device(s), and run: 
 sudo /etc/init.d/udev restart
