@@ -13,6 +13,6 @@
 [submodule "sbg_ros_driver"]
 	path = sbg_ros_driver
 	url = https://github.com/vanttec/sbg_ros_driver
-[submodule "vectornav_ros"]
-	path = vectornav_ros
-	url = https://github.com/vanttec/vectornav_ros
+[submodule "velodyne"]
+	path = velodyne
+	url = https://github.com/ros-drivers/velodyne.git
