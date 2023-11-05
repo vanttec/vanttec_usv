@@ -1,7 +1,0 @@
-sensor_msgs/Image imagen
-int64 x
-int64 y
-int64 h
-int64 w
----
-string color
