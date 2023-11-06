@@ -1,0 +1,28 @@
+[0.030s] Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master -- -j4 -l4
+[0.096s] [35m[1mConsolidate compiler generated dependencies of target usv_master[0m
+[0.129s] [ 50%] [32mBuilding CXX object CMakeFiles/usv_master.dir/src/usv_master.cpp.o[0m
+[17.566s] [100%] [32m[1mLinking CXX executable usv_master[0m
+[18.588s] [100%] Built target usv_master
+[18.603s] Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master -- -j4 -l4
+[18.632s] Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master
+[18.641s] -- Install configuration: ""
+[18.642s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch
+[18.642s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch/usv_master_launch.py
+[18.642s] -- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master
+[18.653s] -- Set runtime path of "/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master" to ""
+[18.653s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/package_run_dependencies/usv_master
+[18.654s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/parent_prefix_path/usv_master
+[18.654s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.sh
+[18.654s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.dsv
+[18.654s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.sh
+[18.655s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.dsv
+[18.655s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.bash
+[18.655s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.sh
+[18.655s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.zsh
+[18.656s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.dsv
+[18.656s] -- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.dsv
+[18.656s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/packages/usv_master
+[18.657s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig.cmake
+[18.663s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig-version.cmake
+[18.663s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.xml
+[18.663s] Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master

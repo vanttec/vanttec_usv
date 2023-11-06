@@ -1,0 +1,4 @@
+source;share/usv_master/local_setup.bash
+source;share/usv_master/local_setup.dsv
+source;share/usv_master/local_setup.sh
+source;share/usv_master/local_setup.zsh

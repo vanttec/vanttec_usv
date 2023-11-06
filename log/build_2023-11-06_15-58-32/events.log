@@ -1,0 +1,204 @@
+[0.000000] (-) TimerEvent: {}
+[0.000841] (usv_master) JobQueued: {'identifier': 'usv_master', 'dependencies': OrderedDict()}
+[0.000925] (usv_missions) JobQueued: {'identifier': 'usv_missions', 'dependencies': OrderedDict()}
+[0.001469] (usv_master) JobStarted: {'identifier': 'usv_master'}
+[0.060617] (usv_missions) JobStarted: {'identifier': 'usv_missions'}
+[0.073635] (usv_master) JobProgress: {'identifier': 'usv_master', 'progress': 'cmake'}
+[0.082928] (usv_master) JobProgress: {'identifier': 'usv_master', 'progress': 'build'}
+[0.084070] (usv_master) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', '--', '-j4', '-l4'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.089535] (usv_missions) JobProgress: {'identifier': 'usv_missions', 'progress': 'cmake'}
+[0.099346] (-) TimerEvent: {}
+[0.101990] (usv_missions) JobProgress: {'identifier': 'usv_missions', 'progress': 'build'}
+[0.102660] (usv_missions) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions', '--', '-j4', '-l4'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.199324] (usv_missions) StdoutLine: {'line': b'\x1b[35m\x1b[1mConsolidate compiler generated dependencies of target usv_missions\x1b[0m\n'}
+[0.199688] (-) TimerEvent: {}
+[0.202130] (usv_master) StdoutLine: {'line': b'\x1b[35m\x1b[1mConsolidate compiler generated dependencies of target usv_master\x1b[0m\n'}
+[0.241690] (usv_master) StdoutLine: {'line': b'[100%] Built target usv_master\n'}
+[0.250267] (usv_missions) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o\x1b[0m\n'}
+[0.274358] (usv_master) CommandEnded: {'returncode': 0}
+[0.300053] (-) TimerEvent: {}
+[0.333937] (usv_master) JobProgress: {'identifier': 'usv_master', 'progress': 'install'}
+[0.348326] (usv_master) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.363506] (usv_master) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[0.364050] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch\n'}
+[0.364739] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch/usv_master_launch.py\n'}
+[0.376190] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master\n'}
+[0.390591] (usv_master) StdoutLine: {'line': b'-- Set runtime path of "/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master" to ""\n'}
+[0.391041] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/package_run_dependencies/usv_master\n'}
+[0.400180] (-) TimerEvent: {}
+[0.435495] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/parent_prefix_path/usv_master\n'}
+[0.436006] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.sh\n'}
+[0.441050] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.dsv\n'}
+[0.455136] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.sh\n'}
+[0.455722] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.dsv\n'}
+[0.456202] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.bash\n'}
+[0.456686] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.sh\n'}
+[0.457364] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.zsh\n'}
+[0.457850] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.dsv\n'}
+[0.458299] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.dsv\n'}
+[0.458863] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/packages/usv_master\n'}
+[0.459401] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig.cmake\n'}
+[0.459870] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig-version.cmake\n'}
+[0.460400] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.xml\n'}
+[0.470464] (usv_master) CommandEnded: {'returncode': 0}
+[0.500295] (-) TimerEvent: {}
+[0.545576] (usv_master) JobEnded: {'identifier': 'usv_master', 'rc': 0}
+[0.600430] (-) TimerEvent: {}
+[0.700853] (-) TimerEvent: {}
+[0.801549] (-) TimerEvent: {}
+[0.902308] (-) TimerEvent: {}
+[1.002912] (-) TimerEvent: {}
+[1.103510] (-) TimerEvent: {}
+[1.204444] (-) TimerEvent: {}
+[1.305242] (-) TimerEvent: {}
+[1.405698] (-) TimerEvent: {}
+[1.506269] (-) TimerEvent: {}
+[1.606699] (-) TimerEvent: {}
+[1.707222] (-) TimerEvent: {}
+[1.807726] (-) TimerEvent: {}
+[1.908334] (-) TimerEvent: {}
+[2.008802] (-) TimerEvent: {}
+[2.109274] (-) TimerEvent: {}
+[2.209721] (-) TimerEvent: {}
+[2.310315] (-) TimerEvent: {}
+[2.410888] (-) TimerEvent: {}
+[2.511384] (-) TimerEvent: {}
+[2.611821] (-) TimerEvent: {}
+[2.712260] (-) TimerEvent: {}
+[2.812710] (-) TimerEvent: {}
+[2.913169] (-) TimerEvent: {}
+[3.013649] (-) TimerEvent: {}
+[3.114496] (-) TimerEvent: {}
+[3.215234] (-) TimerEvent: {}
+[3.315699] (-) TimerEvent: {}
+[3.416542] (-) TimerEvent: {}
+[3.516983] (-) TimerEvent: {}
+[3.617421] (-) TimerEvent: {}
+[3.717948] (-) TimerEvent: {}
+[3.818546] (-) TimerEvent: {}
+[3.919033] (-) TimerEvent: {}
+[4.019870] (-) TimerEvent: {}
+[4.120457] (-) TimerEvent: {}
+[4.221568] (-) TimerEvent: {}
+[4.322056] (-) TimerEvent: {}
+[4.422546] (-) TimerEvent: {}
+[4.523010] (-) TimerEvent: {}
+[4.623467] (-) TimerEvent: {}
+[4.723923] (-) TimerEvent: {}
+[4.824373] (-) TimerEvent: {}
+[4.924813] (-) TimerEvent: {}
+[5.025479] (-) TimerEvent: {}
+[5.126273] (-) TimerEvent: {}
+[5.226997] (-) TimerEvent: {}
+[5.328231] (-) TimerEvent: {}
+[5.428752] (-) TimerEvent: {}
+[5.529216] (-) TimerEvent: {}
+[5.629705] (-) TimerEvent: {}
+[5.730195] (-) TimerEvent: {}
+[5.830666] (-) TimerEvent: {}
+[5.931154] (-) TimerEvent: {}
+[6.031628] (-) TimerEvent: {}
+[6.071002] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:42:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[KFloat32\x1b[m\x1b[K\xe2\x80\x99 is not a member of \xe2\x80\x98\x1b[01m\x1b[Kstd_msgs::msg\x1b[m\x1b[K\xe2\x80\x99\n'}
+[6.071430] (usv_missions) StderrLine: {'line': b'   39 |         rclcpp::Publisher<std_msgs::msg::\x1b[01;31m\x1b[KFloat32\x1b[m\x1b[K>::SharedPtr vel_setpoint_pub_;\n'}
+[6.071590] (usv_missions) StderrLine: {'line': b'      |                                          \x1b[01;31m\x1b[K^~~~~~~\x1b[m\x1b[K\n'}
+[6.071717] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:49:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Ktemplate argument 1 is invalid\n'}
+[6.071842] (usv_missions) StderrLine: {'line': b'   39 |         rclcpp::Publisher<std_msgs::msg::Float32\x1b[01;31m\x1b[K>\x1b[m\x1b[K::SharedPtr vel_setpoint_pub_;\n'}
+[6.071965] (usv_missions) StderrLine: {'line': b'      |                                                 \x1b[01;31m\x1b[K^\x1b[m\x1b[K\n'}
+[6.072086] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:52:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kexpected \xe2\x80\x98\x1b[01m\x1b[K;\x1b[m\x1b[K\xe2\x80\x99 at end of member declaration\n'}
+[6.072210] (usv_missions) StderrLine: {'line': b'   39 |         rclcpp::Publisher<std_msgs::msg::Float32>::\x1b[01;31m\x1b[KSharedPtr\x1b[m\x1b[K vel_setpoint_pub_;\n'}
+[6.072330] (usv_missions) StderrLine: {'line': b'      |                                                    \x1b[01;31m\x1b[K^~~~~~~~~\x1b[m\x1b[K\n'}
+[6.072451] (usv_missions) StderrLine: {'line': b'      |                                                             \x1b[32m\x1b[K;\x1b[m\x1b[K\n'}
+[6.077494] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:62:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kvel_setpoint_pub_\x1b[m\x1b[K\xe2\x80\x99 does not name a type\n'}
+[6.077834] (usv_missions) StderrLine: {'line': b'   39 |         rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr \x1b[01;31m\x1b[Kvel_setpoint_pub_\x1b[m\x1b[K;\n'}
+[6.078067] (usv_missions) StderrLine: {'line': b'      |                                                              \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[6.083625] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:\x1b[m\x1b[K In constructor \xe2\x80\x98\x1b[01m\x1b[KUSVMissions::USVMissions()\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[6.084023] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:18:55:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kfound \xe2\x80\x98\x1b[01m\x1b[K:\x1b[m\x1b[K\xe2\x80\x99 in nested-name-specifier, expected \xe2\x80\x98\x1b[01m\x1b[K::\x1b[m\x1b[K\xe2\x80\x99\n'}
+[6.084240] (usv_missions) StderrLine: {'line': b'   18 |                 "/usv_master/current_mission", 10, std\x1b[01;31m\x1b[K:\x1b[m\x1b[Kbind(&USVMissions::curr_mission_callback, this, _1)\n'}
+[6.084440] (usv_missions) StderrLine: {'line': b'      |                                                       \x1b[01;31m\x1b[K^\x1b[m\x1b[K\n'}
+[6.084636] (usv_missions) StderrLine: {'line': b'      |                                                       \x1b[32m\x1b[K::\x1b[m\x1b[K\n'}
+[6.111386] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:13:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kvel_setpoint_pub_\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[6.111768] (usv_missions) StderrLine: {'line': b'   21 |             \x1b[01;31m\x1b[Kvel_setpoint_pub_\x1b[m\x1b[K = this->create_publisher<std_msgs::msg::Float32>("/usv_missions/velodine_setpoint", 10);\n'}
+[6.111934] (usv_missions) StderrLine: {'line': b'      |             \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[6.112273] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:71:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[KFloat32\x1b[m\x1b[K\xe2\x80\x99 is not a member of \xe2\x80\x98\x1b[01m\x1b[Kstd_msgs::msg\x1b[m\x1b[K\xe2\x80\x99\n'}
+[6.112699] (usv_missions) StderrLine: {'line': b'   21 |             vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::\x1b[01;31m\x1b[KFloat32\x1b[m\x1b[K>("/usv_missions/velodine_setpoint", 10);\n'}
+[6.112918] (usv_missions) StderrLine: {'line': b'      |                                                                       \x1b[01;31m\x1b[K^~~~~~~\x1b[m\x1b[K\n'}
+[6.113115] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:79:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Kno matching function for call to \xe2\x80\x98\x1b[01m\x1b[KUSVMissions::create_publisher<<expression error> >(const char [32], int)\x1b[m\x1b[K\xe2\x80\x99\n'}
+[6.113314] (usv_missions) StderrLine: {'line': b'   21 |     vel_setpoint_pub_ = \x1b[01;31m\x1b[Kthis->create_publisher<std_msgs::msg::Float32>("/usv_missions/velodine_setpoint", 10)\x1b[m\x1b[K;\n'}
+[6.113534] (usv_missions) StderrLine: {'line': b'      |                         \x1b[01;31m\x1b[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[6.113730] (usv_missions) StderrLine: {'line': b'\n'}
+[6.114060] (usv_missions) StderrLine: {'line': b'In file included from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors/single_threaded_executor.hpp:28\x1b[m\x1b[K,\n'}
+[6.114272] (usv_missions) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:22\x1b[m\x1b[K,\n'}
+[6.114465] (usv_missions) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155\x1b[m\x1b[K,\n'}
+[6.114656] (usv_missions) StderrLine: {'line': b'                 from \x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:7\x1b[m\x1b[K:\n'}
+[6.114864] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/node.hpp:195:3:\x1b[m\x1b[K \x1b[01;36m\x1b[Knote: \x1b[m\x1b[Kcandidate: \xe2\x80\x98\x1b[01m\x1b[Ktemplate<class MessageT, class AllocatorT, class PublisherT> std::shared_ptr<PublisherT> rclcpp::Node::create_publisher(const string&, const rclcpp::QoS&, const rclcpp::PublisherOptionsWithAllocator<AllocatorT>&)\x1b[m\x1b[K\xe2\x80\x99\n'}
+[6.115086] (usv_missions) StderrLine: {'line': b'  195 |   \x1b[01;36m\x1b[Kcreate_publisher\x1b[m\x1b[K(\n'}
+[6.115274] (usv_missions) StderrLine: {'line': b'      |   \x1b[01;36m\x1b[K^~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[6.115462] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/opt/ros/humble/include/rclcpp/rclcpp/node.hpp:195:3:\x1b[m\x1b[K \x1b[01;36m\x1b[Knote: \x1b[m\x1b[K  template argument deduction/substitution failed:\n'}
+[6.115649] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:79:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[Ktemplate argument 1 is invalid\n'}
+[6.115836] (usv_missions) StderrLine: {'line': b'   21 |     vel_setpoint_pub_ = \x1b[01;31m\x1b[Kthis->create_publisher<std_msgs::msg::Float32>("/usv_missions/velodine_setpoint", 10)\x1b[m\x1b[K;\n'}
+[6.116024] (usv_missions) StderrLine: {'line': b'      |                         \x1b[01;31m\x1b[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[6.116215] (usv_missions) StderrLine: {'line': b'\n'}
+[6.120115] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:25:13:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kmission_status_pub_\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope; did you mean \xe2\x80\x98\x1b[01m\x1b[Kmisison_status_pub_\x1b[m\x1b[K\xe2\x80\x99?\n'}
+[6.120468] (usv_missions) StderrLine: {'line': b'   25 |             \x1b[01;31m\x1b[Kmission_status_pub_\x1b[m\x1b[K = this->create_publisher<std_msgs::msg::Int8>("/usv_missions/mission_status", 10);\n'}
+[6.120684] (usv_missions) StderrLine: {'line': b'      |             \x1b[01;31m\x1b[K^~~~~~~~~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[6.120884] (usv_missions) StderrLine: {'line': b'      |             \x1b[32m\x1b[Kmisison_status_pub_\x1b[m\x1b[K\n'}
+[6.121187] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:28:31:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[KUSVMaster\x1b[m\x1b[K\xe2\x80\x99 has not been declared\n'}
+[6.121419] (usv_missions) StderrLine: {'line': b'   28 |             500ms, std::bind(&\x1b[01;31m\x1b[KUSVMaster\x1b[m\x1b[K::timer_callback, this));\n'}
+[6.121617] (usv_missions) StderrLine: {'line': b'      |                               \x1b[01;31m\x1b[K^~~~~~~~~\x1b[m\x1b[K\n'}
+[6.129742] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:\x1b[m\x1b[K In member function \xe2\x80\x98\x1b[01m\x1b[Kvoid USVMissions::timer_callback()\x1b[m\x1b[K\xe2\x80\x99:\n'}
+[6.130114] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:47:28:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kmission\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[6.130332] (usv_missions) StderrLine: {'line': b'   47 |             message.data = \x1b[01;31m\x1b[Kmission\x1b[m\x1b[K;\n'}
+[6.130537] (usv_missions) StderrLine: {'line': b'      |                            \x1b[01;31m\x1b[K^~~~~~~\x1b[m\x1b[K\n'}
+[6.131722] (-) TimerEvent: {}
+[6.139996] (usv_missions) StderrLine: {'line': b'\x1b[01m\x1b[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:49:13:\x1b[m\x1b[K \x1b[01;31m\x1b[Kerror: \x1b[m\x1b[K\xe2\x80\x98\x1b[01m\x1b[Kmission_pub_\x1b[m\x1b[K\xe2\x80\x99 was not declared in this scope\n'}
+[6.140356] (usv_missions) StderrLine: {'line': b'   49 |             \x1b[01;31m\x1b[Kmission_pub_\x1b[m\x1b[K->publish(message);\n'}
+[6.140567] (usv_missions) StderrLine: {'line': b'      |             \x1b[01;31m\x1b[K^~~~~~~~~~~~\x1b[m\x1b[K\n'}
+[6.231868] (-) TimerEvent: {}
+[6.332325] (-) TimerEvent: {}
+[6.432794] (-) TimerEvent: {}
+[6.533196] (-) TimerEvent: {}
+[6.633640] (-) TimerEvent: {}
+[6.734103] (-) TimerEvent: {}
+[6.834576] (-) TimerEvent: {}
+[6.935033] (-) TimerEvent: {}
+[7.035483] (-) TimerEvent: {}
+[7.136057] (-) TimerEvent: {}
+[7.236508] (-) TimerEvent: {}
+[7.336968] (-) TimerEvent: {}
+[7.437423] (-) TimerEvent: {}
+[7.538006] (-) TimerEvent: {}
+[7.638447] (-) TimerEvent: {}
+[7.738888] (-) TimerEvent: {}
+[7.839344] (-) TimerEvent: {}
+[7.939793] (-) TimerEvent: {}
+[8.040247] (-) TimerEvent: {}
+[8.140694] (-) TimerEvent: {}
+[8.241304] (-) TimerEvent: {}
+[8.342079] (-) TimerEvent: {}
+[8.443015] (-) TimerEvent: {}
+[8.543807] (-) TimerEvent: {}
+[8.644769] (-) TimerEvent: {}
+[8.746874] (-) TimerEvent: {}
+[8.847896] (-) TimerEvent: {}
+[8.948322] (-) TimerEvent: {}
+[9.048794] (-) TimerEvent: {}
+[9.149378] (-) TimerEvent: {}
+[9.249831] (-) TimerEvent: {}
+[9.350240] (-) TimerEvent: {}
+[9.451012] (-) TimerEvent: {}
+[9.551415] (-) TimerEvent: {}
+[9.651861] (-) TimerEvent: {}
+[9.752308] (-) TimerEvent: {}
+[9.852759] (-) TimerEvent: {}
+[9.953191] (-) TimerEvent: {}
+[10.053749] (-) TimerEvent: {}
+[10.154217] (-) TimerEvent: {}
+[10.254681] (-) TimerEvent: {}
+[10.355121] (-) TimerEvent: {}
+[10.424410] (usv_missions) StderrLine: {'line': b'gmake[2]: *** [CMakeFiles/usv_missions.dir/build.make:76: CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o] Error 1\n'}
+[10.424766] (usv_missions) StderrLine: {'line': b'gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/usv_missions.dir/all] Error 2\n'}
+[10.425002] (usv_missions) StderrLine: {'line': b'gmake: *** [Makefile:146: all] Error 2\n'}
+[10.428038] (usv_missions) CommandEnded: {'returncode': 2}
+[10.455257] (-) TimerEvent: {}
+[10.472288] (usv_missions) JobEnded: {'identifier': 'usv_missions', 'rc': 2}
+[10.483195] (-) EventReactorShutdown: {}

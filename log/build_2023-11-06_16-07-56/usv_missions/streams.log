@@ -1,0 +1,10 @@
+[0.031s] Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4
+[0.161s] [ 50%] [32mBuilding CXX object CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o[0m
+[0.650s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:11:10:[m[K [01;31m[Kfatal error: [m[Kgeometry_msgs/msg/Point.hpp: No such file or directory
+[0.651s]    11 | #include [01;31m[K"geometry_msgs/msg/Point.hpp"[m[K
+[0.651s]       |          [01;31m[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[0.652s] compilation terminated.
+[0.656s] gmake[2]: *** [CMakeFiles/usv_missions.dir/build.make:76: CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o] Error 1
+[0.657s] gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/usv_missions.dir/all] Error 2
+[0.657s] gmake: *** [Makefile:146: all] Error 2
+[0.660s] Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4

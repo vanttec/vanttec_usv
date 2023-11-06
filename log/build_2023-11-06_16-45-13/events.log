@@ -1,0 +1,215 @@
+[0.000000] (-) TimerEvent: {}
+[0.000551] (usv_master) JobQueued: {'identifier': 'usv_master', 'dependencies': OrderedDict()}
+[0.001049] (usv_missions) JobQueued: {'identifier': 'usv_missions', 'dependencies': OrderedDict()}
+[0.002142] (usv_master) JobStarted: {'identifier': 'usv_master'}
+[0.016463] (usv_missions) JobStarted: {'identifier': 'usv_missions'}
+[0.029589] (usv_master) JobProgress: {'identifier': 'usv_master', 'progress': 'cmake'}
+[0.033317] (usv_master) JobProgress: {'identifier': 'usv_master', 'progress': 'build'}
+[0.038393] (usv_master) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', '--', '-j4', '-l4'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install:/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.045622] (usv_missions) JobProgress: {'identifier': 'usv_missions', 'progress': 'cmake'}
+[0.045768] (usv_missions) JobProgress: {'identifier': 'usv_missions', 'progress': 'build'}
+[0.046348] (usv_missions) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions', '--', '-j4', '-l4'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install:/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.099340] (-) TimerEvent: {}
+[0.108190] (usv_missions) StdoutLine: {'line': b'\x1b[35m\x1b[1mConsolidate compiler generated dependencies of target usv_missions\x1b[0m\n'}
+[0.122096] (usv_master) StdoutLine: {'line': b'[100%] Built target usv_master\n'}
+[0.142812] (usv_master) CommandEnded: {'returncode': 0}
+[0.146207] (usv_missions) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o\x1b[0m\n'}
+[0.171159] (usv_master) JobProgress: {'identifier': 'usv_master', 'progress': 'install'}
+[0.186472] (usv_master) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install:/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.197708] (usv_master) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[0.198469] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch\n'}
+[0.198720] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch/usv_master_launch.py\n'}
+[0.198944] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master\n'}
+[0.199971] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/package_run_dependencies/usv_master\n'}
+[0.200237] (-) TimerEvent: {}
+[0.200487] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/parent_prefix_path/usv_master\n'}
+[0.200748] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.sh\n'}
+[0.200982] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.dsv\n'}
+[0.201187] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.sh\n'}
+[0.201383] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.dsv\n'}
+[0.201566] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.bash\n'}
+[0.201744] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.sh\n'}
+[0.201922] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.zsh\n'}
+[0.202102] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.dsv\n'}
+[0.202287] (usv_master) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.dsv\n'}
+[0.202681] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/packages/usv_master\n'}
+[0.202918] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig.cmake\n'}
+[0.203110] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig-version.cmake\n'}
+[0.203298] (usv_master) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.xml\n'}
+[0.206292] (usv_master) CommandEnded: {'returncode': 0}
+[0.300695] (-) TimerEvent: {}
+[0.325332] (usv_master) JobEnded: {'identifier': 'usv_master', 'rc': 0}
+[0.400807] (-) TimerEvent: {}
+[0.501237] (-) TimerEvent: {}
+[0.601665] (-) TimerEvent: {}
+[0.702112] (-) TimerEvent: {}
+[0.802553] (-) TimerEvent: {}
+[0.903003] (-) TimerEvent: {}
+[1.003509] (-) TimerEvent: {}
+[1.104048] (-) TimerEvent: {}
+[1.204554] (-) TimerEvent: {}
+[1.305047] (-) TimerEvent: {}
+[1.405644] (-) TimerEvent: {}
+[1.506089] (-) TimerEvent: {}
+[1.606537] (-) TimerEvent: {}
+[1.706998] (-) TimerEvent: {}
+[1.807464] (-) TimerEvent: {}
+[1.907935] (-) TimerEvent: {}
+[2.008413] (-) TimerEvent: {}
+[2.108904] (-) TimerEvent: {}
+[2.209395] (-) TimerEvent: {}
+[2.309837] (-) TimerEvent: {}
+[2.410322] (-) TimerEvent: {}
+[2.511062] (-) TimerEvent: {}
+[2.611544] (-) TimerEvent: {}
+[2.712005] (-) TimerEvent: {}
+[2.812490] (-) TimerEvent: {}
+[2.912952] (-) TimerEvent: {}
+[3.013422] (-) TimerEvent: {}
+[3.113942] (-) TimerEvent: {}
+[3.214427] (-) TimerEvent: {}
+[3.314899] (-) TimerEvent: {}
+[3.415388] (-) TimerEvent: {}
+[3.516052] (-) TimerEvent: {}
+[3.616533] (-) TimerEvent: {}
+[3.717002] (-) TimerEvent: {}
+[3.817628] (-) TimerEvent: {}
+[3.918071] (-) TimerEvent: {}
+[4.018552] (-) TimerEvent: {}
+[4.119012] (-) TimerEvent: {}
+[4.219499] (-) TimerEvent: {}
+[4.320150] (-) TimerEvent: {}
+[4.420748] (-) TimerEvent: {}
+[4.521708] (-) TimerEvent: {}
+[4.622553] (-) TimerEvent: {}
+[4.723168] (-) TimerEvent: {}
+[4.823647] (-) TimerEvent: {}
+[4.924246] (-) TimerEvent: {}
+[5.024728] (-) TimerEvent: {}
+[5.125458] (-) TimerEvent: {}
+[5.225908] (-) TimerEvent: {}
+[5.326409] (-) TimerEvent: {}
+[5.427100] (-) TimerEvent: {}
+[5.527553] (-) TimerEvent: {}
+[5.628010] (-) TimerEvent: {}
+[5.728465] (-) TimerEvent: {}
+[5.828942] (-) TimerEvent: {}
+[5.929396] (-) TimerEvent: {}
+[6.029851] (-) TimerEvent: {}
+[6.130313] (-) TimerEvent: {}
+[6.230810] (-) TimerEvent: {}
+[6.331252] (-) TimerEvent: {}
+[6.431714] (-) TimerEvent: {}
+[6.532170] (-) TimerEvent: {}
+[6.632622] (-) TimerEvent: {}
+[6.733099] (-) TimerEvent: {}
+[6.833568] (-) TimerEvent: {}
+[6.934007] (-) TimerEvent: {}
+[7.034455] (-) TimerEvent: {}
+[7.134916] (-) TimerEvent: {}
+[7.235353] (-) TimerEvent: {}
+[7.336547] (-) TimerEvent: {}
+[7.437309] (-) TimerEvent: {}
+[7.538040] (-) TimerEvent: {}
+[7.638633] (-) TimerEvent: {}
+[7.739173] (-) TimerEvent: {}
+[7.839669] (-) TimerEvent: {}
+[7.940131] (-) TimerEvent: {}
+[8.040569] (-) TimerEvent: {}
+[8.141017] (-) TimerEvent: {}
+[8.241474] (-) TimerEvent: {}
+[8.341902] (-) TimerEvent: {}
+[8.442340] (-) TimerEvent: {}
+[8.542776] (-) TimerEvent: {}
+[8.643221] (-) TimerEvent: {}
+[8.743649] (-) TimerEvent: {}
+[8.844106] (-) TimerEvent: {}
+[8.944565] (-) TimerEvent: {}
+[9.045054] (-) TimerEvent: {}
+[9.145502] (-) TimerEvent: {}
+[9.245979] (-) TimerEvent: {}
+[9.346427] (-) TimerEvent: {}
+[9.446938] (-) TimerEvent: {}
+[9.547973] (-) TimerEvent: {}
+[9.648437] (-) TimerEvent: {}
+[9.748888] (-) TimerEvent: {}
+[9.849322] (-) TimerEvent: {}
+[9.949760] (-) TimerEvent: {}
+[10.050194] (-) TimerEvent: {}
+[10.150625] (-) TimerEvent: {}
+[10.251062] (-) TimerEvent: {}
+[10.351492] (-) TimerEvent: {}
+[10.451946] (-) TimerEvent: {}
+[10.552401] (-) TimerEvent: {}
+[10.652836] (-) TimerEvent: {}
+[10.753276] (-) TimerEvent: {}
+[10.853710] (-) TimerEvent: {}
+[10.954139] (-) TimerEvent: {}
+[11.054576] (-) TimerEvent: {}
+[11.155015] (-) TimerEvent: {}
+[11.255459] (-) TimerEvent: {}
+[11.355906] (-) TimerEvent: {}
+[11.456321] (-) TimerEvent: {}
+[11.556764] (-) TimerEvent: {}
+[11.657208] (-) TimerEvent: {}
+[11.757647] (-) TimerEvent: {}
+[11.858445] (-) TimerEvent: {}
+[11.959518] (-) TimerEvent: {}
+[12.059965] (-) TimerEvent: {}
+[12.160545] (-) TimerEvent: {}
+[12.261003] (-) TimerEvent: {}
+[12.361437] (-) TimerEvent: {}
+[12.461880] (-) TimerEvent: {}
+[12.562324] (-) TimerEvent: {}
+[12.662756] (-) TimerEvent: {}
+[12.763194] (-) TimerEvent: {}
+[12.863724] (-) TimerEvent: {}
+[12.964161] (-) TimerEvent: {}
+[13.064642] (-) TimerEvent: {}
+[13.165072] (-) TimerEvent: {}
+[13.265518] (-) TimerEvent: {}
+[13.366015] (-) TimerEvent: {}
+[13.466596] (-) TimerEvent: {}
+[13.567527] (-) TimerEvent: {}
+[13.668009] (-) TimerEvent: {}
+[13.768481] (-) TimerEvent: {}
+[13.868936] (-) TimerEvent: {}
+[13.969422] (-) TimerEvent: {}
+[14.069890] (-) TimerEvent: {}
+[14.170345] (-) TimerEvent: {}
+[14.270801] (-) TimerEvent: {}
+[14.296434] (usv_missions) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking CXX executable usv_missions\x1b[0m\n'}
+[14.370943] (-) TimerEvent: {}
+[14.471431] (-) TimerEvent: {}
+[14.571964] (-) TimerEvent: {}
+[14.672565] (-) TimerEvent: {}
+[14.773093] (-) TimerEvent: {}
+[14.873566] (-) TimerEvent: {}
+[14.974025] (-) TimerEvent: {}
+[15.063938] (usv_missions) StdoutLine: {'line': b'[100%] Built target usv_missions\n'}
+[15.074173] (-) TimerEvent: {}
+[15.078263] (usv_missions) CommandEnded: {'returncode': 0}
+[15.107885] (usv_missions) JobProgress: {'identifier': 'usv_missions', 'progress': 'install'}
+[15.108553] (usv_missions) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install:/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master:/home/ale/Documents/Vanttec/usv/install/usv_missions:/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[15.118983] (usv_missions) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[15.119466] (usv_missions) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/lib/usv_missions/usv_missions\n'}
+[15.127646] (usv_missions) StdoutLine: {'line': b'-- Set runtime path of "/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/lib/usv_missions/usv_missions" to ""\n'}
+[15.128083] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/ament_index/resource_index/package_run_dependencies/usv_missions\n'}
+[15.128341] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/ament_index/resource_index/parent_prefix_path/usv_missions\n'}
+[15.129106] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/ament_prefix_path.sh\n'}
+[15.129552] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/ament_prefix_path.dsv\n'}
+[15.129758] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/path.sh\n'}
+[15.129963] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/path.dsv\n'}
+[15.130164] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.bash\n'}
+[15.130351] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.sh\n'}
+[15.130531] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.zsh\n'}
+[15.130709] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.dsv\n'}
+[15.130887] (usv_missions) StdoutLine: {'line': b'-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.dsv\n'}
+[15.131073] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/ament_index/resource_index/packages/usv_missions\n'}
+[15.131275] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/cmake/usv_missionsConfig.cmake\n'}
+[15.131465] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/cmake/usv_missionsConfig-version.cmake\n'}
+[15.131951] (usv_missions) StdoutLine: {'line': b'-- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.xml\n'}
+[15.136027] (usv_missions) CommandEnded: {'returncode': 0}
+[15.174272] (-) TimerEvent: {}
+[15.194351] (usv_missions) JobEnded: {'identifier': 'usv_missions', 'rc': 0}
+[15.195709] (-) EventReactorShutdown: {}

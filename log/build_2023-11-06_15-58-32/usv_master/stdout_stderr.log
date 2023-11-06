@@ -1,0 +1,22 @@
+[35m[1mConsolidate compiler generated dependencies of target usv_master[0m
+[100%] Built target usv_master
+-- Install configuration: ""
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch/usv_master_launch.py
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master
+-- Set runtime path of "/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master" to ""
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/package_run_dependencies/usv_master
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/parent_prefix_path/usv_master
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.sh
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.dsv
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.sh
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.dsv
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.bash
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.sh
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.zsh
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.dsv
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.dsv
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/packages/usv_master
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig.cmake
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig-version.cmake
+-- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.xml

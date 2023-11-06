@@ -1,0 +1,142 @@
+[0.000000] (-) TimerEvent: {}
+[0.000935] (usv_master) JobQueued: {'identifier': 'usv_master', 'dependencies': OrderedDict()}
+[0.001058] (usv_missions) JobQueued: {'identifier': 'usv_missions', 'dependencies': OrderedDict()}
+[0.001116] (usv_master) JobStarted: {'identifier': 'usv_master'}
+[0.013754] (usv_missions) JobStarted: {'identifier': 'usv_missions'}
+[0.026364] (usv_master) JobProgress: {'identifier': 'usv_master', 'progress': 'cmake'}
+[0.026892] (usv_master) Command: {'cmd': ['/usr/bin/cmake', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_master', '-DCMAKE_INSTALL_PREFIX=/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.033981] (usv_missions) JobProgress: {'identifier': 'usv_missions', 'progress': 'cmake'}
+[0.034861] (usv_missions) Command: {'cmd': ['/usr/bin/cmake', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions', '-DCMAKE_INSTALL_PREFIX=/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions'], 'cwd': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions', 'env': OrderedDict([('LESSOPEN', '| /usr/bin/lesspipe %s'), ('USER', 'ale'), ('SSH_CLIENT', '127.0.0.1 35518 22'), ('LC_TIME', 'es_MX.UTF-8'), ('XDG_SESSION_TYPE', 'tty'), ('SHLVL', '1'), ('LD_LIBRARY_PATH', '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib'), ('MOTD_SHOWN', 'pam'), ('HOME', '/home/ale'), ('OLDPWD', '/home/ale/Documents/Vanttec/usv/src'), ('SSH_TTY', '/dev/pts/1'), ('ROS_PYTHON_VERSION', '3'), ('LC_MONETARY', 'es_MX.UTF-8'), ('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/run/user/1000/bus'), ('_colcon_cd_root', '/opt/ros/humble/'), ('COLCON_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install'), ('ROS_DISTRO', 'humble'), ('LOGNAME', 'ale'), ('_', '/usr/bin/colcon'), ('ROS_VERSION', '2'), ('XDG_SESSION_CLASS', 'user'), ('TERM', 'xterm-256color'), ('XDG_SESSION_ID', '5'), ('ROS_LOCALHOST_ONLY', '0'), ('PATH', '/home/ale/.console-ninja/.bin:/opt/ros/humble/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin'), ('LC_ADDRESS', 'es_MX.UTF-8'), ('XDG_RUNTIME_DIR', '/run/user/1000'), ('LANG', 'en_US.UTF-8'), ('LC_TELEPHONE', 'es_MX.UTF-8'), ('LS_COLORS', 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:'), ('AMENT_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble'), ('SHELL', '/bin/bash'), ('LC_NAME', 'es_MX.UTF-8'), ('LESSCLOSE', '/usr/bin/lesspipe %s %s'), ('LC_MEASUREMENT', 'es_MX.UTF-8'), ('LC_IDENTIFICATION', 'es_MX.UTF-8'), ('PWD', '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions'), ('LC_ALL', 'en_US.UTF-8'), ('SSH_CONNECTION', '127.0.0.1 35518 127.0.0.1 22'), ('XDG_DATA_DIRS', '/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop'), ('PYTHONPATH', '/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages'), ('LC_NUMERIC', 'es_MX.UTF-8'), ('LC_PAPER', 'es_MX.UTF-8'), ('COLCON', '1'), ('CMAKE_PREFIX_PATH', '/home/ale/Documents/Vanttec/usv/install/usv_master:/opt/ros/humble')]), 'shell': False}
+[0.098856] (-) TimerEvent: {}
+[0.199248] (-) TimerEvent: {}
+[0.299761] (-) TimerEvent: {}
+[0.400630] (-) TimerEvent: {}
+[0.501169] (-) TimerEvent: {}
+[0.601712] (-) TimerEvent: {}
+[0.702376] (-) TimerEvent: {}
+[0.803487] (-) TimerEvent: {}
+[0.880676] (usv_missions) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.3.0\n'}
+[0.884719] (usv_master) StdoutLine: {'line': b'-- The C compiler identification is GNU 11.3.0\n'}
+[0.903691] (-) TimerEvent: {}
+[1.004103] (-) TimerEvent: {}
+[1.037421] (usv_master) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.3.0\n'}
+[1.040019] (usv_missions) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 11.3.0\n'}
+[1.062268] (usv_missions) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[1.062645] (usv_master) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[1.104238] (-) TimerEvent: {}
+[1.204726] (-) TimerEvent: {}
+[1.302274] (usv_missions) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[1.305015] (usv_master) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[1.305329] (-) TimerEvent: {}
+[1.326228] (usv_master) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[1.328647] (usv_missions) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[1.353019] (usv_missions) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[1.353446] (usv_master) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[1.358711] (usv_missions) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[1.361299] (usv_master) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[1.386240] (usv_missions) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[1.386989] (usv_master) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[1.406321] (-) TimerEvent: {}
+[1.508705] (-) TimerEvent: {}
+[1.580975] (usv_master) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[1.600745] (usv_missions) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[1.608842] (-) TimerEvent: {}
+[1.630303] (usv_master) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[1.636120] (usv_master) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[1.637154] (usv_master) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[1.644789] (usv_missions) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[1.645254] (usv_missions) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[1.645606] (usv_missions) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[1.697186] (usv_missions) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.4 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[1.697630] (usv_master) StdoutLine: {'line': b'-- Found ament_cmake: 1.3.4 (/opt/ros/humble/share/ament_cmake/cmake)\n'}
+[1.709624] (-) TimerEvent: {}
+[1.810420] (-) TimerEvent: {}
+[1.910969] (-) TimerEvent: {}
+[2.012133] (-) TimerEvent: {}
+[2.112678] (-) TimerEvent: {}
+[2.176758] (usv_master) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3.10 (found version "3.10.6") found components: Interpreter \n'}
+[2.194460] (usv_missions) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3.10 (found version "3.10.6") found components: Interpreter \n'}
+[2.212807] (-) TimerEvent: {}
+[2.314744] (-) TimerEvent: {}
+[2.418634] (-) TimerEvent: {}
+[2.421264] (usv_missions) StdoutLine: {'line': b'-- Found rclcpp: 16.0.4 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[2.421692] (usv_master) StdoutLine: {'line': b'-- Found rclcpp: 16.0.4 (/opt/ros/humble/share/rclcpp/cmake)\n'}
+[2.518726] (-) TimerEvent: {}
+[2.550934] (usv_missions) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.4 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[2.552270] (usv_master) StdoutLine: {'line': b'-- Found rosidl_generator_c: 3.1.4 (/opt/ros/humble/share/rosidl_generator_c/cmake)\n'}
+[2.563373] (usv_missions) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.4 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[2.565025] (usv_master) StdoutLine: {'line': b'-- Found rosidl_adapter: 3.1.4 (/opt/ros/humble/share/rosidl_adapter/cmake)\n'}
+[2.579076] (usv_missions) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.4 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[2.580621] (usv_master) StdoutLine: {'line': b'-- Found rosidl_generator_cpp: 3.1.4 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)\n'}
+[2.606382] (usv_missions) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[2.608572] (usv_master) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c\n'}
+[2.618856] (-) TimerEvent: {}
+[2.649879] (usv_missions) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[2.654968] (usv_master) StdoutLine: {'line': b'-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp\n'}
+[2.718980] (-) TimerEvent: {}
+[2.814309] (usv_master) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.1 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[2.814774] (usv_missions) StdoutLine: {'line': b'-- Found rmw_implementation_cmake: 6.1.1 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)\n'}
+[2.818003] (usv_master) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.2 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[2.818305] (usv_missions) StdoutLine: {'line': b'-- Found rmw_fastrtps_cpp: 6.2.2 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)\n'}
+[2.819049] (-) TimerEvent: {}
+[2.919424] (-) TimerEvent: {}
+[3.019935] (-) TimerEvent: {}
+[3.116640] (usv_missions) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  \n'}
+[3.116990] (usv_master) StdoutLine: {'line': b'-- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  \n'}
+[3.120033] (-) TimerEvent: {}
+[3.164837] (usv_master) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include  \n'}
+[3.166209] (usv_missions) StdoutLine: {'line': b'-- Found FastRTPS: /opt/ros/humble/include  \n'}
+[3.220165] (-) TimerEvent: {}
+[3.235456] (usv_missions) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[3.235792] (usv_master) StdoutLine: {'line': b"-- Using RMW implementation 'rmw_fastrtps_cpp' as default\n"}
+[3.272105] (usv_master) StdoutLine: {'line': b'-- Looking for pthread.h\n'}
+[3.272365] (usv_missions) StdoutLine: {'line': b'-- Looking for pthread.h\n'}
+[3.320328] (-) TimerEvent: {}
+[3.420838] (-) TimerEvent: {}
+[3.457814] (usv_master) StdoutLine: {'line': b'-- Looking for pthread.h - found\n'}
+[3.458593] (usv_master) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[3.461002] (usv_missions) StdoutLine: {'line': b'-- Looking for pthread.h - found\n'}
+[3.461303] (usv_missions) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n'}
+[3.520978] (-) TimerEvent: {}
+[3.604133] (usv_missions) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[3.606414] (usv_master) StdoutLine: {'line': b'-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n'}
+[3.606827] (usv_missions) StdoutLine: {'line': b'-- Found Threads: TRUE  \n'}
+[3.608726] (usv_master) StdoutLine: {'line': b'-- Found Threads: TRUE  \n'}
+[3.621110] (-) TimerEvent: {}
+[3.721614] (-) TimerEvent: {}
+[3.822379] (-) TimerEvent: {}
+[3.920898] (usv_master) StdoutLine: {'line': b'-- Found rclpy: 3.3.8 (/opt/ros/humble/share/rclpy/cmake)\n'}
+[3.922461] (-) TimerEvent: {}
+[3.930899] (usv_missions) StderrLine: {'line': b'\x1b[31mCMake Error at CMakeLists.txt:19 (install):\n'}
+[3.931264] (usv_missions) StderrLine: {'line': b'  install TARGETS given target "usv_misisons" which does not exist.\n'}
+[3.931436] (usv_missions) StderrLine: {'line': b'\n'}
+[3.931594] (usv_missions) StderrLine: {'line': b'\x1b[0m\n'}
+[3.932611] (usv_missions) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.6 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[3.943404] (usv_master) StdoutLine: {'line': b'-- Found ament_lint_auto: 0.12.6 (/opt/ros/humble/share/ament_lint_auto/cmake)\n'}
+[4.022599] (-) TimerEvent: {}
+[4.071117] (usv_missions) StdoutLine: {'line': b"-- Added test 'cppcheck' to perform static code analysis on C / C++ code\n"}
+[4.072799] (usv_missions) StdoutLine: {'line': b'-- Configured cppcheck include dirs: \n'}
+[4.073142] (usv_missions) StdoutLine: {'line': b'-- Configured cppcheck exclude dirs and/or files: \n'}
+[4.073902] (usv_missions) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[4.075869] (usv_missions) StdoutLine: {'line': b"-- Added test 'uncrustify' to check C / C++ code style\n"}
+[4.076196] (usv_missions) StdoutLine: {'line': b'-- Configured uncrustify additional arguments: \n'}
+[4.077245] (usv_missions) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[4.080188] (usv_missions) StdoutLine: {'line': b'-- Configuring incomplete, errors occurred!\n'}
+[4.080590] (usv_missions) StdoutLine: {'line': b'See also "/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions/CMakeFiles/CMakeOutput.log".\n'}
+[4.090756] (usv_master) StdoutLine: {'line': b"-- Added test 'cppcheck' to perform static code analysis on C / C++ code\n"}
+[4.091170] (usv_master) StdoutLine: {'line': b'-- Configured cppcheck include dirs: \n'}
+[4.091368] (usv_master) StdoutLine: {'line': b'-- Configured cppcheck exclude dirs and/or files: \n'}
+[4.092708] (usv_master) StdoutLine: {'line': b"-- Added test 'flake8' to check Python code syntax and style conventions\n"}
+[4.095532] (usv_master) StdoutLine: {'line': b"-- Added test 'lint_cmake' to check CMake code style\n"}
+[4.096999] (usv_master) StdoutLine: {'line': b"-- Added test 'pep257' to check Python code against some of the docstring style conventions in PEP 257\n"}
+[4.099810] (usv_missions) CommandEnded: {'returncode': 1}
+[4.100436] (usv_master) StdoutLine: {'line': b"-- Added test 'uncrustify' to check C / C++ code style\n"}
+[4.100663] (usv_master) StdoutLine: {'line': b'-- Configured uncrustify additional arguments: \n'}
+[4.101614] (usv_master) StdoutLine: {'line': b"-- Added test 'xmllint' to check XML markup files\n"}
+[4.104547] (usv_master) StdoutLine: {'line': b'-- Configuring done\n'}
+[4.122739] (-) TimerEvent: {}
+[4.127563] (usv_master) StdoutLine: {'line': b'-- Generating done\n'}
+[4.132635] (usv_master) StdoutLine: {'line': b'-- Build files have been written to: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master\n'}
+[4.144266] (usv_missions) JobEnded: {'identifier': 'usv_missions', 'rc': 1}
+[4.146786] (usv_master) JobEnded: {'identifier': 'usv_master', 'rc': 'SIGINT'}
+[4.157722] (-) EventReactorShutdown: {}

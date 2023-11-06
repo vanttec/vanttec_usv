@@ -1,0 +1,2 @@
+Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4
+Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4

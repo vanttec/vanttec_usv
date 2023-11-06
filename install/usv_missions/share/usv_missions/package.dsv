@@ -1,0 +1,8 @@
+source;share/usv_missions/hook/cmake_prefix_path.ps1
+source;share/usv_missions/hook/cmake_prefix_path.dsv
+source;share/usv_missions/hook/cmake_prefix_path.sh
+source;share/usv_missions/local_setup.bash
+source;share/usv_missions/local_setup.dsv
+source;share/usv_missions/local_setup.ps1
+source;share/usv_missions/local_setup.sh
+source;share/usv_missions/local_setup.zsh

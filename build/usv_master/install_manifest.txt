@@ -1,0 +1,17 @@
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master//launch/usv_master_launch.py
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/usv_master/usv_master
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/package_run_dependencies/usv_master
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/parent_prefix_path/usv_master
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.sh
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/ament_prefix_path.dsv
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.sh
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/environment/path.dsv
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.bash
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.sh
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.zsh
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/local_setup.dsv
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.dsv
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/ament_index/resource_index/packages/usv_master
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig.cmake
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/cmake/usv_masterConfig-version.cmake
+/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.xml

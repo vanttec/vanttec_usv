@@ -1,0 +1,51 @@
+[0.024s] Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4
+[0.081s] [35m[1mConsolidate compiler generated dependencies of target usv_missions[0m
+[0.121s] [ 50%] [32mBuilding CXX object CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o[0m
+[4.185s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:42:[m[K [01;31m[Kerror: [m[K‘[01m[KFloat32[m[K’ is not a member of ‘[01m[Kstd_msgs::msg[m[K’
+[4.185s]    39 |         rclcpp::Publisher<std_msgs::msg::[01;31m[KFloat32[m[K>::SharedPtr vel_setpoint_pub_;
+[4.185s]       |                                          [01;31m[K^~~~~~~[m[K
+[4.185s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:49:[m[K [01;31m[Kerror: [m[Ktemplate argument 1 is invalid
+[4.186s]    39 |         rclcpp::Publisher<std_msgs::msg::Float32[01;31m[K>[m[K::SharedPtr vel_setpoint_pub_;
+[4.186s]       |                                                 [01;31m[K^[m[K
+[4.186s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:52:[m[K [01;31m[Kerror: [m[Kexpected ‘[01m[K;[m[K’ at end of member declaration
+[4.186s]    39 |         rclcpp::Publisher<std_msgs::msg::Float32>::[01;31m[KSharedPtr[m[K vel_setpoint_pub_;
+[4.186s]       |                                                    [01;31m[K^~~~~~~~~[m[K
+[4.187s]       |                                                             [32m[K;[m[K
+[4.192s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:39:62:[m[K [01;31m[Kerror: [m[K‘[01m[Kvel_setpoint_pub_[m[K’ does not name a type
+[4.192s]    39 |         rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr [01;31m[Kvel_setpoint_pub_[m[K;
+[4.192s]       |                                                              [01;31m[K^~~~~~~~~~~~~~~~~[m[K
+[4.202s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:[m[K In constructor ‘[01m[KUSVMissions::USVMissions()[m[K’:
+[4.203s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:18:55:[m[K [01;31m[Kerror: [m[Kfound ‘[01m[K:[m[K’ in nested-name-specifier, expected ‘[01m[K::[m[K’
+[4.203s]    18 |                 "/usv_master/current_mission", 10, std[01;31m[K:[m[Kbind(&USVMissions::curr_mission_callback, this, _1)
+[4.203s]       |                                                       [01;31m[K^[m[K
+[4.203s]       |                                                       [32m[K::[m[K
+[4.238s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:13:[m[K [01;31m[Kerror: [m[K‘[01m[Kvel_setpoint_pub_[m[K’ was not declared in this scope
+[4.238s]    21 |             [01;31m[Kvel_setpoint_pub_[m[K = this->create_publisher<std_msgs::msg::Float32>("/usv_missions/velodine_setpoint", 10);
+[4.239s]       |             [01;31m[K^~~~~~~~~~~~~~~~~[m[K
+[4.239s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:71:[m[K [01;31m[Kerror: [m[K‘[01m[KFloat32[m[K’ is not a member of ‘[01m[Kstd_msgs::msg[m[K’
+[4.239s]    21 |             vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::[01;31m[KFloat32[m[K>("/usv_missions/velodine_setpoint", 10);
+[4.239s]       |                                                                       [01;31m[K^~~~~~~[m[K
+[4.240s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:79:[m[K [01;31m[Kerror: [m[Kno matching function for call to ‘[01m[KUSVMissions::create_publisher<<expression error> >(const char [32], int)[m[K’
+[4.240s]    21 |     vel_setpoint_pub_ = [01;31m[Kthis->create_publisher<std_msgs::msg::Float32>("/usv_missions/velodine_setpoint", 10)[m[K;
+[4.240s]       |                         [01;31m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[4.240s] 
+[4.240s] In file included from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executors/single_threaded_executor.hpp:28[m[K,
+[4.241s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/executors.hpp:22[m[K,
+[4.241s]                  from [01m[K/opt/ros/humble/include/rclcpp/rclcpp/rclcpp.hpp:155[m[K,
+[4.241s]                  from [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:7[m[K:
+[4.241s] [01m[K/opt/ros/humble/include/rclcpp/rclcpp/node.hpp:195:3:[m[K [01;36m[Knote: [m[Kcandidate: ‘[01m[Ktemplate<class MessageT, class AllocatorT, class PublisherT> std::shared_ptr<PublisherT> rclcpp::Node::create_publisher(const string&, const rclcpp::QoS&, const rclcpp::PublisherOptionsWithAllocator<AllocatorT>&)[m[K’
+[4.241s]   195 |   [01;36m[Kcreate_publisher[m[K(
+[4.242s]       |   [01;36m[K^~~~~~~~~~~~~~~~[m[K
+[4.242s] [01m[K/opt/ros/humble/include/rclcpp/rclcpp/node.hpp:195:3:[m[K [01;36m[Knote: [m[K  template argument deduction/substitution failed:
+[4.242s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:21:79:[m[K [01;31m[Kerror: [m[Ktemplate argument 1 is invalid
+[4.242s]    21 |     vel_setpoint_pub_ = [01;31m[Kthis->create_publisher<std_msgs::msg::Float32>("/usv_missions/velodine_setpoint", 10)[m[K;
+[4.242s]       |                         [01;31m[K~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[4.242s] 
+[4.248s] [01m[K/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions/src/usv_missions.cpp:25:13:[m[K [01;31m[Kerror: [m[K‘[01m[Kmission_status_pub_[m[K’ was not declared in this scope; did you mean ‘[01m[Kmisison_status_pub_[m[K’?
+[4.248s]    25 |             [01;31m[Kmission_status_pub_[m[K = this->create_publisher<std_msgs::msg::Int8>("/usv_missions/mission_status", 10);
+[4.248s]       |             [01;31m[K^~~~~~~~~~~~~~~~~~~[m[K
+[4.249s]       |             [32m[Kmisison_status_pub_[m[K
+[8.368s] gmake[2]: *** [CMakeFiles/usv_missions.dir/build.make:76: CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o] Error 1
+[8.369s] gmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/usv_missions.dir/all] Error 2
+[8.369s] gmake: *** [Makefile:146: all] Error 2
+[8.374s] Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4

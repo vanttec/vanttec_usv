@@ -1,0 +1,25 @@
+[0.041s] Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4
+[0.116s] [ 50%] [32mBuilding CXX object CMakeFiles/usv_missions.dir/src/usv_missions.cpp.o[0m
+[18.456s] [100%] [32m[1mLinking CXX executable usv_missions[0m
+[19.820s] [100%] Built target usv_missions
+[19.889s] Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4
+[19.984s] Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions
+[20.306s] -- Install configuration: ""
+[20.308s] -- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/lib/usv_missions/usv_missions
+[20.330s] -- Set runtime path of "/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/lib/usv_missions/usv_missions" to ""
+[20.331s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/ament_index/resource_index/package_run_dependencies/usv_missions
+[20.331s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/ament_index/resource_index/parent_prefix_path/usv_missions
+[20.332s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/ament_prefix_path.sh
+[20.334s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/ament_prefix_path.dsv
+[20.334s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/path.sh
+[20.335s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/environment/path.dsv
+[20.335s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.bash
+[20.335s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.sh
+[20.336s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.zsh
+[20.336s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/local_setup.dsv
+[20.336s] -- Installing: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.dsv
+[20.337s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/ament_index/resource_index/packages/usv_missions
+[20.337s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/cmake/usv_missionsConfig.cmake
+[20.337s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/cmake/usv_missionsConfig-version.cmake
+[20.338s] -- Up-to-date: /home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.xml
+[20.373s] Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions

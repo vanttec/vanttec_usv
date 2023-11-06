@@ -12,15 +12,18 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclpy REQUIRED)
 
 find_package(std_msgs REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
 
-# add_executable(usv_master scripts/usv_master.py)
 add_executable(usv_master src/usv_master.cpp)
 # ament_target_dependencies(usv_master rclpy std_msgs)
 ament_target_dependencies(usv_master rclcpp std_msgs)
 target_compile_features(usv_master PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+
+# Install launch files.
+install(DIRECTORY
+  launch
+  DESTINATION share/${PROJECT_NAME}/
+)
 
 install(TARGETS
   # usv_master

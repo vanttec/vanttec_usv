@@ -1,0 +1,4 @@
+Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master -- -j4 -l4
+Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master -- -j4 -l4
+Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master
+Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master

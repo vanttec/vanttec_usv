@@ -1,0 +1,4 @@
+[0.033s] Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master -- -j4 -l4
+[0.096s] [ 50%] [32mBuilding CXX object CMakeFiles/usv_master.dir/src/usv_master.cpp.o[0m
+[22.538s] [100%] [32m[1mLinking CXX executable usv_master[0m
+[23.587s] [100%] Built target usv_master

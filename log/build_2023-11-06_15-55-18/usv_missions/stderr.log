@@ -1,0 +1,4 @@
+[31mCMake Error at CMakeLists.txt:19 (install):
+  install TARGETS given target "usv_misisons" which does not exist.
+
+[0m

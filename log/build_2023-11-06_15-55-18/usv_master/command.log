@@ -1,0 +1,1 @@
+Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake /home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_master -DCMAKE_INSTALL_PREFIX=/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master

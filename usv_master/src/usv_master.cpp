@@ -24,8 +24,8 @@ class USVMaster : public rclcpp::Node {
       "/usv_comms/xbee_command", 10, std::bind(&USVMaster::xbee_callback, this, _1)
       );
 
-      mission_status_sub_ = this->create_subscription<std_msgs::msg::String>(
-      "/usv_misisons/mission_status", 10, std::bind(&USVMaster::mission_callback, this, _1)
+      mission_status_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+      "/usv_missions/mission_status", 10, std::bind(&USVMaster::mission_callback, this, _1)
       );
 
       timer_ = this->create_wall_timer(
@@ -35,22 +35,26 @@ class USVMaster : public rclcpp::Node {
   private:
 
 
-  int mission;
+  int mission = 1;
+  int mission_status = -1;
 
     void timer_callback() {
       auto message = std_msgs::msg::Int8();
-      message.data = 0;
+      // message.data = 0;
       // message.data = "Hello, world! " + std::to_string(count_++);
-      // RCLCPP_INFO(this->get_logger(), "Publishing: '%d'", message.data);
+      message.data = mission;
+      // RCLCPP_INFO(this->get_logger(), "Publishing mission: '%d'", message.data);
       mission_pub_->publish(message);
     }
 
     void xbee_callback(const std_msgs::msg::String & msg)  {
         std::string a = msg.data.c_str();
       
-      if (msg.data[0] == 'm') {
-        mission = a[2] - '0';
+      if (msg.data[0] == 'm' && mission_status == 2) {
+        mission = a[1] - '0';
         RCLCPP_INFO(this->get_logger(), "Mission: '%d'", mission);
+        
+        // mission_pub_->publish(mission);
 
       } else {
         RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg.data.c_str());
@@ -58,19 +62,22 @@ class USVMaster : public rclcpp::Node {
 
     }
 
-    void mission_callback(const std_msgs::msg::String & msg)  {
-      RCLCPP_INFO(this->get_logger(), "I heard: '%s'", msg.data.c_str());
+    void mission_callback(const std_msgs::msg::Int8 & msg)  {
+
+      int input = msg.data;
+      mission_status = input;
+
+      RCLCPP_INFO(this->get_logger(), "Mission status: '%d'", input);
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_pub_;
-    rclcpp::Subscription<std_msgs::msg::String>::SharedPtr mission_status_sub_;
+    rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_status_sub_;
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr xbee_sub_;
 };
 
 int main(int argc, char * argv[])
 {
-  std::cout << "aaa";
   rclcpp::init(argc, argv);
   rclcpp::spin(std::make_shared<USVMaster>());
   rclcpp::shutdown();

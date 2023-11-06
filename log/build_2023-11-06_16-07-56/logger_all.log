@@ -1,0 +1,184 @@
+[0.498s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[0.498s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=4, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x7fea7acb19c0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7fea7b4ba9b0>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7fea7b4ba9b0>>)
+[0.551s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.551s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.551s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.552s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.552s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.552s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.552s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv'
+[0.552s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.552s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.552s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.553s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.553s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.553s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.553s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.553s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.553s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.572s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.572s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.572s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.572s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.572s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.572s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.573s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.573s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.573s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['ignore', 'ignore_ament_install']
+[0.573s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'ignore'
+[0.573s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'ignore_ament_install'
+[0.573s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['colcon_pkg']
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'colcon_pkg'
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['colcon_meta']
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'colcon_meta'
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['ros']
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'ros'
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['cmake', 'python']
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'cmake'
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'python'
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extensions ['python_setup_py']
+[0.574s] Level 1:colcon.colcon_core.package_identification:_identify(docs) by extension 'python_setup_py'
+[0.575s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.575s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.575s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.575s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.576s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.576s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.576s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extensions ['ignore', 'ignore_ament_install']
+[0.576s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extension 'ignore'
+[0.576s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extension 'ignore_ament_install'
+[0.577s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extensions ['colcon_pkg']
+[0.577s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extension 'colcon_pkg'
+[0.577s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extensions ['colcon_meta']
+[0.577s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extension 'colcon_meta'
+[0.577s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extensions ['ros']
+[0.577s] Level 1:colcon.colcon_core.package_identification:_identify(usv_master) by extension 'ros'
+[0.584s] DEBUG:colcon.colcon_core.package_identification:Package 'usv_master' with type 'ros.ament_cmake' and name 'usv_master'
+[0.584s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extensions ['ignore', 'ignore_ament_install']
+[0.584s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extension 'ignore'
+[0.584s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extension 'ignore_ament_install'
+[0.585s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extensions ['colcon_pkg']
+[0.585s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extension 'colcon_pkg'
+[0.585s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extensions ['colcon_meta']
+[0.585s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extension 'colcon_meta'
+[0.585s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extensions ['ros']
+[0.585s] Level 1:colcon.colcon_core.package_identification:_identify(usv_missions) by extension 'ros'
+[0.587s] DEBUG:colcon.colcon_core.package_identification:Package 'usv_missions' with type 'ros.ament_cmake' and name 'usv_missions'
+[0.587s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.587s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.587s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.588s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.588s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.642s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.642s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.647s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 1 installed packages in /home/ale/Documents/Vanttec/usv/install
+[0.649s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 270 installed packages in /opt/ros/humble
+[0.652s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.769s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'cmake_args' from command line to 'None'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'cmake_target' from command line to 'None'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'cmake_clean_cache' from command line to 'False'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'cmake_clean_first' from command line to 'False'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'cmake_force_configure' from command line to 'False'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'ament_cmake_args' from command line to 'None'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'catkin_cmake_args' from command line to 'None'
+[0.770s] Level 5:colcon.colcon_core.verb:set package 'usv_master' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.770s] DEBUG:colcon.colcon_core.verb:Building package 'usv_master' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master', 'merge_install': False, 'path': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_master', 'symlink_install': False, 'test_result_base': None}
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'cmake_args' from command line to 'None'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'cmake_target' from command line to 'None'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'cmake_clean_cache' from command line to 'False'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'cmake_clean_first' from command line to 'False'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'cmake_force_configure' from command line to 'False'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'ament_cmake_args' from command line to 'None'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'catkin_cmake_args' from command line to 'None'
+[0.773s] Level 5:colcon.colcon_core.verb:set package 'usv_missions' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.774s] DEBUG:colcon.colcon_core.verb:Building package 'usv_missions' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions', 'merge_install': False, 'path': '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions', 'symlink_install': False, 'test_result_base': None}
+[0.775s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.782s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.782s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_master' with build type 'ament_cmake'
+[0.783s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_master'
+[0.790s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.790s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.790s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.799s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions' with build type 'ament_cmake'
+[0.799s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/usv_missions'
+[0.802s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.802s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.820s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master -- -j4 -l4
+[0.830s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4
+[0.959s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master -- -j4 -l4
+[1.022s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master
+[1.057s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(usv_master)
+[1.063s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_master
+[1.074s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master' for CMake module files
+[1.075s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master' for CMake config files
+[1.076s] Level 1:colcon.colcon_core.shell:create_environment_hook('usv_master', 'cmake_prefix_path')
+[1.081s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/hook/cmake_prefix_path.ps1'
+[1.084s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/hook/cmake_prefix_path.dsv'
+[1.085s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/hook/cmake_prefix_path.sh'
+[1.088s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib'
+[1.089s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/bin'
+[1.089s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/pkgconfig/usv_master.pc'
+[1.090s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/python3.10/site-packages'
+[1.090s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/bin'
+[1.094s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.ps1'
+[1.097s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.dsv'
+[1.099s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.sh'
+[1.101s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.bash'
+[1.104s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.zsh'
+[1.106s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/colcon-core/packages/usv_master)
+[1.161s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(usv_master)
+[1.166s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master' for CMake module files
+[1.168s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master' for CMake config files
+[1.169s] Level 1:colcon.colcon_core.shell:create_environment_hook('usv_master', 'cmake_prefix_path')
+[1.171s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/hook/cmake_prefix_path.ps1'
+[1.172s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/hook/cmake_prefix_path.dsv'
+[1.173s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/hook/cmake_prefix_path.sh'
+[1.173s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib'
+[1.174s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/bin'
+[1.174s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/pkgconfig/usv_master.pc'
+[1.174s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/lib/python3.10/site-packages'
+[1.175s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/bin'
+[1.179s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.ps1'
+[1.181s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.dsv'
+[1.182s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.sh'
+[1.184s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.bash'
+[1.185s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/usv_master/package.zsh'
+[1.187s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_master/share/colcon-core/packages/usv_master)
+[1.460s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/ale/Documents/Vanttec/usv/src/vanttec_usv/build/usv_missions -- -j4 -l4
+[1.499s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(usv_missions)
+[1.504s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions' for CMake module files
+[1.505s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions' for CMake config files
+[1.506s] Level 1:colcon.colcon_core.shell:create_environment_hook('usv_missions', 'cmake_prefix_path')
+[1.508s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/hook/cmake_prefix_path.ps1'
+[1.509s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/hook/cmake_prefix_path.dsv'
+[1.511s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/hook/cmake_prefix_path.sh'
+[1.513s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/bin'
+[1.514s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/lib/pkgconfig/usv_missions.pc'
+[1.514s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/lib/python3.10/site-packages'
+[1.515s] Level 1:colcon.colcon_core.environment:checking '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/bin'
+[1.519s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.ps1'
+[1.520s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.dsv'
+[1.521s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.sh'
+[1.522s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.bash'
+[1.523s] INFO:colcon.colcon_core.shell:Creating package script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/usv_missions/package.zsh'
+[1.523s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/usv_missions/share/colcon-core/packages/usv_missions)
+[1.534s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[1.534s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[1.535s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '2'
+[1.535s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[1.544s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[1.544s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[1.545s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[1.567s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[1.571s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/local_setup.ps1'
+[1.573s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/_local_setup_util_ps1.py'
+[1.578s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/setup.ps1'
+[1.581s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/local_setup.sh'
+[1.582s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/_local_setup_util_sh.py'
+[1.583s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/setup.sh'
+[1.588s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/local_setup.bash'
+[1.589s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/setup.bash'
+[1.591s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/local_setup.zsh'
+[1.592s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/ale/Documents/Vanttec/usv/src/vanttec_usv/install/setup.zsh'
