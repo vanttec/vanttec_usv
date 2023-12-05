@@ -1,33 +1,38 @@
-<p align="center">
-  <img src="https://github.com/vanttec/vanttec_usv/blob/master/docs/LogoNegro_Azul.png" width="400" height="240" align="center"/>
-
+<p align="right">
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/humble/docs/LogoWhite.png" width="231" height="131" align="center"/>
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/humble/docs/LogoWhite.png" width="231" height="131" align="left"/>
 </p>
 
 # VantTec USV Main Repository
 
-This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platforms. Each directory represents a ROS Package:
+This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platforms.
 
-- **arduino_br**: ROS package that uses rosserial_python and rosserial_arduino to interface with the T-100 and the T-200 thrusters.
-- **rb_missions**: ROS package where the algorithms to solve the different RoboBoat challenges are implemented.
-- **usv_comms**: ROS package that allows the USV software to interface with the Digi X-Tend Hardware for communication with the main station.
+### Packages
+- **usv_comms**: ROS package that allows the USV software to interface with the Digi XBee Hardware for communication with the ground control station.
 - **usv_control**: ROS package for the implementation of the control algorithms for the USV.
 - **usv_master**: ROS package containing the master node for the USV ROS software.
+- **usv_missions**: ROS package where the algorithms to solve the different RoboBoat 2024 challenges are implemented.
 - **usv_perception**: ROS package for the perception algorithms used in the USV.
-- **vectornav_ros**: ROS package that allows the USV to interface with Vectornav's IMUs.
-- **velodyne**: ROS package for the Velodyne LIDARs.
+### Submodules
+- **sbg_driver**: ROS package that allows the USV to interface with SBG's IMU.
+- **usv_libs**: Control library.
+- **velodyne**: ROS package for the Velodyne LIDAR.
 - **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
 
-*TODO: Dependencies*
+#
 
 **How to start working?**
 
-Enter the following commands into your **Ubuntu 16.04** terminal:
+Enter the following commands into your **Ubuntu** terminal with **Docker**:
 
 ```Shell
 cd
-git clone http://github.com/vanttec/vanttec_usv.git
+git clone --recurse-submodules http://github.com/vanttec/vanttec_usv.git
 cd vanttec_usv
-./init_worskpace.sh
+
+# Building for docker
+docker build -t usv .
+
+# Running docker
+docker run -it -v "$PWD:/ws" usv
 ```
-
-
