@@ -1,6 +1,6 @@
 <p align="right">
-  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/humble/docs/LogoWhite.png" width="231" height="131" align="center"/>
-  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/humble/docs/LogoWhite.png" width="231" height="131" align="left"/>
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/humble/docs/VantTec_logo_white.png" width="231" height="131" align="center"/>
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/humble/docs/USV_sticker.png" width="131" height="131" align="left"/>
 </p>
 
 # VantTec USV Main Repository
@@ -35,4 +35,13 @@ docker build -t usv .
 
 # Running docker
 docker run -it -v "$PWD:/ws" usv
+
+# Installing gazebo ignition
+sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+sudo apt-get update
+
+sudo apt-get install libignition-gazebo7-dev
+
+sudo apt-get install ros-humble-ros-ign-bridge
 ```
