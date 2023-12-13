@@ -1,3 +1,6 @@
 [submodule "src/usv_control/libs/usv_libs"]
 	path = src/usv_control/libs/usv_libs
 	url = https://github.com/vanttec/usv_libs.git
+[submodule "src/sbg_ros2_driver"]
+	path = src/sbg_ros2_driver
+	url = https://github.com/SBG-Systems/sbg_ros2_driver.git

@@ -113,24 +113,6 @@ def generate_launch_description():
         ],
     )
 
-    wp_node = Node(
-        package="usv_control",
-        executable="waypoint_handler_node",
-        remappings=[
-            ("/setpoint/heading", "/guidance/desired_heading"),
-            ("/setpoint/velocity", "/guidance/desired_velocity"),
-        ],
-    )
-
-    tf2_node = Node(
-        package='usv_control',
-        executable='usv_tf2_broadcaster_node',
-        name='broadcaster1',
-        parameters=[
-              {'usv_name': 'usv'}
-        ],
-        condition=IfCondition(LaunchConfiguration('is_simulation'))
-    )
 
     return LaunchDescription([
         is_sim,
@@ -146,8 +128,7 @@ def generate_launch_description():
         ),
 
         usv_description_launch,
-        tf2_node,
-        wp_node,
+        
         dynamic_sim_node,
         asmc_node,
         # aitsmc_node,
