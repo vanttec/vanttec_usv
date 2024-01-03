@@ -6,6 +6,8 @@
 #include "image_transport/image_transport.hpp"
 #include "sensor_msgs/msg/image.hpp"
 
+#define GPU
+
 #ifdef GPU
 #include "tensorrt.hpp"
 #else
@@ -23,7 +25,13 @@ using std::placeholders::_1;
 template <typename E>
 class DetectorInterface: public rclcpp::Node {
 private:
-	cv::Size	size = cv::Size{640, 640};
+    cv::Mat  res, image;
+    cv::Size size        = cv::Size{640, 640};
+    int      num_labels  = 80;
+    int      topk        = 100;
+    float    score_thres = 0.25f;
+    float    iou_thres   = 0.65f;
+	std::vector<Object> objs;
 
 	std::string engine_path;
 	std::string classes_path;
@@ -38,12 +46,13 @@ private:
 	void frame_detect(const sensor_msgs::msg::Image::ConstSharedPtr & msg) const
     {
 
-		// auto img = cv_bridge::toCvShare(msg, "bgr8")->image;
+		auto img = cv_bridge::toCvShare(msg, "bgr8")->image;
 
-		// detector_engine->copy_from_Mat(img, *size);
-		// detector_engine->infer();
+		detector_engine->copy_from_Mat(img, size);
+		detector_engine->infer();
+		detector_engine->postprocess(objs, score_thres, iou_thres, topk, num_labels);
 
-		RCLCPP_INFO(this->get_logger(), "frame!");
+		RCLCPP_INFO(this->get_logger(), "inference done!");
     }
 public:
     DetectorInterface() : Node("yolov8_node") {
@@ -53,6 +62,8 @@ public:
         get_parameter("output_topic", output_topic);
 
 		input_topic = "/video";
+
+		size = cv::Size{640, 640};
 
 		#ifdef GPU
 		detector_engine = new YOLOv8(engine_path);
@@ -77,6 +88,7 @@ public:
 
 int main(int argc, char** argv)
 {
+	cudaSetDevice(0);
 
 	rclcpp::init(argc, argv);
 

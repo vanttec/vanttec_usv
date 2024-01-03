@@ -5,6 +5,11 @@
 #define DETECT_NORMAL_YOLOV8_HPP
 #include "common.hpp"
 #include "fstream"
+
+#include <opencv2/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/dnn.hpp>
+
 using namespace det;
 
 class ONNX {
@@ -14,7 +19,7 @@ public:
 
     void                 make_pipe(bool warmup = true);
     void                 copy_from_Mat(const cv::Mat& image);
-    void                 copy_from_Mat(const cv::Mat& image, cv::Size& size);
+    void                 copy_from_Mat(const cv::Mat& image, const cv::Size& size);
     void                 letterbox(const cv::Mat& image, cv::Mat& out, cv::Size& size);
     void                 infer();
     void                 postprocess(std::vector<Object>& objs,
@@ -34,9 +39,16 @@ public:
     std::vector<void*>   device_ptrs;
 
     PreParam pparam;
+
+    cv::dnn::Net net;
 };
 
-ONNX::ONNX(const std::string& engine_file_path) {}
+ONNX::ONNX(const std::string& file_path) {
+    // cv::dnn::readNetFromONNX(file_path);
+    //
+    // net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+    // net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+}
 
 ONNX::~ONNX() {}
 
@@ -46,7 +58,9 @@ void ONNX::letterbox(const cv::Mat& image, cv::Mat& out, cv::Size& size) {}
 
 void ONNX::copy_from_Mat(const cv::Mat& image) {}
 
-void ONNX::copy_from_Mat(const cv::Mat& image, cv::Size& size) {}
+void ONNX::copy_from_Mat(const cv::Mat& image, const cv::Size& size) {
+    
+}
 
 void ONNX::infer() {}
 

@@ -6,6 +6,7 @@ import cv2
 import os
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+import time
 
 class ImagePublisher(Node):
     def __init__(self, file_path):
@@ -21,6 +22,7 @@ class ImagePublisher(Node):
                 self.pub.publish(self.bridge.cv2_to_imgmsg(frame, "bgr8"))
             else:
                 self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            time.sleep(0.03) # ~30ms
 
         self.cap.release()
 
