@@ -21,7 +21,7 @@ find_package(OpenCV REQUIRED)
 # ament_python_install_package(${PROJECT_NAME})
 
 add_executable(yolo src/yolo.cpp)
-ament_target_dependencies(yolo rclcpp std_msgs cv_bridge image_transport)
+ament_target_dependencies(yolo rclcpp std_msgs OpenCV cv_bridge image_transport)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
