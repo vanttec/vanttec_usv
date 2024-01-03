@@ -15,8 +15,8 @@ public:
 
     void                 make_pipe(bool warmup = true);
     void                 copy_from_Mat(const cv::Mat& image);
-    void                 copy_from_Mat(const cv::Mat& image, cv::Size& size);
-    void                 letterbox(const cv::Mat& image, cv::Mat& out, cv::Size& size);
+    void                 copy_from_Mat(const cv::Mat& image, const cv::Size& size);
+    void                 letterbox(const cv::Mat& image, cv::Mat& out, const cv::Size& size);
     void                 infer();
     void                 postprocess(std::vector<Object>& objs);
     static void          draw_objects(const cv::Mat&                                image,
@@ -141,7 +141,7 @@ void YOLOv8::make_pipe(bool warmup)
     }
 }
 
-void YOLOv8::letterbox(const cv::Mat& image, cv::Mat& out, cv::Size& size)
+void YOLOv8::letterbox(const cv::Mat& image, cv::Mat& out, const cv::Size& size)
 {
     const float inp_h  = size.height;
     const float inp_w  = size.width;
@@ -196,7 +196,7 @@ void YOLOv8::copy_from_Mat(const cv::Mat& image)
         this->device_ptrs[0], nchw.ptr<float>(), nchw.total() * nchw.elemSize(), cudaMemcpyHostToDevice, this->stream));
 }
 
-void YOLOv8::copy_from_Mat(const cv::Mat& image, cv::Size& size)
+void YOLOv8::copy_from_Mat(const cv::Mat& image, const cv::Size& size)
 {
     cv::Mat nchw;
     this->letterbox(image, nchw, size);

@@ -8,11 +8,7 @@
 
 #define GPU
 
-#ifdef GPU
 #include "tensorrt.hpp"
-#else
-#include "onnx.hpp"
-#endif
 
 using std::placeholders::_1;
 
@@ -43,14 +39,14 @@ private:
 	std::shared_ptr<image_transport::ImageTransport> it;
 	std::shared_ptr<image_transport::Subscriber> is;
 
-	void frame_detect(const sensor_msgs::msg::Image::ConstSharedPtr & msg) const
+	void frame_detect(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
     {
 
 		auto img = cv_bridge::toCvShare(msg, "bgr8")->image;
 
 		detector_engine->copy_from_Mat(img, size);
 		detector_engine->infer();
-		detector_engine->postprocess(objs, score_thres, iou_thres, topk, num_labels);
+		detector_engine->postprocess(objs);
 
 		RCLCPP_INFO(this->get_logger(), "inference done!");
     }
@@ -62,6 +58,7 @@ public:
         get_parameter("output_topic", output_topic);
 
 		input_topic = "/video";
+		engine_path = "/home/vanttec_usv/yolov8n2.engne";
 
 		size = cv::Size{640, 640};
 
@@ -92,12 +89,8 @@ int main(int argc, char** argv)
 
 	rclcpp::init(argc, argv);
 
-	#ifdef GPU
 	auto node = std::make_shared< DetectorInterface< YOLOv8 > >();
-	#else
-	auto node = std::make_shared< DetectorInterface< ONNX > >();
-	#endif
-	
+
 	node->init();
 
 	rclcpp::spin(node);
