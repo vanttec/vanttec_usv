@@ -36,7 +36,8 @@ if(BUILD_TESTING)
 endif()
 
 # install python scripts
-install(PROGRAMS scripts/video.py DESTINATION lib/${PROJECT_NAME})
+file(GLOB SCRIPTS "scripts/*.py")
+install(PROGRAMS ${SCRIPTS} DESTINATION lib/${PROJECT_NAME})
 
 # install c++ programs
 install(TARGETS
