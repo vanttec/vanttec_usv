@@ -25,6 +25,10 @@ class AsmcNode : public rclcpp::Node {
         "setpoint/heading", 10,
         [this](const std_msgs::msg::Float64 &msg) { this->psi_d = msg.data; });
 
+    pivotSetpointSub = this->create_subscription<std_msgs::msg::Float64>(
+        "setpoint/pivot", 10,
+        [this](const std_msgs::msg::Float64 &msg) { this->pivot_e = msg.data; });
+
     velocitySub = this->create_subscription<geometry_msgs::msg::Vector3>(
         "input/velocity", 1, [this](const geometry_msgs::msg::Vector3 &msg) {
           this->velocity = msg;
@@ -68,7 +72,7 @@ class AsmcNode : public rclcpp::Node {
   ASMC controller{ASMC::defaultParams()};
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocitySetpointSub,
-      headingSetpointSub;
+      headingSetpointSub, pivotSetpointSub;
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr velocitySub;
   rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr poseSub;
@@ -79,7 +83,7 @@ class AsmcNode : public rclcpp::Node {
 
   rclcpp::TimerBase::SharedPtr updateTimer;
 
-  double u_d{0}, psi_d{0};
+  double u_d{0}, psi_d{0}, pivot_e{0};
   geometry_msgs::msg::Pose2D pose;
   geometry_msgs::msg::Vector3 velocity;
 
@@ -122,6 +126,7 @@ class AsmcNode : public rclcpp::Node {
     ASMCSetpoint setpoint;
     setpoint.heading_setpoint = psi_d;
     setpoint.velocity_setpoint = u_d;
+    setpoint.pivot_enabled = pivot_e;
 
     auto out = controller.update(state, setpoint);
 

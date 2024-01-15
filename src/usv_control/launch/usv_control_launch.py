@@ -22,6 +22,42 @@ def generate_launch_description():
         description = 'Defines if the application will run in simulation or in real life'
     )
 
+    sbg_config = os.path.join(
+        get_package_share_directory("usv_control"),
+        'config',
+        "sbg_device.yaml"
+    )
+
+    sbg_node = Node(
+        package='sbg_driver',
+        executable='sbg_device',
+        output='screen',
+        parameters=[sbg_config],
+        condition=UnlessCondition(LaunchConfiguration('is_simulation')),
+    )
+
+    velodyne_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare("velodyne"), "/launch/", "velodyne-all-nodes-VLP16-launch.py"
+        ]),
+        condition=UnlessCondition(LaunchConfiguration('is_simulation')),
+    )
+
+    imu_converter_node = Node(
+        package='usv_utils',
+        executable='imu_converter_node',
+        output='screen',
+        remappings=[
+            ("out/pose", "/usv/state/pose"),
+            ("out/velocity", "/usv/state/velocity"),
+            ("in/data", "/imu/data"),
+            ("in/odometry", "/imu/odometry"),
+            ("in/pose", "/imu/pos_ecef"),
+        ],
+        condition=UnlessCondition(LaunchConfiguration('is_simulation')),
+    )
+
+
     dynamic_sim_node = Node(
         package="usv_control",
         executable="dynamic_model_node",
@@ -32,6 +68,7 @@ def generate_launch_description():
             ("output/pose", "/usv/state/pose"),
             ("output/vel", "/usv/state/velocity"),
         ],
+        condition=IfCondition(LaunchConfiguration('is_simulation')),
     )
 
     usv_description_launch = IncludeLaunchDescription(
@@ -42,7 +79,7 @@ def generate_launch_description():
                 'rviz_launch.py'
             ])
         ]),
-        condition=IfCondition(LaunchConfiguration('is_simulation'))
+        # condition=IfCondition(LaunchConfiguration('is_simulation'))
     )
 
     asmc_node = Node(
@@ -54,6 +91,7 @@ def generate_launch_description():
             ("input/velocity", "/usv/state/velocity"),
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/heading", "/guidance/desired_heading"),
+            ("setpoint/pivot", "/guidance/pivot_enable"),
             ("output/left_thruster", "/usv/left_thruster"),
             ("output/right_thruster", "/usv/right_thruster"),
         ],
@@ -128,9 +166,11 @@ def generate_launch_description():
         ),
 
         usv_description_launch,
-        
         dynamic_sim_node,
         asmc_node,
         # aitsmc_node,
+        sbg_node,
+        # velodyne_launch,
+        imu_converter_node,
         twist_to_setpoint_node,
     ])
