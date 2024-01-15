@@ -67,10 +67,7 @@ def generate_launch_description():
             ("output/pose", "/usv/state/pose"),
             ("output/vel", "/usv/state/velocity"),
         ],
-<<<<<<< HEAD
-=======
         condition=IfCondition(LaunchConfiguration('is_simulation')),
->>>>>>> 6d598a80353d0f7243d7e25fa9a3a43d0b958e0a
     )
 
     usv_description_launch = IncludeLaunchDescription(
@@ -81,11 +78,7 @@ def generate_launch_description():
                 'rviz_launch.py'
             ])
         ]),
-<<<<<<< HEAD
-        condition=IfCondition(LaunchConfiguration('is_simulation'))
-=======
         # condition=IfCondition(LaunchConfiguration('is_simulation'))
->>>>>>> 6d598a80353d0f7243d7e25fa9a3a43d0b958e0a
     )
 
     asmc_node = Node(
@@ -97,10 +90,7 @@ def generate_launch_description():
             ("input/velocity", "/usv/state/velocity"),
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/heading", "/guidance/desired_heading"),
-<<<<<<< HEAD
-=======
             ("setpoint/pivot", "/guidance/pivot_enable"),
->>>>>>> 6d598a80353d0f7243d7e25fa9a3a43d0b958e0a
             ("output/left_thruster", "/usv/left_thruster"),
             ("output/right_thruster", "/usv/right_thruster"),
         ],
@@ -160,7 +150,11 @@ def generate_launch_description():
         ],
     )
 
-
+    foxglove_bridge = Node(
+        name="foxglove_bridge",
+        package="foxglove_bridge",
+        executable="foxglove_bridge")
+    
     return LaunchDescription([
         is_sim,
 
@@ -175,18 +169,12 @@ def generate_launch_description():
         ),
 
         usv_description_launch,
-<<<<<<< HEAD
-        
-        dynamic_sim_node,
-        asmc_node,
-        # aitsmc_node,
-=======
         dynamic_sim_node,
         asmc_node,
         # aitsmc_node,
         sbg_node,
         # velodyne_launch,
         imu_converter_node,
->>>>>>> 6d598a80353d0f7243d7e25fa9a3a43d0b958e0a
         twist_to_setpoint_node,
+        foxglove_bridge,
     ])
