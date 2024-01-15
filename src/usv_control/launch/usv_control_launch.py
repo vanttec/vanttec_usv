@@ -151,7 +151,11 @@ def generate_launch_description():
         ],
     )
 
-
+    foxglove_bridge = Node(
+        name="foxglove_bridge",
+        package="foxglove_bridge",
+        executable="foxglove_bridge")
+    
     return LaunchDescription([
         is_sim,
 
@@ -173,4 +177,5 @@ def generate_launch_description():
         # velodyne_launch,
         imu_converter_node,
         twist_to_setpoint_node,
+        foxglove_bridge,
     ])
