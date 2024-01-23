@@ -1,6 +1,8 @@
 #include <tf2/LinearMath/Quaternion.h>
 
 #include <cstdio>
+#include <cmath>
+#include <algorithm>
 
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -56,6 +58,16 @@ class DynamicModelSim : public rclcpp::Node {
 
     geometry_msgs::msg::Pose2D pose;
     nav_msgs::msg::Odometry odom;
+
+    if(etheta > 0)
+      etheta -= std::floor(etheta / (M_PI * 2)) * M_PI * 2;
+    else
+      etheta -= std::ceil(etheta / (M_PI * 2)) * M_PI * 2;
+    
+    if(etheta > M_PI)
+      etheta -= 2 * M_PI;
+    else if(etheta < -M_PI)
+      etheta += 2 * M_PI;
 
     pose.x = x;
     pose.y = y;

@@ -1,6 +1,3 @@
-//
-// Created by ubuntu on 3/16/23.
-//
 #ifndef JETSON_DETECT_YOLOV8_HPP
 #define JETSON_DETECT_YOLOV8_HPP
 #include "NvInferPlugin.h"
@@ -18,7 +15,7 @@ public:
     void                 copy_from_Mat(const cv::Mat& image, const cv::Size& size);
     void                 letterbox(const cv::Mat& image, cv::Mat& out, const cv::Size& size);
     void                 infer();
-    void                 postprocess(std::vector<Object>& objs);
+    void                 postprocess(std::vector<sl::CustomBoxObjectData>& objs);
     static void          draw_objects(const cv::Mat&                                image,
                                       cv::Mat&                                      res,
                                       const std::vector<Object>&                    objs,
@@ -217,7 +214,7 @@ void YOLOv8::infer()
     cudaStreamSynchronize(this->stream);
 }
 
-void YOLOv8::postprocess(std::vector<Object>& objs)
+void YOLOv8::postprocess(std::vector<sl::CustomBoxObjectData>& objs)
 {
     objs.clear();
     int*  num_dets = static_cast<int*>(this->host_ptrs[0]);
@@ -241,13 +238,25 @@ void YOLOv8::postprocess(std::vector<Object>& objs)
         y0 = clamp(y0 * ratio, 0.f, height);
         x1 = clamp(x1 * ratio, 0.f, width);
         y1 = clamp(y1 * ratio, 0.f, height);
-        Object obj;
-        obj.rect.x      = x0;
-        obj.rect.y      = y0;
-        obj.rect.width  = x1 - x0;
-        obj.rect.height = y1 - y0;
-        obj.prob        = *(scores + i);
-        obj.label       = *(labels + i);
+        sl::CustomBoxObjectData obj;
+        obj.unique_object_id = sl::generate_unique_id();
+        obj.probability = *(scores + i);
+	
+	if (obj.probability <= 0.50) {
+		continue;
+	}
+
+        obj.label = *(labels + i);
+        
+        std::vector<sl::uint2> bbox(4);
+        bbox[0] = sl::uint2(x0, y0);
+        bbox[1] = sl::uint2(x1, y0);
+        bbox[2] = sl::uint2(x1, y1);
+        bbox[3] = sl::uint2(x0, y1);
+
+        obj.bounding_box_2d = bbox;
+        obj.is_grounded = false; // si es `true`, la zed no rastreara este objeto
+
         objs.push_back(obj);
     }
 }

@@ -16,9 +16,9 @@ def generate_launch_description():
                 {'output_topic': 'param_value2'},
             ],
         ),
-#        Node(
-#            package='usv_perception',
-#            executable='video.py',
-#        ),
+        Node(
+            package='usv_perception',
+            executable='video.py',
+        ),
     ])
 
