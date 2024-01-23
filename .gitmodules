@@ -2,5 +2,38 @@
 	path = src/usv_control/libs/usv_libs
 	url = https://github.com/vanttec/usv_libs.git
 [submodule "src/sbg_ros2_driver"]
-	path = src/sbg_ros2_driver
+	path = src/deps/sbg_ros2_driver
 	url = https://github.com/SBG-Systems/sbg_ros2_driver.git
+[submodule "src/msgs/pcl_msgs"]
+	path = src/msgs/pcl_msgs
+	url = https://github.com/ros-perception/pcl_msgs
+[submodule "src/msgs/nmea_msgs"]
+	path = src/msgs/nmea_msgs
+	url = https://github.com/ros-drivers/nmea_msgs
+[submodule "src/msgs/common_interfaces"]
+	path = src/msgs/common_interfaces
+	url = https://github.com/ros2/common_interfaces/
+[submodule "src/deps/diagnostics"]
+	path = src/deps/diagnostics
+	url = https://github.com/ros/diagnostics
+[submodule "src/deps/zed-ros2-wrapper"]
+	path = src/deps/zed-ros2-wrapper
+	url = https://github.com/stereolabs/zed-ros2-wrapper.git
+[submodule "src/deps/velodyne"]
+	path = src/deps/velodyne
+	url = https://github.com/ros-drivers/velodyne.git
+[submodule "src/deps/perception_pcl"]
+	path = src/deps/perception_pcl
+	url = https://github.com/ros-perception/perception_pcl
+[submodule "src/deps/robot_localization"]
+	path = src/deps/robot_localization
+	url = https://github.com/cra-ros-pkg/robot_localization
+[submodule "src/deps/geographic_info"]
+	path = src/deps/geographic_info
+	url = https://github.com/ros-geographic-info/geographic_info
+[submodule "src/deps/angles"]
+	path = src/deps/angles
+	url = https://github.com/ros/angles
+[submodule "src/deps/xacro"]
+	path = src/deps/xacro
+	url = https://github.com/ros/xacro/
