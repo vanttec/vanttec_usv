@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+
+import os
+import csv
+import math 
+import struct
+import yaml
+from digi.xbee.devices import XBeeDevice, XBee64BitAddress, RemoteXBeeDevice, XBeeNetwork
+
+from ament_index_python.packages import get_package_share_directory
+
+import rclpy
+from rclpy.node import Node
+
+from geometry_msgs.msg import Point
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose2D, Vector3
+from std_msgs.msg import Float32, Float64
+from usv_interfaces.msg import Waypoint, ObjectList, Object
+
 #!/usr/bin/env python3.6
 
 import os
@@ -28,6 +48,7 @@ class XbeeBoatNode(Node):
     velocity_d = 0.0
     left_thruster = 0.0
     right_thruster = 0.0
+    obj_list = [0.0]*3*5
 
     remote_id = "STATION_XBEE"
     device = XBeeDevice("/dev/ttyUSB1", 115200)
@@ -49,6 +70,11 @@ class XbeeBoatNode(Node):
             Pose2D,
             '/usv/state/pose',
             self.pose_callback,
+            10)
+        self.obj_list_sub_ = self.create_subscription(
+            ObjectList,
+            '/objects',
+            self.obj_list_callback,
             10)
         self.velocity_sub_ = self.create_subscription(
             Vector3,
@@ -87,11 +113,11 @@ class XbeeBoatNode(Node):
     def timer_callback(self):
         pub_list = self.pose_list + self.vel_list + self.wp_list + \
         [self.heading_d, self.velocity_d, self.left_thruster, \
-        self.right_thruster]
+        self.right_thruster] + self.obj_list
 
         pub_list = pub_list
 
-        pub_struct = struct.pack('!'+'f'*12, *pub_list)
+        pub_struct = struct.pack('!'+'f'*27, *pub_list)
         if(len(pub_list) > 0):
             st = ','.join(str(x) for x in pub_list)
             # print(pub_struct)
@@ -102,6 +128,12 @@ class XbeeBoatNode(Node):
     def pose_callback(self, msg):
         self.pose_list = [msg.x, msg.y, msg.theta]
         self.pose_list = [round(x,1) for x in self.pose_list]
+
+    def obj_list_callback(self, msg):
+        for i in range(5):
+            self.obj_list[i * 3] = msg.obj_list[i].x
+            self.obj_list[i * 3 + 1] = msg.obj_list[i].y
+            self.obj_list[i * 3 + 2] = msg.obj_list[i].color
 
     def velocity_callback(self, msg):
         self.vel_list = [msg.x, msg.y, msg.z]

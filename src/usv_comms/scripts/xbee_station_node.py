@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 
 import os
 import csv
@@ -16,7 +16,7 @@ from geometry_msgs.msg import Point
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose2D, Vector3
 from std_msgs.msg import Float32, Float64
-from usv_interfaces.msg import Waypoint
+from usv_interfaces.msg import Waypoint, ObjectList, Object
 
 
 
@@ -28,6 +28,7 @@ class XbeeStationNode(Node):
     velocity_d = Float64()
     left_thruster = Float64()
     right_thruster = Float64()
+    obj_list = ObjectList()
     remote_id = "BOAT_XBEE"
     device = XBeeDevice("/dev/ttyUSB0", 115200)
 
@@ -63,6 +64,7 @@ class XbeeStationNode(Node):
         self.velocity_d_pub_ = self.create_publisher(Float64, '/usv_comms/usv/guidance/desired_velocity', 10)
         self.left_thruster_pub_ = self.create_publisher(Float64, '/usv_comms/usv/left_thruster', 10)
         self.right_thruster_pub_ = self.create_publisher(Float64, '/usv_comms/usv/right_thruster', 10)
+        self.obj_list_pub_ = self.create_publisher(ObjectList, '/usv_comms/obj_list', 10)
         
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -74,9 +76,11 @@ class XbeeStationNode(Node):
         self.velocity_d_pub_.publish(self.velocity_d)
         self.left_thruster_pub_.publish(self.left_thruster)
         self.right_thruster_pub_.publish(self.right_thruster)
+        self.obj_list_pub_.publish(self.obj_list)
+        
 
     def data_callback(self, xbee_message):
-        data = struct.unpack('!'+'f'*12, xbee_message.data)
+        data = struct.unpack('!'+'f'*27, xbee_message.data)
         self.pose.x = data[0]
         self.pose.y = data[1]
         self.pose.theta = data[2]
@@ -89,7 +93,15 @@ class XbeeStationNode(Node):
         self.velocity_d.data = data[9]
         self.left_thruster.data = data[10]
         self.right_thruster.data = data[11]
-
+        base = 12
+        self.obj_list = ObjectList()
+        for i in range(5):
+            obj_t = Object()
+            obj_t.x = data[base + i*3]
+            obj_t.y = data[base + i*3 + 1]
+            obj_t.color = int(data[base + i*3 + 2])
+            obj_t.type = "round"
+            self.obj_list.obj_list.append(obj_t)
 
 def main(args=None):
     rclpy.init(args=args)
