@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<sdf version='1.6'>
+  <!-- Note: The meshes in this file do not actually exist.
+  This file is used for testing relative URIs -->
+  <model name='usv'>
+    <pose>0 0 1.5 0 0 0</pose>
+    <link name='L1'>
+      <visual name='V'>
+        <geometry>
+          <mesh>
+            <uri>meshes/usv.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name='C'>
+        <geometry>
+          <mesh>
+            <uri>meshes/usv.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

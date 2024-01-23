@@ -18,7 +18,7 @@ from launch.actions import ExecuteProcess
 def generate_launch_description():
     is_sim = DeclareLaunchArgument(
         'is_simulation',
-        default_value = 'true',
+        default_value = 'false',
         description = 'Defines if the application will run in simulation or in real life'
     )
 
@@ -71,16 +71,16 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('is_simulation')),
     )
 
-    usv_description_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare('usv_description'),
-                'launch',
-                'rviz_launch.py'
-            ])
-        ]),
-        # condition=IfCondition(LaunchConfiguration('is_simulation'))
-    )
+    # usv_description_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource([
+    #         PathJoinSubstitution([
+    #             FindPackageShare('usv_description'),
+    #             'launch',
+    #             'rviz_launch.py'
+    #         ])
+    #     ]),
+    #     # condition=IfCondition(LaunchConfiguration('is_simulation'))
+    # )
 
     asmc_node = Node(
         package="usv_control",
@@ -96,6 +96,17 @@ def generate_launch_description():
             ("output/right_thruster", "/usv/right_thruster"),
         ],
         parameters=[
+            # {"k_u": 1.0},
+            # {"k_psi": 10.0},
+            # {"kmin_u": 0.075},
+            # {"kmin_psi": 0.1},
+            # {"k2_u": 0.02},
+            # {"k2_psi": 0.2},
+            # {"mu_u": 0.01},
+            # {"mu_psi": 0.015},
+            # {"lambda_u": 0.001},
+            # {"lambda_psi": 0.15},
+
             {"k_u": 0.1},
             {"k_psi": 0.5},
             {"kmin_u": 0.075},
@@ -105,8 +116,8 @@ def generate_launch_description():
             {"mu_u": 0.01},
             {"mu_psi": 0.015},
             {"lambda_u": 0.001},
-            {"lambda_psi": 1.5},
-        ],
+            {"lambda_psi": 1.5},        
+            ],
     )
 
     aitsmc_node = Node(
@@ -156,6 +167,26 @@ def generate_launch_description():
         package="foxglove_bridge",
         executable="foxglove_bridge")
     
+    waypoint_handler = Node(
+        package="usv_control",
+        executable="waypoint_handler_node")    
+
+    tf2 = Node(
+        package="usv_control",
+        executable="usv_tf2_broadcaster_node")    
+
+    can_node = Node(
+        package="vanttec_can_comms",
+        executable="can_node",
+        output="screen",
+        remappings=[
+            ("out/mode", "/usv/op_mode"),
+            ("out/stm32_ping", "/usv/can/stm32_ping"),
+            ("in/left_motor", "/usv/left_thruster"),
+            ("in/right_motor", "/usv/right_thruster"),
+        ]
+    )
+
     return LaunchDescription([
         is_sim,
 
@@ -169,13 +200,16 @@ def generate_launch_description():
             msg="Running IRL mode."
         ),
 
-        usv_description_launch,
+        # usv_description_launch,
         dynamic_sim_node,
         asmc_node,
         # aitsmc_node,
         sbg_node,
         # velodyne_launch,
         imu_converter_node,
-        twist_to_setpoint_node,
-        foxglove_bridge,
+        # twist_to_setpoint_node,
+        # foxglove_bridge,
+        # waypoint_handler,
+        can_node,
+        tf2,
     ])

@@ -41,8 +41,8 @@ double IndividualThrusterNode::map_thruster(double x) const {
     } else {
         x /= 30;
     }
-
-    return x;
+	
+    return x/2;
 }
 
 void IndividualThrusterNode::update_thrust(){
