@@ -10,15 +10,18 @@
 #include "rclcpp/rclcpp.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 
-#include "visualization_msgs/msg/marker.hpp"
-#include "visualization_msgs/msg/marker_array.hpp"
-#include "std_msgs/msg/color_rgba.hpp"
-#include "std_msgs/msg/header.hpp"
-#include "geometry_msgs/msg/vector3.hpp"
-#include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/point.hpp"
-#include "geometry_msgs/msg/quaternion.hpp"
+//#include "visualization_msgs/msg/marker.hpp"
+//#include "visualization_msgs/msg/marker_array.hpp"
+//#include "std_msgs/msg/color_rgba.hpp"
+//#include "std_msgs/msg/header.hpp"
+//#include "geometry_msgs/msg/vector3.hpp"
+//#include "geometry_msgs/msg/pose.hpp"
+//#include "geometry_msgs/msg/point.hpp"
+//#include "geometry_msgs/msg/quaternion.hpp"
+
 #include "sensor_msgs/msg/image.hpp"
+#include "usv_interfaces/msg/object.hpp"
+#include "usv_interfaces/msg/object_list.hpp"
 
 // zed sdk
 #include "sl/Camera.hpp"
@@ -57,7 +60,7 @@ private:
 
 	E*			detector_engine;
 
-	rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub;
+	rclcpp::Publisher<usv_interfaces::msg::ObjectList>::SharedPtr objects_pub;
 	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr img_pub;
 	rclcpp::TimerBase::SharedPtr timer;
 
@@ -66,89 +69,47 @@ private:
 
 	ZED_usv zed_interface;
 
-visualization_msgs::msg::MarkerArray objs2markers(sl::Objects objs) {
+usv_interfaces::msg::ObjectList objs2markers(sl::Objects objs) {
 
-	visualization_msgs::msg::MarkerArray ma;
+	usv_interfaces::msg::ObjectList ma;
 
 	for (auto& obj : objs.object_list) {
-		visualization_msgs::msg::Marker m;
-		std_msgs::msg::Header h;
+		usv_interfaces::msg::Object o;
 
-		h.frame_id = "map";
-		h.stamp = this->now();
 
-		m.header = h;
-		m.type = 2; // sphere
-		m.id = obj.id;
-
-		geometry_msgs::msg::Vector3 s;
-		s.x = 10.0;
-		s.y = 10.0;
-		s.z = 10.0;
-
-		m.scale = s;
-
-		std_msgs::msg::ColorRGBA c;
+		//o.id = obj.id;
+		
+		int color = 0;
 
 		switch (obj.raw_label) {
-			case 0:	
-				c.r = 0.0;
-				c.g = 0.0;
-				c.b = 0.0;
-				c.a = 1.0;
+			case 0:	// black
+				color = 4;
 				break;
-			case 1:	
-				c.r = 0.0;
-				c.g = 0.0;
-				c.b = 1.0;
-				c.a = 1.0;
+			case 1:	// blue
+				color = 2;
 				break;
-			case 3:
-				c.r = 0.0;
-				c.g = 1.0;
-				c.b = 0.0;
-				c.a = 1.0;
+			case 3: // green
+				color = 1;
 				break;
-			case 5:
-				c.r = 1.0;
-				c.g = 0.0;
-				c.b = 0.0;
-				c.a = 1.0;
+			case 5: // red
+				color = 0;
 				break;
-			case 7:
-				c.r = 1.0;
-				c.g = 1.0;
-				c.b = 0.0;
-				c.a = 1.0;
+			case 7: // yellow
+				color = 3;
 				break;
-			default:
-				c.r = 1.0;
-				c.g = 1.0;
-				c.b = 1.0;
-				c.a = 1.0;
+			default: // TODO
+				color = -1;
 				break;
 		}
 
-		m.color = c;
+		o.color = color;
 		
-		geometry_msgs::msg::Point pp;
-		pp.x = obj.position[0]/10.0;
-		pp.y = obj.position[1]/10.0;
-		pp.z = obj.position[2]/10.0;
+		o.x = obj.position[0];
+		o.y = obj.position[1];
 
-		geometry_msgs::msg::Quaternion q;
-		q.x = 0.0;
-		q.y = 0.0;
-		q.z = 0.0;
-		q.w = 1.0;
+		o.type = "buoy";
 
-		geometry_msgs::msg::Pose p;
-		p.position = pp;
-		p.orientation = q;
-		
-		m.pose = p;
-
-		ma.markers.push_back(m);
+		ma.obj_list.push_back(o);
 	}
 	
 	return ma;
@@ -158,42 +119,35 @@ void frame()
 {
 	if (zed_interface.cam.grab() == sl::ERROR_CODE::SUCCESS) {
 
-		// delete past detections in rviz
-		visualization_msgs::msg::MarkerArray mda;
-		visualization_msgs::msg::Marker md;
-		md.header.frame_id = "map";    
-		md.action = visualization_msgs::msg::Marker::DELETEALL;
-		mda.markers.push_back(md);
-		this->marker_pub->publish(mda);
-
 		zed_interface.cam.retrieveImage(left_sl, sl::VIEW::LEFT);
 
 		cv::Mat img = slMat2cvMat(left_sl);
 		cv::cvtColor(img, img, cv::COLOR_BGRA2BGR);
 
 		detector_engine->copy_from_Mat(img, size);
+
+		auto start = std::chrono::system_clock::now();
+		
 		detector_engine->infer();
 		detector_engine->postprocess(in_objs);
 
 		zed_interface.cam.ingestCustomBoxObjects(in_objs);
 		
 		zed_interface.cam.retrieveObjects(out_objs, object_tracker_parameters_rt);
-	
-		visualization_msgs::msg::MarkerArray detections = objs2markers(out_objs);
 
-		this->marker_pub->publish(detections);
+		auto end = std::chrono::system_clock::now();
+		auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
+	
+		usv_interfaces::msg::ObjectList detections = objs2markers(out_objs);
+
+		this->objects_pub->publish(detections);
 
 		sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", img).toImageMsg();
 
 		this->img_pub->publish(*msg.get());
 
-		RCLCPP_INFO(this->get_logger(), "size! %d", detections.markers.size());
+		RCLCPP_INFO(this->get_logger(), "inference done: %2.4lf ms [%d]", tc, detections.obj_list.size());
 	}
-
-	// auto start = std::chrono::system_clock::now();
-	// auto end = std::chrono::system_clock::now();
-	// auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
-	// RCLCPP_INFO(this->get_logger(), "inference done! %2.4lf ms", tc);
 }
 
 public:
@@ -214,7 +168,7 @@ DetectorInterface() : Node("bebblebrox_vision"), zed_interface(this->get_logger(
 	
 	detector_engine->make_pipe(true);
 
-	this->marker_pub = this->create_publisher<visualization_msgs::msg::MarkerArray>("/markers", 10);
+	this->objects_pub = this->create_publisher<usv_interfaces::msg::ObjectList>("/objects", 10);
 	
 	this->img_pub = this->create_publisher<sensor_msgs::msg::Image>("/zed_rgba", 10);
 
