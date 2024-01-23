@@ -242,7 +242,7 @@ void YOLOv8::postprocess(std::vector<sl::CustomBoxObjectData>& objs)
         obj.unique_object_id = sl::generate_unique_id();
         obj.probability = *(scores + i);
 	
-	if (obj.probability <= 0.50) {
+	if (obj.probability <= 0.7) {
 		continue;
 	}
 

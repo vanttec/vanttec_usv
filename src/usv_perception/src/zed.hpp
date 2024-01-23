@@ -22,7 +22,7 @@ ZED_usv::ZED_usv(rclcpp::Logger logger_param) : logger(logger)
     this->logger = logger_param;
 
     init_params.sdk_verbose = true; // TODO false ?
-    init_params.depth_mode = sl::DEPTH_MODE::ULTRA;
+    init_params.depth_mode = sl::DEPTH_MODE::PERFORMANCE;
     init_params.coordinate_system = sl::COORDINATE_SYSTEM::LEFT_HANDED_Z_UP;
     
     auto returned_state = cam.open(init_params);

@@ -1,4 +1,3 @@
-// yolo implementation based on: github.com/triple-Mu/YOLOv8-TensorRT
 
 #define GPU
 
@@ -73,45 +72,97 @@ usv_interfaces::msg::ObjectList objs2markers(sl::Objects objs) {
 
 	usv_interfaces::msg::ObjectList ma;
 
-	for (auto& obj : objs.object_list) {
-		usv_interfaces::msg::Object o;
+	for (int i = 0; i < 5; i++) {
+		try {
+			auto& obj = objs.object_list.at(i);
 
+			usv_interfaces::msg::Object o;
 
-		//o.id = obj.id;
-		
-		int color = 0;
+			//o.id = obj.id;
+			
+			int color = 0;
 
-		switch (obj.raw_label) {
-			case 0:	// black
-				color = 4;
-				break;
-			case 1:	// blue
-				color = 2;
-				break;
-			case 3: // green
-				color = 1;
-				break;
-			case 5: // red
-				color = 0;
-				break;
-			case 7: // yellow
-				color = 3;
-				break;
-			default: // TODO
-				color = -1;
-				break;
+			switch (obj.raw_label) {
+				case 0:	// black
+					color = 4;
+					break;
+				case 1:	// blue
+					color = 2;
+					break;
+				case 3: // green
+					color = 1;
+					break;
+				case 5: // red
+					color = 0;
+					break;
+				case 7: // yellow
+					color = 3;
+					break;
+				default: // TODO
+					color = -1;
+					break;
+			}
+
+			o.color = color;
+			
+			o.x = obj.position[0] / 1000.0;
+			o.y = obj.position[1] / 1000.0;
+
+			o.type = "buoy";
+
+			ma.obj_list.push_back(o);
+		}
+		catch (const std::out_of_range& oor) {
+			usv_interfaces::msg::Object o;
+
+			o.color = 5;
+			o.x = 0;
+			o.y = 0;
+			o.type = "ignore";
+			ma.obj_list.push_back(o);
 		}
 
-		o.color = color;
-		
-		o.x = obj.position[0];
-		o.y = obj.position[1];
-
-		o.type = "buoy";
-
-		ma.obj_list.push_back(o);
 	}
-	
+
+	// for (auto& obj : objs.object_list) {
+	// 	usv_interfaces::msg::Object o;
+	//
+	//
+	// 	//o.id = obj.id;
+	// 	
+	// 	int color = 0;
+	//
+	// 	switch (obj.raw_label) {
+	// 		case 0:	// black
+	// 			color = 4;
+	// 			break;
+	// 		case 1:	// blue
+	// 			color = 2;
+	// 			break;
+	// 		case 3: // green
+	// 			color = 1;
+	// 			break;
+	// 		case 5: // red
+	// 			color = 0;
+	// 			break;
+	// 		case 7: // yellow
+	// 			color = 3;
+	// 			break;
+	// 		default: // TODO
+	// 			color = -1;
+	// 			break;
+	// 	}
+	//
+	// 	o.color = color;
+	// 	
+	// 	o.x = obj.position[0];
+	// 	o.y = obj.position[1];
+	//
+	// 	o.type = "buoy";
+	//
+	// 	ma.obj_list.push_back(o);
+	// }
+	// 
 	return ma;
 }
 
@@ -142,9 +193,9 @@ void frame()
 
 		this->objects_pub->publish(detections);
 
-		sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", img).toImageMsg();
+		//sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", img).toImageMsg();
 
-		this->img_pub->publish(*msg.get());
+		//this->img_pub->publish(*msg.get());
 
 		RCLCPP_INFO(this->get_logger(), "inference done: %2.4lf ms [%d]", tc, detections.obj_list.size());
 	}
@@ -159,7 +210,7 @@ DetectorInterface() : Node("bebblebrox_vision"), zed_interface(this->get_logger(
 	// engine_path = "/home/vanttec/vanttec_usv/RB2024.engine";
 
 	engine_path = ament_index_cpp::get_package_share_directory("usv_perception") + "/data/";
-	engine_path += "vtec.engine";
+	engine_path += "vtec_v2.engine";
 
 
 	size = cv::Size{640, 640};
@@ -170,10 +221,10 @@ DetectorInterface() : Node("bebblebrox_vision"), zed_interface(this->get_logger(
 
 	this->objects_pub = this->create_publisher<usv_interfaces::msg::ObjectList>("/objects", 10);
 	
-	this->img_pub = this->create_publisher<sensor_msgs::msg::Image>("/zed_rgba", 10);
+	//this->img_pub = this->create_publisher<sensor_msgs::msg::Image>("/zed_rgba", 10);
 
 	timer = this->create_wall_timer(
-			std::chrono::milliseconds(40),
+			std::chrono::milliseconds(70),
 			std::bind(&DetectorInterface::frame, this)
 		);
 	}
