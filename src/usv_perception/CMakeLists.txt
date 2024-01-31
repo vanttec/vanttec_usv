@@ -32,9 +32,14 @@ set(TensorRT_INCLUDE_DIRS /usr/include/aarch64-linux-gnu)
 set(TensorRT_LIBRARIES /usr/lib/aarch64-linux-gnu)
 
 add_executable(beeblebrox src/beeblebrox.cpp)
-ament_target_dependencies(beeblebrox rclcpp std_msgs OpenCV cv_bridge image_transport visualization_msgs CUDA ZED usv_interfaces)
+ament_target_dependencies(beeblebrox rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces message_filters)
 target_include_directories(beeblebrox PRIVATE ${CUDA_INCLUDE_DIRS})
 target_link_libraries(beeblebrox ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
+
+add_executable(yolo src/detectors/yolo/yolo.cpp)
+ament_target_dependencies(yolo rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
+target_include_directories(yolo PRIVATE ${CUDA_INCLUDE_DIRS})
+target_link_libraries(yolo ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -45,11 +50,13 @@ endif()
 
 # install python scripts
 file(GLOB SCRIPTS "scripts/*.py")
-install(PROGRAMS ${SCRIPTS} DESTINATION lib/${PROJECT_NAME})
+file(GLOB_RECURSE PY_DETECTORS "src/detectors/*.py")
+install(PROGRAMS ${SCRIPTS} ${PY_DETECTORS} DESTINATION lib/${PROJECT_NAME})
 
 # install c++ programs
 install(TARGETS
   beeblebrox
+  yolo
   DESTINATION lib/${PROJECT_NAME}
 )
 
