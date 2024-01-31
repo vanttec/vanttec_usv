@@ -9,15 +9,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
 
-//#include "visualization_msgs/msg/marker.hpp"
-//#include "visualization_msgs/msg/marker_array.hpp"
-//#include "std_msgs/msg/color_rgba.hpp"
-//#include "std_msgs/msg/header.hpp"
-//#include "geometry_msgs/msg/vector3.hpp"
-//#include "geometry_msgs/msg/pose.hpp"
-//#include "geometry_msgs/msg/point.hpp"
-//#include "geometry_msgs/msg/quaternion.hpp"
-
+// msgs
 #include "sensor_msgs/msg/image.hpp"
 #include "usv_interfaces/msg/object.hpp"
 #include "usv_interfaces/msg/object_list.hpp"
@@ -28,15 +20,11 @@
 // opencv
 #include "opencv2/opencv.hpp"
 
+// local headers
 #include "tensorrt.hpp"
 #include "zed.hpp"
 
 using std::placeholders::_1;
-
-// TODO engine file path as parameter
-// TODO output topic as paramter
-// TODO launch file
-// TODO detect if file does not exist before hand
 
 template <typename E>
 class DetectorInterface: public rclcpp::Node {
@@ -207,11 +195,9 @@ DetectorInterface() : Node("bebblebrox_vision"), zed_interface(this->get_logger(
         get_parameter("classes_path", classes_path);
         get_parameter("output_topic", output_topic);
 
-	// engine_path = "/home/vanttec/vanttec_usv/RB2024.engine";
-
-	engine_path = ament_index_cpp::get_package_share_directory("usv_perception") + "/data/";
-	engine_path += "vtec_v2.engine";
-
+	//engine_path = ament_index_cpp::get_package_share_directory("usv_perception") + "/data/";
+	engine_path = "/home/vanttec/vanttec_usv/vtec_agx_v2.engine";
+	//engine_path += "vtec_v2.engine";
 
 	size = cv::Size{640, 640};
 
@@ -224,7 +210,7 @@ DetectorInterface() : Node("bebblebrox_vision"), zed_interface(this->get_logger(
 	//this->img_pub = this->create_publisher<sensor_msgs::msg::Image>("/zed_rgba", 10);
 
 	timer = this->create_wall_timer(
-			std::chrono::milliseconds(70),
+			std::chrono::milliseconds(30),
 			std::bind(&DetectorInterface::frame, this)
 		);
 	}
