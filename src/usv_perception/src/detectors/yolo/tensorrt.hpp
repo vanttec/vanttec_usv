@@ -12,8 +12,10 @@ using namespace det;
 
 class YOLOv8 {
 public:
-    explicit YOLOv8(const std::string& engine_file_path, double threshold);
+    explicit YOLOv8(const std::string& engine_file_path, double threshold, rclcpp::Logger logger_param);
     ~YOLOv8();
+
+    rclcpp::Logger logger;
 
     void                 make_pipe(bool warmup = true);
     void                 copy_from_Mat(const cv::Mat& image);
@@ -46,8 +48,11 @@ private:
     Logger                       gLogger{nvinfer1::ILogger::Severity::kERROR};
 };
 
-YOLOv8::YOLOv8(const std::string& engine_file_path, double threshold)
+
+YOLOv8::YOLOv8(const std::string& engine_file_path, double threshold, rclcpp::Logger logger_param) : logger(logger)
 {
+    this->logger = logger_param;
+
     std::ifstream file(engine_file_path, std::ios::binary);
     assert(file.good());
     file.seekg(0, std::ios::end);
@@ -223,6 +228,8 @@ void YOLOv8::infer()
 
 void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
 {
+
+    //RCLCPP_INFO(this->logger, "PROCESSING");
     arr.boxes.clear();
     int*  num_dets = static_cast<int*>(this->host_ptrs[0]);
     auto* boxes    = static_cast<float*>(this->host_ptrs[1]);
@@ -233,6 +240,9 @@ void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
     auto& width    = this->pparam.width;
     auto& height   = this->pparam.height;
     auto& ratio    = this->pparam.ratio;
+
+
+    //RCLCPP_INFO(this->logger, "SIZE %d", num_dets[0]);
 
     for (int i = 0; i < num_dets[0]; i++) {
         float* ptr = boxes + i * 4;
@@ -251,9 +261,12 @@ void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
         obj.uuid = sl::generate_unique_id();
         obj.prob = *(scores + i);
 	
-	if (obj.prob <= this->threshold) {
-		continue;
-	}
+	//if (obj.prob <= this->threshold) {
+	//if (obj.prob <= 0.7) {
+	//	continue;
+	//}
+
+    	//RCLCPP_INFO(this->logger, "AFTER THRESHOLD");
 
         obj.label = *(labels + i);
         

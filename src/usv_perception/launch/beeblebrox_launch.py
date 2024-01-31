@@ -5,7 +5,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='beeblebrox',
+            package= 'usv_perception',
             executable='beeblebrox',
             name='beeblebrox',
             output='screen',
@@ -14,20 +14,20 @@ def generate_launch_description():
                 {'video_topic': '/bebblebrox/video'},
                 {'yolo_sub_topic': '/yolo/detections'},
                 {'shapes_sub_topic': '/shapes/detections'},
-                {'frame_interval': 50}, # run every 50 ms
+                {'frame_interval': 100}, # run every 50 ms
             ]
         ),
 
         Node(
-            package='beeblebrox',
-            executable='shapes',
+            package='usv_perception',
+            executable='shapes.py',
             name='shapes',
             output='screen',
             parameters=[]
         ),
 
         Node(
-            package='beeblebrox',
+            package='usv_perception',
             executable='yolo',
             name='yolo',
             output='screen',
@@ -35,7 +35,7 @@ def generate_launch_description():
                 {'engine_path': '/home/vanttec/vanttec_usv/vtec_agx_v2.engine'},
                 {'video_topic': '/bebblebrox/video'},
                 {'output_topic': '/yolo/detections'},
-                {'threshold': 0.8},
+                {'threshold': 0.0},
             ]
         ),
 

@@ -8,7 +8,7 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/time_synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
-
+;
 // msgs
 #include "sensor_msgs/msg/image.hpp"
 #include "usv_interfaces/msg/object.hpp"
@@ -86,6 +86,8 @@ private:
 
 	ZED_usv zed_interface;
 
+	std::shared_ptr<rclcpp::Subscription<usv_interfaces::msg::ZbboxArray>> sub_;
+
 /***
  * Send frame to ros
 ***/
@@ -104,8 +106,51 @@ void frame_send()
 		sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", img).toImageMsg();
 		this->img_pub->publish(*msg.get());
 	}
+
+	RCLCPP_INFO(this->get_logger(), "--> image sent");
 }
 
+void frame_test(const usv_interfaces::msg::ZbboxArray::SharedPtr dets) {
+
+		std::vector<sl::CustomBoxObjectData> total_dets_sl;
+	
+		for (auto& det : dets->boxes) {
+			sl::CustomBoxObjectData sl_det;
+			sl_det.label = det.label;
+			sl_det.probability = det.prob;
+			sl_det.unique_object_id = sl::String(det.uuid.data());
+
+			std::vector<sl::uint2> bbox(4);
+			bbox[0].x = det.x0;
+			bbox[0].y = det.y0;
+			bbox[1].x = det.x1;
+			bbox[1].y = det.y1;
+
+			sl_det.bounding_box_2d = bbox;
+			sl_det.is_grounded = false;
+
+			total_dets_sl.push_back(sl_det);
+		}
+
+		RCLCPP_INFO(this->get_logger(), "real size: [%d]", total_dets_sl.size());
+
+		sl::Objects t_objs;
+
+		auto start = std::chrono::system_clock::now();
+
+		// send to zed sdk
+		zed_interface.cam.ingestCustomBoxObjects(total_dets_sl);
+		zed_interface.cam.retrieveObjects(t_objs, object_tracker_parameters_rt);
+
+		auto end = std::chrono::system_clock::now();
+		auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
+		
+		// publish detections in pointcloud
+		usv_interfaces::msg::ObjectList detections = objs2markers(t_objs);
+		this->objects_pub->publish(detections);
+
+		RCLCPP_INFO(this->get_logger(), "pointcloud estimation done (test): %2.4lf ms [%d]", tc, detections.obj_list.size());
+}
 
 /***
  * Callback for detections
@@ -137,7 +182,6 @@ void receive(
 		this->objects_pub->publish(detections);
 
 		RCLCPP_INFO(this->get_logger(), "pointcloud estimation done: %2.4lf ms [%d]", tc, detections.obj_list.size());
-
 }
 
 /***
@@ -283,7 +327,7 @@ DetectorInterface()
 	this->declare_parameter("shapes_sub_topic", "/shapes/detections");
 	std::string shapes_sub_topic = this->get_parameter("shapes_sub_topic").as_string();
 
-	this->declare_parameter("frame_interval", 50);
+	this->declare_parameter("frame_interval", 100);
 	int frame_interval = this->get_parameter("frame_interval").as_int();
 
 	this->objects_pub = this->create_publisher<usv_interfaces::msg::ObjectList>(objects_topic, 10);
@@ -296,6 +340,10 @@ DetectorInterface()
 		<usv_interfaces::msg::ZbboxArray, usv_interfaces::msg::ZbboxArray> approximate_policy;
 
 	message_filters::Synchronizer<approximate_policy> syncApproximate(approximate_policy(10), yolo_sub, shapes_sub);
+
+	sub_ = this->create_subscription<usv_interfaces::msg::ZbboxArray>(yolo_sub_topic, 10, 
+			std::bind(&DetectorInterface::frame_test, this, _1)
+		);
 
 	syncApproximate.registerCallback(&DetectorInterface::receive, this);
 

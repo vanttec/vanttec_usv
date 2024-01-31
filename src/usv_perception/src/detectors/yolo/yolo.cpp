@@ -17,8 +17,6 @@ class YoloDetector: public rclcpp::Node {
 private:
 	cv::Size		size        = cv::Size{640, 640};
 
-	usv_interfaces::msg::ZbboxArray objs;
-
 	std::string		engine_path;
 	std::string		video_topic;
 	std::string		output_topic;
@@ -33,19 +31,20 @@ private:
 
 void frame(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
+
+	usv_interfaces::msg::ZbboxArray objs;
+
 	auto img = cv_bridge::toCvCopy(msg, "bgr8")->image;
 
 	detector_engine->copy_from_Mat(img, size);
-
 	detector_engine->infer();
-
 	detector_engine->postprocess(objs);
 
-	objs.header = msg->header;
+	objs.header.stamp = this->now();
 
 	this->dets->publish(objs);
 
-	RCLCPP_INFO(this->get_logger(), "rows: %d cols: %d", img.rows, img.cols);
+	RCLCPP_INFO(this->get_logger(), "--> inference done [%d]", objs.boxes.size());
 }
 
 public:
@@ -65,7 +64,7 @@ public:
 
 		size = cv::Size{640, 640};
 
-		detector_engine = new YOLOv8(engine_path, threshold);
+		detector_engine = new YOLOv8(engine_path, threshold, this->get_logger());
 		
 		detector_engine->make_pipe(true);
 
