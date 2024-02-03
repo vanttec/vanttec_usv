@@ -8,6 +8,7 @@
 #include "cv_bridge/cv_bridge.h"
 #include "rclcpp/rclcpp.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
+#include "image_transport/image_transport.hpp"
 
 // msgs
 #include "sensor_msgs/msg/image.hpp"
@@ -20,42 +21,11 @@
 // opencv
 #include "opencv2/opencv.hpp"
 
+// local headers
 #include "tensorrt.hpp"
 #include "zed.hpp"
 
 using std::placeholders::_1;
-
-// TODO engine file path as parameter
-// TODO output topic as paramter
-// TODO launch file
-// TODO detect if file does not exist before hand
-
-inline cv::Mat slMat2cvMat(sl::Mat& input) {
-    // Mapping between MAT_TYPE and CV_TYPE
-    int cv_type = -1;
-    switch (input.getDataType()) {
-        case sl::MAT_TYPE::F32_C1: cv_type = CV_32FC1;
-            break;
-        case sl::MAT_TYPE::F32_C2: cv_type = CV_32FC2;
-            break;
-        case sl::MAT_TYPE::F32_C3: cv_type = CV_32FC3;
-            break;
-        case sl::MAT_TYPE::F32_C4: cv_type = CV_32FC4;
-            break;
-        case sl::MAT_TYPE::U8_C1: cv_type = CV_8UC1;
-            break;
-        case sl::MAT_TYPE::U8_C2: cv_type = CV_8UC2;
-            break;
-        case sl::MAT_TYPE::U8_C3: cv_type = CV_8UC3;
-            break;
-        case sl::MAT_TYPE::U8_C4: cv_type = CV_8UC4;
-            break;
-        default: break;
-    }
-
-    return cv::Mat(input.getHeight(), input.getWidth(), cv_type, input.getPtr<sl::uchar1>(sl::MEM::CPU));
-}
-
 
 template <typename E>
 class DetectorInterface: public rclcpp::Node {
@@ -79,8 +49,9 @@ private:
 	E*			detector_engine;
 
 	rclcpp::Publisher<usv_interfaces::msg::ObjectList>::SharedPtr objects_pub;
-	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr img_pub;
 	rclcpp::TimerBase::SharedPtr timer;
+
+	image_transport::Publisher ip;
 
 	sl::Mat left_sl, point_cloud;
 	cv::Mat left_cv;
@@ -194,32 +165,33 @@ void frame()
 		cv::Mat img = slMat2cvMat(left_sl);
 		cv::cvtColor(img, img, cv::COLOR_BGRA2BGR);
 
-		detector_engine->copy_from_Mat(img, size);
+		std_msgs::msg::Header hdr;
+		sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(hdr, "bgr8", img).toImageMsg();
+		this->ip.publish(msg);
 
-		auto start = std::chrono::system_clock::now();
+		//detector_engine->copy_from_Mat(img, size);
+
+		//auto start = std::chrono::system_clock::now();
 		
-		detector_engine->infer();
-		detector_engine->postprocess(in_objs);
+		//detector_engine->infer();
+		//detector_engine->postprocess(in_objs);
 
-		RCLCPP_INFO(this->get_logger(), "in_objs size [%d]", in_objs.size() );
-
-		zed_interface.cam.ingestCustomBoxObjects(in_objs);
+		//zed_interface.cam.ingestCustomBoxObjects(in_objs);
 		
-		zed_interface.cam.retrieveObjects(out_objs, object_tracker_parameters_rt);
+		//zed_interface.cam.retrieveObjects(out_objs, object_tracker_parameters_rt);
 
-		auto end = std::chrono::system_clock::now();
-		auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
+		//auto end = std::chrono::system_clock::now();
+		//auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
 	
-		RCLCPP_INFO(this->get_logger(), "out_objs size [%d]", out_objs.object_list.size() );
-		usv_interfaces::msg::ObjectList detections = objs2markers(out_objs);
+		//usv_interfaces::msg::ObjectList detections = objs2markers(out_objs);
 
-		this->objects_pub->publish(detections);
+		//this->objects_pub->publish(detections);
 
 		//sensor_msgs::msg::Image::SharedPtr msg = cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", img).toImageMsg();
 
 		//this->img_pub->publish(*msg.get());
 
-		RCLCPP_INFO(this->get_logger(), "inference done: %2.4lf ms [%d]", tc, detections.obj_list.size());
+		//RCLCPP_INFO(this->get_logger(), "inference done: %2.4lf ms [%d]", tc, detections.obj_list.size());
 	}
 }
 
@@ -229,27 +201,24 @@ DetectorInterface() : Node("bebblebrox_vision"), zed_interface(this->get_logger(
         get_parameter("classes_path", classes_path);
         get_parameter("output_topic", output_topic);
 
-	// engine_path = "/home/vanttec/vanttec_usv/RB2024.engine";
-
-	// engine_path = ament_index_cpp::get_package_share_directory("usv_perception") + "/data/";
-	// engine_path += "vtec_v2.engine";
-		//
-	
-
-	// engine_path = "/home/vanttec/vanttec_usv/vtec_agx_v3.engine";
-	engine_path = "/home/vanttec/vanttec_usv/test.engine";
-
+	//engine_path = ament_index_cpp::get_package_share_directory("usv_perception") + "/data/";
+	engine_path = "/home/vanttec/vanttec_usv/vtec_agx_v2.engine";
+	//engine_path += "vtec_v2.engine";
 
 	size = cv::Size{640, 640};
 
-	detector_engine = new YOLOv8(engine_path);
+	//detector_engine = new YOLOv8(engine_path);
 	
-	detector_engine->make_pipe(true);
+	//detector_engine->make_pipe(true);
 
 	this->objects_pub = this->create_publisher<usv_interfaces::msg::ObjectList>("/objects", 10);
-	
-	//this->img_pub = this->create_publisher<sensor_msgs::msg::Image>("/zed_rgba", 10);
 
+	rclcpp::Node::SharedPtr nh(std::shared_ptr<DetectorInterface>(this, [](auto *) {}));
+
+	image_transport::ImageTransport it(nh);
+
+	this->ip = it.advertise("/zed_video", 5);
+	
 	timer = this->create_wall_timer(
 			std::chrono::milliseconds(30),
 			std::bind(&DetectorInterface::frame, this)

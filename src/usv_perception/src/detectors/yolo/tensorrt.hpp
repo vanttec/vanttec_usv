@@ -5,20 +5,24 @@
 #include "fstream"
 
 #include "sl/Camera.hpp"
+#include "usv_interfaces/msg/zbbox.hpp"
+#include "usv_interfaces/msg/zbbox_array.hpp"
 
 using namespace det;
 
 class YOLOv8 {
 public:
-    explicit YOLOv8(const std::string& engine_file_path);
+    explicit YOLOv8(const std::string& engine_file_path, double threshold, rclcpp::Logger logger_param);
     ~YOLOv8();
+
+    rclcpp::Logger logger;
 
     void                 make_pipe(bool warmup = true);
     void                 copy_from_Mat(const cv::Mat& image);
     void                 copy_from_Mat(const cv::Mat& image, const cv::Size& size);
     void                 letterbox(const cv::Mat& image, cv::Mat& out, const cv::Size& size);
     void                 infer();
-    void                 postprocess(std::vector<sl::CustomBoxObjectData>& objs);
+    void                 postprocess(usv_interfaces::msg::ZbboxArray& objs);
     static void          draw_objects(const cv::Mat&                                image,
                                       cv::Mat&                                      res,
                                       const std::vector<Object>&                    objs,
@@ -32,6 +36,8 @@ public:
     std::vector<void*>   host_ptrs;
     std::vector<void*>   device_ptrs;
 
+    double threshold;
+
     PreParam pparam;
 
 private:
@@ -43,8 +49,10 @@ private:
 };
 
 
-YOLOv8::YOLOv8(const std::string& engine_file_path)
+YOLOv8::YOLOv8(const std::string& engine_file_path, double threshold, rclcpp::Logger logger_param) : logger(logger)
 {
+    this->logger = logger_param;
+
     std::ifstream file(engine_file_path, std::ios::binary);
     assert(file.good());
     file.seekg(0, std::ios::end);
@@ -218,11 +226,9 @@ void YOLOv8::infer()
     cudaStreamSynchronize(this->stream);
 }
 
-void YOLOv8::postprocess(std::vector<sl::CustomBoxObjectData>& objs)
+void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
 {
-
-    //RCLCPP_INFO(this->logger, "PROCESSING");
-    objs.clear();
+    arr.boxes.clear();
     int*  num_dets = static_cast<int*>(this->host_ptrs[0]);
     auto* boxes    = static_cast<float*>(this->host_ptrs[1]);
     auto* scores   = static_cast<float*>(this->host_ptrs[2]);
@@ -233,8 +239,7 @@ void YOLOv8::postprocess(std::vector<sl::CustomBoxObjectData>& objs)
     auto& height   = this->pparam.height;
     auto& ratio    = this->pparam.ratio;
 
-
-    //RCLCPP_INFO(this->logger, "SIZE %d", num_dets[0]);
+    RCLCPP_DEBUG(this->logger, "num_dets: %d", num_dets[0]);
 
     for (int i = 0; i < num_dets[0]; i++) {
         float* ptr = boxes + i * 4;
@@ -249,21 +254,22 @@ void YOLOv8::postprocess(std::vector<sl::CustomBoxObjectData>& objs)
         x1 = clamp(x1 * ratio, 0.f, width);
         y1 = clamp(y1 * ratio, 0.f, height);
 
-        sl::CustomBoxObjectData obj;
-        obj.unique_object_id = sl::generate_unique_id();
-        obj.probability = *(scores + i);
+        usv_interfaces::msg::Zbbox obj;
+        obj.uuid = sl::generate_unique_id();
+        obj.prob = *(scores + i);
 	
-    	//RCLCPP_INFO(this->logger, "AFTER THRESHOLD");
+	if (obj.prob <= this->threshold) {
+	    continue;
+	}
 
         obj.label = *(labels + i);
         
-        std::vector<sl::uint2> bbox(4);
-        bbox[0] = sl::uint2(x0, y0);
-        bbox[1] = sl::uint2(x1, y0);
-        bbox[2] = sl::uint2(x0, y1);
-        bbox[3] = sl::uint2(x1, y1);
+        obj.x0 = x0;
+        obj.y0 = y0;
+        obj.x1 = x1;
+        obj.y1 = y1;
 
-        objs.push_back(obj);
+        arr.boxes.push_back(obj);
     }
 }
 
