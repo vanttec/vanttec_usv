@@ -1,0 +1,44 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/max/usv/install/vanttec_can_comms/include/**",
+        "/home/max/usv/install/usv_control/include/**",
+        "/home/max/usv/install/usv_interfaces/include/**",
+        "/home/max/usv/install/sbg_driver/include/**",
+        "/home/max/usv/install/ros_ign_interfaces/include/**",
+        "/home/max/usv/install/ros_gz_bridge/include/**",
+        "/home/max/usv/install/ros_gz_interfaces/include/**",
+        "/home/max/sdv/install/velodyne_pointcloud/include/**",
+        "/home/max/sdv/install/velodyne_driver/include/**",
+        "/home/max/sdv/install/velodyne_msgs/include/**",
+        "/home/max/sdv/install/velodyne_laserscan/include/**",
+        "/home/max/sdv/install/vectornav/include/**",
+        "/home/max/sdv/install/sdv_localization/include/**",
+        "/home/max/sdv/install/sdv_control/include/**",
+        "/home/max/sdv/install/vectornav_msgs/include/**",
+        "/home/max/sdv/install/slam_toolbox/include/**",
+        "/home/max/sdv/install/sdv_msgs/include/**",
+        "/home/max/sdv/install/sbg_driver/include/**",
+        "/home/max/sdv/install/robot_localization/include/**",
+        "/home/max/sdv/install/beetle_msgs/include/**",
+        "/home/max/sdv/install/ackermann_drive_controller/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver/include/**",
+        "/home/max/usv/src/vanttec_usv/src/usv_description/include/**",
+        "/home/max/usv/src/vanttec_usv/src/usv_interfaces/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

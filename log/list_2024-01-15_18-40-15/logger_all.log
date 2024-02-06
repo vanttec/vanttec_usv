@@ -1,0 +1,134 @@
+[2.632s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'list', '-p', '--base-paths', '/home/max/usv/src/vanttec_usv']
+[2.632s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='list', build_base='build', ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['/home/max/usv/src/vanttec_usv'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], topological_order=False, names_only=False, paths_only=True, topological_graph=False, topological_graph_dot=False, topological_graph_density=False, topological_graph_legend=False, topological_graph_dot_cluster=False, topological_graph_dot_include_skipped=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x7f967e7dba30>, verb_extension=<colcon_package_information.verb.list.ListVerb object at 0x7f967e7dbb50>, main=<bound method ListVerb.main of <colcon_package_information.verb.list.ListVerb object at 0x7f967e7dbb50>>)
+[2.859s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[2.860s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[2.860s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[2.860s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[2.860s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[2.860s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/max/usv/src/vanttec_usv'
+[2.861s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extensions ['ignore', 'ignore_ament_install']
+[2.861s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'ignore'
+[2.862s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'ignore_ament_install'
+[2.862s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extensions ['colcon_pkg']
+[2.862s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'colcon_pkg'
+[2.862s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extensions ['colcon_meta']
+[2.862s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'colcon_meta'
+[2.863s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extensions ['ros']
+[2.863s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'ros'
+[2.960s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extensions ['cmake', 'python']
+[2.960s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'cmake'
+[2.960s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'python'
+[2.961s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extensions ['python_setup_py']
+[2.961s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv) by extension 'python_setup_py'
+[2.961s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extensions ['ignore', 'ignore_ament_install']
+[2.962s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'ignore'
+[2.962s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'ignore_ament_install'
+[2.962s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extensions ['colcon_pkg']
+[2.962s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'colcon_pkg'
+[2.963s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extensions ['colcon_meta']
+[2.963s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'colcon_meta'
+[2.963s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extensions ['ros']
+[2.963s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'ros'
+[2.963s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extensions ['cmake', 'python']
+[2.964s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'cmake'
+[2.964s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'python'
+[2.964s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extensions ['python_setup_py']
+[2.964s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/docs) by extension 'python_setup_py'
+[2.965s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/log) by extensions ['ignore', 'ignore_ament_install']
+[2.965s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/log) by extension 'ignore'
+[2.965s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/log) ignored
+[2.966s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extensions ['ignore', 'ignore_ament_install']
+[2.966s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'ignore'
+[2.966s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'ignore_ament_install'
+[2.967s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extensions ['colcon_pkg']
+[2.967s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'colcon_pkg'
+[2.967s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extensions ['colcon_meta']
+[2.967s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'colcon_meta'
+[2.967s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extensions ['ros']
+[2.967s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'ros'
+[2.968s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extensions ['cmake', 'python']
+[2.968s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'cmake'
+[2.968s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'python'
+[2.968s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extensions ['python_setup_py']
+[2.968s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src) by extension 'python_setup_py'
+[2.969s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extensions ['ignore', 'ignore_ament_install']
+[2.969s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extension 'ignore'
+[2.969s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extension 'ignore_ament_install'
+[2.970s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extensions ['colcon_pkg']
+[2.970s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extension 'colcon_pkg'
+[2.970s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extensions ['colcon_meta']
+[2.970s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extension 'colcon_meta'
+[2.970s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extensions ['ros']
+[2.970s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver) by extension 'ros'
+[2.983s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/sbg_ros2_driver' with type 'ros.ament_cmake' and name 'sbg_driver'
+[2.984s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extensions ['ignore', 'ignore_ament_install']
+[2.984s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extension 'ignore'
+[2.985s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extension 'ignore_ament_install'
+[2.985s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extensions ['colcon_pkg']
+[2.985s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extension 'colcon_pkg'
+[2.985s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extensions ['colcon_meta']
+[2.985s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extension 'colcon_meta'
+[2.986s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extensions ['ros']
+[2.986s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_control) by extension 'ros'
+[2.988s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/usv_control' with type 'ros.ament_cmake' and name 'usv_control'
+[2.989s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extensions ['ignore', 'ignore_ament_install']
+[2.989s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extension 'ignore'
+[2.989s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extension 'ignore_ament_install'
+[2.989s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extensions ['colcon_pkg']
+[2.990s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extension 'colcon_pkg'
+[2.990s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extensions ['colcon_meta']
+[2.990s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extension 'colcon_meta'
+[2.990s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extensions ['ros']
+[2.990s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_description) by extension 'ros'
+[2.993s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/usv_description' with type 'ros.ament_cmake' and name 'usv_description'
+[2.994s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extensions ['ignore', 'ignore_ament_install']
+[2.995s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extension 'ignore'
+[2.995s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extension 'ignore_ament_install'
+[2.995s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extensions ['colcon_pkg']
+[2.995s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extension 'colcon_pkg'
+[2.995s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extensions ['colcon_meta']
+[2.996s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extension 'colcon_meta'
+[2.996s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extensions ['ros']
+[2.996s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_interfaces) by extension 'ros'
+[2.998s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/usv_interfaces' with type 'ros.ament_cmake' and name 'usv_interfaces'
+[2.999s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extensions ['ignore', 'ignore_ament_install']
+[2.999s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extension 'ignore'
+[2.999s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extension 'ignore_ament_install'
+[2.999s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extensions ['colcon_pkg']
+[3.000s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extension 'colcon_pkg'
+[3.000s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extensions ['colcon_meta']
+[3.000s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extension 'colcon_meta'
+[3.000s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extensions ['ros']
+[3.000s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_master) by extension 'ros'
+[3.002s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/usv_master' with type 'ros.ament_cmake' and name 'usv_master'
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extensions ['ignore', 'ignore_ament_install']
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extension 'ignore'
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extension 'ignore_ament_install'
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extensions ['colcon_pkg']
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extension 'colcon_pkg'
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extensions ['colcon_meta']
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extension 'colcon_meta'
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extensions ['ros']
+[3.002s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_missions) by extension 'ros'
+[3.003s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/usv_missions' with type 'ros.ament_cmake' and name 'usv_missions'
+[3.003s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extensions ['ignore', 'ignore_ament_install']
+[3.003s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extension 'ignore'
+[3.004s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extension 'ignore_ament_install'
+[3.004s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extensions ['colcon_pkg']
+[3.004s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extension 'colcon_pkg'
+[3.004s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extensions ['colcon_meta']
+[3.004s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extension 'colcon_meta'
+[3.004s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extensions ['ros']
+[3.004s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/usv_utils) by extension 'ros'
+[3.004s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/usv_utils' with type 'ros.ament_cmake' and name 'usv_utils'
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extensions ['ignore', 'ignore_ament_install']
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extension 'ignore'
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extension 'ignore_ament_install'
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extensions ['colcon_pkg']
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extension 'colcon_pkg'
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extensions ['colcon_meta']
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extension 'colcon_meta'
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extensions ['ros']
+[3.005s] Level 1:colcon.colcon_core.package_identification:_identify(/home/max/usv/src/vanttec_usv/src/vanttec_can_comms) by extension 'ros'
+[3.005s] DEBUG:colcon.colcon_core.package_identification:Package '/home/max/usv/src/vanttec_usv/src/vanttec_can_comms' with type 'ros.ament_cmake' and name 'vanttec_can_comms'
+[3.006s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults

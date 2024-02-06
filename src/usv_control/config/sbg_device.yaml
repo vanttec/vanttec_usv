@@ -21,7 +21,7 @@
       initFrameId: "map"
 
     # Configuration of the device with ROS.
-    confWithRos: true
+    confWithRos: false
     
     # Uart configuration
     uartConf:
@@ -29,7 +29,7 @@
       portName: "/dev/ttyUSB0"
     
       # Baude rate (4800 ,9600 ,19200 ,38400 ,115200 [default],230400 ,460800 ,921600)
-      baudRate: 921600
+      baudRate: 115200
     
       # Port Id
       # 0 PORT_A: Main communication interface. Full duplex.
@@ -71,7 +71,7 @@
       # 3 ALIGNMENT_RIGHT     IMU Axis is turned in vehicle's right direction
       # 4 ALIGNMENT_UP        IMU Axis is turned in vehicle's up direction
       # 5 ALIGNMENT_DOWN      IMU Axis is turned in vehicle's down direction
-      axisDirectionX: 0
+      axisDirectionX: 3
       # IMU Y axis direction in vehicle frame
       # 0 ALIGNMENT_FORWARD   IMU Axis is turned in vehicle's forward direction
       # 1 ALIGNMENT_BACKWARD  IMU Axis is turned in vehicle's backward direction
@@ -79,7 +79,7 @@
       # 3 ALIGNMENT_RIGHT     IMU Axis is turned in vehicle's right direction
       # 4 ALIGNMENT_UP        IMU Axis is turned in vehicle's up direction
       # 5 ALIGNMENT_DOWN      IMU Axis is turned in vehicle's down direction
-      axisDirectionY: 3
+      axisDirectionY: 1
       # Residual roll error after axis alignment rad
       misRoll: 0.0
       # Residual pitch error after axis alignment rad
@@ -87,9 +87,9 @@
       # Residual yaw error after axis alignment rad
       misYaw: 0.0
       # X Primary lever arm in IMU X axis (once IMU alignment is applied) m
-      leverArmX: 0.30
+      leverArmX: 0.1
       # Y Primary lever arm in IMU Y axis (once IMU alignment is applied) m
-      leverArmY: -0.10
+      leverArmY: -0.3
       # Z Primary lever arm in IMU Z axis (once IMU alignment is applied) m
       leverArmZ: 0.0
     
@@ -163,20 +163,20 @@
       gnss_model_id: 107
     
       #GNSS primary antenna lever arm in IMU X axis (m)
-      primaryLeverArmX: 0.40
+      primaryLeverArmX: -0.05
       #GNSS primary antenna lever arm in IMU Y axis (m)
-      primaryLeverArmY: 0.30
+      primaryLeverArmY: 0.25
       #GNSS primary antenna lever arm in IMU Z axis (m)
-      primaryLeverArmZ: 0.0
+      primaryLeverArmZ: 0.15
       #GNSS primary antenna precise. Set to true if the primary lever arm has been accurately entered and doesn't need online re-estimation.
       primaryLeverPrecise: false
     
       #GNSS secondary antenna lever arm in IMU X axis (m)
-      secondaryLeverArmX: 0.40
+      secondaryLeverArmX: -0.05
       #GNSS secondary antenna lever arm in IMU Y axis (m)
-      secondaryLeverArmY: -0.30
+      secondaryLeverArmY: -0.5
       #GNSS secondary antenna lever arm in IMU Z axis (m)
-      secondaryLeverArmZ: 0.0
+      secondaryLeverArmZ: 0.15
     
       # Secondary antenna operating mode.
       # 1 The GNSS will be used in single antenna mode only and the secondary lever arm is not used.

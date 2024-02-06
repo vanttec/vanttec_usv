@@ -66,18 +66,6 @@
         </geometry>
       </collision>
 
-      <sensor name="navsat" type="navsat">
-        <pose>0.3 0.0 0.25 0 0 0</pose>
-        <always_on>1</always_on>
-        <update_rate>1</update_rate>
-      </sensor>
-
-      <sensor name="imu" type="imu">
-        <pose>0.2 0.0 0.25 0 0 0</pose>
-        <always_on>1</always_on>
-        <update_rate>1</update_rate>
-      </sensor>
-
       <sensor name='gpu_lidar' type='gpu_lidar'>
         <pose>0.2 0.0 0.55 0 0 0</pose>
         <topic>lidar</topic>
@@ -440,6 +428,13 @@
       <mQQ>35.0</mQQ>
       <nR>32.0</nR>
       <nRR>32.0</nRR>
+    </plugin>
+
+    <plugin
+      filename="gz-sim-odometry-publisher-system"
+      name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>world</odom_frame>
+      <odom_covariance_topic>/gz_sim/odometry</odom_covariance_topic>
     </plugin>
 
     <plugin

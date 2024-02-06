@@ -1,13 +1,11 @@
 {
     "python.autoComplete.extraPaths": [
-        "/home/max/vrx_ws/install/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/usv_interfaces/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/usv_description/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/sbg_driver/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/ros_ign_interfaces/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/ros_gz_interfaces/local/lib/python3.10/dist-packages",
-        "/home/max/vrx_ws/install/vrx_gz/local/lib/python3.10/dist-packages",
-        "/home/max/vrx_ws/install/vrx_gazebo/local/lib/python3.10/dist-packages",
+        "/home/max/vrx_ws/install/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/velodyne_msgs/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/vectornav_msgs/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/slam_toolbox/local/lib/python3.10/dist-packages",
@@ -17,18 +15,20 @@
         "/home/max/sdv/install/ros_compatibility/lib/python3.10/site-packages",
         "/home/max/sdv/install/robot_localization/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/beetle_msgs/local/lib/python3.10/dist-packages",
+        "/home/max/launch_tutorials/install/launch_tutorial/lib/python3.10/site-packages",
+        "/home/max/jetson_jan/install/usv_interfaces/local/lib/python3.10/dist-packages",
+        "/home/max/jetson_jan/install/usv_description/local/lib/python3.10/dist-packages",
+        "/home/max/jetson_jan/install/sbg_driver/local/lib/python3.10/dist-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ],
     "python.analysis.extraPaths": [
-        "/home/max/vrx_ws/install/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/usv_interfaces/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/usv_description/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/sbg_driver/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/ros_ign_interfaces/local/lib/python3.10/dist-packages",
         "/home/max/usv/install/ros_gz_interfaces/local/lib/python3.10/dist-packages",
-        "/home/max/vrx_ws/install/vrx_gz/local/lib/python3.10/dist-packages",
-        "/home/max/vrx_ws/install/vrx_gazebo/local/lib/python3.10/dist-packages",
+        "/home/max/vrx_ws/install/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/velodyne_msgs/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/vectornav_msgs/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/slam_toolbox/local/lib/python3.10/dist-packages",
@@ -38,10 +38,14 @@
         "/home/max/sdv/install/ros_compatibility/lib/python3.10/site-packages",
         "/home/max/sdv/install/robot_localization/local/lib/python3.10/dist-packages",
         "/home/max/sdv/install/beetle_msgs/local/lib/python3.10/dist-packages",
+        "/home/max/launch_tutorials/install/launch_tutorial/lib/python3.10/site-packages",
+        "/home/max/jetson_jan/install/usv_interfaces/local/lib/python3.10/dist-packages",
+        "/home/max/jetson_jan/install/usv_description/local/lib/python3.10/dist-packages",
+        "/home/max/jetson_jan/install/sbg_driver/local/lib/python3.10/dist-packages",
         "/opt/ros/humble/lib/python3.10/site-packages",
         "/opt/ros/humble/local/lib/python3.10/dist-packages"
     ],
     "files.associations": {
-        "chrono": "cpp"
+        "functional": "cpp"
     }
 }

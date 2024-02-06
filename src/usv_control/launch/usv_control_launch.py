@@ -23,9 +23,9 @@ def generate_launch_description():
     )
 
     sbg_config = os.path.join(
-        get_package_share_directory("usv_control"),
+        get_package_share_directory('usv_control'),
         'config',
-        "sbg_device.yaml"
+        'sbg_device.yaml'
     )
 
     sbg_node = Node(
@@ -71,7 +71,7 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('is_simulation')),
     )
 
-    usv_description_launch = IncludeLaunchDescription(
+    rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
                 FindPackageShare('usv_description'),
@@ -156,6 +156,30 @@ def generate_launch_description():
         package="foxglove_bridge",
         executable="foxglove_bridge")
     
+    waypoint_handler = Node(
+        package="usv_control",
+        executable="waypoint_handler_node")    
+
+    tf2 = Node(
+        package="usv_control",
+        executable="usv_tf2_broadcaster_node")    
+
+    obstacle_publisher = Node(
+        package="usv_missions",
+        executable="obstacle_publisher_node")   
+
+    can_node = Node(
+        package="vanttec_can_comms",
+        executable="can_node",
+        output="screen",
+        remappings=[
+            ("out/mode", "/usv/op_mode"),
+            ("out/stm32_ping", "/usv/can/stm32_ping"),
+            ("in/left_motor", "/usv/left_thruster"),
+            ("in/right_motor", "/usv/right_thruster"),
+        ]
+    )
+
     return LaunchDescription([
         is_sim,
 
@@ -169,13 +193,17 @@ def generate_launch_description():
             msg="Running IRL mode."
         ),
 
-        usv_description_launch,
+        # rviz,
         dynamic_sim_node,
         asmc_node,
         # aitsmc_node,
         sbg_node,
         # velodyne_launch,
         imu_converter_node,
-        twist_to_setpoint_node,
+        # twist_to_setpoint_node,
         foxglove_bridge,
+        waypoint_handler,
+        tf2,
+        obstacle_publisher,
+        # can_node,
     ])

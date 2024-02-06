@@ -38,17 +38,8 @@ def generate_launch_description():
             'gz_args': PathJoinSubstitution([
             pkg_usv_description,
             'worlds',
-            # 'diffo.sdf'
             'nbpark_custom.sdf'
         ])}.items(),
-    )
-
-    # RViz
-    rviz = Node(
-       package='rviz2',
-       executable='rviz2',
-       arguments=['-d', os.path.join(pkg_usv_description, 'rviz', 'diff_drive.rviz')],
-       condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
     # Bridge
@@ -58,8 +49,7 @@ def generate_launch_description():
         arguments=[
                    '/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
                    '/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
-                   '/world/nbpark/model/vtec_s3/link/base_link/sensor/imu/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
-                   '/world/nbpark/model/vtec_s3/link/base_link/sensor/navsat/navsat@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat',
+                   '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
                    '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
                    '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
                    '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
@@ -70,12 +60,19 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Odom converter
+    odom_converter_node = Node(
+        package='usv_utils',
+        executable='odom_converter_node',
+        output='screen',
+    )
+
     return LaunchDescription([
         gz_sim,
         DeclareLaunchArgument('rviz', default_value='true',
                               description='Open RViz.'),
         bridge,
-        # rviz
+        odom_converter_node,
     ])
 
 '''

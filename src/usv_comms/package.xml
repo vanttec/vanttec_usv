@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>usv_missions</name>
+  <name>usv_comms</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="alecoeto@tec.mx">ale</maintainer>
@@ -10,14 +10,13 @@
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>visualization_msgs</exec_depend>
   <exec_depend>ros2launch</exec_depend>
   <depend>tf2_ros</depend>
   <depend>tf2</depend>
   <depend>pluginlib</depend>
   <!-- <depend>polygon_base</depend> -->
   <exec_depend>rclpy</exec_depend>
-
+  
   <depend>usv_interfaces</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

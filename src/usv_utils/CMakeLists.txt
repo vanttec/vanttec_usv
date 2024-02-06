@@ -22,7 +22,6 @@ target_include_directories(imu_converter_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 target_compile_features(imu_converter_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-
 ament_target_dependencies(
   imu_converter_node
   tf2
@@ -33,7 +32,40 @@ ament_target_dependencies(
   sensor_msgs
 )
 
-install(TARGETS imu_converter_node
+add_executable(odom_converter_node src/odom_converter_node.cpp)
+target_include_directories(odom_converter_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(odom_converter_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  odom_converter_node
+  tf2
+  tf2_ros
+  nav_msgs
+  std_srvs
+  geometry_msgs
+  sensor_msgs
+)
+
+add_executable(killswitch_node src/killswitch_node.cpp)
+target_include_directories(killswitch_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(killswitch_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  killswitch_node
+  tf2
+  tf2_ros
+  nav_msgs
+  std_srvs
+  geometry_msgs
+  sensor_msgs
+)
+
+install(TARGETS 
+  imu_converter_node
+  odom_converter_node
+  killswitch_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
