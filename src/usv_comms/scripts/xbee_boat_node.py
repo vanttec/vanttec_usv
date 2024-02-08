@@ -15,7 +15,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose2D, Vector3
-from std_msgs.msg import Float32, Float64
+from std_msgs.msg import Float32, Float64, Int8
 from usv_interfaces.msg import Waypoint, ObjectList, Object
 
 class XbeeBoatNode(Node):
@@ -27,6 +27,10 @@ class XbeeBoatNode(Node):
     left_thruster = 0.0
     right_thruster = 0.0
     obj_list = [0.0]*3*5
+    m1_state = 0
+    m2_state = 0
+    m3_state = 0
+    m4_state = 0
 
     remote_id = "STATION_XBEE"
     device = XBeeDevice("/dev/ttyUSB1", 115200)
@@ -49,6 +53,27 @@ class XbeeBoatNode(Node):
             '/usv/state/pose',
             self.pose_callback,
             10)
+        self.state_1_sub_ = self.create_subscription(
+            Int8,
+            '/usv/m1/state',
+            self.state_1_callback,
+            10)
+        self.state_2_sub_ = self.create_subscription(
+            Int8,
+            '/usv/m2/state',
+            self.state_2_callback,
+            10)
+        self.state_3_sub_ = self.create_subscription(
+            Int8,
+            '/usv/m3/state',
+            self.state_3_callback,
+            10)
+        self.state_4_sub_ = self.create_subscription(
+            Int8,
+            '/usv/m4/state',
+            self.state_4_callback,
+            10)
+
         self.obj_list_sub_ = self.create_subscription(
             ObjectList,
             '/objects',
@@ -91,11 +116,12 @@ class XbeeBoatNode(Node):
     def timer_callback(self):
         pub_list = self.pose_list + self.vel_list + self.wp_list + \
         [self.heading_d, self.velocity_d, self.left_thruster, \
-        self.right_thruster] + self.obj_list
+        self.right_thruster] + self.obj_list + [self.m1_state, \
+        self.m2_state, self.m3_state, self.m4_state]
 
         pub_list = pub_list
 
-        pub_struct = struct.pack('!'+'f'*27, *pub_list)
+        pub_struct = struct.pack('!'+'f'*31, *pub_list)
         if(len(pub_list) > 0):
             st = ','.join(str(x) for x in pub_list)
             # print(pub_struct)
@@ -120,6 +146,18 @@ class XbeeBoatNode(Node):
     def wp_callback(self, msg):
         self.wp_list = [msg.x, msg.y]
         self.wp_list = [round(x,1) for x in self.wp_list]
+    
+    def state_1_callback(self, msg):
+        self.m1_state = msg.data
+
+    def state_2_callback(self, msg):
+        self.m2_state = msg.data
+
+    def state_3_callback(self, msg):
+        self.m3_state = msg.data
+
+    def state_4_callback(self, msg):
+        self.m4_state = msg.data
 
     def heading_d_callback(self, msg):
         self.heading_d = round(msg.data,1)

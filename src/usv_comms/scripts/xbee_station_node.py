@@ -15,7 +15,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Point
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Pose2D, Vector3
-from std_msgs.msg import Float32, Float64
+from std_msgs.msg import Float32, Float64, Int8
 from usv_interfaces.msg import Waypoint, ObjectList, Object
 
 
@@ -29,6 +29,11 @@ class XbeeStationNode(Node):
     left_thruster = Float64()
     right_thruster = Float64()
     obj_list = ObjectList()
+    m1_state = Float64()
+    m2_state = Float64()
+    m3_state = Float64()
+    m4_state = Float64()
+
     remote_id = "BOAT_XBEE"
     device = XBeeDevice("/dev/ttyUSB0", 115200)
 
@@ -46,6 +51,10 @@ class XbeeStationNode(Node):
         self.velocity_d.data = 0.0
         self.left_thruster.data = 0.0
         self.right_thruster.data = 0.0
+        self.m1_state.data = 0.0
+        self.m2_state.data = 0.0
+        self.m3_state.data = 0.0
+        self.m4_state.data = 0.0
 
         self.device.open()
         xbee_network = self.device.get_network()
@@ -65,6 +74,10 @@ class XbeeStationNode(Node):
         self.left_thruster_pub_ = self.create_publisher(Float64, '/usv_comms/usv/left_thruster', 10)
         self.right_thruster_pub_ = self.create_publisher(Float64, '/usv_comms/usv/right_thruster', 10)
         self.obj_list_pub_ = self.create_publisher(ObjectList, '/usv_comms/obj_list', 10)
+        self.m1_state_pub_ = self.create_publisher(Float64, '/usv_comms/m1_state', 10)
+        self.m2_state_pub_ = self.create_publisher(Float64, '/usv_comms/m2_state', 10)
+        self.m3_state_pub_ = self.create_publisher(Float64, '/usv_comms/m3_state', 10)
+        self.m4_state_pub_ = self.create_publisher(Float64, '/usv_comms/m4_state', 10)
         
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -77,10 +90,14 @@ class XbeeStationNode(Node):
         self.left_thruster_pub_.publish(self.left_thruster)
         self.right_thruster_pub_.publish(self.right_thruster)
         self.obj_list_pub_.publish(self.obj_list)
+        self.m1_state_pub_.publish(self.m1_state)
+        self.m2_state_pub_.publish(self.m2_state)
+        self.m3_state_pub_.publish(self.m3_state)
+        self.m4_state_pub_.publish(self.m4_state)
         
 
     def data_callback(self, xbee_message):
-        data = struct.unpack('!'+'f'*27, xbee_message.data)
+        data = struct.unpack('!'+'f'*31, xbee_message.data)
         self.pose.x = data[0]
         self.pose.y = data[1]
         self.pose.theta = data[2]
@@ -102,6 +119,10 @@ class XbeeStationNode(Node):
             obj_t.color = int(data[base + i*3 + 2])
             obj_t.type = "round"
             self.obj_list.obj_list.append(obj_t)
+        self.m1_state.data = data[27]
+        self.m2_state.data = data[28]
+        self.m3_state.data = data[29]
+        self.m4_state.data = data[30]
 
 def main(args=None):
     rclpy.init(args=args)

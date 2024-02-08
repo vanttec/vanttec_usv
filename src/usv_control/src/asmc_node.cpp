@@ -147,7 +147,7 @@ class AsmcNode : public rclcpp::Node {
 
     std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, su, sp, txMsg, tzMsg;
     
-    if(!wp_arrived.data && auto_mode.data == 2){
+    if(!wp_arrived.data && auto_mode.data == 0){
     // if(!wp_arrived.data){
         rt.data = out.right_thruster;
         lt.data = out.left_thruster;

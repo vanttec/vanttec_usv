@@ -15,6 +15,7 @@
 #include "usv_interfaces/msg/object_list.hpp"
 #include "usv_interfaces/msg/object.hpp"
 #include "usv_interfaces/msg/waypoint.hpp"
+#include "std_msgs/msg/u_int16.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "speed.h"
 #include "speed.cpp"
@@ -33,6 +34,10 @@ class SpeedChallengeNode : public rclcpp::Node {
             arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
                 "/usv/waypoint/arrived", 10, std::bind(&SpeedChallengeNode::arrived_callback, this, _1)
             );
+
+            autoSub = this->create_subscription<std_msgs::msg::UInt16>(
+                "/usv/op_mode", 1,
+                [this](const std_msgs::msg::UInt16 &msg) { this->auto_mode.data = msg.data; });
 
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
                 "/objects", 10, std::bind(&SpeedChallengeNode::obj_list_callback, this, _1)
@@ -56,6 +61,7 @@ class SpeedChallengeNode : public rclcpp::Node {
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
+        rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr autoSub;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
@@ -80,53 +86,56 @@ class SpeedChallengeNode : public rclcpp::Node {
         usv_interfaces::msg::Object obj;
         std_msgs::msg::Int8 state, status;
         std_msgs::msg::Bool pivot, arrived;
+        std_msgs::msg::UInt16 auto_mode;
         std::vector<Obstacle> obs_v;
 
         void timer_callback() {
-            this->goal_reached = false;
-            if(this->goals.size() == 0)
-                this->goal_reached = true;
-            this->update_params.goal_reached = this->goal_reached;
-            this->update_params.obs_list = this->obs_v;
+            if(this->auto_mode.data == 0){
+                this->goal_reached = false;
+                if(this->goals.size() == 0)
+                    this->goal_reached = true;
+                this->update_params.goal_reached = this->goal_reached;
+                this->update_params.obs_list = this->obs_v;
 
-            this->feedback = this->vtec_s3.update(this->pose, this->update_params);
-            this->state.data = this->feedback.state;
-            this->status.data = this->feedback.status;
+                this->feedback = this->vtec_s3.update(this->pose, this->update_params);
+                this->state.data = this->feedback.state;
+                this->status.data = this->feedback.status;
 
-            if(this->goal_reached){
-                this->goals.clear();
-                for(int i = 0 ; i < this->feedback.goals.size() ; i++){
-                    this->goal.x = this->feedback.goals[i].x;
-                    this->goal.y = this->feedback.goals[i].y;
-                    this->goals.push_back(this->goal);
-                    std::cout << "GOALS: " << goal.x << ", " << goal.y << std::endl;
-                }
-            }
-            // std::cout << "size " << this->goals.size() << " XXXXXXXXX:" << this->feedback.goals[0].x << ", YYYYYYYYYY:" << this->goal.y << std::endl;
-            // RCLCPP_INFO(get_logger(), "Goal: %f, %f", this->goal.x, this->goal.y);
-
-            mission_state_pub_->publish(this->state);         
-            mission_status_pub_->publish(this->status); 
-
-            if(this->goals.size() > 0){
-                this->goal.x = this->goals[0].x;
-                this->goal.y = this->goals[0].y;
-                
-                this->x_diff = std::fabs(this->goal.x - this->pose.x);
-                this->y_diff = std::fabs(this->goal.y - this->pose.y);
-                this->goal_dist = std::sqrt(std::pow(this->x_diff,2) + std::pow(this->y_diff,2));
-                if(this->arrived.data && goal_dist < 0.7){
-                    if(this->goals.size() > 1){
-                        this->goals.erase(this->goals.begin());
-                        this->goal.x = this->goals[0].x;
-                        this->goal.y = this->goals[0].y;
+                if(this->goal_reached){
+                    this->goals.clear();
+                    for(int i = 0 ; i < this->feedback.goals.size() ; i++){
+                        this->goal.x = this->feedback.goals[i].x;
+                        this->goal.y = this->feedback.goals[i].y;
+                        this->goals.push_back(this->goal);
+                        std::cout << "GOALS: " << goal.x << ", " << goal.y << std::endl;
                     }
-                    else
-                        this->goals.clear();
                 }
-            }
+                // std::cout << "size " << this->goals.size() << " XXXXXXXXX:" << this->feedback.goals[0].x << ", YYYYYYYYYY:" << this->goal.y << std::endl;
+                // RCLCPP_INFO(get_logger(), "Goal: %f, %f", this->goal.x, this->goal.y);
 
-            wp_pub_->publish(this->goal); 
+                mission_state_pub_->publish(this->state);         
+                mission_status_pub_->publish(this->status); 
+
+                if(this->goals.size() > 0){
+                    this->goal.x = this->goals[0].x;
+                    this->goal.y = this->goals[0].y;
+                    
+                    this->x_diff = std::fabs(this->goal.x - this->pose.x);
+                    this->y_diff = std::fabs(this->goal.y - this->pose.y);
+                    this->goal_dist = std::sqrt(std::pow(this->x_diff,2) + std::pow(this->y_diff,2));
+                    if(this->arrived.data && goal_dist < 0.7){
+                        if(this->goals.size() > 1){
+                            this->goals.erase(this->goals.begin());
+                            this->goal.x = this->goals[0].x;
+                            this->goal.y = this->goals[0].y;
+                        }
+                        else
+                            this->goals.clear();
+                    }
+                }
+
+                wp_pub_->publish(this->goal); 
+            }
         }
 
         void pose_callback(const geometry_msgs::msg::Pose2D & msg) {

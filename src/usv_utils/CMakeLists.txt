@@ -10,6 +10,8 @@ find_package(ament_cmake REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(pcl REQUIRED)
 find_package(std_srvs)
 find_package(geometry_msgs)
 find_package(sensor_msgs)
@@ -24,6 +26,21 @@ target_include_directories(imu_converter_node PUBLIC
 target_compile_features(imu_converter_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(
   imu_converter_node
+  tf2
+  tf2_ros
+  nav_msgs
+  std_srvs
+  geometry_msgs
+  sensor_msgs
+)
+
+add_executable(pointcloud_converter_node src/pointcloud_converter_node.cpp)
+target_include_directories(pointcloud_converter_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(pointcloud_converter_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(
+  pointcloud_converter_node
   tf2
   tf2_ros
   nav_msgs

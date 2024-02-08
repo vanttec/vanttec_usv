@@ -10,6 +10,7 @@
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float64.hpp"
 #include "std_msgs/msg/int8.hpp"
+#include "std_msgs/msg/u_int16.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "usv_interfaces/msg/object_list.hpp"
@@ -29,6 +30,9 @@ class FollowThePathNode : public rclcpp::Node {
                 "/usv/state/pose", 10, std::bind(&FollowThePathNode::pose_callback, this, _1)
             );
 
+            autoSub = this->create_subscription<std_msgs::msg::UInt16>(
+                "/usv/op_mode", 1,
+                [this](const std_msgs::msg::UInt16 &msg) { this->auto_mode.data = msg.data; });
 
             arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
                 "/usv/waypoint/arrived", 10, std::bind(&FollowThePathNode::arrived_callback, this, _1)
@@ -55,6 +59,7 @@ class FollowThePathNode : public rclcpp::Node {
     private:
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
+        rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr autoSub;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_;
@@ -81,72 +86,76 @@ class FollowThePathNode : public rclcpp::Node {
         usv_interfaces::msg::Object obj;
         std_msgs::msg::Int8 state, status;
         std_msgs::msg::Bool pivot, arrived;
+        std_msgs::msg::UInt16 auto_mode;
         std::vector<Obstacle> obs_v;
 
         void timer_callback() {
-            this->x_diff = std::fabs(this->goal.x - this->pose.x);
-            this->y_diff = std::fabs(this->goal.y - this->pose.y);
-            this->goal_dist = std::sqrt(std::pow(this->x_diff,2) + std::pow(this->y_diff,2));
-            std::cout << this->goal_dist << std::endl;
-            this->goal_reached = false;
-            if(this->goal_dist < 0.3)
-                this->goal_reached = true;
-            this->update_params.goal_reached = this->goal_reached;
-            this->update_params.obs_list = this->obs_v;
-            this->update_params.pivots_done = this->pivots_done;
+            if(this->auto_mode.data == 0){
 
-            this->feedback = this->vtec_s3.update(this->pose, this->update_params);
-            this->state.data = this->feedback.state;
-            this->status.data = this->feedback.status;
-            this->yellow_found = this->feedback.yellow_found;
-            this->black_found = this->feedback.black_found;
-            this->pivots_to_do = this->feedback.pivots_to_do;
-            this->goals.clear();
-            for(int i = 0 ; i < this->feedback.goals.size() ; i++){
-                this->goal.x = this->feedback.goals[i].x;
-                this->goal.y = this->feedback.goals[i].y;
-                this->goals.push_back(this->goal);
-                std::cout << "GOALS: " << goal.x << ", " << goal.y << std::endl;
+                this->x_diff = std::fabs(this->goal.x - this->pose.x);
+                this->y_diff = std::fabs(this->goal.y - this->pose.y);
+                this->goal_dist = std::sqrt(std::pow(this->x_diff,2) + std::pow(this->y_diff,2));
+                std::cout << this->goal_dist << std::endl;
+                this->goal_reached = false;
+                if(this->goal_dist < 0.3)
+                    this->goal_reached = true;
+                this->update_params.goal_reached = this->goal_reached;
+                this->update_params.obs_list = this->obs_v;
+                this->update_params.pivots_done = this->pivots_done;
 
-            }
+                this->feedback = this->vtec_s3.update(this->pose, this->update_params);
+                this->state.data = this->feedback.state;
+                this->status.data = this->feedback.status;
+                this->yellow_found = this->feedback.yellow_found;
+                this->black_found = this->feedback.black_found;
+                this->pivots_to_do = this->feedback.pivots_to_do;
+                this->goals.clear();
+                for(int i = 0 ; i < this->feedback.goals.size() ; i++){
+                    this->goal.x = this->feedback.goals[i].x;
+                    this->goal.y = this->feedback.goals[i].y;
+                    this->goals.push_back(this->goal);
+                    std::cout << "GOALS: " << goal.x << ", " << goal.y << std::endl;
 
-            // std::cout << "size " << this->goals.size() << " XXXXXXXXX:" << this->feedback.goals[0].x << ", YYYYYYYYYY:" << this->goal.y << std::endl;
-            // RCLCPP_INFO(get_logger(), "Goal: %f, %f", this->goal.x, this->goal.y);
-
-            mission_state_pub_->publish(this->state);         
-            mission_status_pub_->publish(this->status); 
-
-            if(this->pivots_to_do == -1){
-                if(!this->arrived.data && this->goals.size() > 0){
-                    this->goal.x = this->goals[0].x;
-                    this->goal.y = this->goals[0].y;
                 }
-                wp_pub_->publish(this->goal); 
-                this->pivot.data = false;
-            }
-            else{
-                std::cout << "TO DO: " << this->pivots_to_do << std::endl;
-                if(this->pivot_goal == -4){
-                    this->pivot_goal = this->pose.theta + this->pivots_to_do * 2 * M_PI;
-                    this->h_acum = 0; 
-                    if(this->pose.theta < 0)
-                        this->h_acum = -2*M_PI;
-                    this->pivot.data = true;
-                }
-                if(!this->pivots_done){
-                    if(this->pose.theta > 0 && this->last_h < 0)
-                        this->h_acum+=2*M_PI;
-                    std::cout << "Accumulated ang: " << this->h_acum + this->pose.theta << ", goal: " << this->pivot_goal << std::endl;
-                    if(this->h_acum + this->pose.theta >= this->pivot_goal - 0.2)
-                        this->pivots_done = 1;
-                } else{
+
+                // std::cout << "size " << this->goals.size() << " XXXXXXXXX:" << this->feedback.goals[0].x << ", YYYYYYYYYY:" << this->goal.y << std::endl;
+                // RCLCPP_INFO(get_logger(), "Goal: %f, %f", this->goal.x, this->goal.y);
+
+                mission_state_pub_->publish(this->state);         
+                mission_status_pub_->publish(this->status); 
+
+                if(this->pivots_to_do == -1){
+                    if(!this->arrived.data && this->goals.size() > 0){
+                        this->goal.x = this->goals[0].x;
+                        this->goal.y = this->goals[0].y;
+                    }
+                    wp_pub_->publish(this->goal); 
                     this->pivot.data = false;
-                    // this->pivots_done = 1;
                 }
-            }
+                else{
+                    std::cout << "TO DO: " << this->pivots_to_do << std::endl;
+                    if(this->pivot_goal == -4){
+                        this->pivot_goal = this->pose.theta + this->pivots_to_do * 2 * M_PI;
+                        this->h_acum = 0; 
+                        if(this->pose.theta < 0)
+                            this->h_acum = -2*M_PI;
+                        this->pivot.data = true;
+                    }
+                    if(!this->pivots_done){
+                        if(this->pose.theta > 0 && this->last_h < 0)
+                            this->h_acum+=2*M_PI;
+                        std::cout << "Accumulated ang: " << this->h_acum + this->pose.theta << ", goal: " << this->pivot_goal << std::endl;
+                        if(this->h_acum + this->pose.theta >= this->pivot_goal - 0.2)
+                            this->pivots_done = 1;
+                    } else{
+                        this->pivot.data = false;
+                        // this->pivots_done = 1;
+                    }
+                }
 
-            desired_pivot_pub_->publish(this->pivot);
-            this->last_h = this->pose.theta; 
+                desired_pivot_pub_->publish(this->pivot);
+                this->last_h = this->pose.theta; 
+            }
         }
 
         void pose_callback(const geometry_msgs::msg::Pose2D & msg) {
