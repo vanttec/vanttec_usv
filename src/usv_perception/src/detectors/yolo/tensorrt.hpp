@@ -17,28 +17,28 @@ public:
 
     rclcpp::Logger logger;
 
-    void                 make_pipe(bool warmup = true);
-    void                 copy_from_Mat(const cv::Mat& image);
-    void                 copy_from_Mat(const cv::Mat& image, const cv::Size& size);
-    void                 letterbox(const cv::Mat& image, cv::Mat& out, const cv::Size& size);
-    void                 infer();
-    void                 postprocess(usv_interfaces::msg::ZbboxArray& objs);
-    static void          draw_objects(const cv::Mat&                                image,
-                                      cv::Mat&                                      res,
-                                      const std::vector<Object>&                    objs,
-                                      const std::vector<std::string>&               CLASS_NAMES,
-                                      const std::vector<std::vector<unsigned int>>& COLORS);
-    int                  num_bindings;
-    int                  num_inputs  = 0;
-    int                  num_outputs = 0;
-    std::vector<Binding> input_bindings;
-    std::vector<Binding> output_bindings;
-    std::vector<void*>   host_ptrs;
-    std::vector<void*>   device_ptrs;
+    void                                make_pipe(bool warmup = true);
+    void                                copy_from_Mat(const cv::Mat& image);
+    void                                copy_from_Mat(const cv::Mat& image, const cv::Size& size);
+    void                                letterbox(const cv::Mat& image, cv::Mat& out, const cv::Size& size);
+    void                                infer();
+    usv_interfaces::msg::ZbboxArray     postprocess();
+    static void                         draw_objects(   const cv::Mat&                                  image,
+                                                        cv::Mat&                                        res,
+                                                        const std::vector<Object>&                      objs,
+                                                        const std::vector<std::string>&                 CLASS_NAMES,
+                                                        const std::vector<std::vector<unsigned int>>&   COLORS);
+    int                     num_bindings;
+    int                     num_inputs  = 0;
+    int                     num_outputs = 0;
+    std::vector<Binding>    input_bindings;
+    std::vector<Binding>    output_bindings;
+    std::vector<void*>      host_ptrs;
+    std::vector<void*>      device_ptrs;
 
-    double threshold;
+    double                  threshold = 0.0;
 
-    PreParam pparam;
+    PreParam                pparam;
 
 private:
     nvinfer1::ICudaEngine*       engine  = nullptr;
@@ -49,9 +49,10 @@ private:
 };
 
 
-YOLOv8::YOLOv8(const std::string& engine_file_path, double threshold, rclcpp::Logger logger_param) : logger(logger)
+YOLOv8::YOLOv8(const std::string& engine_file_path, double threshold_param, rclcpp::Logger logger_param) : logger(logger)
 {
     this->logger = logger_param;
+    this->threshold = threshold_param;
 
     std::ifstream file(engine_file_path, std::ios::binary);
     assert(file.good());
@@ -226,9 +227,10 @@ void YOLOv8::infer()
     cudaStreamSynchronize(this->stream);
 }
 
-void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
+usv_interfaces::msg::ZbboxArray YOLOv8::postprocess()
 {
-    arr.boxes.clear();
+    usv_interfaces::msg::ZbboxArray arr;
+
     int*  num_dets = static_cast<int*>(this->host_ptrs[0]);
     auto* boxes    = static_cast<float*>(this->host_ptrs[1]);
     auto* scores   = static_cast<float*>(this->host_ptrs[2]);
@@ -240,6 +242,8 @@ void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
     auto& ratio    = this->pparam.ratio;
 
     RCLCPP_DEBUG(this->logger, "num_dets: %d", num_dets[0]);
+
+    RCLCPP_DEBUG(this->logger, "threshold: %d", this->threshold);
 
     for (int i = 0; i < num_dets[0]; i++) {
         float* ptr = boxes + i * 4;
@@ -257,10 +261,12 @@ void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
         usv_interfaces::msg::Zbbox obj;
         obj.uuid = sl::generate_unique_id();
         obj.prob = *(scores + i);
+
+        RCLCPP_DEBUG(this->logger, "%d - %d", i, obj.prob);
 	
-	if (obj.prob <= this->threshold) {
-	    continue;
-	}
+	/*if (obj.prob <= 0.2) {
+		continue;
+	}*/
 
         obj.label = *(labels + i);
         
@@ -271,6 +277,10 @@ void YOLOv8::postprocess(usv_interfaces::msg::ZbboxArray& arr)
 
         arr.boxes.push_back(obj);
     }
+
+    RCLCPP_DEBUG(this->logger, "pushing back size: %d", arr.boxes.size());
+    
+    return arr;
 }
 
 void YOLOv8::draw_objects(const cv::Mat&                                image,

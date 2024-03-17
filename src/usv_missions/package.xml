@@ -10,6 +10,7 @@
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
   <exec_depend>ros2launch</exec_depend>
   <depend>tf2_ros</depend>
   <depend>tf2</depend>

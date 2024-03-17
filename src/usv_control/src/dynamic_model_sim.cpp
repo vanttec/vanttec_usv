@@ -117,7 +117,8 @@ class DynamicModelSim : public rclcpp::Node {
       rightThrusterSub;
   double Tport{0}, Tstbd{0};
 
-  DynamicModel model{};
+  // DynamicModel model{0,0,0};
+  DynamicModel model{12,15,-2.3};
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
 

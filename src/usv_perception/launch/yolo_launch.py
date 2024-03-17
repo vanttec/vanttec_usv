@@ -5,20 +5,17 @@ def generate_launch_description():
 
     return LaunchDescription([
         Node(
-            package='usv_perception',
-            executable='yolo',
-            name='yolov8_node',
+            package='voxel_grid_filter',
+            executable='voxel_grid_filter',
+            name='voxel_filter_node',
             output='screen',
-            parameters=[
-                {'engine_path': 'param_value1'},
-                {'classes_path': 'param_value2'},
-                {'input_topic': '/video'},
-                {'output_topic': 'param_value2'},
-            ],
+            parameters=[],
         ),
         Node(
-            package='usv_perception',
-            executable='video.py',
+            package='sdv_lidar_processing',
+            executable='Lidar_Processing_node',
+            name='lidar_processing_node',
+            output='screen',
+            parameters=[],
         ),
     ])
-

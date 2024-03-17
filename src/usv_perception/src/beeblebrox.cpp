@@ -141,6 +141,7 @@ void frame_send()
 		// only for ZED2, ZED2i, ZEDX and ZEDXm
 		leftCamInfoMsg.distortion_model = sensor_msgs::distortion_models::RATIONAL_POLYNOMIAL;
 
+		// yes
 		leftCamInfoMsg.d.resize(8);
 		leftCamInfoMsg.d[0] = zedParam.left_cam.disto[0];    // k1
 		leftCamInfoMsg.d[1] = zedParam.left_cam.disto[1];    // k2
@@ -151,6 +152,7 @@ void frame_send()
 		leftCamInfoMsg.d[6] = zedParam.left_cam.disto[6];    // k5
 		leftCamInfoMsg.d[7] = zedParam.left_cam.disto[7];    // k6
 
+		// yes
 		leftCamInfoMsg.k.fill(0.0);
 		leftCamInfoMsg.k[0] = static_cast<double>(zedParam.left_cam.fx);
 		leftCamInfoMsg.k[2] = static_cast<double>(zedParam.left_cam.cx);
@@ -158,12 +160,14 @@ void frame_send()
 		leftCamInfoMsg.k[5] = static_cast<double>(zedParam.left_cam.cy);
 		leftCamInfoMsg.k[8] = 1.0;
 
+		// yes
 		leftCamInfoMsg.r.fill(0.0);
 		for (size_t i = 0; i < 3; i++) {
 			// identity
 			leftCamInfoMsg.r[i + i * 3] = 1;
 		}
 
+		// yes
 		leftCamInfoMsg.p.fill(0.0);
 		leftCamInfoMsg.p[0] = static_cast<double>(zedParam.left_cam.fx);
 		leftCamInfoMsg.p[2] = static_cast<double>(zedParam.left_cam.cx);
@@ -171,6 +175,7 @@ void frame_send()
 		leftCamInfoMsg.p[6] = static_cast<double>(zedParam.left_cam.cy);
 		leftCamInfoMsg.p[10] = 1.0;
 
+		// yes
 		leftCamInfoMsg.width = static_cast<uint32_t>(res.width);
 		leftCamInfoMsg.height = static_cast<uint32_t>(res.height);
 		leftCamInfoMsg.header.frame_id = "zed2i_left_camera_optical_frame";
@@ -206,7 +211,7 @@ void receive_yolo(const usv_interfaces::msg::ZbboxArray::SharedPtr dets) {
 		usv_interfaces::msg::ObjectList detections = objs2markers(out_objs);
 		this->yolo_pub->publish(detections);
 
-		RCLCPP_INFO(this->get_logger(), "[yolo] pointcloud estimation done: %2.4lf ms [%ld]", tc, detections.obj_list.size());
+		RCLCPP_DEBUG(this->get_logger(), "[yolo] pointcloud estimation done: %2.4lf ms [%ld]", tc, detections.obj_list.size());
 }
 
 /***
@@ -233,10 +238,10 @@ void receive_shapes(const usv_interfaces::msg::ZbboxArray::SharedPtr dets) {
 		auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.0;
 		
 		// publish detections in pointcloud
-		usv_interfaces::msg::ObjectList detections = objs2markers(out_objs);
+		usv_interfaces::msg::ObjectList detections = objs2markers_shapes(out_objs);
 		this->shapes_pub->publish(detections);
 
-		RCLCPP_INFO(this->get_logger(), "[shapes] pointcloud estimation done: %2.4lf ms [%ld]", tc, detections.obj_list.size());
+		RCLCPP_DEBUG(this->get_logger(), "[shapes] pointcloud estimation done: %2.4lf ms [%ld]", tc, detections.obj_list.size());
 }
 
 /***
@@ -269,11 +274,153 @@ void to_sl(std::vector<sl::CustomBoxObjectData>& sl_dets, const usv_interfaces::
  * @param objs: global format
  * @return ros message
 ***/
+usv_interfaces::msg::ObjectList objs2markers_shapes(sl::Objects objs) {
+
+	usv_interfaces::msg::ObjectList ma;
+
+	for (int i = 0; i < 10; i++) {
+		try {
+			auto& obj = objs.object_list.at(i);
+
+			usv_interfaces::msg::Object o;
+
+			int color = 0;
+
+			switch (obj.raw_label) {
+				case 0:		// blue circle
+					o.color = 2;
+					o.type = "circle";
+					break;
+				case 1:		// blue plus
+					o.color = 2;
+					o.type = "plus";
+					break;
+				case 2:		// blue square
+					o.color = 2;
+					o.type = "square";
+					break;
+				case 3:		// blue triangle
+					o.color = 2;
+					o.type = "triangle";
+					break;
+				case 4:		// duck
+					o.color = 3;
+					o.type = "duck";
+					break;
+				case 5:		// green circle
+					o.color = 1;
+					o.type = "circle";
+					break;
+				case 6:		// green plus
+					o.color = 1;
+					o.type = "plus";
+					break;
+				case 7:		// green square
+					o.color = 1;
+					o.type = "square";
+					break;
+				case 8:		// green triangle
+					o.color = 1;
+					o.type = "triangle";
+					break;
+				case 9:		// red circle
+					o.color = 0;
+					o.type = "circle";
+					break;
+				case 10:	// red plus
+					o.color = 0;
+					o.type = "plus";
+					break;
+				case 11:	// red square
+					o.color = 0;
+					o.type = "square";
+					break;
+				case 12:	// red triangle
+					o.color = 0;
+					o.type = "triangle";
+					break;
+				default: // TODO
+					color = -1;
+					o.type = "ignore";
+					break;
+			}
+
+			o.x = obj.position[0];
+			if ( std::isnan(o.x) ) {
+				o.x = 0.0;
+			}
+
+			o.y = obj.position[1];
+			if ( std::isnan(o.y) ) {
+				o.y = 0.0;
+			}
+
+			ma.obj_list.push_back(o);
+		}
+		catch (const std::out_of_range& oor) {
+			usv_interfaces::msg::Object o;
+
+			o.color = -1;
+			o.x = 0;
+			o.y = 0;
+			o.type = "ignore";
+			ma.obj_list.push_back(o);
+		}
+
+	}
+
+	// for (auto& obj : objs.object_list) {
+	// 	usv_interfaces::msg::Object o;
+	//
+	//
+	// 	//o.id = obj.id;
+	// 	
+	// 	int color = 0;
+	//
+	// 	switch (obj.raw_label) {
+	// 		case 0:	// black
+	// 			color = 4;
+	// 			break;
+	// 		case 1:	// blue
+	// 			color = 2;
+	// 			break;
+	// 		case 3: // green
+	// 			color = 1;
+	// 			break;
+	// 		case 5: // red
+	// 			color = 0;
+	// 			break;
+	// 		case 7: // yellow
+	// 			color = 3;
+	// 			break;
+	// 		default: // TODO
+	// 			color = -1;
+	// 			break;
+	// 	}
+	//
+	// 	o.color = color;
+	// 	
+	// 	o.x = obj.position[0];
+	// 	o.y = obj.position[1];
+	//
+	// 	o.type = "buoy";
+	//
+	// 	ma.obj_list.push_back(o);
+	// }
+	// 
+	return ma;
+}
+
+/***
+ * Convert from global format to message understandable by usv_control
+ * @param objs: global format
+ * @return ros message
+***/
 usv_interfaces::msg::ObjectList objs2markers(sl::Objects objs) {
 
 	usv_interfaces::msg::ObjectList ma;
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 10; i++) {
 		try {
 			auto& obj = objs.object_list.at(i);
 
@@ -283,38 +430,59 @@ usv_interfaces::msg::ObjectList objs2markers(sl::Objects objs) {
 
 			switch (obj.raw_label) {
 				case 0:	// black
-					color = 4;
+					o.color = 4;
+					o.type = "round";
 					break;
 				case 1:	// blue
-					color = 2;
+					o.color = 2;
+					o.type = "round";
+					break;
+				case 2: // course marker
+					o.color = 4;
+					o.type = "marker";
 					break;
 				case 3: // green
-					color = 1;
+					o.color = 1;
+					o.type = "round";
+					break;
+				case 4: // red marker
+					o.color = 0;
+					o.type = "marker";
 					break;
 				case 5: // red
-					color = 0;
+					o.color = 0;
+					o.type = "round";
+					break;
+				case 6: // green marker
+					o.color = 1;
+					o.type = "marker";
 					break;
 				case 7: // yellow
-					color = 3;
+					o.color = 3;
+					o.type = "round";
 					break;
 				default: // TODO
 					color = -1;
+					o.type = "ignore";
 					break;
 			}
 
-			o.color = color;
-			
-			o.x = obj.position[0] / 1000.0;
-			o.y = obj.position[1] / 1000.0;
+			o.x = obj.position[0];
+			if ( std::isnan(o.x) ) {
+				o.x = 0.0;
+			}
 
-			o.type = "buoy";
+			o.y = obj.position[1];
+			if ( std::isnan(o.y) ) {
+				o.y = 0.0;
+			}
 
 			ma.obj_list.push_back(o);
 		}
 		catch (const std::out_of_range& oor) {
 			usv_interfaces::msg::Object o;
 
-			o.color = 5;
+			o.color = -1;
 			o.x = 0;
 			o.y = 0;
 			o.type = "ignore";

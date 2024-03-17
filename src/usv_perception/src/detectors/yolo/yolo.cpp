@@ -20,6 +20,7 @@ private:
 	std::string		engine_path;
 	std::string		video_topic;
 	std::string		output_topic;
+	double			threshold;
 
 	E*			detector_engine;
 
@@ -28,21 +29,23 @@ private:
 	std::shared_ptr<rclcpp::Publisher<usv_interfaces::msg::ZbboxArray>> dets;
 
 
+	// rclcpp::Publisher<usv_interfaces::msg::ZbboxArray>::SharedPtr dets;
+
+
 
 void frame(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
-
-	usv_interfaces::msg::ZbboxArray objs;
-
 	auto img = cv_bridge::toCvCopy(msg, "bgr8")->image;
 
 	detector_engine->copy_from_Mat(img, size);
 	detector_engine->infer();
-	detector_engine->postprocess(objs);
+	
+	usv_interfaces::msg::ZbboxArray objs;
+	objs = detector_engine->postprocess();
 
 	objs.header.stamp = this->now();
 
-	this->dets->publish(objs);
+	this->dets->publish( objs );
 
 	RCLCPP_INFO(this->get_logger(), "--> inference done [%ld]", objs.boxes.size());
 }
@@ -50,7 +53,7 @@ void frame(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 public:
 	YoloDetector() : Node("yolo") {
 
-		this->declare_parameter("engine_path", "/home/vanttec/vanttec_usv/vtec_agx_v2.engine");
+		this->declare_parameter("engine_path", "/home/vanttec/vanttec_usv/SARASOTA.engine");
 		engine_path = this->get_parameter("engine_path").as_string();
 
 		this->declare_parameter("video_topic", "/beeblebrox/video");
@@ -59,8 +62,8 @@ public:
 		this->declare_parameter("output_topic", "/yolo/detections");
 		output_topic = this->get_parameter("output_topic").as_string();
 
-		this->declare_parameter("threshold", 0.8);
-		double threshold = this->get_parameter("threshold").as_double();
+		this->declare_parameter("threshold", 0.6);
+		threshold = this->get_parameter("threshold").as_double();
 
 		size = cv::Size{640, 640};
 

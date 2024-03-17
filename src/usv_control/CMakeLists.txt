@@ -42,7 +42,7 @@ target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and
 ament_target_dependencies(waypoint_handler_node rclcpp std_msgs Eigen3 geometry_msgs usv_interfaces)
 
 add_executable(usv_tf2_broadcaster_node src/usv_tf2_broadcaster_node.cpp)
-target_compile_features(usv_tf2_broadcaster_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs Eigen3 geometry_msgs tf2 tf2_ros)
 
 add_executable(dynamic_model_node src/dynamic_model_sim.cpp)

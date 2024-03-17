@@ -9,25 +9,25 @@
 #include "std_msgs/msg/string.hpp"
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float64.hpp"
-#include "std_msgs/msg/int8.hpp"
 #include "std_msgs/msg/u_int16.hpp"
+#include "std_msgs/msg/int8.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "usv_interfaces/msg/object_list.hpp"
 #include "usv_interfaces/msg/object.hpp"
 #include "usv_interfaces/msg/waypoint.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "ftp.h"
-#include "ftp.cpp"
+#include "man_c.h"
+#include "man_c.cpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-class FollowThePathNode : public rclcpp::Node {
+class MandatoryChallengeNode : public rclcpp::Node {
     public:
-        FollowThePathNode(): Node("follow_the_path") {
+        MandatoryChallengeNode(): Node("mandatory_challenge") {
             pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-                "/usv/state/pose", 10, std::bind(&FollowThePathNode::pose_callback, this, _1)
+                "/usv/state/pose", 10, std::bind(&MandatoryChallengeNode::pose_callback, this, _1)
             );
 
             autoSub = this->create_subscription<std_msgs::msg::UInt16>(
@@ -35,32 +35,32 @@ class FollowThePathNode : public rclcpp::Node {
                 [this](const std_msgs::msg::UInt16 &msg) { this->auto_mode.data = msg.data; });
 
             arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
-                "/usv/waypoint/arrived", 10, std::bind(&FollowThePathNode::arrived_callback, this, _1)
+                "/usv/waypoint/arrived", 10, std::bind(&MandatoryChallengeNode::arrived_callback, this, _1)
             );
 
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-                "/objects", 10, std::bind(&FollowThePathNode::obj_list_callback, this, _1)
+                "/objects", 10, std::bind(&MandatoryChallengeNode::obj_list_callback, this, _1)
             );
             
-            mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m2/state", 10);
-            mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m2/status", 10);
+            mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m1/state", 10);
+            mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m1/status", 10);
             wp_pub_ = this->create_publisher<usv_interfaces::msg::Waypoint>("/usv/waypoint", 10);
             desired_pivot_pub_ = this->create_publisher<std_msgs::msg::Bool>("/usv/waypoint/pivot", 10);
 
             // this->pose.x = 0.0;
             // this->pose.y = 0.0;
             // this->pose.theta = 5.0;
-            this->vtec_s3 = FTP(this->pose);
+            this->vtec_s3 = MAN_C(this->pose);
             this->pivot.data = false;
             timer_ = this->create_wall_timer(
-            500ms, std::bind(&FollowThePathNode::timer_callback, this));
+            500ms, std::bind(&MandatoryChallengeNode::timer_callback, this));
         }
 
     private:
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
-        rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr autoSub;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
+        rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr autoSub;        
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
@@ -69,13 +69,12 @@ class FollowThePathNode : public rclcpp::Node {
 
         USVOutput feedback;
         USVPose pose;
-        FTP vtec_s3;
+        MAN_C vtec_s3;
         USVUpdate update_params;
 
-        bool goal_reached{false}, moving{false};
+        bool goal_reached{false};
         float goal_dist{0.0};
         float x_diff{0.0}, y_diff{0.0};
-        int yellow_found{0}, black_found{0}, pivots_to_do{-1}, pivots_done{0};
         float pivot_goal{-4};
         
         float h_acum{0.0}, last_h{0.0};
@@ -91,32 +90,27 @@ class FollowThePathNode : public rclcpp::Node {
 
         void timer_callback() {
             if(this->auto_mode.data == 0){
-
                 this->x_diff = std::fabs(this->goal.x - this->pose.x);
                 this->y_diff = std::fabs(this->goal.y - this->pose.y);
                 this->goal_dist = std::sqrt(std::pow(this->x_diff,2) + std::pow(this->y_diff,2));
                 std::cout << this->goal_dist << std::endl;
                 this->goal_reached = false;
-                if(this->goal_dist < 1.7)
+                if(this->arrived.data){
                     this->goal_reached = true;
+                }
                 this->update_params.goal_reached = this->goal_reached;
                 this->update_params.obs_list = this->obs_v;
-                this->update_params.pivots_done = this->pivots_done;
 
-                if(this->arrived.data){
-                    this->feedback = this->vtec_s3.update(this->pose, this->update_params);
-                    this->state.data = this->feedback.state;
-                    this->status.data = this->feedback.status;
-                    this->yellow_found = this->feedback.yellow_found;
-                    this->black_found = this->feedback.black_found;
-                    this->pivots_to_do = this->feedback.pivots_to_do;
-                    this->goals.clear();
-                    for(int i = 0 ; i < this->feedback.goals.size() ; i++){
-                        this->goal.x = this->feedback.goals[i].x;
-                        this->goal.y = this->feedback.goals[i].y;
-                        this->goals.push_back(this->goal);
-                        std::cout << "GOALS: " << goal.x << ", " << goal.y << std::endl;
-                    }
+                this->feedback = this->vtec_s3.update(this->pose, this->update_params);
+                this->state.data = this->feedback.state;
+                this->status.data = this->feedback.status;
+                this->goals.clear();
+                for(int i = 0 ; i < this->feedback.goals.size() ; i++){
+                    this->goal.x = this->feedback.goals[i].x;
+                    this->goal.y = this->feedback.goals[i].y;
+                    this->goals.push_back(this->goal);
+                    std::cout << "GOALS: " << goal.x << ", " << goal.y << std::endl;
+
                 }
 
                 // std::cout << "size " << this->goals.size() << " XXXXXXXXX:" << this->feedback.goals[0].x << ", YYYYYYYYYY:" << this->goal.y << std::endl;
@@ -125,43 +119,17 @@ class FollowThePathNode : public rclcpp::Node {
                 mission_state_pub_->publish(this->state);         
                 mission_status_pub_->publish(this->status); 
 
-                if(this->pivots_to_do == -1){
-                    if(!this->arrived.data && this->goals.size() > 0){
-                        this->goal.x = this->goals[0].x;
-                        this->goal.y = this->goals[0].y;
-                    }
-                    wp_pub_->publish(this->goal); 
-                    this->pivot.data = false;
+                if(!this->arrived.data && this->goals.size() > 0){
+                    this->goal.x = this->goals[0].x;
+                    this->goal.y = this->goals[0].y;
                 }
-                else{
-                    std::cout << "TO DO: " << this->pivots_to_do << std::endl;
-                    if(this->pivot_goal == -4){
-                        this->pivot_goal = this->pose.theta + this->pivots_to_do * 2 * M_PI;
-                        this->h_acum = 0; 
-                        if(this->pose.theta < 0)
-                            this->h_acum = -2*M_PI;
-                        this->pivot.data = true;
-                    }
-                    if(!this->pivots_done){
-                        if(this->pose.theta > 0 && this->last_h < 0)
-                            this->h_acum+=2*M_PI;
-                        std::cout << "Accumulated ang: " << this->h_acum + this->pose.theta << ", goal: " << this->pivot_goal << std::endl;
-                        if(this->h_acum + this->pose.theta >= this->pivot_goal - 0.2)
-                            this->pivots_done = 1;
-                    } else{
-                        this->pivot.data = false;
-                        // this->pivots_done = 1;
-                    }
-                }
-
-                desired_pivot_pub_->publish(this->pivot);
-                this->last_h = this->pose.theta; 
+                wp_pub_->publish(this->goal);             
             } else if(this->auto_mode.data == 1){
-                this->vtec_s3 = FTP(this->pose);
+                this->vtec_s3 = MAN_C(this->pose);
                 this->goal.x = 0;
                 this->goal.y = 0;
                 this->goals.clear();
-            }
+            }            
         }
 
         void pose_callback(const geometry_msgs::msg::Pose2D & msg) {
@@ -173,7 +141,6 @@ class FollowThePathNode : public rclcpp::Node {
         void arrived_callback(const std_msgs::msg::Bool & msg) {
             this->arrived.data = msg.data;
         }
-
 
         void obj_list_callback(const usv_interfaces::msg::ObjectList & msg) {
             Obstacle obs_t;
@@ -195,7 +162,7 @@ class FollowThePathNode : public rclcpp::Node {
 
 int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<FollowThePathNode>());
+  rclcpp::spin(std::make_shared<MandatoryChallengeNode>());
   rclcpp::shutdown();
   return 0;
 }

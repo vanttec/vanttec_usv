@@ -16,15 +16,15 @@ public:
 
     leftSub = this->create_subscription<std_msgs::msg::Float64>(
       "/usv/left_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->left.data = msg.data; });
+        [this](const std_msgs::msg::Float64 &msg) { this->left.data = msg.data * 2; });
+
+    rightSub = this->create_subscription<std_msgs::msg::Float64>(
+      "/usv/right_thruster", 10,
+        [this](const std_msgs::msg::Float64 &msg) { this->right.data = msg.data * 2; });
 
     arrivedSub = this->create_subscription<std_msgs::msg::Bool>(
       "/usv/waypoint/arrived", 10,
         [this](const std_msgs::msg::Bool &msg) { this->arrived.data = msg.data; });
-
-    rightSub = this->create_subscription<std_msgs::msg::Float64>(
-      "/usv/right_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->right.data = msg.data; });
 
     leftPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust", 10);
     rightPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust", 10);

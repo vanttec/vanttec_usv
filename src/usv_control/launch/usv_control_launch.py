@@ -23,9 +23,9 @@ def generate_launch_description():
     )
 
     sbg_config = os.path.join(
-        get_package_share_directory("usv_control"),
+        get_package_share_directory('usv_control'),
         'config',
-        "sbg_device.yaml"
+        'sbg_device.yaml'
     )
 
     sbg_node = Node(
@@ -33,13 +33,6 @@ def generate_launch_description():
         executable='sbg_device',
         output='screen',
         parameters=[sbg_config],
-        condition=UnlessCondition(LaunchConfiguration('is_simulation')),
-    )
-
-    velodyne_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            FindPackageShare("velodyne"), "/launch/", "velodyne-all-nodes-VLP16-launch.py"
-        ]),
         condition=UnlessCondition(LaunchConfiguration('is_simulation')),
     )
 
@@ -71,16 +64,16 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('is_simulation')),
     )
 
-    # usv_description_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource([
-    #         PathJoinSubstitution([
-    #             FindPackageShare('usv_description'),
-    #             'launch',
-    #             'rviz_launch.py'
-    #         ])
-    #     ]),
-    #     # condition=IfCondition(LaunchConfiguration('is_simulation'))
-    # )
+    rviz = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_description'),
+                'launch',
+                'rviz_launch.py'
+            ])
+        ]),
+        # condition=IfCondition(LaunchConfiguration('is_simulation'))
+    )
 
     asmc_node = Node(
         package="usv_control",
@@ -96,28 +89,17 @@ def generate_launch_description():
             ("output/right_thruster", "/usv/right_thruster"),
         ],
         parameters=[
-            # {"k_u": 1.0},
-            # {"k_psi": 10.0},
-            # {"kmin_u": 0.075},
-            # {"kmin_psi": 0.1},
-            # {"k2_u": 0.02},
-            # {"k2_psi": 0.2},
-            # {"mu_u": 0.01},
-            # {"mu_psi": 0.015},
-            # {"lambda_u": 0.001},
-            # {"lambda_psi": 0.15},
-
-            {"k_u": 0.1},
-            {"k_psi": 0.5},
-            {"kmin_u": 0.075},
+            {"k_u": 0.05},
+            {"k_psi": 0.2},
+            {"kmin_u": 0.025},
             {"kmin_psi": 0.1},
             {"k2_u": 0.02},
             {"k2_psi": 0.2},
-            {"mu_u": 0.01},
-            {"mu_psi": 0.015},
+            {"mu_u": 0.05},
+            {"mu_psi": 0.01},
             {"lambda_u": 0.001},
-            {"lambda_psi": 1.5},        
-            ],
+            {"lambda_psi": 0.5},
+        ],
     )
 
     aitsmc_node = Node(
@@ -175,6 +157,10 @@ def generate_launch_description():
         package="usv_control",
         executable="usv_tf2_broadcaster_node")    
 
+    obstacle_publisher = Node(
+        package="usv_missions",
+        executable="obstacle_publisher_node")   
+
     can_node = Node(
         package="vanttec_can_comms",
         executable="can_node",
@@ -200,16 +186,17 @@ def generate_launch_description():
             msg="Running IRL mode."
         ),
 
-        # usv_description_launch,
-        dynamic_sim_node,
+        # rviz,
+       # dynamic_sim_node,
         asmc_node,
         # aitsmc_node,
         sbg_node,
         # velodyne_launch,
         imu_converter_node,
         # twist_to_setpoint_node,
-        # foxglove_bridge,
-        # waypoint_handler,
-        can_node,
+        #foxglove_bridge,
+       #waypoint_handler,
         tf2,
+        #obstacle_publisher,
+        can_node,
     ])

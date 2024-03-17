@@ -6,6 +6,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include <functional>
+#include <chrono>
+using namespace std::chrono_literals;
+
 
 class ImuConverterNode : public rclcpp::Node {
 public:
@@ -23,6 +26,9 @@ public:
     velocityPub = this->create_publisher<geometry_msgs::msg::Vector3>("out/velocity", 10);
 
     service = this->create_service<std_srvs::srv::Empty>("zero_imu", std::bind(&ImuConverterNode::zero_imu, this, _1, _2));
+
+    timer_ = this->create_wall_timer(
+      500ms, std::bind(&ImuConverterNode::timer_callback, this));
   }
 
 protected:
@@ -45,11 +51,17 @@ protected:
     double u_orig = msg->twist.twist.linear.x;
     double v_orig = -msg->twist.twist.linear.y;
 
-    newOdom.twist.twist.linear.x =
+/*    newOdom.twist.twist.linear.x =
         std::cos(psi) * u_orig - std::sin(psi) * v_orig;
     newOdom.twist.twist.linear.y =
         -(std::sin(psi) * u_orig + std::cos(psi) * v_orig);
+    newOdom.twist.twist.angular.z = msg->twist.twist.angular.z;*/
+    newOdom.twist.twist.linear.x =
+        u_orig;
+    newOdom.twist.twist.linear.y =
+        v_orig;
     newOdom.twist.twist.angular.z = msg->twist.twist.angular.z;
+
 
     convertedOdomPub->publish(newOdom);
     last_odom = newOdom;
@@ -83,6 +95,7 @@ protected:
   }
 
 private:
+  rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr service;
 
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr convertedOdomPub;
@@ -94,6 +107,10 @@ private:
 
   bool hasZeroInit{false};
   double zero_x{0}, zero_y{0};
+
+  void timer_callback() {
+    RCLCPP_INFO(get_logger(), "OKAAAYYYY LET'S GO!");
+  }        
 };
 
 int main(int argc, char *argv[]){

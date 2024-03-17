@@ -31,6 +31,11 @@ find_package(ZED 4 REQUIRED)
 set(TensorRT_INCLUDE_DIRS /usr/include/aarch64-linux-gnu)
 set(TensorRT_LIBRARIES /usr/lib/aarch64-linux-gnu)
 
+# add_executable(beeblebrox src_working/beeb_old.cpp)
+# ament_target_dependencies(beeblebrox rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
+# target_include_directories(beeblebrox PRIVATE ${CUDA_INCLUDE_DIRS})
+# target_link_libraries(beeblebrox ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
+
 add_executable(beeblebrox src/beeblebrox.cpp)
 ament_target_dependencies(beeblebrox rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
 target_include_directories(beeblebrox PRIVATE ${CUDA_INCLUDE_DIRS})

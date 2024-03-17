@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -17,43 +18,48 @@
 #include "usv_interfaces/msg/object.hpp"
 #include "usv_interfaces/msg/waypoint.hpp"
 #include "std_msgs/msg/bool.hpp"
-#include "ftp.h"
-#include "ftp.cpp"
+#include "dock.h"
+#include "dock.cpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
-class FollowThePathNode : public rclcpp::Node {
+class DockingNode : public rclcpp::Node {
     public:
-        FollowThePathNode(): Node("follow_the_path") {
+        DockingNode(): Node("docking") {
             pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-                "/usv/state/pose", 10, std::bind(&FollowThePathNode::pose_callback, this, _1)
+                "/usv/state/pose", 10, std::bind(&DockingNode::pose_callback, this, _1)
             );
 
             autoSub = this->create_subscription<std_msgs::msg::UInt16>(
                 "/usv/op_mode", 1,
-                [this](const std_msgs::msg::UInt16 &msg) { this->auto_mode.data = msg.data; });
+                [this](const std_msgs::msg::UInt16 &msg) { 
+                    this->just_in = false;
+                    if(this->auto_mode.data == 1 && msg.data == 0)
+                        this->just_in = true;
+                    this->auto_mode.data = msg.data; 
+                    });
 
             arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
-                "/usv/waypoint/arrived", 10, std::bind(&FollowThePathNode::arrived_callback, this, _1)
+                "/usv/waypoint/arrived", 10, std::bind(&DockingNode::arrived_callback, this, _1)
             );
 
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-                "/objects", 10, std::bind(&FollowThePathNode::obj_list_callback, this, _1)
+                "/objects_docking", 10, std::bind(&DockingNode::obj_list_callback, this, _1)
             );
             
-            mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m2/state", 10);
-            mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m2/status", 10);
+            mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m4/state", 10);
+            mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/m4/status", 10);
             wp_pub_ = this->create_publisher<usv_interfaces::msg::Waypoint>("/usv/waypoint", 10);
             desired_pivot_pub_ = this->create_publisher<std_msgs::msg::Bool>("/usv/waypoint/pivot", 10);
 
             // this->pose.x = 0.0;
             // this->pose.y = 0.0;
             // this->pose.theta = 5.0;
-            this->vtec_s3 = FTP(this->pose);
+            this->vtec_s3 = DOCK(this->pose);
             this->pivot.data = false;
             timer_ = this->create_wall_timer(
-            500ms, std::bind(&FollowThePathNode::timer_callback, this));
+            500ms, std::bind(&DockingNode::timer_callback, this));
         }
 
     private:
@@ -69,10 +75,10 @@ class FollowThePathNode : public rclcpp::Node {
 
         USVOutput feedback;
         USVPose pose;
-        FTP vtec_s3;
+        DOCK vtec_s3;
         USVUpdate update_params;
 
-        bool goal_reached{false}, moving{false};
+        bool goal_reached{false}, moving{false}, just_in{false};
         float goal_dist{0.0};
         float x_diff{0.0}, y_diff{0.0};
         int yellow_found{0}, black_found{0}, pivots_to_do{-1}, pivots_done{0};
@@ -91,7 +97,6 @@ class FollowThePathNode : public rclcpp::Node {
 
         void timer_callback() {
             if(this->auto_mode.data == 0){
-
                 this->x_diff = std::fabs(this->goal.x - this->pose.x);
                 this->y_diff = std::fabs(this->goal.y - this->pose.y);
                 this->goal_dist = std::sqrt(std::pow(this->x_diff,2) + std::pow(this->y_diff,2));
@@ -103,19 +108,18 @@ class FollowThePathNode : public rclcpp::Node {
                 this->update_params.obs_list = this->obs_v;
                 this->update_params.pivots_done = this->pivots_done;
 
-                if(this->arrived.data){
+                if(this->goal_reached || this->just_in){
                     this->feedback = this->vtec_s3.update(this->pose, this->update_params);
                     this->state.data = this->feedback.state;
                     this->status.data = this->feedback.status;
-                    this->yellow_found = this->feedback.yellow_found;
-                    this->black_found = this->feedback.black_found;
                     this->pivots_to_do = this->feedback.pivots_to_do;
                     this->goals.clear();
                     for(int i = 0 ; i < this->feedback.goals.size() ; i++){
                         this->goal.x = this->feedback.goals[i].x;
                         this->goal.y = this->feedback.goals[i].y;
                         this->goals.push_back(this->goal);
-                        std::cout << "GOALS: " << goal.x << ", " << goal.y << std::endl;
+                        std::cout << "GOALS_: " << goal.x << ", " << goal.y << std::endl;
+
                     }
                 }
 
@@ -125,41 +129,41 @@ class FollowThePathNode : public rclcpp::Node {
                 mission_state_pub_->publish(this->state);         
                 mission_status_pub_->publish(this->status); 
 
-                if(this->pivots_to_do == -1){
-                    if(!this->arrived.data && this->goals.size() > 0){
-                        this->goal.x = this->goals[0].x;
-                        this->goal.y = this->goals[0].y;
-                    }
-                    wp_pub_->publish(this->goal); 
-                    this->pivot.data = false;
+                // if(this->pivots_to_do == -1){
+                if(this->goals.size() > 0){
+                    this->goal.x = this->goals[0].x;
+                    this->goal.y = this->goals[0].y;
                 }
-                else{
-                    std::cout << "TO DO: " << this->pivots_to_do << std::endl;
-                    if(this->pivot_goal == -4){
-                        this->pivot_goal = this->pose.theta + this->pivots_to_do * 2 * M_PI;
-                        this->h_acum = 0; 
-                        if(this->pose.theta < 0)
-                            this->h_acum = -2*M_PI;
-                        this->pivot.data = true;
-                    }
-                    if(!this->pivots_done){
-                        if(this->pose.theta > 0 && this->last_h < 0)
-                            this->h_acum+=2*M_PI;
-                        std::cout << "Accumulated ang: " << this->h_acum + this->pose.theta << ", goal: " << this->pivot_goal << std::endl;
-                        if(this->h_acum + this->pose.theta >= this->pivot_goal - 0.2)
-                            this->pivots_done = 1;
-                    } else{
-                        this->pivot.data = false;
-                        // this->pivots_done = 1;
-                    }
-                }
+                wp_pub_->publish(this->goal); 
+                this->pivot.data = false;
+                // }
+                // else{
+                //     std::cout << "TO DO: " << this->pivots_to_do << std::endl;
+                //     if(this->pivot_goal == -4){
+                //         this->pivot_goal = this->pose.theta + this->pivots_to_do * 2 * M_PI;
+                //         this->h_acum = 0; 
+                //         if(this->pose.theta < 0)
+                //             this->h_acum = -2*M_PI;
+                //         this->pivot.data = true;
+                //     }
+                //     if(!this->pivots_done){
+                //         if(this->pose.theta > 0 && this->last_h < 0)
+                //             this->h_acum+=2*M_PI;
+                //         std::cout << "Accumulated ang: " << this->h_acum + this->pose.theta << ", goal: " << this->pivot_goal << std::endl;
+                //         if(this->h_acum + this->pose.theta >= this->pivot_goal - 0.2)
+                //             this->pivots_done = 1;
+                //     } else{
+                //         this->pivot.data = false;
+                //         // this->pivots_done = 1;
+                //     }
+                // }
 
                 desired_pivot_pub_->publish(this->pivot);
                 this->last_h = this->pose.theta; 
             } else if(this->auto_mode.data == 1){
-                this->vtec_s3 = FTP(this->pose);
-                this->goal.x = 0;
-                this->goal.y = 0;
+                this->vtec_s3 = DOCK(this->pose);
+                this->goal.x = this->pose.x;
+                this->goal.y = this->pose.y;
                 this->goals.clear();
             }
         }
@@ -177,25 +181,39 @@ class FollowThePathNode : public rclcpp::Node {
 
         void obj_list_callback(const usv_interfaces::msg::ObjectList & msg) {
             Obstacle obs_t;
+	        bool fake_news = false;
             this->obs_v.clear();
             for(int i = 0 ; i < msg.obj_list.size() ; i++){
-                if(msg.obj_list[i].color != 5){
-                    obs_t.color = (int)(msg.obj_list[i].color);
-                    obs_t.type = msg.obj_list[i].type.c_str();
-                    obs_t.x = (float)(msg.obj_list[i].x);
-                    obs_t.y = (float)(msg.obj_list[i].y);
-                    this->obs_v.push_back(obs_t);
+                fake_news = false;
+                if(msg.obj_list[i].color != 5 && msg.obj_list[i].color != -1 && (msg.obj_list[i].x != 0 || msg.obj_list[i].y != 0)){
+                    for(int j = 0 ; j < this->obs_v.size() ; j++){
+                        if((int)(msg.obj_list[i].color) == (int)(this->obs_v[j].color)){
+                            fake_news = true;
+                            std::cout << msg.obj_list[i].color << "==" << this->obs_v[j].color << std::endl;
+                        }
+                    }
+                    if(!fake_news){
+                        // std::cout << "Adding " << msg.obj_list[i].color << std::endl;
+                        obs_t.color = (int)(msg.obj_list[i].color);
+                        obs_t.type = msg.obj_list[i].type.c_str();
+                        obs_t.x = (float)(msg.obj_list[i].x);
+                        obs_t.y = (float)(msg.obj_list[i].y);
+                        this->obs_v.push_back(obs_t);
+                    }
                 }
-                //msg.obj_list[i].color.data;
-                // RCLCPP_INFO(get_logger(), "color: %d", msg.obj_list[i].color);
             }
+	        std::sort(this->obs_v.begin(),this->obs_v.end(), [](Obstacle &a, Obstacle &b){ return a.y < b.y; });
+            for(int i = 0 ; i < this->obs_v.size() ; i++){
+                std::cout << " " << this->obs_v[i].color;
+            }
+            std::cout << std::endl;
         }
         
 };
 
 int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<FollowThePathNode>());
+  rclcpp::spin(std::make_shared<DockingNode>());
   rclcpp::shutdown();
   return 0;
 }

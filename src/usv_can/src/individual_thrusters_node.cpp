@@ -13,6 +13,16 @@ IndividualThrusterNode::IndividualThrusterNode() : Node("IndividualThrusterNode"
         }
     );
 
+    shootSub = this->create_subscription<std_msgs::msg::Bool>(
+        "/shoot", 10,
+        [this](const std_msgs::msg::Bool &msg){
+            if(msg.data)
+                this->shoot = 1.0;
+            else
+                this->shoot = 0.0;
+        }
+    );
+
     rightMotorSub = this->create_subscription<std_msgs::msg::Float64>(
         "in/right_motor", 10,
         [this](const std_msgs::msg::Float64 &msg){
@@ -41,8 +51,8 @@ double IndividualThrusterNode::map_thruster(double x) const {
     } else {
         x /= 30;
     }
-	
-    return x/2;
+
+    return x;
 }
 
 void IndividualThrusterNode::update_thrust(){
@@ -60,6 +70,7 @@ void IndividualThrusterNode::update_thrust(){
     msg.data = std::vector<float>{
         static_cast<float>(right_thrust), 
         static_cast<float>(-left_thrust), 
-        0,0,0,0,0,0};
+        0, 
+        0,0,0,0,0};
     motorPub->publish(msg);
 }

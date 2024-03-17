@@ -20,7 +20,7 @@ class Shapes(Node):
 
         self.state_srv = self.create_service(SetBool, '/shapes/state', self.set_node_state)
 
-        self.should_run = False
+        self.should_run = True
 
         self.get_logger().info('-> shapes ready')
         
