@@ -103,6 +103,10 @@ def generate_launch_description():
         package="usv_control",
         executable="waypoint_handler_node")    
 
+    odom_converter = Node(
+        package="usv_utils",
+        executable="odom_converter_node")    
+
     tf2 = Node(
         package="usv_control",
         executable="usv_tf2_broadcaster_node") 
@@ -113,14 +117,19 @@ def generate_launch_description():
         output='screen',
     )
 
+    los_node = Node(
+        package="usv_control",
+        executable="los_node")    
 
     return LaunchDescription([
         rviz,
-        asmc_node,
-        # aitsmc_node,
+        # asmc_node,
+        aitsmc_node,
+        los_node,
+        odom_converter,
         # twist_to_setpoint_node,
         foxglove_bridge,
-        waypoint_handler,
+        # waypoint_handler,
         tf2,
         gz,
         ks,

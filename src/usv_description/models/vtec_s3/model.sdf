@@ -461,6 +461,13 @@
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
     </plugin>
+
+    <plugin
+      filename="gz-sim-odometry-publisher-system"
+      name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>world</odom_frame>
+      <odom_covariance_topic>/gz_sim/odometry</odom_covariance_topic>
+    </plugin>
   </model>
 </sdf>
 

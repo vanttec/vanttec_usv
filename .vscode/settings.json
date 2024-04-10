@@ -56,5 +56,41 @@
       "typeindex": "cpp",
       "typeinfo": "cpp",
       "valarray": "cpp"
-    }
+    },
+    "python.autoComplete.extraPaths": [
+      "/home/max/vanttec_usv/install/usv_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_usv/install/usv_description/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_usv/install/sbg_driver/local/lib/python3.10/dist-packages",
+      "/home/max/ros2_utilities_ws/install/micro_ros_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/ros2/install/ros_ign_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/ros2/install/ros_gz_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/irs/install/dexterous_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/irs/install/courseworks_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/irs/install/courseworks/lib/python3.10/site-packages",
+      "/home/max/gz_sdv/install/sdv_description_gz/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/vectornav_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/sdv_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/sbg_driver/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/lio_sam/local/lib/python3.10/dist-packages",
+      "/opt/ros/humble/lib/python3.10/site-packages",
+      "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+      "/home/max/vanttec_usv/install/usv_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_usv/install/usv_description/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_usv/install/sbg_driver/local/lib/python3.10/dist-packages",
+      "/home/max/ros2_utilities_ws/install/micro_ros_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/ros2/install/ros_ign_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/ros2/install/ros_gz_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/irs/install/dexterous_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/irs/install/courseworks_interfaces/local/lib/python3.10/dist-packages",
+      "/home/max/irs/install/courseworks/lib/python3.10/site-packages",
+      "/home/max/gz_sdv/install/sdv_description_gz/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/vectornav_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/sdv_msgs/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/sbg_driver/local/lib/python3.10/dist-packages",
+      "/home/max/vanttec_sdv/workspace/install/lio_sam/local/lib/python3.10/dist-packages",
+      "/opt/ros/humble/lib/python3.10/site-packages",
+      "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
 }

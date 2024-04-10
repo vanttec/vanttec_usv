@@ -1,9 +1,6 @@
 [submodule "src/usv_control/libs/usv_libs"]
 	path = src/usv_control/libs/usv_libs
 	url = https://github.com/vanttec/usv_libs.git
-[submodule "src/sbg_ros2_driver"]
-	path = src/deps/sbg_ros2_driver
-	url = https://github.com/SBG-Systems/sbg_ros2_driver.git
 [submodule "src/msgs/pcl_msgs"]
 	path = src/msgs/pcl_msgs
 	url = https://github.com/ros-perception/pcl_msgs
@@ -13,6 +10,9 @@
 [submodule "src/msgs/common_interfaces"]
 	path = src/msgs/common_interfaces
 	url = https://github.com/ros2/common_interfaces/
+[submodule "src/deps/sbg_ros2_driver"]
+	path = src/deps/sbg_ros2_driver
+	url = https://github.com/SBG-Systems/sbg_ros2_driver.git
 [submodule "src/deps/diagnostics"]
 	path = src/deps/diagnostics
 	url = https://github.com/ros/diagnostics

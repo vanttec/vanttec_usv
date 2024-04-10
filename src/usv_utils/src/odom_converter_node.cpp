@@ -34,7 +34,8 @@ protected:
     tf2::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
-    double psi = -yaw;
+    // ckpnt clean
+    double psi = yaw;
 
     newOdom.header.stamp = msg->header.stamp;
     newOdom.header.frame_id = "world";
@@ -46,17 +47,9 @@ protected:
     double u_orig = msg->twist.twist.linear.x;
     double v_orig = -msg->twist.twist.linear.y;
 
-    newOdom.twist.twist.linear.x =
-        // std::cos(psi) * u_orig - std::sin(psi) * v_orig;
-        u_orig;
-    newOdom.twist.twist.linear.y =
-        // (std::sin(psi) * u_orig + std::cos(psi) * v_orig);
-        v_orig;
+    newOdom.twist.twist.linear.x = u_orig;
+    newOdom.twist.twist.linear.y = v_orig;
 
-    // newOdom.twist.twist.linear.x =
-    //     u_orig;
-    // newOdom.twist.twist.linear.y =
-    //     v_orig;
     newOdom.twist.twist.angular.z = -msg->twist.twist.angular.z;
 
     convertedOdomPub->publish(newOdom);
@@ -67,7 +60,7 @@ protected:
     } else {
       geometry_msgs::msg::Pose2D pose;
       pose.x = newOdom.pose.pose.position.y;
-      pose.y = -newOdom.pose.pose.position.x;
+      pose.y = newOdom.pose.pose.position.x;
       pose.theta = psi;
       posePub->publish(pose);
 

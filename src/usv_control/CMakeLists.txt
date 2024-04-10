@@ -29,6 +29,13 @@ target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and
 ament_target_dependencies(asmc_node rclcpp std_msgs Eigen3 geometry_msgs)
 target_link_libraries(asmc_node usv_libs)
 
+add_executable(los_node src/los_node.cpp)
+target_include_directories(los_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> libs/usv_libs/src)
+target_compile_features(los_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(los_node rclcpp nav_msgs std_msgs Eigen3 geometry_msgs)
+
 add_executable(aitsmc_node src/aitsmc_node.cpp)
 target_include_directories(aitsmc_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -70,6 +77,9 @@ ament_target_dependencies(twist_to_setpoint_node rclcpp std_msgs geometry_msgs)
 install(TARGETS asmc_node
   DESTINATION lib/${PROJECT_NAME})
 
+install(TARGETS los_node
+  DESTINATION lib/${PROJECT_NAME})
+
 install(TARGETS waypoint_handler_node
   DESTINATION lib/${PROJECT_NAME})
 
@@ -90,6 +100,12 @@ install(TARGETS aitsmc_node
 
 install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
 install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
+
+# Install Python executables
+install(PROGRAMS
+  scripts/path_publisher_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

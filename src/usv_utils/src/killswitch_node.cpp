@@ -16,11 +16,11 @@ public:
 
     leftSub = this->create_subscription<std_msgs::msg::Float64>(
       "/usv/left_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->left.data = msg.data * 2; });
+        [this](const std_msgs::msg::Float64 &msg) { this->left.data = msg.data * 1; });
 
     rightSub = this->create_subscription<std_msgs::msg::Float64>(
       "/usv/right_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->right.data = msg.data * 2; });
+        [this](const std_msgs::msg::Float64 &msg) { this->right.data = msg.data * 1; });
 
     arrivedSub = this->create_subscription<std_msgs::msg::Bool>(
       "/usv/waypoint/arrived", 10,
@@ -61,8 +61,8 @@ private:
 
   void update() {
     // if(!this->arrived.data ^ this->autonomous_on){
-      leftPub->publish(left);
-      rightPub->publish(right);
+      leftPub->publish(this->left);
+      rightPub->publish(this->right);
     // } else{
     //   leftPub->publish(zero);
     //   rightPub->publish(zero);

@@ -63,6 +63,7 @@ def generate_launch_description():
                    '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
                    '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
                    '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
+                   '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
                    ],
         # parameters=[{
         #     'qos_overrides./model/my_roboboat.subscriber.reliability': 'reliable',

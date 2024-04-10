@@ -18,7 +18,7 @@ from launch.actions import ExecuteProcess
 def generate_launch_description():
     is_sim = DeclareLaunchArgument(
         'is_simulation',
-        default_value = 'false',
+        default_value = 'true',
         description = 'Defines if the application will run in simulation or in real life'
     )
 
@@ -157,6 +157,10 @@ def generate_launch_description():
         package="usv_control",
         executable="usv_tf2_broadcaster_node")    
 
+    los_node = Node(
+        package="usv_control",
+        executable="los_node")    
+
     obstacle_publisher = Node(
         package="usv_missions",
         executable="obstacle_publisher_node")   
@@ -186,17 +190,18 @@ def generate_launch_description():
             msg="Running IRL mode."
         ),
 
-        # rviz,
-       # dynamic_sim_node,
-        asmc_node,
-        # aitsmc_node,
+        rviz,
+        dynamic_sim_node,
+        # asmc_node,
+        aitsmc_node,
+        los_node,
         sbg_node,
         # velodyne_launch,
         imu_converter_node,
         # twist_to_setpoint_node,
-        #foxglove_bridge,
-       #waypoint_handler,
+        foxglove_bridge,
+        # waypoint_handler,
         tf2,
         #obstacle_publisher,
-        can_node,
+        # can_node,
     ])
