@@ -7,7 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
-        - /Path1/Status1
+        - /MarkerArray2
       Splitter Ratio: 0.5
     Tree Height: 839
   - Class: rviz_common/Selection
@@ -164,9 +164,33 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /usv/path_to_follow
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /marker_array
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /on_watch
+      Value: true
   Enabled: true
   Global Options:
-    Background Color: 0; 0; 0
+    Background Color: 119; 118; 123
     Fixed Frame: world
     Frame Rate: 30
   Name: root
@@ -210,25 +234,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 23.287342071533203
+      Distance: 13.870346069335938
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 6.494009494781494
-        Y: 1.2443293333053589
-        Z: 14.078996658325195
+        X: 0.023146536201238632
+        Y: -0.05047580599784851
+        Z: -0.0007420843467116356
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 0.7247971296310425
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 3.130401611328125
+      Value: Orbit (rviz_default_plugins)
+      Yaw: 3.1123740673065186
     Saved: ~
 Window Geometry:
   Displays:

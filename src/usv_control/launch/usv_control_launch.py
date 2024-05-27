@@ -130,17 +130,6 @@ def generate_launch_description():
             {"q_r": 3.0},
             {"p_u": 5.0},
             {"p_r": 5.0},
-        ]
-    )
-
-    twist_to_setpoint_node = Node(
-        package="usv_control",
-        executable="twist_to_setpoint_node",
-        namespace="simulator",
-        remappings=[
-            ("velocity", "/guidance/desired_velocity"),
-            ("heading", "/guidance/desired_heading"),
-            ("velocity_twist", "/guidance/desired_twist"),
         ],
     )
 
@@ -149,21 +138,26 @@ def generate_launch_description():
         package="foxglove_bridge",
         executable="foxglove_bridge")
     
-    waypoint_handler = Node(
-        package="usv_control",
-        executable="waypoint_handler_node")    
-
     tf2 = Node(
         package="usv_control",
-        executable="usv_tf2_broadcaster_node")    
+        executable="usv_tf2_broadcaster_node",
+        # condition=UnlessCondition(LaunchConfiguration('is_simulation'))
+    )
 
     los_node = Node(
         package="usv_control",
         executable="los_node")    
 
-    obstacle_publisher = Node(
-        package="usv_missions",
-        executable="obstacle_publisher_node")   
+    obstacle_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_missions'),
+                'launch',
+                'obstacle_launch.py'
+            ])
+        ]),
+        condition=IfCondition(LaunchConfiguration('is_simulation'))
+    )
 
     can_node = Node(
         package="vanttec_can_comms",
@@ -174,21 +168,27 @@ def generate_launch_description():
             ("out/stm32_ping", "/usv/can/stm32_ping"),
             ("in/left_motor", "/usv/left_thruster"),
             ("in/right_motor", "/usv/right_thruster"),
-        ]
+        ],
+        condition=UnlessCondition(LaunchConfiguration('is_simulation'))
+    )
+
+    teleop_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_control'),
+                'launch',
+                'teleop_launch.py'
+            ])
+        ]),
+    )
+
+    waypoint_handler_node = Node(
+        package="usv_control",
+        executable="waypoint_handler_node.py",
     )
 
     return LaunchDescription([
         is_sim,
-
-        # Log the value of is_simulation for debugging purposes
-        LogInfo(
-            condition=IfCondition(LaunchConfiguration('is_simulation')),
-            msg="Running SIM mode."
-        ),
-        LogInfo(
-            condition=UnlessCondition(LaunchConfiguration('is_simulation')),
-            msg="Running IRL mode."
-        ),
 
         rviz,
         dynamic_sim_node,
@@ -196,12 +196,11 @@ def generate_launch_description():
         aitsmc_node,
         los_node,
         sbg_node,
-        # velodyne_launch,
         imu_converter_node,
-        # twist_to_setpoint_node,
         foxglove_bridge,
-        # waypoint_handler,
-        tf2,
-        #obstacle_publisher,
+        # tf2,
         # can_node,
+        # teleop_launch,
+        obstacle_launch,
+        waypoint_handler_node,
     ])

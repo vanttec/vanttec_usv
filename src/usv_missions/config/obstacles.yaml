@@ -1,42 +1,224 @@
-# Obstacle #1
-ob1:
-  x: 1.0
-  y: 1.0
-  type: 'marker'
+obstacle_publisher_node:
   ros__parameters:
-    Kp: 1.0
-    Ki: 0.01
-    Kd: 0.2 #0.01
-    D_MAX: 180
-
-
-# First Order Feedback Linearization 1-DOF ASMC Controller for the VTec SDC1
-sdc1_vel_asmc_node:
-  ros__parameters:
-    lambda1: 1.0
-    lambda2: 1.0
-    K2: 1.0
-    K_alpha: 1.0
-    K1_init: 0.0
-    K_min: 0.0
-    mu: 0.01
-    D_MAX: 180
-
-sdc1_vel_aitsmc_node:
-  ros__parameters:
-    lambda: 2.0
-    beta: 0.9
-    K2: 0.3
-    K_alpha: 0.5
-    K1_init: 0.0
-    K_min: 0.001
-    mu: 0.1
-    D_MAX: 180
-
-# Stanley Controller Params
-stanley_controller_node:
-  ros__parameters:
-    K: 1.0 # drives you to path faster, induces overshoot
-    K_soft: 1.5 # softens overshoot
-    # DELTA_SAT: [0.467503, -0.309027] # radians
-    DELTA_SAT: [0.3722,-0.3722] # radians
+    mission_choice: "m2_v2"
+    m1_test:
+      obj_names: ["b1", "b2", "b3", "b4"]
+      obj_info:
+        b1:
+          x: 3.5
+          y: -3.0
+          color: 0
+          type: "marker"
+        b2:
+          x: 15.0
+          y: -12.0
+          color: 0
+          type: "marker"
+        b3:
+          x: 5.5
+          y: 0.0
+          color: 1
+          type: "marker"
+        b4:
+          x: 14.0
+          y: -9.0
+          color: 1
+          type: "marker"
+    m1:
+      obj_names: ["b1", "b2", "b3", "b4"]
+      obj_info:
+        b1:
+          x: 3.5
+          y: -3.0
+          color: 0
+          type: "marker"
+        b2:
+          x: 19.0
+          y: -4.1
+          color: 0
+          type: "marker"
+        b3:
+          x: 3.7
+          y: 0.9
+          color: 1
+          type: "marker"
+        b4:
+          x: 17.0
+          y: -1.0
+          color: 1
+          type: "marker"
+    m2:
+      obj_names: ["b1", "b2", "b3", "b4", "b5", "b6"]
+      obj_info:
+        b1:
+          x: 3.5
+          y: -3.0
+          color: 0
+          type: "round"
+        b2:
+          x: 9.0
+          y: -4.1
+          color: 0
+          type: "round"
+        b3:
+          x: 13.0
+          y: -2.0
+          color: 0
+          type: "round"
+        b4:
+          x: 3.7
+          y: 0.9
+          color: 1
+          type: "round"
+        b5:
+          x: 8.8
+          y: -1.0
+          color: 1
+          type: "round"
+        b6:
+          x: 14.0
+          y: 1.23
+          color: 1
+          type: "round"
+        b7:
+          x: 6.7
+          y: -2.0
+          color: 3
+          type: "round"
+        b8:
+          x: 3.2
+          y: -1.5
+          color: 4
+          type: "round"
+        b9:
+          x: 13.0
+          y: 0.5
+          color: 4
+          type: "round"
+    m2_v2:
+      obj_names: ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10", "b11", "b12"]
+      obj_info:
+        b1:
+          x: 3.5
+          y: -3.0
+          color: 0
+          type: "round"
+        b2:
+          x: 9.0
+          y: -4.1
+          color: 0
+          type: "round"
+        b3:
+          x: 18.0
+          y: -2.0
+          color: 0
+          type: "round"
+        b4:
+          x: 19.5
+          y: 2.0
+          color: 0
+          type: "round"
+        b5:
+          x: 20.0
+          y: 8.1
+          color: 0
+          type: "round"
+        b6:
+          x: 18.0
+          y: 15.0
+          color: 0
+          type: "round"
+        b7:
+          x: 3.7
+          y: 0.9
+          color: 1
+          type: "round"
+        b8:
+          x: 8.8
+          y: -1.0
+          color: 1
+          type: "round"
+        b9:
+          x: 15.0
+          y: 1.2
+          color: 1
+          type: "round"
+        b10:
+          x: 17.0
+          y: 3.0
+          color: 1
+          type: "round"
+        b11:
+          x: 18.5
+          y: 10.1
+          color: 1
+          type: "round"
+        b12:
+          x: 19.0
+          y: 18.0
+          color: 1
+          type: "round"
+    m3:
+      obj_names: ["b1", "b2", "b3", "b4"]
+      obj_info:
+        b1:
+          x: -1.5
+          y: -3.0
+          color: 0
+          type: "round"
+        b2:
+          x: -1.5
+          y: 3.0
+          color: 1
+          type: "round"
+        b3:
+          x: -13.0
+          y: 10.0
+          color: 2
+          type: "round"
+        b4:
+          x: -15.0
+          y: 0.0
+          color: 3
+          type: "round"
+    m3_v2:
+      obj_names: ["b1", "b2", "b3", "b4"]
+      obj_info:
+        b1:
+          x: 8.0
+          y: 9.0
+          color: 0
+          type: "round"
+        b2:
+          x: 7.0
+          y: 10.5
+          color: 1
+          type: "round"
+        b3:
+          x: -13.0
+          y: 10.0
+          color: 2
+          type: "round"
+        b4:
+          x: -2.0
+          y: 0.0
+          color: 3
+          type: "round"
+    m4:
+      obj_names: ["picture1", "picture2", "picture3"]
+      obj_info:
+        picture1:
+          x: 9.0
+          y: 19.0
+          color: 3
+          type: "picture"
+        picture2:
+          x: 8.5
+          y: 14.0
+          color: 2
+          type: "picture"
+        picture3:
+          x: 9.5
+          y: 24.0
+          color: 1
+          type: "picture"

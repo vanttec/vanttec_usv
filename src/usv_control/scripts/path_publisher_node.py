@@ -37,14 +37,12 @@ class PathPublisherNode(Node):
         self.path_.header.frame_id = parent_frame
         self.path_.header.stamp = self.get_clock().now().to_msg()
 
-        for i in range(100):
+        for i in range(10):
             pose_stmpd = PoseStamped()
             pose_stmpd.header.frame_id = parent_frame
-            pose_stmpd.pose.position.x = i * 0.6
-            pose_stmpd.pose.position.y = 10 * math.sin(i / 10)
+            pose_stmpd.pose.position.x = 10 * i * 0.6
+            pose_stmpd.pose.position.y = 10 * math.sin(i)
             self.path_.poses.append(pose_stmpd)
-
-        # TODO: ADD CATMUL INTERPOLATION
 
     def timer_callback(self):
         self.path_pub_.publish(self.path_)

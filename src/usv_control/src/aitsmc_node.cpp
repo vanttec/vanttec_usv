@@ -25,12 +25,12 @@ class AitsmcNode : public rclcpp::Node {
         [this](const std_msgs::msg::Float64 &msg) { this->r_d = msg.data; });
 
     velocitySub = this->create_subscription<geometry_msgs::msg::Vector3>(
-        "in/velocity", 1, [this](const geometry_msgs::msg::Vector3 &msg) {
+        "in/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
           this->velocity = msg;
         });
 
     poseSub = this->create_subscription<geometry_msgs::msg::Pose2D>(
-        "in/pose", 1,
+        "in/pose", 10,
         [this](const geometry_msgs::msg::Pose2D &msg) { this->pose = msg; });
 
     rightThrusterPub = this->create_publisher<std_msgs::msg::Float64>(
@@ -156,8 +156,13 @@ class AitsmcNode : public rclcpp::Node {
     auto debug = controller.getDebugData();
 
     std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, su, sp, txMsg, tzMsg;
-    rt.data = out.right_thruster;
-    lt.data = out.left_thruster;
+    // if(!(setpoint.u == 0 && setpoint.r == 0)){
+      rt.data = out.right_thruster;
+      lt.data = out.left_thruster;
+    // } else {
+    //   rt.data = 0.0;
+    //   lt.data = 0.0;
+    // }
     sg.data = debug.Ka_u;
     hg.data = debug.Ka_r;
     eu.data = debug.e_u;

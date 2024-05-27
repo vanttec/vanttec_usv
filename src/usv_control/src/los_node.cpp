@@ -23,10 +23,17 @@ class LOSNode : public rclcpp::Node {
 
     path_sub = this->create_subscription<nav_msgs::msg::Path>(
         "/usv/path_to_follow", 10,
-        [this](const nav_msgs::msg::Path &msg) { this->path = msg; });
+        [this](const nav_msgs::msg::Path &msg) { 
+            if(path.poses.size() == 0)
+                path = msg;
+            else if(msg.poses[msg.poses.size() - 1].pose != path.poses[path.poses.size() - 1].pose) {
+                path = msg;
+                wp_i = 0;
+            }
+            });
 
     pose_sub = this->create_subscription<geometry_msgs::msg::Pose2D>(
-        "/usv/state/pose", 1,
+        "/usv/state/pose", 10,
         [this](const geometry_msgs::msg::Pose2D &msg) { this->pose = msg; });
 
     vel_pub = this->create_publisher<std_msgs::msg::Float64>(
@@ -104,10 +111,19 @@ class LOSNode : public rclcpp::Node {
                             (path.poses[wp_i].pose.position.x - this->pose.x));
 
             // Set and publish ros msgs
-            vel_msg.data = std::clamp((path.poses.size() - wp_i) / 10.0 - 0.05, 0.0, 0.5);
+            vel_msg.data = std::clamp(distance(this->pose, path.poses[wp_i].pose.position) - 1 , 0.0, 0.5);
             vel_pub->publish(vel_msg);
 
-            heading_vel_msg.data = get_angle_diff(this->pose.theta, psi_d);
+            heading_vel_msg.data = -get_angle_diff(this->pose.theta, psi_d);
+            
+            if((wp_i + 1) == path.poses.size()) {
+                // vel_msg.data = 0.0;
+                heading_vel_msg.data = 0.0;
+            }
+
+            // RCLCPP_INFO(get_logger(), "wp_i: %d, size: %d, vel: %f", wp_i, path.poses.size(), heading_vel_msg.data);
+            
+            // Setting x: %f y: %f as new zero", zero_x, zero_y);
             heading_vel_pub->publish(heading_vel_msg);
 
             current_ref.poses[0].pose.position.x = this->pose.x;
@@ -122,7 +138,7 @@ class LOSNode : public rclcpp::Node {
         pose_path_pub->publish(pose_accum);
     }
 
-    float distance(geometry_msgs::msg::Pose2D pos, geometry_msgs::msg::Point wp){
+    double distance(geometry_msgs::msg::Pose2D pos, geometry_msgs::msg::Point wp){
         return sqrt(pow(pos.x - wp.x, 2) + pow(pos.y - wp.y, 2));
     }
 

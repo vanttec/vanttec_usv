@@ -34,7 +34,6 @@ protected:
     tf2::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
-    // ckpnt clean
     double psi = yaw;
 
     newOdom.header.stamp = msg->header.stamp;

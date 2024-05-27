@@ -2,246 +2,171 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <cmath>
 #include <iostream>
+#include <map>
 #include <eigen3/Eigen/Dense>
 
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/string.hpp"
-#include "std_msgs/msg/float32.hpp"
-#include "std_msgs/msg/int8.hpp"
-#include "geometry_msgs/msg/point.hpp"
-#include "geometry_msgs/msg/pose2_d.hpp"
 #include "usv_interfaces/msg/object_list.hpp"
 #include "usv_interfaces/msg/object.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "std_msgs/msg/color_rgba.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
-#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose2_d.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 
+struct MarkerProps {
+  int type;
+  double x, y, z, z_trans;
+};
+
 class ObstaclePublisherNode : public rclcpp::Node {
     public:
-        ObstaclePublisherNode(): Node("obstacle_publisher_node") {            
-            // object_list_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/objects_docking", 10);
-            object_list_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/objects", 10);
-            marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/marker_array", 10);
+        ObstaclePublisherNode(): Node("obstacle_publisher_node") {
 
-            poseSub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
+            this->declare_parameter("mission_choice", rclcpp::PARAMETER_STRING);
+            std::string mission_prefix = this->get_parameter("mission_choice").as_string();
+
+            this->declare_parameter(mission_prefix + ".obj_names", rclcpp::PARAMETER_STRING_ARRAY);
+            std::vector<std::string> n = this->get_parameter(mission_prefix + ".obj_names").as_string_array();
+
+            for(std::string &name : n) {
+                usv_interfaces::msg::Object obj;
+                visualization_msgs::msg::Marker marker;
+
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".x", rclcpp::PARAMETER_DOUBLE);
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".y", rclcpp::PARAMETER_DOUBLE);
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".color", rclcpp::PARAMETER_INTEGER);
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".type", rclcpp::PARAMETER_STRING);
+
+                double x = this->get_parameter(mission_prefix + ".obj_info." + name + ".x").as_double();
+                double y = this->get_parameter(mission_prefix + ".obj_info." + name + ".y").as_double();
+                int64_t color = this->get_parameter(mission_prefix + ".obj_info." + name + ".color").as_int();
+                std::string type = this->get_parameter(mission_prefix + ".obj_info." + name + ".type").as_string();
+
+                obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).color(color).type(type);
+                object_list_global.obj_list.push_back(obj);
+
+                int r{color_list[color][0]},
+                    g{color_list[color][1]},
+                    b{color_list[color][2]},
+                    a{color_list[color][3]};
+
+                marker.header.frame_id = "world";
+                marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
+                marker.action = 0;
+                marker.id = marker_arr.markers.size();
+                marker.type = marker_type[type].type;
+                marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
+                                x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
+                marker.pose.position.x = x;
+                marker.pose.position.y = y;
+                marker.pose.position.z = marker_type[type].z_trans;
+                marker_arr.markers.push_back(marker);
+            }
+
+            object_list_global_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_list_global", 10);
+            object_list_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_list", 10);
+            marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/marker_array", 10);
+            on_watch_marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/on_watch", 10);
+
+            pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
                 "/usv/state/pose", 10,
-                [this](const geometry_msgs::msg::Pose2D &msg)
-                {
-                    this->pose.x = msg.x;
-                    this->pose.y = msg.y;
-                    this->pose.theta = msg.theta;
-                });
+                [this](const geometry_msgs::msg::Pose2D &msg){  pose = msg; });
 
             timer_ = this->create_wall_timer(
-            500ms, std::bind(&ObstaclePublisherNode::timer_callback, this));
+            100ms, std::bind(&ObstaclePublisherNode::timer_callback, this));
+
         }
 
     private:
         rclcpp::TimerBase::SharedPtr timer_;
-        rclcpp::Publisher<usv_interfaces::msg::ObjectList>::SharedPtr object_list_pub_;
-        rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_;
-        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr poseSub_;
-        usv_interfaces::msg::Object obj;
+        rclcpp::Publisher<usv_interfaces::msg::ObjectList>::SharedPtr object_list_pub_, object_list_global_pub_;
+        rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_, on_watch_marker_pub_;
+
+        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
+
+        usv_interfaces::msg::ObjectList object_list, object_list_global;
+        visualization_msgs::msg::MarkerArray marker_arr, on_watch_arr;
         geometry_msgs::msg::Pose2D pose;
-        visualization_msgs::msg::Marker marker;
 
-        // /*
-        // =========================
-        // ||  MANDATORY MISSION  ||
-        // =========================
-        // */
-        // std::vector<std::vector<float>> obsAbsPose {
-        // //Red buoys
-        // {-3.5,-3.0}, {-19.0, -4.1},
-        // //Green buoys
-        // {-3.7, 0.9}, {-17.0, -1.0},
-        // };
-        // std::vector<int> obsColors = {0,0,1,1};        
-        
-        // /*
-        // =======================
-        // ||  FOLLOW THE PATH  ||
-        // =======================
-        // */
-        // // TEST #1: CHECKED
-        // std::vector<std::vector<float>> obsAbsPose {
-        // //Red buoys
-        // {3.5,-3.0}, {9.0, -4.1}, {13.0, -2.0},
-        // //Green buoys
-        // {3.7, 0.9}, {8.8, -1.0}, {14.0, 1.23},
-        // //Yellow buoys
-        // {6.7,-2.0},
-        // //Black buoys
-        // {3.2, -1.5}, {13.0,0.5}
-        // };
-        // std::vector<int> obsColors = {0,0,0,1,1,1,3,4,4};
-        // std::vector<std::string> obsType = {"round","round","round","round","round","round","round","round","round"};
-
-        // // TEST #2: TODO
-        // std::vector<std::vector<float>> obsAbsPose {
-        // //Red buoys
-        // {-3.0,3.5}, {-4.1, 9.0}, {-2.0, 13.0},
-        // //Green buoys
-        // {0.9, 3.7}, {0.0, 8.8}, {1.23, 14.0},
-        // //Yellow buoys
-        // {-2.5, 7.5},
-        // //Black buoys
-        // {-1.5, 2.0}, {0.5, 13.0}
-        // };
-        // std::vector<int> obsColors = {0,0,0,1,1,1,3,4,4};
-
-        // // TEST #2: "EASIER"
-        // std::vector<std::vector<float>> obsAbsPose {
-        // //Red buoys
-        // {1,1},{4,3},{7,3},{10,0},{7,-2},{4,-2},
-        // //Green buoys
-        // {-1,3},{3,5},{8,5},{12,0},{8,-4},{4,-5}, 
-        // };
-        // std::vector<int> obsColors = {0,0,0,0,0,0,1,1,1,1,1,1};
-
-        // // TEST #3: "temp, volver al 2 ahorita yaaa"
-        // std::vector<std::vector<float>> obsAbsPose {
-        // //Red buoys
-        // {1,1},{3,5},
-        // //Green buoys
-        // {-1,3},{4,3},
-        // };
-        // std::vector<int> obsColors = {0,0,1,1};
-
-        /*
-        =======================
-        ||  SPEED CHALLENGE  ||
-        =======================
-        */
-
-    //    // Case 1
-    //     std::vector<std::vector<float>> obsAbsPose {
-    //     //Red buoys
-    //     {-1.5,-3.0},
-    //     //Green buoys
-    //     {-1.5, 3.0},
-    //     //Blue buoys
-    //     {-13.0, 10.0},
-    //     //Yellow buoys
-    //     {-15, 0},
-    //     };
-    //     std::vector<int> obsColors = {0,1,2,3};    
-    //     std::vector<std::string> obsType = {"round", "round", "round", "round"};
-
-       // Case 2
-        std::vector<std::vector<float>> obsAbsPose {
-        //Red buoys
-        {8,9},
-        //Green buoys
-        {7, 10.5},
-        //Blue buoys
-        {-13.0, 10.0},
-        //Yellow buoys
-        {-2, 0},
+        int color_list[6][4]{
+            {1,0,0,1},
+            {0,1,0,1},
+            {0,0,1,1},
+            {1,1,0,1},
+            {0,0,0,1},
+            {0,0,0,0}
         };
-        std::vector<int> obsColors = {0,1,2,3};    
-        std::vector<std::string> obsType = {"round", "round", "round", "round"};
 
-
-        // /*
-        // ============================
-        // ||  DOCKING CHALLENGE HUH ||
-        // ============================
-        // */
-        // std::vector<std::vector<float>> obsAbsPose {
-        // //BLUE
-        // {9,19},
-        // //GREEN
-        // {8.5,14},
-        // //DUCK
-        // {9.5,24},
-        // };
-        // std::vector<int> obsColors = {3,2,1};    
-        // std::vector<std::string> obsType = {"duck", "plus", "circle"}; // circle, duck, plus, triangle
-        
-
-        std::vector<std::vector<float>> obsRelPose;
-        float x_t{0.0}, y_t{0.0}, d_t{0.0};
-
+        std::map<std::string, MarkerProps> marker_type = {
+            {"round", MarkerProps{2, 0.5, 0.5, 0.5, 0}},
+            {"marker", MarkerProps{3, 0.5, 0.5, 1, 0.25}},
+            {"picture", MarkerProps{1, 0.5, 0.5, 0.5, 0.25}},
+        };
+                
         void timer_callback() {
-            usv_interfaces::msg::ObjectList obj_list;
-            obj_list = fill_obj_list();
-            object_list_pub_->publish(obj_list);
+            fill_local_list();
 
-            visualization_msgs::msg::MarkerArray marker_arr;
-            for(int i = 0 ; i < this->obsAbsPose.size() ; i++){
-                switch(this->obsColors[i]){
-                    case 0:
-                        marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(1).g(0).b(0).a(1); 
-                        break;     
-                    case 1:
-                        marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(0).g(1).b(0).a(1); 
-                        break;     
-                    case 2:
-                        marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(0).g(0).b(1).a(1); 
-                        break;     
-                    case 3:
-                        marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(1).g(1).b(0).a(1); 
-                        break;     
-                    case 4:
-                        marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(0).g(0).b(0).a(1); 
-                        break;     
-                    default:
-                        marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(0).g(0).b(0).a(0); 
-                        break;     
-                }
-                marker.header.frame_id = "world";
-                // marker.ns = i;
-                marker.id = i;
-                marker.type = 2;
-                marker.action = 0;
-                marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.5).y(0.5).z(0.5); 
-                marker.pose.position.x = this->obsAbsPose[i][0];
-                marker.pose.position.y = this->obsAbsPose[i][1];
-                marker.pose.position.z = 0.0;
-                marker_arr.markers.push_back(marker);
-            }
+            object_list_global_pub_->publish(object_list_global);
+            object_list_pub_->publish(object_list);
             marker_pub_->publish(marker_arr);
-        }        
+            on_watch_marker_pub_->publish(on_watch_arr);
+        }
 
-        usv_interfaces::msg::ObjectList fill_obj_list(){
-            usv_interfaces::msg::ObjectList o_l;
-            obsRelPose = obsAbsPose;
+        void fill_local_list(){
             Eigen::Matrix3f rotM;
-            Eigen::Vector3f po, poseR;
-            rotM << std::cos(-this->pose.theta), - std::sin(-this->pose.theta), 0, 
-                    std::sin(-this->pose.theta), std::cos(-this->pose.theta), 0, 
+            rotM << std::cos(-pose.theta), - std::sin(-pose.theta), 0, 
+                    std::sin(-pose.theta), std::cos(-pose.theta), 0, 
                     0, 0, 1;
 
-            for(int i = 0 ; i < obsAbsPose.size() ; i++){
-                this->x_t = obsAbsPose[i][0] - this->pose.x;
-                this->y_t = obsAbsPose[i][1] - this->pose.y;
-                this->d_t = std::sqrt(std::pow(this->x_t,2) + std::pow(this->y_t,2));
-                // std::cout << this->d_t << "x_t: " << this->x_t << "y_t: " << this->y_t << std::endl;
+            Eigen::Vector3f po, poseR;
+            double x_tmp, y_tmp, d_tmp;
 
-                po << x_t, y_t, 0;
+            usv_interfaces::msg::Object obj;
+            visualization_msgs::msg::Marker marker;
+            marker.header.frame_id = "world";
+
+            object_list.obj_list.clear();
+            on_watch_arr.markers.clear();
+
+            for(int i = 0 ; i < object_list_global.obj_list.size() ; i++){
+                x_tmp = object_list_global.obj_list[i].x - pose.x;
+                y_tmp = object_list_global.obj_list[i].y - pose.y;
+                d_tmp = std::sqrt(std::pow(x_tmp,2) + std::pow(y_tmp,2));
+                po << x_tmp, y_tmp, 0;
                 poseR = rotM*po;
+                
+                if(poseR(0) > 0 && d_tmp < 10 && std::fabs(std::atan2(poseR(1),poseR(0))) < 1){
+                    obj.x = poseR(0);
+                    obj.y = poseR(1);
+                    obj.type = object_list_global.obj_list[i].type;
+                    obj.color = object_list_global.obj_list[i].color;
+                    object_list.obj_list.push_back(obj);
 
-                obsRelPose[i][0] = poseR[0];
-                obsRelPose[i][1] = poseR[1];
+                    int r{color_list[obj.color][0]},
+                        g{color_list[obj.color][1]},
+                        b{color_list[obj.color][2]};
+                    marker.action = 0;
+                    marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(0.8);
+                    marker.color.a = 0.5;
+                    marker.type = marker_type[obj.type].type;
+                    marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
+                                    x(marker_type[obj.type].x * 2.0).
+                                    y(marker_type[obj.type].y * 2.0).
+                                    z(marker_type[obj.type].z * 2.0); 
+                    marker.pose.position.x = object_list_global.obj_list[i].x;
+                    marker.pose.position.y = object_list_global.obj_list[i].y;
+                    marker.pose.position.z = marker_type[obj.type].z_trans;
+                } else
+                    marker.action = 2;
 
-                if(this->obsRelPose[i][0] >= 0 && this->d_t < 20){
-                    obj.x = obsRelPose[i][0];
-                    obj.y = obsRelPose[i][1];
-                    obj.type = obsType[i];
-                    obj.color = obsColors[i];
-                    o_l.obj_list.push_back(obj);
-                }
+                marker.id = i;
+                on_watch_arr.markers.push_back(marker);
             }
-
-            return o_l;
-        }
+        }       
 };
 
 int main(int argc, char * argv[]) {

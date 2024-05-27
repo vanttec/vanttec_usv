@@ -127,7 +127,6 @@ def generate_launch_description():
         aitsmc_node,
         los_node,
         odom_converter,
-        # twist_to_setpoint_node,
         foxglove_bridge,
         # waypoint_handler,
         tf2,

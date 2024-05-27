@@ -22,7 +22,6 @@ class DynamicModelSim : public rclcpp::Node {
 
     posePub =
         this->create_publisher<geometry_msgs::msg::Pose2D>("output/pose", 10);
-
     localVelPub =
         this->create_publisher<geometry_msgs::msg::Vector3>("output/vel", 10);
     odomPub =
@@ -118,7 +117,7 @@ class DynamicModelSim : public rclcpp::Node {
   double Tport{0}, Tstbd{0};
 
   // DynamicModel model{0,0,0};
-  DynamicModel model{0,0,0.4};
+  DynamicModel model{0,0,0};
   // DynamicModel model{12,15,-2.3};
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;

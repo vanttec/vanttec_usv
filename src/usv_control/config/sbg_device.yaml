@@ -121,7 +121,7 @@
       # 0 Odometer is disabled
       # 1 Odometer connected only to ODO_A (unidirectional).
       # 2 Odometer connected to both ODO_A (signal A) and ODO_B (Signal B or direction) for bidirectional odometer.
-      odometerPinAssignment: 0
+      odometerPinAssignment: 2
     
     magnetometer:
       # Magnetometer model ID
@@ -268,7 +268,7 @@
       # Status general, clock, com aiding, solution, heave
       log_status: 8
       # Includes IMU status, acc., gyro, temp delta speeds and delta angles values
-      log_imu_data: 8
+      log_imu_data: 2
       # Includes roll, pitch, yaw and their accuracies on each axis
       log_ekf_euler: 2
       # Includes the 4 quaternions values
@@ -276,7 +276,7 @@
       # Position and velocities in NED coordinates with the accuracies on each axis
       log_ekf_nav: 2
       # Heave, surge and sway and accelerations on each axis for up to 4 points
-      log_ship_motion: 8
+      log_ship_motion: 2
       # Provides UTC time reference
       log_utc_time: 200
       # Magnetic data with associated accelerometer on each axis
@@ -292,7 +292,7 @@
       # GPS 1 raw data for post processing.
       log_gps1_raw: 10001
       # Provides odometer velocity
-      log_odo_vel: 0
+      log_odo_vel: 2
       # Event A/B/C/D Event markers sent when events are detected on a sync in pin
       log_event_a: 0
       log_event_b: 0

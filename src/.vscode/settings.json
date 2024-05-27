@@ -138,7 +138,18 @@
         "variant": "cpp",
         "__tree": "cpp",
         "locale": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "dense": "cpp",
+        "*.ipp": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "filesystem": "cpp",
+        "ios": "cpp",
+        "*.txx": "cpp",
+        "__functional_base": "cpp",
+        "__functional_base_03": "cpp",
+        "__tuple": "cpp"
     },
-    "ros.distro": "humble"
+    "ros.distro": "humble",
+    "cmake.sourceDirectory": "/home/max/vanttec_usv/src/deps/velodyne/velodyne_laserscan"
 }

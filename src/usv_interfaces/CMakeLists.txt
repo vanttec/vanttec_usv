@@ -16,6 +16,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Waypoint.msg"
+  "msg/WaypointList.msg"
   "msg/Object.msg"
   "msg/ObjectList.msg"
   "msg/Zbbox.msg"
