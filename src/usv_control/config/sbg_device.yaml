@@ -189,11 +189,11 @@
       # 0 Measurement is not taken into account
       # 1 Measurement is rejected if inconsistent with current estimate (depending on error model)
       # 2 Measurement is always accepted
-      posRejectMode: 2
+      posRejectMode: 1
       # Rejection mode for velocity (see posRejectMode values)
-      velRejectMode: 2
+      velRejectMode: 1
       # Rejection mode for true heading (see posRejectMode values)
-      hdtRejectMode: 2
+      hdtRejectMode: 1
     
     # Odometer configuration
     odom:
@@ -258,25 +258,25 @@
       #
       # true : ENU convention (X east, Y north, Z up)
       # false (default): NED convention (X north, Y east, Z down)
-      use_enu: false
+      use_enu: true
 
       # Frame ID:
       # Note: If the frame convention is NED so the default frame ID is (imu_link_ned)
       #       else if the convention is ENU so the default frame ID is (imu_link)
-      frame_id: "imu_link_ned"
+      frame_id: "imu_link"
     
       # Status general, clock, com aiding, solution, heave
       log_status: 8
       # Includes IMU status, acc., gyro, temp delta speeds and delta angles values
-      log_imu_data: 2
+      log_imu_data: 1
       # Includes roll, pitch, yaw and their accuracies on each axis
-      log_ekf_euler: 2
+      log_ekf_euler: 1
       # Includes the 4 quaternions values
-      log_ekf_quat: 2
+      log_ekf_quat: 1
       # Position and velocities in NED coordinates with the accuracies on each axis
-      log_ekf_nav: 2
+      log_ekf_nav: 1
       # Heave, surge and sway and accelerations on each axis for up to 4 points
-      log_ship_motion: 2
+      log_ship_motion: 1
       # Provides UTC time reference
       log_utc_time: 200
       # Magnetic data with associated accelerometer on each axis
@@ -292,7 +292,7 @@
       # GPS 1 raw data for post processing.
       log_gps1_raw: 10001
       # Provides odometer velocity
-      log_odo_vel: 2
+      log_odo_vel: 1
       # Event A/B/C/D Event markers sent when events are detected on a sync in pin
       log_event_a: 0
       log_event_b: 0

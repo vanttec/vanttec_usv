@@ -25,7 +25,7 @@ find_package(usv_interfaces REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(CUDA 10.2 REQUIRED)
+find_package(CUDA 12.4 REQUIRED)
 find_package(ZED 4 REQUIRED)
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
@@ -36,20 +36,20 @@ else ()
   set(TensorRT_LIBRARIES /usr/lib/aarch64-linux-gnu)
 endif ()
 
-# add_executable(beeblebrox src_working/beeb_old.cpp)
-# ament_target_dependencies(beeblebrox rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
-# target_include_directories(beeblebrox PRIVATE ${CUDA_INCLUDE_DIRS})
-# target_link_libraries(beeblebrox ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
-
 add_executable(beeblebrox src/beeblebrox.cpp)
 ament_target_dependencies(beeblebrox rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
 target_include_directories(beeblebrox PRIVATE ${CUDA_INCLUDE_DIRS})
 target_link_libraries(beeblebrox ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
 
-add_executable(yolo src/detectors/yolo/yolo.cpp)
-ament_target_dependencies(yolo rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
-target_include_directories(yolo PRIVATE ${CUDA_INCLUDE_DIRS})
-target_link_libraries(yolo ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
+# add_executable(vision_node src/vision_node.cpp)
+# ament_target_dependencies(vision_node rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
+# target_include_directories(vision_node PRIVATE ${CUDA_INCLUDE_DIRS})
+# target_link_libraries(vision_node ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
+
+# add_executable(yolo src/detectors/yolo/yolo.cpp)
+# ament_target_dependencies(yolo rclcpp std_msgs OpenCV cv_bridge image_transport CUDA ZED usv_interfaces)
+# target_include_directories(yolo PRIVATE ${CUDA_INCLUDE_DIRS})
+# target_link_libraries(yolo ${CUDA_LIBRARIES} ${TensorRT_LIBRARIES} nvinfer nvinfer_plugin)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -66,7 +66,7 @@ install(PROGRAMS ${SCRIPTS} ${PY_DETECTORS} DESTINATION lib/${PROJECT_NAME})
 # install c++ programs
 install(TARGETS
   beeblebrox
-  yolo
+  # yolo
   DESTINATION lib/${PROJECT_NAME}
 )
 

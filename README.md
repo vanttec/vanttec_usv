@@ -21,22 +21,17 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 
 #
 
-**How to start working?**
+<!-- **How to start working?**
 
-Enter the following commands into your **Ubuntu** terminal with **Docker**:
+Enter the following commands into your **Ubuntu** terminal:
 
 ```Shell
 cd
 git clone --recurse-submodules http://github.com/vanttec/vanttec_usv.git
 cd vanttec_usv
 
-# Building for docker
-docker build -t usv .
 
-# Running docker
-docker run -it -v "$PWD:/ws" usv
-
-# Installing gazebo ignition
+# Installing gazebo garden
 sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
 wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
 sudo apt-get update
@@ -45,3 +40,13 @@ sudo apt-get install libignition-gazebo7-dev
 
 sudo apt-get install ros-humble-ros-ign-bridge
 ```
+-->
+
+# Requirements to build the workspace
+- Nvidia CUDA
+- ZED SDK
+- Gazebo Sim Garden
+- TensorRT
+  - https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html
+
+- Other dependencies specified in errors while building

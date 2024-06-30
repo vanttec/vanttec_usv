@@ -37,3 +37,6 @@
 [submodule "src/deps/sbg_ros2_driver"]
 	path = src/deps/sbg_ros2_driver
 	url = https://github.com/SBG-Systems/sbg_ros2_driver.git
+[submodule "src/deps/LIO-SAM"]
+	path = src/deps/LIO-SAM
+	url = https://github.com/TixiaoShan/LIO-SAM.git
