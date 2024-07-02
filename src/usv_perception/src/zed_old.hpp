@@ -23,23 +23,25 @@ ZED_usv::ZED_usv(rclcpp::Logger logger_param) : logger(logger)
 
     init_params.sdk_verbose = true; // TODO false ?
     init_params.depth_mode = sl::DEPTH_MODE::ULTRA;
-    init_params.coordinate_system = sl::COORDINATE_SYSTEM::RIGHT_HANDED_Z_UP_X_FWD;
+    init_params.coordinate_system = sl::COORDINATE_SYSTEM::LEFT_HANDED_Z_UP;
     init_params.coordinate_units = sl::UNIT::METER;
     init_params.depth_maximum_distance = 20;
 
-    detection_params.detection_model = sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
-
     auto returned_state = cam.open(init_params);
     if (returned_state != sl::ERROR_CODE::SUCCESS) {
-        RCLCPP_ERROR(this->logger, "COULD NOT OPEN CAMERA");
+        RCLCPP_ERROR(this->logger, "no se pudo abrir la camara :(");
         return;
     }
 
     cam.enablePositionalTracking();
+    
+    detection_params.enable_tracking = false; // should it be true?
+    detection_params.enable_segmentation = false;
+    detection_params.detection_model = sl::OBJECT_DETECTION_MODEL::CUSTOM_BOX_OBJECTS;
 
     returned_state = cam.enableObjectDetection(detection_params);
     if (returned_state != sl::ERROR_CODE::SUCCESS) {
-        RCLCPP_ERROR(this->logger, "COULD NOT INIT OBJECT DETECTION%d", returned_state);
+        RCLCPP_ERROR(this->logger, "no se pudo empezar la deteccion de objetos en el zed-sdk %d", returned_state);
         cam.close();
         return;
     }
@@ -48,7 +50,7 @@ ZED_usv::ZED_usv(rclcpp::Logger logger_param) : logger(logger)
 
 ZED_usv::~ZED_usv()
 {
-    RCLCPP_DEBUG(this->logger, "ZED CLOSED");
+    RCLCPP_DEBUG(this->logger, "se ha cerrado la camara");
     cam.close();
 }
 

@@ -31,8 +31,6 @@ private:
 
 	// rclcpp::Publisher<usv_interfaces::msg::ZbboxArray>::SharedPtr dets;
 
-
-
 void frame(const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
 	auto img = cv_bridge::toCvCopy(msg, "bgr8")->image;
