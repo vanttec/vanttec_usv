@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# usar $DISPLAY si estamos con un monitor, sino ser :0 por default
+if [ -z "$DISPLAY" ]; then
+	DISPLAY=":0"
+fi
+
+case "$1" in
+  start)
+
+	sudo chmod 777 /dev/ttyUSB0
+	sudo chmod 777 /dev/ttyUSB1
+
+	docker run --privileged \
+		-v /dev/bus/usb:/dev/bus/usb \
+		-v /home/max/vanttec_usv:/ws \
+		--runtime runc \
+		--network=host \
+		--rm \
+		--env DISPLAY=$DISPLAY \
+		-td --name vtec_rb25 vtec_rb25
+
+    	docker exec --privileged --env DISPLAY=$DISPLAY -it vtec_rb25 bash
+
+    ;;
+  stop)
+    	docker stop vtec_rb25
+    ;;
+  term)
+    	docker exec --privileged --env DISPLAY=$DISPLAY -it vtec_rb25 bash
+    ;;
+  commit)
+	docker commit vtec_rb25
+    ;;
+  ls)
+	docker container ls
+  ;;
+  *)
+    	echo "~~ vanttec usv's docker utility ~~"
+	echo "usage: usv {start|stop|term|commit}" >&2
+ 	exit 1
+    ;;
+esac

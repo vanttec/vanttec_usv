@@ -19,30 +19,29 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 - **velodyne**: ROS package for the Velodyne LIDAR.
 - **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
 
-#
-
-<!-- **How to start working?**
+### How to start working?
 
 Enter the following commands into your **Ubuntu** terminal:
 
 ```Shell
+# Clone repository and its submodules
 cd
 git clone --recurse-submodules http://github.com/vanttec/vanttec_usv.git
-cd vanttec_usv
 
+# Build docker container
+cd ~/vanttec_usv
+docker build -t vtec_rb25 .
 
-# Installing gazebo garden
-sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
-wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
-sudo apt-get update
-
-sudo apt-get install libignition-gazebo7-dev
-
-sudo apt-get install ros-humble-ros-ign-bridge
+# Run container
+usv start 
 ```
--->
 
-# Requirements to build the workspace
+**NOTE:** Add the *scripts* repository to the *${PATH}* variable in ~/.bashrc
+```
+export PATH="$PATH":~/vanttec_usv/scripts
+```
+
+### Requirements to build the workspace
 - Nvidia CUDA
 - ZED SDK
 - Gazebo Sim Garden

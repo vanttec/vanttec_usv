@@ -46,3 +46,5 @@ RUN pip install setuptools==58.2.0
 
 RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
 RUN echo "source /root/ws/install/setup.bash" >> /root/.bashrc
+
+RUN echo "cd /ws" >> /root/.bashrc
