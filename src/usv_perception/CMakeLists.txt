@@ -25,7 +25,7 @@ find_package(usv_interfaces REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(CUDA 12.1 REQUIRED)
+find_package(CUDA 11.8 REQUIRED)
 find_package(ZED 4 REQUIRED)
 
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")

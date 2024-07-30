@@ -49,3 +49,26 @@ export PATH="$PATH":~/vanttec_usv/scripts
   - https://docs.nvidia.com/deeplearning/tensorrt/quick-start-guide/index.html
 
 - Other dependencies specified in errors while building
+
+
+## TODO: Modify and do documentation of: ROS2_XBEE_BRIDGE's changes. Also, add to repo as submodule
+
+1. Change config file to:
+- ['xbee0', '0013A20041CF8FE6', 'STATION_XBEE']
+- ['xbee1', '0013A20041CF8F96', 'BOAT_XBEE']
+
+###
+
+2. Do launch files for
+
+**Network 1: (USV)**
+
+export ROS_DOMAIN_ID=50; ros2 launch ros2_xbee_bridge xbee_bridge.launch.py dev:=/dev/ttyUSB0 namespace:=xbee0
+
+export ROS_DOMAIN_ID=50; ros2 topic pub /xbee1/msg1 std_msgs/msg/String "data: 'Hello from id 50 huhh'"
+
+**Network 2: (OGS)**
+
+export ROS_DOMAIN_ID=51; ros2 launch ros2_xbee_bridge xbee_bridge.launch.py dev:=/dev/ttyUSB1 namespace:=xbee1
+
+export ROS_DOMAIN_ID=51; ros2 topic echo /intra_comms/xbee0/msg1 std_msgs/msg/String
