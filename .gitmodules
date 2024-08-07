@@ -40,3 +40,6 @@
 [submodule "src/deps/LIO-SAM"]
 	path = src/deps/LIO-SAM
 	url = https://github.com/TixiaoShan/LIO-SAM.git
+[submodule "src/usv_control/libs/a-star"]
+	path = src/usv_control/libs/a-star
+	url = https://github.com/daancode/a-star.git

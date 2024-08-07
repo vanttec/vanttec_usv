@@ -69,8 +69,7 @@ class MissionHandlerNode : public rclcpp::Node {
             mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/status", 10);
             wp_pub_ = this->create_publisher<usv_interfaces::msg::WaypointList>("/usv/goals", 10);
 
-            timer_ = this->create_wall_timer(
-            100ms, std::bind(&MissionHandlerNode::timer_callback, this));
+            timer_ = this->create_wall_timer(100ms, std::bind(&MissionHandlerNode::timer_callback, this));
         }
 
     private:
@@ -119,6 +118,8 @@ class MissionHandlerNode : public rclcpp::Node {
             state.data = feedback.state;
             status.data = feedback.status;
 
+            RCLCPP_INFO(get_logger(), "WP LIST SIZE: %d", wp_list.waypoint_list.size());
+            
             wp_pub_->publish(wp_list);
             mission_state_pub_->publish(state);
             mission_status_pub_->publish(status);

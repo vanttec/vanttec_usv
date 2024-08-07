@@ -21,6 +21,7 @@ find_package(usv_interfaces REQUIRED)
 # find_package(<dependency> REQUIRED)
 
 add_subdirectory(libs/usv_libs)
+add_subdirectory(libs/a-star)
 
 add_executable(asmc_node src/asmc_node.cpp)
 target_include_directories(asmc_node PUBLIC
@@ -64,27 +65,28 @@ target_include_directories(kinematic_model_node PUBLIC
 target_compile_features(kinematic_model_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(kinematic_model_node rclcpp std_msgs Eigen3 geometry_msgs nav_msgs tf2_ros)
 
+add_executable(obstacle_avoidance_node src/obstacle_avoidance_node.cpp)
+target_include_directories(obstacle_avoidance_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> libs/a-star/source)
+target_compile_features(obstacle_avoidance_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(obstacle_avoidance_node rclcpp std_msgs Eigen3 usv_interfaces geometry_msgs nav_msgs tf2_ros)
+target_link_libraries(obstacle_avoidance_node a-star)
 
-install(TARGETS asmc_node
+install(TARGETS
+  asmc_node
+  los_node
+  usv_tf2_broadcaster_node
+  dynamic_model_node
+  obstacle_avoidance_node
+  kinematic_model_node
+  aitsmc_node
   DESTINATION lib/${PROJECT_NAME})
 
-install(TARGETS los_node
-  DESTINATION lib/${PROJECT_NAME})
-
-install(TARGETS usv_tf2_broadcaster_node
-  DESTINATION lib/${PROJECT_NAME})
-
-install(TARGETS dynamic_model_node
-DESTINATION lib/${PROJECT_NAME})
-
-install(TARGETS kinematic_model_node
-DESTINATION lib/${PROJECT_NAME})
-
-install(TARGETS aitsmc_node
-  DESTINATION lib/${PROJECT_NAME})
-
-install(DIRECTORY config DESTINATION share/${PROJECT_NAME})
-install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY
+  config 
+  launch
+  DESTINATION share/${PROJECT_NAME})
 
 # Install Python executables
 install(PROGRAMS

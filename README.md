@@ -37,7 +37,7 @@ usv start
 ```
 
 **NOTE:** Add the *scripts* repository to the *${PATH}* variable in ~/.bashrc
-```
+```Shell
 export PATH="$PATH":~/vanttec_usv/scripts
 ```
 
@@ -72,3 +72,37 @@ export ROS_DOMAIN_ID=50; ros2 topic pub /xbee1/msg1 std_msgs/msg/String "data: '
 export ROS_DOMAIN_ID=51; ros2 launch ros2_xbee_bridge xbee_bridge.launch.py dev:=/dev/ttyUSB1 namespace:=xbee1
 
 export ROS_DOMAIN_ID=51; ros2 topic echo /intra_comms/xbee0/msg1 std_msgs/msg/String
+
+**NOTE:** If found similar issue to "xmlrpc.client.Fault: <Fault 1: "<class 'RuntimeError'>:!rclpy.ok()">" while running topic echo:
+Just restart ros daemon
+
+
+**NOTE:** Extra dependencies: 
+```Shell
+# To install dependencies automatically:
+rosdep install --from-paths src -y --ignore-src
+
+sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro
+
+sudo add-apt-repository ppa:borglab/gtsam-release-4.1
+sudo apt install libgtsam-dev libgtsam-unstable-dev
+```
+
+## HOW TOs:
+**Run mission #2:** 
+```Shell
+ros2 launch usv_control usv_control_sim_launch.py
+ros2 launch usv_missions obstacle_launch.py
+ros2 run usv_utils obstacle_viewer_node
+ros2 run usv_control obstacle_avoidance_node
+ros2 run usv_missions mission_handler_node 
+```
+
+#
+
+**Move the boat around:** 
+```Shell
+ros2 launch usv_control usv_control_sim_launch.py
+ros2 launch usv_control teleop_launch.py 
+```
+#

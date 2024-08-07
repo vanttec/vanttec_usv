@@ -117,6 +117,7 @@ class DynamicModelSim : public rclcpp::Node {
   double Tport{0}, Tstbd{0};
 
   // DynamicModel model{0,0,0};
+  // DynamicModel model{0,0,0};
   DynamicModel model{0,0,0};
   // DynamicModel model{12,15,-2.3};
 

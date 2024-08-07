@@ -7,11 +7,9 @@
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
-
 #include "std_msgs/msg/float64.hpp"
 #include "std_msgs/msg/u_int16.hpp"
 #include "std_msgs/msg/bool.hpp"
-
 #include "nav_msgs/msg/path.hpp"
 
 using namespace std::chrono_literals;
@@ -76,7 +74,7 @@ class LOSNode : public rclcpp::Node {
 
     double psi_d{0.0};
 
-    const double lookahead_dist{2.0};
+    const double lookahead_dist{2.1};
 
     int wp_i{0};
 
@@ -85,6 +83,9 @@ class LOSNode : public rclcpp::Node {
     void timer_callback() {
         // Look for the waypoint indexes
         double dist, angle_diff;
+
+        // std::cout << "wp_i " << wp_i << std::endl;
+        // std::cout << "path i " << path.poses.size() << std::endl;
         
         if(wp_i < path.poses.size() - 1){
             // Find farthest point from current posision, limited by lookahead.
@@ -111,13 +112,14 @@ class LOSNode : public rclcpp::Node {
                             (path.poses[wp_i].pose.position.x - this->pose.x));
 
             // Set and publish ros msgs
-            vel_msg.data = std::clamp(distance(this->pose, path.poses[wp_i].pose.position) - 1 , 0.0, 0.5);
+            vel_msg.data = std::clamp(distance(this->pose, path.poses[path.poses.size() - 1].pose.position) - 1 , 0.0, 0.5);
             vel_pub->publish(vel_msg);
 
-            heading_vel_msg.data = -get_angle_diff(this->pose.theta, psi_d);
+            // heading_vel_msg.data = -get_angle_diff(this->pose.theta, psi_d)*fabs(get_angle_diff(this->pose.theta, psi_d));
+            heading_vel_msg.data = -get_angle_diff(this->pose.theta, psi_d)*5.;
             
             if((wp_i + 1) == path.poses.size()) {
-                // vel_msg.data = 0.0;
+                vel_msg.data = 0.0;
                 heading_vel_msg.data = 0.0;
             }
 

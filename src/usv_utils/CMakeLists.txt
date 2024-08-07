@@ -10,9 +10,12 @@ find_package(ament_cmake REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(std_srvs)
 find_package(geometry_msgs)
 find_package(sensor_msgs)
+find_package(usv_interfaces)
+find_package(Eigen3 REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
@@ -62,10 +65,15 @@ ament_target_dependencies(
   sensor_msgs
 )
 
+add_executable(obstacle_viewer_node src/obstacle_viewer_node.cpp)
+ament_target_dependencies(obstacle_viewer_node rclcpp std_msgs geometry_msgs nav_msgs visualization_msgs usv_interfaces Eigen3)
+target_compile_features(obstacle_viewer_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
 install(TARGETS 
   imu_converter_node
   odom_converter_node
   killswitch_node
+  obstacle_viewer_node
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)
