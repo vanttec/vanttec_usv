@@ -42,6 +42,22 @@ export PATH="$PATH":~/vanttec_usv/scripts
 ```
 
 ### Requirements to build the workspace
+
+# Build usv_interfaces package
+colcon build --packages-select usv_interfaces
+
+# Set environment variables with install/setup.bash file
+source install/setup.bash
+
+# Create record about submodules in .git/config file in workspace root
+git submodule init
+git submodule update
+
+# Change directory to usv_libs from usv_control package and create submodules
+cd vanttec_usv/src/usv_control/libs/usv_libs
+git submodule init
+git submodule update
+
 - Nvidia CUDA
 - ZED SDK
 - Gazebo Sim Garden
