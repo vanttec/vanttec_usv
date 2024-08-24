@@ -43,6 +43,7 @@ export PATH="$PATH":~/vanttec_usv/scripts
 
 ### Requirements to build the workspace
 
+```
 # Build usv_interfaces package
 colcon build --packages-select usv_interfaces
 
@@ -66,6 +67,7 @@ git submodule update
 
 - Other dependencies specified in errors while building
 
+```
 
 ## TODO: Modify and do documentation of: ROS2_XBEE_BRIDGE's changes. Also, add to repo as submodule
 
