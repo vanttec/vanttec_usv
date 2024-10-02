@@ -63,10 +63,10 @@ class DynamicModelSim : public rclcpp::Node {
     else
       etheta -= std::ceil(etheta / (M_PI * 2)) * M_PI * 2;
     
-    if(etheta > M_PI)
-      etheta -= 2 * M_PI;
-    else if(etheta < -M_PI)
-      etheta += 2 * M_PI;
+    // if(etheta > M_PI)
+    //   etheta -= 2 * M_PI;
+    // else if(etheta < -M_PI)
+    //   etheta += 2 * M_PI;
 
     pose.x = x;
     pose.y = y;
@@ -118,7 +118,8 @@ class DynamicModelSim : public rclcpp::Node {
 
   // DynamicModel model{0,0,0};
   // DynamicModel model{0,0,0};
-  DynamicModel model{0,0,0};
+  // DynamicModel model{0,0,0};
+  DynamicModel model{0,0,M_PI/4};
   // DynamicModel model{12,15,-2.3};
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;

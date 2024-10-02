@@ -21,7 +21,7 @@
       initFrameId: "map"
 
     # Configuration of the device with ROS.
-    confWithRos: true
+    confWithRos: false
     
     # Uart configuration
     uartConf:
@@ -29,7 +29,7 @@
       portName: "/dev/ttyUSB0"
     
       # Baude rate (4800 ,9600 ,19200 ,38400 ,115200 [default],230400 ,460800 ,921600)
-      baudRate: 921600
+      baudRate: 115200
     
       # Port Id
       # 0 PORT_A: Main communication interface. Full duplex.

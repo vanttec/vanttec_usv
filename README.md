@@ -5,7 +5,7 @@
 
 # VantTec USV Main Repository
 
-This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platforms.
+This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platform.
 
 ### Packages
 - **usv_comms**: ROS package that allows the USV software to interface with the Digi XBee Hardware for communication with the ground control station.
@@ -44,6 +44,9 @@ export PATH="$PATH":~/vanttec_usv/scripts
 ### Requirements to build the workspace
 
 ```
+# Go to repository root
+cd {vanttec_usv path}
+
 # Build usv_interfaces package
 colcon build --packages-select usv_interfaces
 
