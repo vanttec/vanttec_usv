@@ -14,24 +14,24 @@ USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 
       if(goal.norm() > 0.01){
         outMsg.state = 1;
-        outMsg.goals = pack_goal(pose, goal, 2);
-        last_goal = outMsg.goals[outMsg.goals.size() - 3];
+        outMsg.goals = pack_goal(pose, goal, 0.5);
+        last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
     case 1: // Finding next gate
       goal = get_goal(params.obs_list);
 
       if(goal(0) != 0 || goal(1) != 0 || goal(2) != 0){
-        outMsg.goals = pack_goal(last_goal, goal, 2);
-        last_goal = outMsg.goals[outMsg.goals.size() - 3];
+        outMsg.goals = pack_goal(last_goal, goal, 0.5);
+        last_goal = outMsg.goals[outMsg.goals.size() - 1];
         // outMsg.state = 2;
         outMsg.status = 1;
       }
-      else if(dist(last_goal, pose) < 1) {
+      // else if(dist(last_goal, pose) < 1) {
         // outMsg.goals = pack_goal(last_goal, forward(last_goal, 0.15), 2);
         // last_goal = outMsg.goals[outMsg.goals.size() - 3];
-        outMsg.state = 2;
-      }
+        // outMsg.state = 2;
+      // }
       break;
   }
   
@@ -76,7 +76,7 @@ Eigen::Vector3f M2::get_goal(std::vector<Obstacle> obs_list){
     }
   }
 
-  if(red_buoy.norm() < 0.01 || green_buoy.norm() < 0.01)
+  if(red_buoy.norm() < 0.05 || green_buoy.norm() < 0.05)
     return goal;
 
   // 2. Set main waypoint

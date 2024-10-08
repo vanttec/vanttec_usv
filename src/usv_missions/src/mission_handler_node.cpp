@@ -147,6 +147,7 @@ class MissionHandlerNode : public rclcpp::Node {
             for(int i = 0 ; i < vec.size() ; i++) { 
                 wp.x = vec[i](0);
                 wp.y = vec[i](1);
+                wp.theta = vec[i](2);
                 wp_list.waypoint_list.push_back(wp);
             }
         }

@@ -1,6 +1,6 @@
 obstacle_publisher_node:
   ros__parameters:
-    mission_choice: "m2_v2"
+    mission_choice: "m2_v3"
     m1_test:
       obj_names: ["b1", "b2", "b3", "b4"]
       obj_info:
@@ -48,7 +48,7 @@ obstacle_publisher_node:
           color: 1
           type: "marker"
     m2:
-      obj_names: ["b1", "b2", "b3", "b4", "b5", "b6"]
+      obj_names: ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9"]
       obj_info:
         b1:
           x: 3.5
@@ -156,6 +156,69 @@ obstacle_publisher_node:
         b12:
           x: 19.0
           y: 18.0
+          color: 1
+          type: "round"
+    m2_v3:
+      obj_names: ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10", "b11", "b12"]
+      obj_info:
+        b1:
+          x: 3.5
+          y: 3.0
+          color: 0
+          type: "round"
+        b2:
+          x: 9.0
+          y: 4.1
+          color: 0
+          type: "round"
+        b3:
+          x: 18.0
+          y: 2.0
+          color: 0
+          type: "round"
+        b4:
+          x: 19.5
+          y: -2.0
+          color: 0
+          type: "round"
+        b5:
+          x: 20.0
+          y: -8.1
+          color: 0
+          type: "round"
+        b6:
+          x: 18.0
+          y: -15.0
+          color: 0
+          type: "round"
+        b7:
+          x: 3.7
+          y: -0.9
+          color: 1
+          type: "round"
+        b8:
+          x: 8.8
+          y: 1.0
+          color: 1
+          type: "round"
+        b9:
+          x: 15.0
+          y: -1.2
+          color: 1
+          type: "round"
+        b10:
+          x: 17.0
+          y: -3.0
+          color: 1
+          type: "round"
+        b11:
+          x: 18.5
+          y: -10.1
+          color: 1
+          type: "round"
+        b12:
+          x: 19.0
+          y: -18.0
           color: 1
           type: "round"
     m3:

@@ -49,9 +49,8 @@ void Mission::register_buoy(Eigen::Vector3f buoy){
 std::vector<Eigen::Vector3f> Mission::pack_goal(Eigen::Vector3f wp_base, Eigen::Vector3f wp_goal, double dist){
   std::vector<Eigen::Vector3f> goal_list;
   goal_list.push_back(wp_base);
-  goal_list.push_back(forward(wp_base, 0.001));
-  goal_list.push_back(wp_goal);
+  // goal_list.push_back(wp_goal);
+  // goal_list.push_back(forward(wp_goal, -dist));
   goal_list.push_back(forward(wp_goal, dist));
-  goal_list.push_back(forward(wp_goal, dist + 0.001));
   return goal_list;
 }

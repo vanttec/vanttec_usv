@@ -43,3 +43,6 @@
 [submodule "src/usv_control/libs/a-star"]
 	path = src/usv_control/libs/a-star
 	url = https://github.com/daancode/a-star.git
+[submodule "src/usv_control/libs/fatrop"]
+	path = src/usv_control/libs/fatrop
+	url = https://github.com/meco-group/fatrop.git

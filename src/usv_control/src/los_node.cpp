@@ -43,9 +43,6 @@ class LOSNode : public rclcpp::Node {
     current_path_ref_pub = this->create_publisher<nav_msgs::msg::Path>(
         "/usv/current_path_ref", 10);
 
-    pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
-        "/usv/pose_path", 10);
-
     pose_stamped_tmp_.header.frame_id = "world";
     current_ref.header.frame_id = "world";
     current_ref.header.stamp = LOSNode::now();
@@ -64,7 +61,7 @@ class LOSNode : public rclcpp::Node {
     rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub;
 
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr vel_pub, heading_vel_pub;
-    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr current_path_ref_pub, pose_path_pub;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr current_path_ref_pub;
 
     nav_msgs::msg::Path path, current_ref, pose_accum;
     geometry_msgs::msg::Pose2D pose;
@@ -134,10 +131,6 @@ class LOSNode : public rclcpp::Node {
             current_path_ref_pub->publish(current_ref);
         }
 
-        pose_stamped_tmp_.pose.position.x = pose.x;
-        pose_stamped_tmp_.pose.position.y = pose.y;
-        pose_accum.poses.push_back(pose_stamped_tmp_);
-        pose_path_pub->publish(pose_accum);
     }
 
     double distance(geometry_msgs::msg::Pose2D pos, geometry_msgs::msg::Point wp){

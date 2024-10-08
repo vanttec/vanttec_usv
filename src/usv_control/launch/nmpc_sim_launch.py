@@ -122,9 +122,19 @@ def generate_launch_description():
         ]),
     )
 
+    mission_handler_node = Node(
+        package="usv_missions",
+        executable="mission_handler_node",
+    )
+
+    mpc_node = Node(
+        package="usv_control",
+        executable="mpc_node",
+    )
+
     waypoint_handler_node = Node(
         package="usv_control",
-        executable="waypoint_handler_node.py",
+        executable="waypoint_handler_node",
     )
 
     return LaunchDescription([
@@ -135,6 +145,8 @@ def generate_launch_description():
         # los_node,
         foxglove_bridge,
         obstacle_launch,
-        # teleop_launch,
-        # waypoint_handler_node,
+        teleop_launch,
+        mission_handler_node,
+        waypoint_handler_node,
+        # mpc_node,
     ])

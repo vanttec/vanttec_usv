@@ -103,7 +103,7 @@ Just restart ros daemon
 # To install dependencies automatically:
 rosdep install --from-paths src -y --ignore-src
 
-sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro
+sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations
 
 sudo add-apt-repository ppa:borglab/gtsam-release-4.1
 sudo apt install libgtsam-dev libgtsam-unstable-dev

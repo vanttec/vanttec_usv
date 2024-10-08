@@ -10,11 +10,15 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(nav_msgs)
-find_package(sensor_msgs)
+find_package(nav_msgs REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(usv_interfaces REQUIRED)
+find_package(Boost 1.45.0 COMPONENTS filesystem)
+
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -73,13 +77,26 @@ target_compile_features(obstacle_avoidance_node PUBLIC c_std_99 cxx_std_17)  # R
 ament_target_dependencies(obstacle_avoidance_node rclcpp std_msgs Eigen3 usv_interfaces geometry_msgs nav_msgs tf2_ros)
 target_link_libraries(obstacle_avoidance_node a-star)
 
+add_subdirectory(libs/fatrop)
+add_executable(mpc_node src/mpc_node.cpp)
+target_link_libraries(mpc_node fatrop ${Boost_LIBRARIES})
+target_include_directories(mpc_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
+ament_target_dependencies(mpc_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs)
+
+add_executable(waypoint_handler_node src/waypoint_handler_node.cpp)
+target_include_directories(waypoint_handler_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
+ament_target_dependencies(waypoint_handler_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
+
+
 install(TARGETS
   asmc_node
+  mpc_node
   los_node
   usv_tf2_broadcaster_node
   dynamic_model_node
   obstacle_avoidance_node
   kinematic_model_node
+  waypoint_handler_node
   aitsmc_node
   DESTINATION lib/${PROJECT_NAME})
 
@@ -92,7 +109,6 @@ install(DIRECTORY
 install(PROGRAMS
   scripts/path_publisher_node.py
   scripts/teleop_control_node.py
-  scripts/nmpc_node.py
   scripts/uuv_teleop_node.py
   scripts/waypoint_handler_node.py
   DESTINATION lib/${PROJECT_NAME}

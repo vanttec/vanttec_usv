@@ -8,6 +8,8 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "nav_msgs/msg/odometry.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "nav_msgs/msg/path.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64.hpp"
 #include "tf2_ros/transform_broadcaster.h"
@@ -27,6 +29,9 @@ class DynamicModelSim : public rclcpp::Node {
     odomPub =
         this->create_publisher<nav_msgs::msg::Odometry>("output/odom", 10);
 
+    pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
+        "/usv/pose_path", 10);
+
     leftThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
         "input/left_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { this->Tport = msg.data; });
@@ -36,6 +41,9 @@ class DynamicModelSim : public rclcpp::Node {
         [this](const std_msgs::msg::Float64 &msg) { this->Tstbd = msg.data; });
 
     tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+    pose_stamped_tmp_.header.frame_id = "world";
+    pose_path.header.frame_id = "world";
+    pose_path.header.stamp = DynamicModelSim::now();
 
     updateTimer = this->create_wall_timer(
         10ms, std::bind(&DynamicModelSim::update, this));
@@ -100,8 +108,13 @@ class DynamicModelSim : public rclcpp::Node {
     odom.twist.twist.angular.y = 0;
     odom.twist.twist.angular.z = r;
 
+    pose_stamped_tmp_.pose.position.x = pose.x;
+    pose_stamped_tmp_.pose.position.y = pose.y;
+    pose_path.poses.push_back(pose_stamped_tmp_);
+
     odomPub->publish(odom);
     localVelPub->publish(velMsg);
+    pose_path_pub->publish(pose_path);
 
     tf_broadcast(pose);
   }
@@ -109,17 +122,19 @@ class DynamicModelSim : public rclcpp::Node {
  private:
   rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr posePub;
   rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr localVelPub;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pose_path_pub;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odomPub;
   rclcpp::TimerBase::SharedPtr updateTimer;
+
+  geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
+    nav_msgs::msg::Path pose_path;
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr leftThrusterSub,
       rightThrusterSub;
   double Tport{0}, Tstbd{0};
 
-  // DynamicModel model{0,0,0};
-  // DynamicModel model{0,0,0};
-  // DynamicModel model{0,0,0};
-  DynamicModel model{0,0,M_PI/4};
+  DynamicModel model{0,0,0};
+  // DynamicModel model{0,0,M_PI/4};
   // DynamicModel model{12,15,-2.3};
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
