@@ -151,6 +151,7 @@ private:
         min_distance = distance_to_wp;
         }
     }
+    // closest_wp_behind = closest_wp;
     // Iterate over waypoints to find the closest behind and ahead
     for(int i = 0; i < path_to_follow.poses.size(); i++) {
     // if(i != closest_wp){
@@ -269,8 +270,8 @@ private:
     {
         if(path_to_follow.poses.size() > 0){
             // Determine lookahead distance
-            // double lookahead_distance = 1.5;  // meters (path-tracking)
-            double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
+            double lookahead_distance = 1.5;  // meters (path-tracking)
+            // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
 
             // Find waypoints behind and ahead of the boat
             auto [wp_behind_i, wp_ahead_i] = findLookaheadWaypoints(lookahead_distance);

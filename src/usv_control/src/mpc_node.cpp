@@ -93,6 +93,7 @@ public:
     pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
         "/usv/state/pose", 10,
         [this](const geometry_msgs::msg::Pose2D &msg) {
+          pose = msg;
           state_->x = msg.x;
           state_->y = msg.y;
           state_->yaw = msg.theta;
@@ -123,7 +124,6 @@ public:
     obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
         "/obj_n_nearest_list", 10,
         [this](const usv_interfaces::msg::ObjectList &msg){
-          obs_arr.clear();
           for(int i = 0 ; i < msg.obj_list.size() ; i++){
             obs_arr[i*2] = msg.obj_list[i].x;
             obs_arr[i*2+1] = msg.obj_list[i].y;
@@ -155,10 +155,17 @@ private:
   std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg;
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
 
+  geometry_msgs::msg::Pose2D pose;
+
   std::optional<MPC_State> state_;
 
   std::vector<Wp> wp_vec;
-  std::vector<double> obs_arr{1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000.};
+  std::array<double, 10> obs_arr{1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000.};
+
+  // xe, ye, psi, u, r, ds
+  std::array<double, 6> path_tracking_weights{100., 300., 100., 1000., 10., 0.};
+  std::array<double, 6> avoidance_weights    {100., 70., 20., 1000., 10., 2.};
+
   int wp_i{0};
 
   Wp next_wp{0., 0.}, base_wp{0., 0.};
@@ -185,19 +192,17 @@ private:
     psi_d_setter.set_value({psi_d});    
 
     auto obs_regs_setter = app_->get_parameter_setter("obs_regs");
-    obs_regs_setter.set_value({
-      obs_arr[0], 
-      obs_arr[1], 
-      obs_arr[2], 
-      obs_arr[3], 
-      obs_arr[4], 
-      obs_arr[5], 
-      obs_arr[6], 
-      obs_arr[7], 
-      obs_arr[8], 
-      obs_arr[9]
-      }); 
+    obs_regs_setter.set_value(obs_arr.data());
 
+    auto qs_setter = app_->get_parameter_setter("qs");
+    // if(obj_dist(obs_arr[0], obs_arr[1], pose) < 1.9){
+    // // if(obj_dist(obs_arr[0], obs_arr[1], pose) < 0.00001){
+    //   qs_setter.set_value(avoidance_weights.data());
+    // } else {
+    //   qs_setter.set_value(path_tracking_weights.data());
+    // }
+    qs_setter.set_value(weight_calculator(obj_dist(obs_arr[0], obs_arr[1], pose)).data());
+    // qs_setter.set_value(avoidance_weights.data());
 
     app_->optimize();
 
@@ -232,8 +237,9 @@ private:
     app_->last_solution().evaluate(eval_gamma_p, gamma_p_result);
     // app_->last_solution().evaluate(eval_r, r_result);
 
-    RCLCPP_ERROR(this->get_logger(), "ye: %f, psie: %f, gamma_p: %f", 
-      ye_result[0], psie_result[0], gamma_p_result[0]);
+    // RCLCPP_ERROR(this->get_logger(), "ye: %f, psie: %f, gamma_p: %f", 
+    //   ye_result[0], psie_result[0], gamma_p_result[0]);
+    RCLCPP_ERROR(this->get_logger(), "qs_e: %f", obj_dist(obs_arr[0], obs_arr[1], pose));
 
     vel_setpoint_msg.data = u_result[0];
     ang_vel_setpoint_msg.data = r_result[0];
@@ -245,6 +251,26 @@ private:
     ang_vel_setpoint_pub_->publish(ang_vel_setpoint_msg);
     vel_setpoint_pub_->publish(vel_setpoint_msg);
   }
+
+  double obj_dist(double obj_x, double obj_y, geometry_msgs::msg::Pose2D p){
+    return sqrt((obj_x-p.x)*(obj_x-p.x) + (obj_y-p.y)*(obj_y-p.y));
+  }
+
+  // xe, ye, psi, u, r, ds
+  std::array<double, 6> weight_calculator(double dist){
+    // std::array<double, 6> path_tracking_weights{100., 300., 100., 1000., 10., 0.};
+    // std::array<double, 6> avoidance_weights    {100., 70., 20., 1000., 10., 5.};
+    double dist_sat = std::clamp(dist, 0., 3.) / 3.;
+    std::array<double, 6> out;
+    for(int i = 0 ; i < out.size() ; i++){
+      out[i] = path_tracking_weights[i]*dist_sat + avoidance_weights[i]*(1-dist_sat);
+    }
+    return out;
+
+  }
+
+
+  
 };
 
 int main(int argc, char *argv[]) {

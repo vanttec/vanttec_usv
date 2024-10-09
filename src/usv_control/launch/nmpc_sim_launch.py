@@ -149,7 +149,7 @@ def generate_launch_description():
         aitsmc_node,
         # los_node,
         foxglove_bridge,
-        # obstacle_launch,
+        obstacle_launch,
         # teleop_launch,
         mission_handler_node,
         waypoint_handler_node,

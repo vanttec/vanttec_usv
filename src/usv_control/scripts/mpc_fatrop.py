@@ -33,7 +33,7 @@ B = 0.41
 nx    = 5               # the system is composed of 9 states
 nu    = 2               # the system has 2 inputs
 dt    = 0.1             # sample time
-Tf    = 15.01            # control horizon [s]
+Tf    = 2.5            # control horizon [s]
 Nhor  = (int)(Tf/dt)    # number of control intervals
 
 starting_angle = -0.1
@@ -145,7 +145,7 @@ Qs_init = np.array([
 #Qxe
 100.,
 #Qye
-100.,
+70.,
 #Qpsi
 20.,
 #Qu
@@ -153,11 +153,11 @@ Qs_init = np.array([
 #Qr
 10.,
 #Qds
-150.,
+5.,
 ])
 
 
-Qs = ocp.register_parameter(MX.sym("qs", Qs_init.shape[0]))
+Qs = ocp.register_parameter(MX.sym("qs", 6))
 ocp.set_value(Qs, Qs_init)
 
 # Specify ODE
@@ -193,7 +193,7 @@ Qu      = Qs[3]
 Qr      = Qs[4]
 Qds     = Qs[5]
 
-# Lagrange objective
+# Lagrange objective    
 ocp.add_objective(ocp.sum  (Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 + 
                             Qpsi*(cos(psi)-cos(gamma_p))**2 + Qu*((u))**2 + Qr*((r))**2 +
                             Qxe*(xe)**2))
@@ -215,22 +215,29 @@ ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
 # ocp.subject_to( (-1.5 <= r) <= 1.5 )
 
-    
-ocp.add_objective(ocp.sum(
-    Qds/sqrt((obs_regs[0]-nedx)**2 + (obs_regs[1]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[2]-nedx)**2 + (obs_regs[3]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[4]-nedx)**2 + (obs_regs[5]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[6]-nedx)**2 + (obs_regs[7]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[8]-nedx)**2 + (obs_regs[9]-nedy)**2)**2
-    ))
-ocp.add_objective(ocp.at_tf(
-    Qds/sqrt((obs_regs[0]-nedx)**2 + (obs_regs[1]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[2]-nedx)**2 + (obs_regs[3]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[4]-nedx)**2 + (obs_regs[5]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[6]-nedx)**2 + (obs_regs[7]-nedy)**2)**2 +
-    Qds/sqrt((obs_regs[8]-nedx)**2 + (obs_regs[9]-nedy)**2)**2
-    ))
-# ocp.add_objective(ocp.at_tf (Qds/sqrt((obs_regs[0]-nedx)**2 + (obs_regs[1]-nedy)**2)))
+l = 0.5
+x_virt = nedx + l*cos(psi)
+y_virt = nedy + l*sin(psi)
+for i in range(5):
+    ocp.add_objective(ocp.sum(
+        Qds/(((obs_regs[i*2]-x_virt)**2 + (obs_regs[i*2+1]-y_virt)**2)**4)))
+    ocp.add_objective(ocp.at_tf(
+        Qds/(((obs_regs[i*2]-x_virt)**2 + (obs_regs[i*2+1]-y_virt)**2)**4)))
+
+# ocp.add_objective(ocp.sum(
+#     Qds/sqrt((obs_regs[0]-x_virt)**2 + (obs_regs[1]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[2]-x_virt)**2 + (obs_regs[3]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[4]-x_virt)**2 + (obs_regs[5]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[6]-x_virt)**2 + (obs_regs[7]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[8]-x_virt)**2 + (obs_regs[9]-y_virt)**2)**2
+#     ))
+# ocp.add_objective(ocp.at_tf(
+#     Qds/sqrt((obs_regs[0]-x_virt)**2 + (obs_regs[1]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[2]-x_virt)**2 + (obs_regs[3]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[4]-x_virt)**2 + (obs_regs[5]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[6]-x_virt)**2 + (obs_regs[7]-y_virt)**2)**2 +
+#     Qds/sqrt((obs_regs[8]-x_virt)**2 + (obs_regs[9]-y_virt)**2)**2
+#     ))
 
 
 # Initial constraints
@@ -266,7 +273,7 @@ if code_gen:
     ocp._method.add_sampler("gamma_p",gamma_p)
 
 sol = ocp.solve()
-
+'''
 # Log data for post-processing
 x_history[0]   = current_X[0]
 y_history[0] = current_X[1]
@@ -382,3 +389,4 @@ ax12.tick_params('y', colors='k')
 fig6.tight_layout()
 
 plt.show()
+'''
