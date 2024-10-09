@@ -9,6 +9,7 @@ Panels:
         - /Grid1
         - /RobotModel1
         - /Path1
+        - /Path3
       Splitter Ratio: 0.5
     Tree Height: 839
   - Class: rviz_common/Selection
@@ -117,7 +118,7 @@ Visualization Manager:
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
-      Line Style: Billboards
+      Line Style: Lines
       Line Width: 0.10000000149011612
       Name: Path
       Offset:
@@ -145,7 +146,7 @@ Visualization Manager:
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
-      Line Style: Billboards
+      Line Style: Lines
       Line Width: 0.05000000074505806
       Name: Path
       Offset:
@@ -272,7 +273,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.5849993228912354
+      Angle: -1.5707999467849731
       Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -282,12 +283,27 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 39.237056732177734
+      Scale: 39.444580078125
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 11.02634048461914
-      Y: -7.671721935272217
-    Saved: ~
+      X: 11.05347728729248
+      Y: -7.681663513183594
+    Saved:
+      - Angle: -1.5707999467849731
+        Class: rviz_default_plugins/TopDownOrtho
+        Enable Stereo Rendering:
+          Stereo Eye Separation: 0.05999999865889549
+          Stereo Focal Distance: 1
+          Swap Stereo Eyes: false
+          Value: false
+        Invert Z Axis: false
+        Name: Default_M2
+        Near Clip Distance: 0.009999999776482582
+        Scale: 39.444580078125
+        Target Frame: <Fixed Frame>
+        Value: TopDownOrtho (rviz_default_plugins)
+        X: 11.687281608581543
+        Y: -6.997159481048584
 Window Geometry:
   Displays:
     collapsed: false

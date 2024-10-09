@@ -167,13 +167,11 @@ private:
     initial_state.set_value(state_->get_state_vector().data());
 
     auto target_setter = app_->get_parameter_setter("target");
-    target_setter.set_value({base_wp.x, base_wp.y, next_wp.x, next_wp.y});   
+    target_setter.set_value({base_wp.x, base_wp.y, next_wp.x, next_wp.y}); 
 
-    // auto psi_d_setter = app_->get_parameter_setter("psi_d");
-    // psi_d_setter.set_value(psi_d);    
+    auto psi_d_setter = app_->get_parameter_setter("psi_d");
+    psi_d_setter.set_value({psi_d});    
 
-    RCLCPP_ERROR(this->get_logger(), "psi_d: %f", 
-      psi_d);
 
     app_->optimize();
 
@@ -187,16 +185,29 @@ private:
     std::vector<double> u_result(1);
     auto eval_r = app_->get_expression("state_x5").at_tk(1);
     std::vector<double> r_result(1);
-    // std::vector<double> u_result(7);
-    // auto eval_r = app_->get_expression("state_x3").at_tk(1);
-    // std::vector<double> r_result(1);
+
+    auto eval_xe = app_->get_expression("xe").at_tk(1);
+    std::vector<double> xe_result(1);
+    auto eval_ye = app_->get_expression("ye").at_tk(1);
+    std::vector<double> ye_result(1);
+    auto eval_psie = app_->get_expression("psie").at_tk(1);
+    std::vector<double> psie_result(1);
+    auto eval_gamma_p = app_->get_expression("gamma_p").at_tk(1);
+    std::vector<double> gamma_p_result(1);
 
     app_->last_solution().evaluate(eval_x, x_result);
     app_->last_solution().evaluate(eval_y, y_result);
     app_->last_solution().evaluate(eval_z, z_result);
     app_->last_solution().evaluate(eval_u, u_result);
     app_->last_solution().evaluate(eval_r, r_result);
+    app_->last_solution().evaluate(eval_xe, xe_result);
+    app_->last_solution().evaluate(eval_ye, ye_result);
+    app_->last_solution().evaluate(eval_psie, psie_result);
+    app_->last_solution().evaluate(eval_gamma_p, gamma_p_result);
     // app_->last_solution().evaluate(eval_r, r_result);
+
+    RCLCPP_ERROR(this->get_logger(), "ye: %f, psie: %f, gamma_p: %f", 
+      ye_result[0], psie_result[0], gamma_p_result[0]);
 
     vel_setpoint_msg.data = u_result[0];
     ang_vel_setpoint_msg.data = r_result[0];

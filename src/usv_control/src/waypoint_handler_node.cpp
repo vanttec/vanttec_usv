@@ -189,7 +189,7 @@ private:
     if(closest_wp_behind < 0){
         closest_wp_behind = 1;
     }
-    if(closest_wp_ahead <= closest_wp_behind){
+    if(closest_wp_ahead <= closest_wp_behind && closest_wp_ahead < path_to_follow.poses.size()){
         closest_wp_ahead = closest_wp_behind+1;
     }
 

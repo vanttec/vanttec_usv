@@ -108,11 +108,32 @@ ocp.set_initial(Tstbd,0.0)
 # X_0 = ocp.parameter(nx)
 current_X = vertcat(ned_x,ned_y,starting_angle,0.,0.)  # initial state
 X_0 = ocp.register_parameter(MX.sym("X_0", nx))
+
 tg = ocp.register_parameter(MX.sym("target", 4))
 ocp.set_value(tg, target)
-psid = 0.
-# p_d = ocp.parameter("psi_d")
-# ocp.set_value(p_d, psid)
+
+psi_d_init = np.array([0.001])
+gamma_p = ocp.register_parameter(MX.sym("psi_d", 1))
+ocp.set_value(gamma_p, psi_d_init)
+
+# xe, ye, psi, u, r, ds
+Qs_init = np.array([
+#Qxe
+100.,
+#Qye
+1000.,
+#Qpsi
+10.,
+#Qu
+1000.,
+#Qr
+1.,
+#Qds
+50.,
+])
+
+Qs = ocp.register_parameter(MX.sym("qs", Qs_init.shape[0]))
+ocp.set_value(Qs, Qs_init)
 
 # Specify ODE
 # Xu = if_else(u > 1.25, 64.55, -25.)
@@ -122,8 +143,8 @@ Xuu = -70.92
 # Yv = 0.5*(-40*1000*fabs(self.v_state))*(1.1+0.0045*(1.01/0.09)-0.1*(0.27/0.09)+0.016*((0.27/0.09)*(0.27/0.09)))
 # Nr = (-0.52)*sqrt(u*u + self.v_state*self.v_state)
 Nr = (-0.52)*fabs(u)
-gamma_p = atan2(ocp._param_value(tg)[3] - ocp._param_value(tg)[1], ocp._param_value(tg)[2] - ocp._param_value(tg)[0])
-# gamma_p = ocp._param_value(p_d)[0]
+# gamma_p = atan2(ocp._param_value(tg)[3] - ocp._param_value(tg)[1], ocp._param_value(tg)[2] - ocp._param_value(tg)[0])
+# gamma_p = psi_d
 ye = -(nedx-tg[2])*sin(gamma_p)+(nedy-tg[3])*cos(gamma_p)
 xe =  (nedx-tg[2])*cos(gamma_p)+(nedy-tg[3])*sin(gamma_p)
 
@@ -139,12 +160,13 @@ ocp.set_der(r,
             (( (Tport - Tstbd) * B / 2 + 
               Nrr*fabs(r)*r + Nr*r) / (Iz - N_r_dot)))
 
-Qxe     = 100.
-Qye     = 1000.
-Qpsi    = 10.
-Qu      = 1000.
-Qr      = 1.
-# Qds     = 50.
+
+Qxe     = Qs[0]
+Qye     = Qs[1]
+Qpsi    = Qs[2]
+Qu      = Qs[3]
+Qr      = Qs[4]
+# Qds     = Qs[5]
 
 # Lagrange objective
 ocp.add_objective(ocp.sum  (Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 + 
@@ -163,7 +185,7 @@ ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 # ocp.add_objective(ocp.T)
 
 # Path constraints
-ocp.subject_to( (-0.5 <= u) <= 1. )
+# ocp.subject_to( (-0.5 <= u) <= 1. )
 ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
 # ocp.subject_to( (-1.5 <= r) <= 1.5 )
@@ -201,6 +223,10 @@ code_gen = True
 if code_gen:
     ocp.method(external_method("fatrop", N=Nhor, intg="rk"))
     ocp._method.set_name("/code_gen")
+    ocp._method.add_sampler("xe",xe)
+    ocp._method.add_sampler("ye",ye)
+    ocp._method.add_sampler("psie",sqrt((sin(psi)-sin(gamma_p))**2 + (cos(psi)-cos(gamma_p))**2))
+    ocp._method.add_sampler("gamma_p",gamma_p)
 
 sol = ocp.solve()
 
@@ -251,7 +277,7 @@ for i in range(Nsim):
     yd_history[i+1] = target[3]
     xe_hist[i+1] = xesol[0]
     ye_hist[i+1] = yesol[0]
-    psie_hist[i+1] = sqrt((sin(psisol[0])-sin(gamma_p))**2 + (cos(psisol[0])-cos(gamma_p))**2)
+    psie_hist[i+1] = sqrt((sin(psisol[0])-sin(gammasol[0]))**2 + (cos(psisol[0])-cos(gammasol[0]))**2)
     tmp_hist[i+1] = gammasol[0]
     # psie_hist[i+1] = psisol[0]
 

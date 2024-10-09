@@ -217,8 +217,8 @@ obstacle_publisher_node:
           color: 1
           type: "round"
         b12:
-          x: 19.0
-          y: -18.0
+          x: 21.0
+          y: -16.0
           color: 1
           type: "round"
     m3:
