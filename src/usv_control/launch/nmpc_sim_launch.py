@@ -137,6 +137,11 @@ def generate_launch_description():
         executable="waypoint_handler_node",
     )
 
+    obstacle_nearest_publisher = Node(
+        package="usv_utils",
+        executable="obstacle_nearest_publisher",
+    )
+     
     return LaunchDescription([
         rviz,
         dynamic_sim_node,
@@ -144,9 +149,10 @@ def generate_launch_description():
         aitsmc_node,
         # los_node,
         foxglove_bridge,
-        obstacle_launch,
-        teleop_launch,
+        # obstacle_launch,
+        # teleop_launch,
         mission_handler_node,
         waypoint_handler_node,
+        obstacle_nearest_publisher,
         # mpc_node,
     ])

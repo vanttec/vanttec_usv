@@ -33,35 +33,38 @@ B = 0.41
 nx    = 5               # the system is composed of 9 states
 nu    = 2               # the system has 2 inputs
 dt    = 0.1             # sample time
-Tf    = 7.5            # control horizon [s]
+Tf    = 15.01            # control horizon [s]
 Nhor  = (int)(Tf/dt)    # number of control intervals
 
 starting_angle = -0.1
 ned_x = 0.01
 ned_y = 0.01
 
-# obs_regs = np.array([[6., 2.8, 0.8], 
-#                      [3.4, 1.8, 0.8], 
-#                      [6., 4.9, 0.8], 
-#                      ])
-
 target = np.array([0., 0., 
 10., 2.5
 ])
 
-obs_regs = np.array([
-        [3.5, -3.0, 0.5],
-        [9.0, -4.1, 0.5],
-        [18.0, -2.0, 0.5],
-        [19.5, 2.0, 0.5],
-        [20.0, 8.1, 0.5],
-        [18.0, 15.0, 0.5],
-        [3.7, 0.9, 0.5],
-        [8.8, -1.0, 0.5],
-        [15.0, 1.2, 0.5],
-        [17.0, 3.0, 0.5],
-        [18.5, 10.1, 0.5],
-        [19.0, 18.0, 0.5],
+# obs_regs = np.array([
+#         [3.5, -3.0, 0.5],
+#         [9.0, -4.1, 0.5],
+#         [18.0, -2.0, 0.5],
+#         [19.5, 2.0, 0.5],
+#         [20.0, 8.1, 0.5],
+#         [18.0, 15.0, 0.5],
+#         [3.7, 0.9, 0.5],
+#         [8.8, -1.0, 0.5],
+#         [15.0, 1.2, 0.5],
+#         [17.0, 3.0, 0.5],
+#         [18.5, 10.1, 0.5],
+#         [19.0, 18.0, 0.5],
+# ])
+
+obs_regs_init = np.array([
+        3.5, -3.0,
+        9.0, -4.1,
+        18.0, -2.0,
+        19.5, 2.0,
+        20.0, 8.1
 ])
 
 
@@ -116,21 +119,43 @@ psi_d_init = np.array([0.001])
 gamma_p = ocp.register_parameter(MX.sym("psi_d", 1))
 ocp.set_value(gamma_p, psi_d_init)
 
+obs_regs = ocp.register_parameter(MX.sym("obs_regs", 10))
+ocp.set_value(obs_regs, obs_regs_init)
+
+# Path tracking
+# # xe, ye, psi, u, r, ds
+# Qs_init = np.array([
+# #Qxe
+# 100.,
+# #Qye
+# 100.,
+# #Qpsi
+# 100.,
+# #Qu
+# 1000.,
+# #Qr
+# 10.,
+# #Qds
+# 250.,
+# ])
+
+# Path tracking + avoidance
 # xe, ye, psi, u, r, ds
 Qs_init = np.array([
 #Qxe
 100.,
 #Qye
-1000.,
+100.,
 #Qpsi
-10.,
+20.,
 #Qu
 1000.,
 #Qr
-1.,
+10.,
 #Qds
-50.,
+150.,
 ])
+
 
 Qs = ocp.register_parameter(MX.sym("qs", Qs_init.shape[0]))
 ocp.set_value(Qs, Qs_init)
@@ -166,7 +191,7 @@ Qye     = Qs[1]
 Qpsi    = Qs[2]
 Qu      = Qs[3]
 Qr      = Qs[4]
-# Qds     = Qs[5]
+Qds     = Qs[5]
 
 # Lagrange objective
 ocp.add_objective(ocp.sum  (Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 + 
@@ -185,15 +210,27 @@ ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 # ocp.add_objective(ocp.T)
 
 # Path constraints
-# ocp.subject_to( (-0.5 <= u) <= 1. )
+ocp.subject_to( (-0.5 <= u) <= 1.5 )
 ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
 # ocp.subject_to( (-1.5 <= r) <= 1.5 )
 
     
-# for i,j,k in obs_regs:
-#     ocp.add_objective(ocp.sum(Qds/sqrt((i-nedx)**2 + (j-nedy)**2)))
-#     ocp.add_objective(ocp.at_tf(Qds/sqrt((i-nedx)**2 + (j-nedy)**2)))
+ocp.add_objective(ocp.sum(
+    Qds/sqrt((obs_regs[0]-nedx)**2 + (obs_regs[1]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[2]-nedx)**2 + (obs_regs[3]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[4]-nedx)**2 + (obs_regs[5]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[6]-nedx)**2 + (obs_regs[7]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[8]-nedx)**2 + (obs_regs[9]-nedy)**2)**2
+    ))
+ocp.add_objective(ocp.at_tf(
+    Qds/sqrt((obs_regs[0]-nedx)**2 + (obs_regs[1]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[2]-nedx)**2 + (obs_regs[3]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[4]-nedx)**2 + (obs_regs[5]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[6]-nedx)**2 + (obs_regs[7]-nedy)**2)**2 +
+    Qds/sqrt((obs_regs[8]-nedx)**2 + (obs_regs[9]-nedy)**2)**2
+    ))
+# ocp.add_objective(ocp.at_tf (Qds/sqrt((obs_regs[0]-nedx)**2 + (obs_regs[1]-nedy)**2)))
 
 
 # Initial constraints
@@ -290,8 +327,8 @@ time_sim2 = np.linspace(0, dt*Nsim, Nsim)
 fig2, ax3 = plt.subplots()
 ax3.plot(yd_history, xd_history, 'r-')
 ax3.plot(y_history, x_history, 'b--')
-for i,j,k in obs_regs:
-    ax3.add_patch(plt.Circle((j, i), k, color='black'))
+# for i,j,k in obs_regs:
+#     ax3.add_patch(plt.Circle((j, i), k, color='black'))
 ax3.plot(target[3], target[2], 'go')
 ax3.set_xlabel('Y [m]')
 ax3.set_ylabel('X [m]')

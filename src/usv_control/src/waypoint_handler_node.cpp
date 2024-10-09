@@ -269,7 +269,8 @@ private:
     {
         if(path_to_follow.poses.size() > 0){
             // Determine lookahead distance
-            double lookahead_distance = 1.5;  // Lookahead distance in meters
+            // double lookahead_distance = 1.5;  // meters (path-tracking)
+            double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
 
             // Find waypoints behind and ahead of the boat
             auto [wp_behind_i, wp_ahead_i] = findLookaheadWaypoints(lookahead_distance);
@@ -298,7 +299,7 @@ private:
             const Wp &end_wp = wp_vec[i + 1];
             
             // Interpolate between the current pair of waypoints
-            int num_interpolations = 50; // Number of intermediate points
+            int num_interpolations = 100; // Number of intermediate points
             double control_distance = 1.5;  // Distance for Bezier control points
             interpolateWaypoints(start_wp, end_wp, num_interpolations, control_distance);
             }

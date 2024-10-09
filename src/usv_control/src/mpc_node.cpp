@@ -21,6 +21,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/time.hpp"
 #include "usv_interfaces/msg/waypoint_list.hpp"
+#include "usv_interfaces/msg/object_list.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
@@ -119,6 +120,16 @@ public:
           psi_d = atan2(next_wp.y - base_wp.y, next_wp.x - base_wp.x);
           });
 
+    obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
+        "/obj_n_nearest_list", 10,
+        [this](const usv_interfaces::msg::ObjectList &msg){
+          obs_arr.clear();
+          for(int i = 0 ; i < msg.obj_list.size() ; i++){
+            obs_arr[i*2] = msg.obj_list[i].x;
+            obs_arr[i*2+1] = msg.obj_list[i].y;
+          }
+        });
+
     ang_vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "/guidance/desired_angular_velocity", 10);
 
@@ -137,16 +148,17 @@ private:
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr left_thruster_sub_, right_thruster_sub_;
   rclcpp::Subscription<usv_interfaces::msg::WaypointList>::SharedPtr goals_sub_;
   rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ref_path_sub_;
+  rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
 
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_pub_,vel_setpoint_pub_;
 
   std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg;
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
 
-
   std::optional<MPC_State> state_;
 
   std::vector<Wp> wp_vec;
+  std::vector<double> obs_arr{1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000.};
   int wp_i{0};
 
   Wp next_wp{0., 0.}, base_wp{0., 0.};
@@ -171,6 +183,20 @@ private:
 
     auto psi_d_setter = app_->get_parameter_setter("psi_d");
     psi_d_setter.set_value({psi_d});    
+
+    auto obs_regs_setter = app_->get_parameter_setter("obs_regs");
+    obs_regs_setter.set_value({
+      obs_arr[0], 
+      obs_arr[1], 
+      obs_arr[2], 
+      obs_arr[3], 
+      obs_arr[4], 
+      obs_arr[5], 
+      obs_arr[6], 
+      obs_arr[7], 
+      obs_arr[8], 
+      obs_arr[9]
+      }); 
 
 
     app_->optimize();
