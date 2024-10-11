@@ -139,7 +139,7 @@ private:
     
     double max_distance_behind = 0.;
     double max_distance_ahead = 0.;
-    double min_distance = std::numeric_limits<double>::max();;
+    double min_distance = std::numeric_limits<double>::max();
 
     // Iterate over waypoints to find the closest distance
 

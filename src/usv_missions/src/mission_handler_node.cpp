@@ -25,6 +25,7 @@
 #include "mission_classes/m0.cpp"
 #include "mission_classes/m1.cpp"
 #include "mission_classes/m2.cpp"
+#include "mission_classes/m6.cpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -58,12 +59,15 @@ class MissionHandlerNode : public rclcpp::Node {
                             case 2:
                                 vtec = std::make_shared<M2>();
                                 break;
+                            case 6:
+                                vtec = std::make_shared<M6>();
+                                break;
                         }
 
                     }
             });
 
-            vtec = std::make_shared<M2>();
+            vtec = std::make_shared<M6>();
 
             mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/state", 10);
             mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/status", 10);

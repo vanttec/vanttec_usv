@@ -150,7 +150,10 @@
         "__functional_base_03": "cpp",
         "__tuple": "cpp",
         "ranges": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "core": "cpp",
+        "numericaldiff": "cpp",
+        "specialfunctions": "cpp"
     },
     "ros.distro": "humble",
     "cmake.sourceDirectory": "/home/max/vanttec_usv/src/deps/velodyne/velodyne_laserscan"

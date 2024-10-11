@@ -1,6 +1,6 @@
 obstacle_publisher_node:
   ros__parameters:
-    mission_choice: "m2_v3"
+    mission_choice: "m6"
     m1_test:
       obj_names: ["b1", "b2", "b3", "b4"]
       obj_info:
@@ -363,3 +363,16 @@ obstacle_publisher_node:
           y: 24.0
           color: 1
           type: "picture"
+    m6:
+      obj_names: ["b1", "b2"]
+      obj_info:
+        b1:
+          x: 3.5
+          y: -2.0
+          color: 4
+          type: "round"
+        b2:
+          x: 4.0
+          y: -4.8
+          color: 4
+          type: "round"

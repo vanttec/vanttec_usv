@@ -8,6 +8,9 @@
 #include <cmath>
 #include <string>
 #include <eigen3/Eigen/Dense>
+#include <array>
+#include <algorithm>
+
 
 struct USVPose {
   double x, y;
@@ -45,6 +48,7 @@ class Mission {
  protected:
   std::vector<Obstacle> obs_list;
   int mission_num{0};
+  double max_ = std::numeric_limits<double>::max();
   Eigen::Vector3f pose;
   Eigen::Vector3f last_goal;
   USVOutput outMsg;

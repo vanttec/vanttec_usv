@@ -1,15 +1,15 @@
-#include "m2.h"
+#include "m4.h"
 #include <cmath>
 
-// Follow the Path Challenge
+// Speed Challenge
 
-USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
+USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
   Eigen::Vector3f goal;
   this->pose = pose;
 
   switch(outMsg.state){
-    case 0: // Initial state, look for a gate to travel to
+    case 0: // Initial state, look for first gate to travel to
       goal = get_goal(params.obs_list);
 
       if(goal.norm() > 0.01){
@@ -18,15 +18,26 @@ USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
-    case 1: // Finding next gate
+    case 1: // Finding second gate
       goal = get_goal(params.obs_list);
 
       if(goal.norm() > 0.0001){ // If a goal was actually found
+        outMsg.state = 2;
         outMsg.goals = pack_goal(last_goal, goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
-      } else if (dist(pose, last_goal) < 0.5) {
-        outMsg.state = 2;
+      }
+      break;
+    case 2: // Finding blue buoy to round
+      goal = get_blue_buoy_goal(params.obs_list);
+
+      if(goal.norm() > 0.0001){ // If a goal was actually found
+        outMsg.state = 3;
         outMsg.status = 1;
+        outMsg.goals = round_pack_goal(last_goal, goal, 1.);
+        last_goal = outMsg.goals[outMsg.goals.size() - 1];
+      } else if(dist(last_goal, pose) < 1) {
+        outMsg.goals = pack_goal(last_goal, forward(last_goal, 0.15), 0.35);
+        last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
   }
@@ -34,9 +45,9 @@ USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
   return outMsg;
 }
 
-Eigen::Vector3f M2::get_goal(std::vector<Obstacle> obs_list){
-  double r_dist{0.0}, min_r_dist{-1.0};
-  double g_dist{0.0}, min_g_dist{-1.0};
+Eigen::Vector3f M4::get_goal(std::vector<Obstacle> obs_list){
+  double r_dist{0.0}, min_r_dist{max_};
+  double g_dist{0.0}, min_g_dist{max_};
   Eigen::Vector3f red_buoy{0, 0, 0}, green_buoy{0, 0, 0};
   Eigen::Vector3f goal{0, 0, 0}, tmp{0, 0, 0};
 
@@ -55,7 +66,7 @@ Eigen::Vector3f M2::get_goal(std::vector<Obstacle> obs_list){
       switch(obs_list[i].color){
         case 0: //red
           r_dist = tmp.norm();
-          if((r_dist < min_r_dist || min_r_dist == -1) && unreg(pose + rotM*tmp)){
+          if((r_dist < min_r_dist) && unreg(pose + rotM*tmp)){
             red_buoy = tmp;
             min_r_dist = r_dist;
           }
@@ -63,7 +74,7 @@ Eigen::Vector3f M2::get_goal(std::vector<Obstacle> obs_list){
 
         case 1: //green
           g_dist = tmp.norm();
-          if((g_dist < min_g_dist || min_g_dist == -1) && unreg(pose + rotM*tmp)){
+          if((g_dist < min_g_dist) && unreg(pose + rotM*tmp)){
             green_buoy = tmp;
             min_g_dist = g_dist;
           }
@@ -103,4 +114,63 @@ Eigen::Vector3f M2::get_goal(std::vector<Obstacle> obs_list){
   // std::cout << "GOAL: " << goal(0) << "," << goal(1) << ", " << goal(2) << std::endl;
 
   return goal;
+}
+
+Eigen::Vector3f M4::get_blue_buoy_goal(std::vector<Obstacle> obs_list){
+  double b_dist{0.0}, min_b_dist{max_};
+  Eigen::Vector3f b_buoy{0, 0, 0};
+  Eigen::Vector3f goal{0, 0, 0}, tmp{0, 0, 0};
+
+  float x_diff, y_diff, theta, m;
+
+  Eigen::Matrix3f rotM;
+  Eigen::Vector3f po, poseR;
+  rotM << std::cos(pose(2)), - std::sin(pose(2)), 0, 
+          std::sin(pose(2)), std::cos(pose(2)), 0, 
+          0, 0, 1;
+  
+  // 1. Search for the nearest blue unregistered buoy
+  for(int i = 0 ; i < obs_list.size() ; i++){
+    if(obs_list[i].type == "round"){
+      tmp << obs_list[i].x, obs_list[i].y, 0.0;
+      switch(obs_list[i].color){
+        case 2: //blue
+          b_dist = tmp.norm();
+          if((b_dist < min_b_dist) && unreg(pose + rotM*tmp)){
+            b_buoy = tmp;
+            min_b_dist = b_dist;
+          }
+          break;
+      }
+    }
+  }
+
+  if(b_buoy.norm() < 0.05)
+    return goal;
+
+  // 2. Set main waypoint
+  po = b_buoy;
+  poseR   = rotM * po;
+  register_buoy(pose + poseR);
+
+  goal = pose + poseR;
+  goal(2) = last_goal(2);
+  return goal;
+}
+
+// TODO: MODIFICAR AQUIII
+// Set extra waypoints for interpolation
+std::vector<Eigen::Vector3f> M4::round_pack_goal(
+  Eigen::Vector3f wp_base, Eigen::Vector3f wp_goal, double dist){
+  std::vector<Eigen::Vector3f> goal_list;
+
+  goal_list.push_back(wp_base);
+  // goal_list.push_back(wp_goal);
+  // goal_list.push_back(forward(wp_goal, -dist));
+  goal_list.push_back(forward(wp_goal, dist));
+
+  return goal_list;
+}
+
+std::vector<Eigen::Vector3f> Mission::pack_goal(Eigen::Vector3f wp_base, Eigen::Vector3f wp_goal, double dist){
 }
