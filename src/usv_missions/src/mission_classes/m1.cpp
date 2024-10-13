@@ -3,6 +3,11 @@
 
 // Mandatory Challenge
 
+M1::M1(){
+  id = 1;
+  re_init();
+}
+
 USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
   Eigen::Vector3f goal;

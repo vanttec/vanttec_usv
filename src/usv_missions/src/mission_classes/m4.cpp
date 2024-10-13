@@ -3,6 +3,11 @@
 
 // Speed Challenge
 
+M4::M4(){
+  id = 4;
+  re_init();
+}
+
 USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
   Eigen::Vector3f goal;
@@ -16,6 +21,7 @@ USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.state = 1;
         outMsg.goals = pack_goal(pose, goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
+        first_goal = last_goal;
       }
       break;
     case 1: // Finding second gate
@@ -25,6 +31,7 @@ USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.state = 2;
         outMsg.goals = pack_goal(last_goal, goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
+        second_goal = last_goal;
       }
       break;
     case 2: // Finding blue buoy to round
@@ -33,7 +40,9 @@ USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       if(goal.norm() > 0.0001){ // If a goal was actually found
         outMsg.state = 3;
         outMsg.status = 1;
-        outMsg.goals = round_pack_goal(last_goal, goal, 1.);
+        outMsg.goals = round_pack_goal(last_goal, goal, 2.);
+        outMsg.goals.push_back(rotate_goal(second_goal, M_PI));
+        outMsg.goals.push_back(forward(rotate_goal(first_goal, M_PI), 2.));
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       } else if(dist(last_goal, pose) < 1) {
         outMsg.goals = pack_goal(last_goal, forward(last_goal, 0.15), 0.35);
@@ -158,19 +167,14 @@ Eigen::Vector3f M4::get_blue_buoy_goal(std::vector<Obstacle> obs_list){
   return goal;
 }
 
-// TODO: MODIFICAR AQUIII
 // Set extra waypoints for interpolation
 std::vector<Eigen::Vector3f> M4::round_pack_goal(
   Eigen::Vector3f wp_base, Eigen::Vector3f wp_goal, double dist){
   std::vector<Eigen::Vector3f> goal_list;
-
   goal_list.push_back(wp_base);
-  // goal_list.push_back(wp_goal);
-  // goal_list.push_back(forward(wp_goal, -dist));
-  goal_list.push_back(forward(wp_goal, dist));
-
+  // goal_list.push_back(rotate_goal(diagonal(wp_goal, -2*dist, 0.), M_PI/8));
+  goal_list.push_back(rotate_goal(diagonal(wp_goal, 0, dist), 0.));
+  goal_list.push_back(rotate_goal(diagonal(wp_goal, dist, 0.), -M_PI_2));
+  goal_list.push_back(rotate_goal(diagonal(wp_goal, 0., -dist), M_PI));
   return goal_list;
-}
-
-std::vector<Eigen::Vector3f> Mission::pack_goal(Eigen::Vector3f wp_base, Eigen::Vector3f wp_goal, double dist){
 }

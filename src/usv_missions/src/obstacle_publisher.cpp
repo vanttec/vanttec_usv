@@ -77,7 +77,7 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 [this](const geometry_msgs::msg::Pose2D &msg){  pose = msg; });
 
             timer_ = this->create_wall_timer(
-            100ms, std::bind(&ObstaclePublisherNode::timer_callback, this));
+            10ms, std::bind(&ObstaclePublisherNode::timer_callback, this));
 
         }
 

@@ -151,8 +151,8 @@ def generate_launch_description():
         foxglove_bridge,
         obstacle_launch,
         # teleop_launch,
-        # mission_handler_node,
+        mission_handler_node,
         waypoint_handler_node,
         obstacle_nearest_publisher,
-        # mpc_node,
+        mpc_node,
     ])

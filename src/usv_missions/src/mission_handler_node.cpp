@@ -25,6 +25,7 @@
 #include "mission_classes/m0.cpp"
 #include "mission_classes/m1.cpp"
 #include "mission_classes/m2.cpp"
+#include "mission_classes/m4.cpp"
 #include "mission_classes/m6.cpp"
 
 using namespace std::chrono_literals;
@@ -59,6 +60,9 @@ class MissionHandlerNode : public rclcpp::Node {
                             case 2:
                                 vtec = std::make_shared<M2>();
                                 break;
+                            case 4:
+                                vtec = std::make_shared<M4>();
+                                break;
                             case 6:
                                 vtec = std::make_shared<M6>();
                                 break;
@@ -67,10 +71,11 @@ class MissionHandlerNode : public rclcpp::Node {
                     }
             });
 
-            vtec = std::make_shared<M6>();
+            vtec = std::make_shared<M4>();
 
-            mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/state", 10);
-            mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/status", 10);
+            mission_id_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/id", 10);
+            mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/state", 10);
+            mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/status", 10);
             wp_pub_ = this->create_publisher<usv_interfaces::msg::WaypointList>("/usv/goals", 10);
 
             timer_ = this->create_wall_timer(100ms, std::bind(&MissionHandlerNode::timer_callback, this));
@@ -84,14 +89,13 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_command_sub_;
 
-        rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_;
+        rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
-        rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_status_pub_;
         rclcpp::Publisher<usv_interfaces::msg::WaypointList>::SharedPtr wp_pub_;
 
         usv_interfaces::msg::Object obj;
         usv_interfaces::msg::WaypointList wp_list;
-        std_msgs::msg::Int8 state, status;
+        std_msgs::msg::Int8 id, state, status;
         std_msgs::msg::Bool pivot, arrived;
         std_msgs::msg::UInt16 auto_mode;
         std::vector<Obstacle> obs_v;
@@ -121,10 +125,12 @@ class MissionHandlerNode : public rclcpp::Node {
 
             state.data = feedback.state;
             status.data = feedback.status;
+            id.data = vtec->get_id();
 
             RCLCPP_INFO(get_logger(), "WP LIST SIZE: %d", wp_list.waypoint_list.size());
             
             wp_pub_->publish(wp_list);
+            mission_id_pub_->publish(id);
             mission_state_pub_->publish(state);
             mission_status_pub_->publish(status);
         }

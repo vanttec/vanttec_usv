@@ -33,7 +33,7 @@ B = 0.41
 nx    = 5               # the system is composed of 9 states
 nu    = 2               # the system has 2 inputs
 dt    = 0.1             # sample time
-Tf    = 2.5            # control horizon [s]
+Tf    = 3.5            # control horizon [s]
 Nhor  = (int)(Tf/dt)    # number of control intervals
 
 starting_angle = -0.1
@@ -215,7 +215,7 @@ ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
 # ocp.subject_to( (-1.5 <= r) <= 1.5 )
 
-l = 0.5
+l = 0.45
 x_virt = nedx + l*cos(psi)
 y_virt = nedy + l*sin(psi)
 for i in range(5):

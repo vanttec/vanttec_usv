@@ -12,6 +12,7 @@
 
 class M4 : public Mission {
  public:
+  M4();
   USVOutput update(const Eigen::Vector3f &pose, const  USVUpdate &params) override;
 
  private:  
@@ -19,7 +20,7 @@ class M4 : public Mission {
   Eigen::Vector3f get_goal(std::vector<Obstacle> obs_list);
   Eigen::Vector3f get_blue_buoy_goal(std::vector<Obstacle> obs_list);
   std::vector<Eigen::Vector3f> round_pack_goal(Eigen::Vector3f wp_base, 
-                                Eigen::Vector3f wp_goal, double dist);
+        Eigen::Vector3f wp_goal, double dist);
 };
 
 #endif  // M4_H

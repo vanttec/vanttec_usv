@@ -3,6 +3,11 @@
 
 // Follow the Path Challenge
 
+M2::M2(){
+  id = 2;
+  re_init();
+}
+
 USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
   Eigen::Vector3f goal;

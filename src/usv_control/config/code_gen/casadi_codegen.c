@@ -8507,8 +8507,8 @@ static int casadi_f9(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   for (rr=(&w6), ss=w5+8; ss!=w5+9; ss+=1) *rr++ = *ss;
   /* #7: @7 = input[2][0] */
   w7 = arg[2] ? arg[2][0] : 0;
-  /* #8: @8 = 0.5 */
-  w8 = 5.0000000000000000e-01;
+  /* #8: @8 = 0.45 */
+  w8 = 4.5000000000000001e-01;
   /* #9: @9 = input[2][2] */
   w9 = arg[2] ? arg[2][2] : 0;
   /* #10: @10 = cos(@9) */
@@ -8525,8 +8525,8 @@ static int casadi_f9(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   for (rr=(&w12), ss=w5+9; ss!=w5+10; ss+=1) *rr++ = *ss;
   /* #16: @13 = input[2][1] */
   w13 = arg[2] ? arg[2][1] : 0;
-  /* #17: @14 = 0.5 */
-  w14 = 5.0000000000000000e-01;
+  /* #17: @14 = 0.45 */
+  w14 = 4.5000000000000001e-01;
   /* #18: @15 = sin(@9) */
   w15 = sin( w9 );
   /* #19: @15 = (@14*@15) */
@@ -10407,8 +10407,8 @@ static int casadi_f17(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w6), ss=w5+8; ss!=w5+9; ss+=1) *rr++ = *ss;
   /* #7: @7 = input[2][0] */
   w7 = arg[2] ? arg[2][0] : 0;
-  /* #8: @8 = 0.5 */
-  w8 = 5.0000000000000000e-01;
+  /* #8: @8 = 0.45 */
+  w8 = 4.5000000000000001e-01;
   /* #9: @9 = input[2][2] */
   w9 = arg[2] ? arg[2][2] : 0;
   /* #10: @10 = cos(@9) */
@@ -10425,8 +10425,8 @@ static int casadi_f17(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w12), ss=w5+9; ss!=w5+10; ss+=1) *rr++ = *ss;
   /* #16: @13 = input[2][1] */
   w13 = arg[2] ? arg[2][1] : 0;
-  /* #17: @14 = 0.5 */
-  w14 = 5.0000000000000000e-01;
+  /* #17: @14 = 0.45 */
+  w14 = 4.5000000000000001e-01;
   /* #18: @15 = sin(@9) */
   w15 = sin( w9 );
   /* #19: @15 = (@14*@15) */
@@ -12308,8 +12308,8 @@ static int casadi_f18(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w3), ss=w2+8; ss!=w2+9; ss+=1) *rr++ = *ss;
   /* #4: @4 = input[2][0] */
   w4 = arg[2] ? arg[2][0] : 0;
-  /* #5: @5 = 0.5 */
-  w5 = 5.0000000000000000e-01;
+  /* #5: @5 = 0.45 */
+  w5 = 4.5000000000000001e-01;
   /* #6: @6 = input[2][2] */
   w6 = arg[2] ? arg[2][2] : 0;
   /* #7: @7 = cos(@6) */
@@ -12330,8 +12330,8 @@ static int casadi_f18(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w10), ss=w2+9; ss!=w2+10; ss+=1) *rr++ = *ss;
   /* #15: @11 = input[2][1] */
   w11 = arg[2] ? arg[2][1] : 0;
-  /* #16: @12 = 0.5 */
-  w12 = 5.0000000000000000e-01;
+  /* #16: @12 = 0.45 */
+  w12 = 4.5000000000000001e-01;
   /* #17: @13 = sin(@6) */
   w13 = sin( w6 );
   /* #18: @13 = (@12*@13) */
@@ -12793,8 +12793,8 @@ static int casadi_f19(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w6), ss=w5+8; ss!=w5+9; ss+=1) *rr++ = *ss;
   /* #7: @7 = input[2][0] */
   w7 = arg[2] ? arg[2][0] : 0;
-  /* #8: @8 = 0.5 */
-  w8 = 5.0000000000000000e-01;
+  /* #8: @8 = 0.45 */
+  w8 = 4.5000000000000001e-01;
   /* #9: @9 = input[2][2] */
   w9 = arg[2] ? arg[2][2] : 0;
   /* #10: @10 = cos(@9) */
@@ -12811,8 +12811,8 @@ static int casadi_f19(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w12), ss=w5+9; ss!=w5+10; ss+=1) *rr++ = *ss;
   /* #16: @13 = input[2][1] */
   w13 = arg[2] ? arg[2][1] : 0;
-  /* #17: @14 = 0.5 */
-  w14 = 5.0000000000000000e-01;
+  /* #17: @14 = 0.45 */
+  w14 = 4.5000000000000001e-01;
   /* #18: @15 = sin(@9) */
   w15 = sin( w9 );
   /* #19: @15 = (@14*@15) */
@@ -14672,8 +14672,8 @@ static int casadi_f20(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w6), ss=w5+8; ss!=w5+9; ss+=1) *rr++ = *ss;
   /* #7: @7 = input[2][0] */
   w7 = arg[2] ? arg[2][0] : 0;
-  /* #8: @8 = 0.5 */
-  w8 = 5.0000000000000000e-01;
+  /* #8: @8 = 0.45 */
+  w8 = 4.5000000000000001e-01;
   /* #9: @9 = input[2][2] */
   w9 = arg[2] ? arg[2][2] : 0;
   /* #10: @10 = cos(@9) */
@@ -14690,8 +14690,8 @@ static int casadi_f20(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w12), ss=w5+9; ss!=w5+10; ss+=1) *rr++ = *ss;
   /* #16: @13 = input[2][1] */
   w13 = arg[2] ? arg[2][1] : 0;
-  /* #17: @14 = 0.5 */
-  w14 = 5.0000000000000000e-01;
+  /* #17: @14 = 0.45 */
+  w14 = 4.5000000000000001e-01;
   /* #18: @15 = sin(@9) */
   w15 = sin( w9 );
   /* #19: @15 = (@14*@15) */
@@ -16552,8 +16552,8 @@ static int casadi_f21(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w3), ss=w2+8; ss!=w2+9; ss+=1) *rr++ = *ss;
   /* #4: @4 = input[2][0] */
   w4 = arg[2] ? arg[2][0] : 0;
-  /* #5: @5 = 0.5 */
-  w5 = 5.0000000000000000e-01;
+  /* #5: @5 = 0.45 */
+  w5 = 4.5000000000000001e-01;
   /* #6: @6 = input[2][2] */
   w6 = arg[2] ? arg[2][2] : 0;
   /* #7: @7 = cos(@6) */
@@ -16574,8 +16574,8 @@ static int casadi_f21(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w10), ss=w2+9; ss!=w2+10; ss+=1) *rr++ = *ss;
   /* #15: @11 = input[2][1] */
   w11 = arg[2] ? arg[2][1] : 0;
-  /* #16: @12 = 0.5 */
-  w12 = 5.0000000000000000e-01;
+  /* #16: @12 = 0.45 */
+  w12 = 4.5000000000000001e-01;
   /* #17: @13 = sin(@6) */
   w13 = sin( w6 );
   /* #18: @13 = (@12*@13) */
@@ -17134,8 +17134,8 @@ static int casadi_f22(const casadi_real** arg, casadi_real** res, casadi_int* iw
   casadi_copy(arg[4] ? arg[4]+10 : 0, 10, w10);
   /* #56: @8 = @10[0] */
   for (rr=(&w8), ss=w10+0; ss!=w10+1; ss+=1) *rr++ = *ss;
-  /* #57: @9 = 0.5 */
-  w9 = 5.0000000000000000e-01;
+  /* #57: @9 = 0.45 */
+  w9 = 4.5000000000000001e-01;
   /* #58: @5 = cos(@7) */
   w5 = cos( w7 );
   /* #59: @9 = (@9*@5) */
@@ -17148,8 +17148,8 @@ static int casadi_f22(const casadi_real** arg, casadi_real** res, casadi_int* iw
   w8 = casadi_sq( w8 );
   /* #63: @9 = @10[1] */
   for (rr=(&w9), ss=w10+1; ss!=w10+2; ss+=1) *rr++ = *ss;
-  /* #64: @5 = 0.5 */
-  w5 = 5.0000000000000000e-01;
+  /* #64: @5 = 0.45 */
+  w5 = 4.5000000000000001e-01;
   /* #65: @7 = sin(@7) */
   w7 = sin( w7 );
   /* #66: @5 = (@5*@7) */
@@ -17471,8 +17471,8 @@ static int casadi_f23(const casadi_real** arg, casadi_real** res, casadi_int* iw
   casadi_copy(arg[4] ? arg[4]+10 : 0, 10, w10);
   /* #56: @8 = @10[0] */
   for (rr=(&w8), ss=w10+0; ss!=w10+1; ss+=1) *rr++ = *ss;
-  /* #57: @9 = 0.5 */
-  w9 = 5.0000000000000000e-01;
+  /* #57: @9 = 0.45 */
+  w9 = 4.5000000000000001e-01;
   /* #58: @5 = cos(@7) */
   w5 = cos( w7 );
   /* #59: @9 = (@9*@5) */
@@ -17485,8 +17485,8 @@ static int casadi_f23(const casadi_real** arg, casadi_real** res, casadi_int* iw
   w8 = casadi_sq( w8 );
   /* #63: @9 = @10[1] */
   for (rr=(&w9), ss=w10+1; ss!=w10+2; ss+=1) *rr++ = *ss;
-  /* #64: @5 = 0.5 */
-  w5 = 5.0000000000000000e-01;
+  /* #64: @5 = 0.45 */
+  w5 = 4.5000000000000001e-01;
   /* #65: @7 = sin(@7) */
   w7 = sin( w7 );
   /* #66: @5 = (@5*@7) */
@@ -17709,8 +17709,8 @@ static int casadi_f24(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w4), ss=w3+8; ss!=w3+9; ss+=1) *rr++ = *ss;
   /* #5: @5 = input[2][0] */
   w5 = arg[2] ? arg[2][0] : 0;
-  /* #6: @6 = 0.5 */
-  w6 = 5.0000000000000000e-01;
+  /* #6: @6 = 0.45 */
+  w6 = 4.5000000000000001e-01;
   /* #7: @7 = input[2][2] */
   w7 = arg[2] ? arg[2][2] : 0;
   /* #8: @8 = cos(@7) */
@@ -17727,8 +17727,8 @@ static int casadi_f24(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w10), ss=w3+9; ss!=w3+10; ss+=1) *rr++ = *ss;
   /* #14: @11 = input[2][1] */
   w11 = arg[2] ? arg[2][1] : 0;
-  /* #15: @12 = 0.5 */
-  w12 = 5.0000000000000000e-01;
+  /* #15: @12 = 0.45 */
+  w12 = 4.5000000000000001e-01;
   /* #16: @13 = sin(@7) */
   w13 = sin( w7 );
   /* #17: @13 = (@12*@13) */
@@ -19145,8 +19145,8 @@ static int casadi_f25(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w4), ss=w3+8; ss!=w3+9; ss+=1) *rr++ = *ss;
   /* #5: @5 = input[2][0] */
   w5 = arg[2] ? arg[2][0] : 0;
-  /* #6: @6 = 0.5 */
-  w6 = 5.0000000000000000e-01;
+  /* #6: @6 = 0.45 */
+  w6 = 4.5000000000000001e-01;
   /* #7: @7 = input[2][2] */
   w7 = arg[2] ? arg[2][2] : 0;
   /* #8: @8 = cos(@7) */
@@ -19163,8 +19163,8 @@ static int casadi_f25(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w10), ss=w3+9; ss!=w3+10; ss+=1) *rr++ = *ss;
   /* #14: @11 = input[2][1] */
   w11 = arg[2] ? arg[2][1] : 0;
-  /* #15: @12 = 0.5 */
-  w12 = 5.0000000000000000e-01;
+  /* #15: @12 = 0.45 */
+  w12 = 4.5000000000000001e-01;
   /* #16: @13 = sin(@7) */
   w13 = sin( w7 );
   /* #17: @13 = (@12*@13) */
@@ -20582,8 +20582,8 @@ static int casadi_f26(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w1), ss=w0+8; ss!=w0+9; ss+=1) *rr++ = *ss;
   /* #2: @2 = input[2][0] */
   w2 = arg[2] ? arg[2][0] : 0;
-  /* #3: @3 = 0.5 */
-  w3 = 5.0000000000000000e-01;
+  /* #3: @3 = 0.45 */
+  w3 = 4.5000000000000001e-01;
   /* #4: @4 = input[2][2] */
   w4 = arg[2] ? arg[2][2] : 0;
   /* #5: @5 = cos(@4) */
@@ -20604,8 +20604,8 @@ static int casadi_f26(const casadi_real** arg, casadi_real** res, casadi_int* iw
   for (rr=(&w8), ss=w0+9; ss!=w0+10; ss+=1) *rr++ = *ss;
   /* #13: @9 = input[2][1] */
   w9 = arg[2] ? arg[2][1] : 0;
-  /* #14: @10 = 0.5 */
-  w10 = 5.0000000000000000e-01;
+  /* #14: @10 = 0.45 */
+  w10 = 4.5000000000000001e-01;
   /* #15: @11 = sin(@4) */
   w11 = sin( w4 );
   /* #16: @11 = (@10*@11) */
@@ -21163,8 +21163,8 @@ static int casadi_f27(const casadi_real** arg, casadi_real** res, casadi_int* iw
   casadi_copy(arg[4] ? arg[4]+10 : 0, 10, w10);
   /* #56: @8 = @10[0] */
   for (rr=(&w8), ss=w10+0; ss!=w10+1; ss+=1) *rr++ = *ss;
-  /* #57: @9 = 0.5 */
-  w9 = 5.0000000000000000e-01;
+  /* #57: @9 = 0.45 */
+  w9 = 4.5000000000000001e-01;
   /* #58: @5 = cos(@7) */
   w5 = cos( w7 );
   /* #59: @9 = (@9*@5) */
@@ -21177,8 +21177,8 @@ static int casadi_f27(const casadi_real** arg, casadi_real** res, casadi_int* iw
   w8 = casadi_sq( w8 );
   /* #63: @9 = @10[1] */
   for (rr=(&w9), ss=w10+1; ss!=w10+2; ss+=1) *rr++ = *ss;
-  /* #64: @5 = 0.5 */
-  w5 = 5.0000000000000000e-01;
+  /* #64: @5 = 0.45 */
+  w5 = 4.5000000000000001e-01;
   /* #65: @7 = sin(@7) */
   w7 = sin( w7 );
   /* #66: @5 = (@5*@7) */

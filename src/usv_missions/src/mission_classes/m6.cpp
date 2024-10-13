@@ -2,6 +2,11 @@
 
 // Return to Home Challenge
 
+M6::M6(){
+  id = 6;
+  re_init();
+}
+
 USVOutput M6::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
   Eigen::Vector3f goal;

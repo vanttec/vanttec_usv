@@ -12,6 +12,7 @@
 #include <fatrop/fatrop.hpp>
 #include <optional>
 #include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/int8.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "geometry_msgs/msg/pose.hpp"
@@ -26,6 +27,7 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
+
 
 using namespace std::chrono_literals;
 
@@ -128,6 +130,19 @@ public:
           for(int i = 0 ; i < msg.obj_list.size() ; i++){
             obs_arr[i*2] = msg.obj_list[i].x;
             obs_arr[i*2+1] = msg.obj_list[i].y;
+           }
+         });
+
+    mission_id_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+        "/usv/mission/id", 10,
+        [this](const std_msgs::msg::Int8 &msg){
+          if(msg.data == 4){
+            primary_weights = speed_weights;
+            secondary_weights = avoidance_weights;
+            // secondary_weights = speed_weights;
+          } else {
+            primary_weights = path_tracking_weights;
+            secondary_weights = avoidance_weights;
           }
         });
 
@@ -147,6 +162,10 @@ public:
         "/mpc/debug/qs", 10);
 
     timer_ = this->create_wall_timer(10ms, std::bind(&MPCNode::update, this));
+
+    primary_weights = path_tracking_weights;
+    secondary_weights = avoidance_weights;
+    
   }
 
 private:
@@ -156,6 +175,7 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr velocity_sub_;
   rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr left_thruster_sub_, right_thruster_sub_;
+  rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_id_sub_;
   rclcpp::Subscription<usv_interfaces::msg::WaypointList>::SharedPtr goals_sub_;
   rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ref_path_sub_;
   rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
@@ -163,7 +183,6 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_pub_,vel_setpoint_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ye_debug_pub_, psie_debug_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr qs_debug_pub_;
-
 
   std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg;
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
@@ -179,12 +198,11 @@ private:
   std::array<double, 10> obs_arr{1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000.};
 
   // xe, ye, psi, u, r, ds
-  // ORIGINAL>>
-  std::array<double, 6> path_tracking_weights{100., 300., 100., 1000., 10., 0.};
-
-  // TESTING>>
-  // std::array<double, 6> path_tracking_weights{100., 350., 80., 1000., 10., 0.};
-  std::array<double, 6> avoidance_weights    {100., 70., 20., 1000., 10., 1.5};
+  std::array<double, 6> path_tracking_weights         {100., 300., 100., 1000., 10., 0.};
+  std::array<double, 6> speed_weights                 {100., 300., 100., 1., 1., 0.};
+  std::array<double, 6> avoidance_weights             {100., 70., 20., 1000., 10., 1.5};
+  std::array<double, 6> primary_weights;
+  std::array<double, 6> secondary_weights;
 
   int wp_i{0};
 
@@ -215,6 +233,7 @@ private:
     obs_regs_setter.set_value(obs_arr.data());
 
     std::array<double,6> desired_weights = weight_calculator(obj_dist(obs_arr[0], obs_arr[1], pose));
+
     qs_debug_msg.data.clear();
     for(int i = 0 ; i < desired_weights.size() ; i++){
       qs_debug_msg.data.push_back(desired_weights[i]);
@@ -282,15 +301,19 @@ private:
     return sqrt((obj_x-p.x)*(obj_x-p.x) + (obj_y-p.y)*(obj_y-p.y));
   }
 
-    // xe, ye, psi, u, r, ds
-    std::array<double, 6> weight_calculator(double dist){
-    // std::array<double, 6> path_tracking_weights{100., 300., 100., 1000., 10., 0.};
-    // std::array<double, 6> avoidance_weights    {100., 70., 20., 1000., 10., 5.};
-    double dist_sat = std::clamp(dist, 0., 3.) / 3.;
+  // xe, ye, psi, u, r, ds
+  std::array<double, 6> weight_calculator(double dist){
+    double dist_sat = std::clamp(dist, 0.5, 3.5) / 3.5;
     std::array<double, 6> out;
     for(int i = 0 ; i < out.size() ; i++){
-      out[i] = path_tracking_weights[i]*dist_sat + avoidance_weights[i]*(1-dist_sat);
+      out[i] = primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat);
     }
+
+    // Prueba para speed challenge
+    double speed_e_sat = std::clamp(sqrt(pow(psie_debug_msg.data,2)+pow(ye_debug_msg.data,2)), 0., 0.5) / 0.5;
+    double qu_safe = 1000;
+    out[3] = out[3]*(1-speed_e_sat) + qu_safe*speed_e_sat;
+    
     return out;
   }
   

@@ -12,6 +12,7 @@
 
 class M1 : public Mission {
  public:
+  M1();
   USVOutput update(const Eigen::Vector3f &pose, const  USVUpdate &params) override;
 
  private:  
