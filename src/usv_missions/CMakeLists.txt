@@ -15,42 +15,17 @@ find_package(visualization_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-add_executable(usv_missions src/usv_missions.cpp)
-ament_target_dependencies(usv_missions rclcpp std_msgs geometry_msgs visualization_msgs Eigen3)
-target_compile_features(usv_missions PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-
 add_executable(mission_handler_node src/mission_handler_node.cpp)
 ament_target_dependencies(mission_handler_node rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
 target_compile_features(mission_handler_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-
-add_executable(follow_the_path src/follow_the_path.cpp)
-ament_target_dependencies(follow_the_path rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
-target_compile_features(follow_the_path PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-
-add_executable(mandatory_challenge src/mandatory_challenge.cpp)
-ament_target_dependencies(mandatory_challenge rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
-target_compile_features(mandatory_challenge PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-
-add_executable(speed_challenge src/speed_challenge.cpp)
-ament_target_dependencies(speed_challenge rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
-target_compile_features(speed_challenge PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 add_executable(obstacle_publisher_node src/obstacle_publisher.cpp)
 ament_target_dependencies(obstacle_publisher_node rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
 target_compile_features(obstacle_publisher_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-add_executable(docking src/docking.cpp)
-ament_target_dependencies(docking rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
-target_compile_features(docking PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-
 install(TARGETS
   # usv_master
-  usv_missions
   mission_handler_node
-  follow_the_path
-  speed_challenge
-  docking
-  mandatory_challenge
   obstacle_publisher_node
   DESTINATION lib/${PROJECT_NAME})
 

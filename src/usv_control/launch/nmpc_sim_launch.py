@@ -154,5 +154,5 @@ def generate_launch_description():
         mission_handler_node,
         waypoint_handler_node,
         obstacle_nearest_publisher,
-        mpc_node,
+        # mpc_node,
     ])

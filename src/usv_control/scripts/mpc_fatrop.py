@@ -30,10 +30,10 @@ m = 30
 Iz = 4.1
 B = 0.41
 
-nx    = 5               # the system is composed of 9 states
+nx    = 11               # the system is composed of 9 states
 nu    = 2               # the system has 2 inputs
 dt    = 0.1             # sample time
-Tf    = 3.5            # control horizon [s]
+Tf    = 2.9            # control horizon [s]
 Nhor  = (int)(Tf/dt)    # number of control intervals
 
 starting_angle = -0.1
@@ -41,7 +41,7 @@ ned_x = 0.01
 ned_y = 0.01
 
 target = np.array([0., 0., 
-10., 2.5
+10., 0.
 ])
 
 # obs_regs = np.array([
@@ -67,6 +67,7 @@ obs_regs_init = np.array([
         20.0, 8.1
 ])
 
+dobs_init = np.zeros(6)
 
 Nsim  = int(25 * Nhor / Tf)         # how much samples to simulate
 
@@ -97,8 +98,11 @@ nedy = ocp.state()
 psi = ocp.state()
 u = ocp.state()
 r = ocp.state()
+obs = ocp.register_state(MX.sym("obs", 6))
+
 Tport = ocp.control()
 Tstbd = ocp.control()
+
 ocp.set_initial(nedx,ned_x)
 ocp.set_initial(nedy,ned_y)
 ocp.set_initial(psi,starting_angle)
@@ -106,10 +110,13 @@ ocp.set_initial(u,0.0)
 ocp.set_initial(r,0.0)
 ocp.set_initial(Tport,0.0)
 ocp.set_initial(Tstbd,0.0)
+ocp.set_initial(obs, np.array([1000.,1000.,1000.,
+    1000.,1000.,1000.]))
 
 # Define parameter
 # X_0 = ocp.parameter(nx)
-current_X = vertcat(ned_x,ned_y,starting_angle,0.,0.)  # initial state
+current_X = np.zeros(nx)
+current_X[:5] = [ned_x,ned_y,starting_angle,0.,0.]
 X_0 = ocp.register_parameter(MX.sym("X_0", nx))
 
 tg = ocp.register_parameter(MX.sym("target", 4))
@@ -119,8 +126,8 @@ psi_d_init = np.array([0.001])
 gamma_p = ocp.register_parameter(MX.sym("psi_d", 1))
 ocp.set_value(gamma_p, psi_d_init)
 
-obs_regs = ocp.register_parameter(MX.sym("obs_regs", 10))
-ocp.set_value(obs_regs, obs_regs_init)
+dobs = ocp.register_parameter(MX.sym("dobs", 6))
+ocp.set_value(dobs, dobs_init)
 
 # Path tracking
 # # xe, ye, psi, u, r, ds
@@ -184,7 +191,7 @@ ocp.set_der(u,
 ocp.set_der(r,
             (( (Tport - Tstbd) * B / 2 + 
               Nrr*fabs(r)*r + Nr*r) / (Iz - N_r_dot)))
-
+ocp.set_der(obs, dobs)
 
 Qxe     = Qs[0]
 Qye     = Qs[1]
@@ -210,19 +217,20 @@ ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 # ocp.add_objective(ocp.T)
 
 # Path constraints
-ocp.subject_to( (-0.5 <= u) <= 1.5 )
+# ocp.subject_to( (-0.5 <= u) <= 1.5 )
 ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
 # ocp.subject_to( (-1.5 <= r) <= 1.5 )
 
-l = 0.45
-x_virt = nedx + l*cos(psi)
-y_virt = nedy + l*sin(psi)
-for i in range(5):
-    ocp.add_objective(ocp.sum(
-        Qds/(((obs_regs[i*2]-x_virt)**2 + (obs_regs[i*2+1]-y_virt)**2)**4)))
-    ocp.add_objective(ocp.at_tf(
-        Qds/(((obs_regs[i*2]-x_virt)**2 + (obs_regs[i*2+1]-y_virt)**2)**4)))
+l_list = [0.35]
+for i in range(3):
+    for l in l_list:
+        x_virt = nedx + l*cos(psi)
+        y_virt = nedy + l*sin(psi)
+        ocp.add_objective(ocp.sum(
+            Qds/((sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 9.)**2.)))
+        ocp.add_objective(ocp.at_tf(
+            Qds/((sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 9.)**2.)))
 
 # ocp.add_objective(ocp.sum(
 #     Qds/sqrt((obs_regs[0]-x_virt)**2 + (obs_regs[1]-y_virt)**2)**2 +
@@ -241,7 +249,7 @@ for i in range(5):
 
 
 # Initial constraints
-X = vertcat(nedx,nedy,psi,u,r)
+X = vertcat(nedx,nedy,psi,u,r,obs[0], obs[1], obs[2], obs[3], obs[4], obs[5])
 ocp.subject_to(ocp.at_t0(X)==X_0)
 
 # Pick a solution method

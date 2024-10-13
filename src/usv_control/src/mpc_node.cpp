@@ -39,11 +39,13 @@ struct MPC_State {
   double x{0.}, y{0.}, yaw{0.};
   double u{0.1}, r{0.1};
   double tp{0.}, ts{0.}, ds{0.};
+  std::array<double, 6> obs{0., 0., 
+    0., 0., 0., 0.};
 
-  std::array<double, 5>
+  std::array<double, 11>
     get_state_vector() const {
     return {x, y, yaw, 
-            u, r};
+            u, r, obs[0], obs[1], obs[2], obs[3], obs[4], obs[5]};
     }
 };
 
@@ -127,23 +129,33 @@ public:
     obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
         "/obj_n_nearest_list", 10,
         [this](const usv_interfaces::msg::ObjectList &msg){
-          for(int i = 0 ; i < msg.obj_list.size() ; i++){
+          for(int i = 0 ; i < 3; i++){
             obs_arr[i*2] = msg.obj_list[i].x;
             obs_arr[i*2+1] = msg.obj_list[i].y;
+            dobs_arr[i*2] = msg.obj_list[i].v_x;
+            dobs_arr[i*2+1] = msg.obj_list[i].v_y;
            }
+           state_->obs = obs_arr;
          });
 
     mission_id_sub_ = this->create_subscription<std_msgs::msg::Int8>(
         "/usv/mission/id", 10,
         [this](const std_msgs::msg::Int8 &msg){
           if(msg.data == 4){
-            primary_weights = speed_weights;
-            secondary_weights = avoidance_weights;
+            // primary_weights = speed_weights;
+            // secondary_weights = avoidance_weights;
+
+            // Testing
+            primary_weights = dyn_avoidance_weights;
+            // primary_weights = path_tracking_weights;
+            // primary_weights = speed_weights;
+            secondary_weights = dyn_avoidance_weights;
             // secondary_weights = speed_weights;
           } else {
             primary_weights = path_tracking_weights;
             secondary_weights = avoidance_weights;
           }
+
         });
 
     ang_vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
@@ -195,12 +207,14 @@ private:
   std::optional<MPC_State> state_;
 
   std::vector<Wp> wp_vec;
-  std::array<double, 10> obs_arr{1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000.};
+  std::array<double, 6> obs_arr{1000., 1000., 1000., 1000., 1000., 1000.};
+  std::array<double, 6> dobs_arr{0., 0., 0., 0., 0., 0.};
 
-  // xe, ye, psi, u, r, ds
+  // xe, ye, psie, u, r, ds
   std::array<double, 6> path_tracking_weights         {100., 300., 100., 1000., 10., 0.};
   std::array<double, 6> speed_weights                 {100., 300., 100., 1., 1., 0.};
   std::array<double, 6> avoidance_weights             {100., 70., 20., 1000., 10., 1.5};
+  std::array<double, 6> dyn_avoidance_weights         {100., 40., 25., 700., 0.1, 1.2};
   std::array<double, 6> primary_weights;
   std::array<double, 6> secondary_weights;
 
@@ -229,8 +243,8 @@ private:
     auto psi_d_setter = app_->get_parameter_setter("psi_d");
     psi_d_setter.set_value({psi_d});    
 
-    auto obs_regs_setter = app_->get_parameter_setter("obs_regs");
-    obs_regs_setter.set_value(obs_arr.data());
+    auto dobs_setter = app_->get_parameter_setter("dobs");
+    dobs_setter.set_value(dobs_arr.data());
 
     std::array<double,6> desired_weights = weight_calculator(obj_dist(obs_arr[0], obs_arr[1], pose));
 
@@ -303,7 +317,7 @@ private:
 
   // xe, ye, psi, u, r, ds
   std::array<double, 6> weight_calculator(double dist){
-    double dist_sat = std::clamp(dist, 0.5, 3.5) / 3.5;
+    double dist_sat = std::clamp(dist, 1.0, 5.) / 5.;
     std::array<double, 6> out;
     for(int i = 0 ; i < out.size() ; i++){
       out[i] = primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat);

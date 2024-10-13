@@ -109,8 +109,6 @@ install(DIRECTORY
 install(PROGRAMS
   scripts/path_publisher_node.py
   scripts/teleop_control_node.py
-  scripts/uuv_teleop_node.py
-  scripts/waypoint_handler_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

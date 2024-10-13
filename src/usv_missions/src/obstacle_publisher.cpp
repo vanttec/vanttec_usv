@@ -46,7 +46,7 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 int64_t color = this->get_parameter(mission_prefix + ".obj_info." + name + ".color").as_int();
                 std::string type = this->get_parameter(mission_prefix + ".obj_info." + name + ".type").as_string();
 
-                obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).color(color).type(type);
+                obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(0.).v_y(0.).color(color).type(type);
                 object_list_global.obj_list.push_back(obj);
 
                 int r{color_list[color][0]},
@@ -66,6 +66,42 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 marker.pose.position.z = marker_type[type].z_trans;
                 marker_arr.markers.push_back(marker);
             }
+            // Append dynamic obstacle
+            usv_interfaces::msg::Object obj;
+            visualization_msgs::msg::Marker marker;
+
+            double x = 10.;
+            double y = 1.;
+            double v_x = -0.25;
+            double v_y = 0.;
+            pose_dyn[0] = x;
+            pose_dyn[1] = y;
+            pose_dyn[2] = v_x;
+            pose_dyn[3] = v_y;
+            int64_t color = 3;
+            std::string type = "marker";
+
+
+            obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(v_x).v_y(v_y).color(color).type(type);
+            dyn_obj_id = object_list_global.obj_list.size();
+            object_list_global.obj_list.push_back(obj);
+
+            int r{color_list[color][0]},
+                g{color_list[color][1]},
+                b{color_list[color][2]},
+                a{color_list[color][3]};
+
+            marker.header.frame_id = "world";
+            marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
+            marker.action = 0;
+            marker.id = marker_arr.markers.size();
+            marker.type = marker_type[type].type;
+            marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
+                            x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
+            marker.pose.position.x = x;
+            marker.pose.position.y = y;
+            marker.pose.position.z = marker_type[type].z_trans;
+            marker_arr.markers.push_back(marker);
 
             object_list_global_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_list_global", 10);
             object_list_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_list", 10);
@@ -92,6 +128,9 @@ class ObstaclePublisherNode : public rclcpp::Node {
         visualization_msgs::msg::MarkerArray marker_arr, on_watch_arr;
         geometry_msgs::msg::Pose2D pose;
 
+        double pose_dyn[4];
+        int dyn_obj_id{-1};
+
         int color_list[6][4]{
             {1,0,0,1},
             {0,1,0,1},
@@ -109,11 +148,27 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 
         void timer_callback() {
             fill_local_list();
+            update_dyn();
 
             object_list_global_pub_->publish(object_list_global);
             object_list_pub_->publish(object_list);
             marker_pub_->publish(marker_arr);
             on_watch_marker_pub_->publish(on_watch_arr);
+        }
+
+        void update_dyn(){
+            double dt = 0.01;
+            pose_dyn[0] += pose_dyn[2]*dt;
+            pose_dyn[1] += pose_dyn[3]*dt;
+
+            if(pose_dyn[0] < 0 || pose_dyn[0] > 20){
+                pose_dyn[2] *= -1;
+            }
+
+            object_list_global.obj_list[dyn_obj_id].x = pose_dyn[0];
+            object_list_global.obj_list[dyn_obj_id].y = pose_dyn[1];
+            marker_arr.markers[dyn_obj_id].pose.position.x = pose_dyn[0];
+            marker_arr.markers[dyn_obj_id].pose.position.y = pose_dyn[1];
         }
 
         void fill_local_list(){
