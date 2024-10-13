@@ -10,10 +10,24 @@ Mission::Mission(const Eigen::Vector3f &pose){
   this->pose = pose;
 }
 
-Eigen::Vector3f Mission::forward(const Eigen::Vector3f &p_ref, double distance){
+int Mission::get_id(){
+  return id;
+}
+
+Eigen::Vector3f Mission::forward(const Eigen::Vector3f &goal, double distance){
   Eigen::Vector3f p;
-  p << std::cos(p_ref(2)), std::sin(p_ref(2)), 0;
-  return p_ref + distance * p;
+  p << std::cos(goal(2)), std::sin(goal(2)), 0;
+  return goal + distance * p;
+}
+
+Eigen::Vector3f Mission::diagonal(const Eigen::Vector3f &goal, double x_trans, double y_trans){
+  Eigen::Matrix3f rotM;
+  rotM << std::cos(goal(2)), - std::sin(goal(2)), 0, 
+          std::sin(goal(2)), std::cos(goal(2)), 0, 
+          0, 0, 1;
+  Eigen::Vector3f p;
+  p << x_trans, y_trans, 0;
+  return goal + rotM * p;
 }
 
 double Mission::dist(const Eigen::Vector3f &p1, const Eigen::Vector3f &p2){
@@ -53,4 +67,8 @@ std::vector<Eigen::Vector3f> Mission::pack_goal(Eigen::Vector3f wp_base, Eigen::
   // goal_list.push_back(forward(wp_goal, -dist));
   goal_list.push_back(forward(wp_goal, dist));
   return goal_list;
+}
+
+Eigen::Vector3f Mission::rotate_goal(const Eigen::Vector3f &goal, double ang){
+  return Eigen::Vector3f{goal(0), goal(1), angle_correct(goal(2)+ang)};
 }

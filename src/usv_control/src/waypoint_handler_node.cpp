@@ -64,7 +64,9 @@ public:
                     bool wp_repeats{false};
                     for (int j = 0; j < wp_vec.size(); j++)
                     {
-                        if (sqrt(pow(wp_vec[j].x - msg.waypoint_list[i].x, 2) + pow(wp_vec[j].y - msg.waypoint_list[i].y, 2)) < 0.2)
+                        if (sqrt(pow(wp_vec[j].x - msg.waypoint_list[i].x, 2) + pow(wp_vec[j].y - msg.waypoint_list[i].y, 2)) < 0.2
+                            && fabs(wp_vec[j].theta - msg.waypoint_list[i].theta) < 0.1
+                            )
                         {
                             wp_repeats = true;
                         }
@@ -93,9 +95,9 @@ public:
         tmp_marker.pose.position.z = 1.;
 
         pose_stamped_tmp_.header.frame_id = "world";
-        current_path_ref.header.frame_id = "world";
-        current_path_ref.header.stamp = WaypointHandlerNode::now();
-        path_to_follow.header = current_path_ref.header;
+        pose_stamped_tmp_.header.stamp = WaypointHandlerNode::now();
+        current_path_ref.header = pose_stamped_tmp_.header;
+        path_to_follow.header   = pose_stamped_tmp_.header;
         current_path_ref.poses.push_back(pose_stamped_tmp_);
         current_path_ref.poses.push_back(pose_stamped_tmp_);
 
@@ -122,6 +124,7 @@ private:
     int wp_i{0};
 
     double pose[3]{0., 0., 0.};
+    int closest_wp = 0;
 
     Wp next_wp{pose[0], pose[1]}, base_wp{pose[0], pose[1]};
     bool suitable_wp{false};
@@ -133,65 +136,70 @@ private:
 
     // Function to find the indices of the nearest waypoint behind and ahead within lookahead distance
     std::pair<int, int> findLookaheadWaypoints(double lookahead_distance) {
-    int closest_wp_behind = -1;
-    int closest_wp_ahead = -1;
-    int closest_wp = -1;
-    
-    double max_distance_behind = 0.;
-    double max_distance_ahead = 0.;
-    double min_distance = std::numeric_limits<double>::max();;
 
-    // Iterate over waypoints to find the closest distance
+    double min_distance = std::numeric_limits<double>::max();
 
-    for(int j = 0; j < path_to_follow.poses.size() ; j++) {
+    // Iterate over waypoints to find the closest wp
+    int j = closest_wp;
+    bool in_lookregion = true;
+    double previous_dist = std::numeric_limits<double>::max();
+    while(j < path_to_follow.poses.size() && in_lookregion){
         double distance_to_wp = computeDistance(pose[0], pose[1], path_to_follow.poses[j].pose.position.x, path_to_follow.poses[j].pose.position.y);
-        // If waypoint is behind the boat (negative theta difference)
         if (distance_to_wp < min_distance) {
-        closest_wp = j;
-        min_distance = distance_to_wp;
+            closest_wp = j;
+            min_distance = distance_to_wp;
         }
+        if(distance_to_wp > lookahead_distance) {
+            in_lookregion = false;
+        }
+        j++;
     }
-    // closest_wp_behind = closest_wp;
-    // Iterate over waypoints to find the closest behind and ahead
-    for(int i = 0; i < path_to_follow.poses.size(); i++) {
-    // if(i != closest_wp){
+
+    // Iterate over waypoints to find the furthest ahead
+    int closest_wp_ahead = closest_wp;
+    double max_distance_ahead = 0.;
+    int i = closest_wp;
+    bool in_lookahead = true;
+    while(i < path_to_follow.poses.size() && in_lookahead){
         double distance_to_wp = computeDistance(
             path_to_follow.poses[closest_wp].pose.position.x, path_to_follow.poses[closest_wp].pose.position.y, 
             path_to_follow.poses[i].pose.position.x, path_to_follow.poses[i].pose.position.y);
-
-        // Determine if waypoint is behind the boat
-        double heading_to_wp = std::atan2(
-            path_to_follow.poses[i].pose.position.y - path_to_follow.poses[closest_wp].pose.position.y,
-            path_to_follow.poses[i].pose.position.x - path_to_follow.poses[closest_wp].pose.position.x);
-        tf2::Quaternion quat;
-        tf2::fromMsg(path_to_follow.poses[closest_wp].pose.orientation, quat);
-        double roll, pitch, psi_;
-        tf2::Matrix3x3(quat).getRPY(roll, pitch, psi_);
-        psi_ = std::fmod((psi_) + M_PI, 2*M_PI) - M_PI; // [-pi, pi]"
-
-        double theta_diff = heading_to_wp - psi_;
-        if (theta_diff > M_PI) theta_diff -= 2 * M_PI;
-        if (theta_diff < -M_PI) theta_diff += 2 * M_PI;
-
-        // If waypoint is behind the boat (negative theta difference)
-        if (fabs(theta_diff) >= M_PI_2 && distance_to_wp > max_distance_behind && distance_to_wp <= lookahead_distance) {
-        closest_wp_behind = i;
-        max_distance_behind = distance_to_wp;
-        }
-
-        // If waypoint is ahead of the boat and within lookahead distance
-        if (fabs(theta_diff) < M_PI_2 && distance_to_wp <= lookahead_distance && distance_to_wp > max_distance_ahead) {
+        if (distance_to_wp <= lookahead_distance && distance_to_wp > max_distance_ahead) {
         closest_wp_ahead = i;
         max_distance_ahead = distance_to_wp;
+        } else if(distance_to_wp > lookahead_distance){
+            in_lookahead = false;
         }
-    // }
+        i++;
     }
+
+    // Iterate over waypoints to find the furthest behind
+    int closest_wp_behind = closest_wp;
+    // double max_distance_behind = 0.;
+    // i = closest_wp;
+    // bool in_lookbehind = true;
+    // while(i > 0 && in_lookbehind){
+    //     double distance_to_wp = computeDistance(
+    //         path_to_follow.poses[closest_wp].pose.position.x, path_to_follow.poses[closest_wp].pose.position.y, 
+    //         path_to_follow.poses[i].pose.position.x, path_to_follow.poses[i].pose.position.y);
+    //     if (distance_to_wp <= lookahead_distance && distance_to_wp > max_distance_behind) {
+    //     closest_wp_behind = i;
+    //     max_distance_behind = distance_to_wp;
+    //     } else if(distance_to_wp > lookahead_distance){
+    //         in_lookbehind = false;
+    //     }
+    //     i--;
+    // }
 
     if(closest_wp_behind < 0){
         closest_wp_behind = 1;
     }
-    if(closest_wp_ahead <= closest_wp_behind && closest_wp_ahead < path_to_follow.poses.size()){
-        closest_wp_ahead = closest_wp_behind+1;
+    if(closest_wp_ahead <= closest_wp_behind){
+        if(closest_wp_ahead < path_to_follow.poses.size() - 1){
+            closest_wp_ahead = closest_wp_behind+1;
+        } else {
+            closest_wp_behind = closest_wp_ahead - 1;
+        }
     }
 
     return {closest_wp_behind, closest_wp_ahead};
@@ -221,8 +229,8 @@ private:
     return control_point;
     }
 
-    // Bezier interpolation function
-    void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpolations, double control_distance) {
+// Bezier interpolation function with quaternion SLERP for angles
+void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpolations, double control_distance) {
     // Compute the control points for the Bezier curve
     Wp control_point_start = computeControlPoint(start_wp, control_distance);
     Wp control_point_end = computeControlPoint(end_wp, -control_distance);  // Control point for end wp is in the reverse direction
@@ -241,11 +249,16 @@ private:
                         3 * (1 - t) * t * t * control_point_end.y +
                         t * t * t * end_wp.y;    
     
-        // Interpolating theta, ensuring shortest angular difference
-        double theta_diff = end_wp.theta - start_wp.theta;
-        if (theta_diff > M_PI) theta_diff -= 2 * M_PI;
-        if (theta_diff < -M_PI) theta_diff += 2 * M_PI;
-        double theta_interp = start_wp.theta + t * theta_diff;
+        // Interpolating theta using quaternion SLERP to handle wraparound
+        tf2::Quaternion start_q, end_q, interp_q;
+        start_q.setRPY(0, 0, start_wp.theta);
+        end_q.setRPY(0, 0, end_wp.theta);
+
+        // Perform spherical linear interpolation (SLERP) between quaternions
+        interp_q = start_q.slerp(end_q, t);
+
+        // Normalize quaternion to avoid issues
+        interp_q.normalize();
 
         // Create pose for the interpolated point
         geometry_msgs::msg::PoseStamped pose_stamped;
@@ -253,18 +266,16 @@ private:
         pose_stamped.pose.position.x = x_interp;
         pose_stamped.pose.position.y = y_interp;
 
-        // Set the orientation from interpolated theta using a quaternion
-        tf2::Quaternion q;
-        q.setRPY(0, 0, theta_interp);
-        pose_stamped.pose.orientation.x = q.x();
-        pose_stamped.pose.orientation.y = q.y();
-        pose_stamped.pose.orientation.z = q.z();
-        pose_stamped.pose.orientation.w = q.w();
+        // Set the interpolated quaternion orientation
+        pose_stamped.pose.orientation.x = interp_q.x();
+        pose_stamped.pose.orientation.y = interp_q.y();
+        pose_stamped.pose.orientation.z = interp_q.z();
+        pose_stamped.pose.orientation.w = interp_q.w();
 
         // Add the interpolated pose to the path
         path_to_follow.poses.push_back(pose_stamped);
     }
-    }
+}
 
     void update()
     {
@@ -301,7 +312,7 @@ private:
             
             // Interpolate between the current pair of waypoints
             int num_interpolations = 100; // Number of intermediate points
-            double control_distance = 1.5;  // Distance for Bezier control points
+            double control_distance = 0.9;  // Distance for Bezier control points
             interpolateWaypoints(start_wp, end_wp, num_interpolations, control_distance);
             }
         }

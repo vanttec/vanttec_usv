@@ -8,6 +8,9 @@
 #include <cmath>
 #include <string>
 #include <eigen3/Eigen/Dense>
+#include <array>
+#include <algorithm>
+
 
 struct USVPose {
   double x, y;
@@ -41,10 +44,12 @@ class Mission {
   void re_init();
   virtual ~Mission() = default;
   virtual USVOutput update(const Eigen::Vector3f &pose, const  USVUpdate &params) = 0;
+  int get_id();
 
  protected:
   std::vector<Obstacle> obs_list;
-  int mission_num{0};
+  int id{0};
+  double max_ = std::numeric_limits<double>::max();
   Eigen::Vector3f pose;
   Eigen::Vector3f last_goal;
   USVOutput outMsg;
@@ -53,6 +58,8 @@ class Mission {
   std::vector<Eigen::Vector3f> buoy_reg;
 
   Eigen::Vector3f forward(const Eigen::Vector3f &goal, double distance);
+  Eigen::Vector3f diagonal(const Eigen::Vector3f &goal, double x_trans, double y_trans);
+  Eigen::Vector3f rotate_goal(const Eigen::Vector3f &goal, double ang);
   double dist(const Eigen::Vector3f &p1, const Eigen::Vector3f &p2);
   double dist(double x_diff, double y_diff);
   double angle_correct(double ang);

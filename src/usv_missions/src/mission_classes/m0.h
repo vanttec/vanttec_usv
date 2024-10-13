@@ -5,6 +5,7 @@
 
 class M0 : public Mission {
  public:
+  M0();
   USVOutput update(const Eigen::Vector3f &pose, const  USVUpdate &params) override;
 };
 
