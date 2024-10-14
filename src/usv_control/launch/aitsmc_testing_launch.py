@@ -85,17 +85,10 @@ def generate_launch_description():
         ]),
     )
 
-    waypoint_handler_node = Node(
-        package="usv_control",
-        executable="waypoint_handler_node.py",
-    )
-
     return LaunchDescription([
-        rviz,
+        # rviz,
         dynamic_sim_node,
         aitsmc_node,
-        los_node,
         foxglove_bridge,
         # teleop_launch,
-        # waypoint_handler_node,
     ])
