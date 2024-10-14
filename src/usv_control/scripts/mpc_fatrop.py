@@ -33,12 +33,14 @@ B = 0.41
 nx    = 11               # the system is composed of 9 states
 nu    = 2               # the system has 2 inputs
 dt    = 0.1             # sample time
-Tf    = 2.9            # control horizon [s]
+Tf    = 5.           # control horizon [s]
 Nhor  = (int)(Tf/dt)    # number of control intervals
 
 starting_angle = -0.1
 ned_x = 0.01
 ned_y = 0.01
+
+obs_n = (int)(10)
 
 target = np.array([0., 0., 
 10., 0.
@@ -67,7 +69,7 @@ obs_regs_init = np.array([
         20.0, 8.1
 ])
 
-dobs_init = np.zeros(6)
+dobs_init = np.zeros(obs_n)
 
 Nsim  = int(25 * Nhor / Tf)         # how much samples to simulate
 
@@ -98,7 +100,7 @@ nedy = ocp.state()
 psi = ocp.state()
 u = ocp.state()
 r = ocp.state()
-obs = ocp.register_state(MX.sym("obs", 6))
+obs = ocp.register_state(MX.sym("obs", obs_n))
 
 Tport = ocp.control()
 Tstbd = ocp.control()
@@ -110,8 +112,7 @@ ocp.set_initial(u,0.0)
 ocp.set_initial(r,0.0)
 ocp.set_initial(Tport,0.0)
 ocp.set_initial(Tstbd,0.0)
-ocp.set_initial(obs, np.array([1000.,1000.,1000.,
-    1000.,1000.,1000.]))
+ocp.set_initial(obs, np.array([1000.]*obs_n))
 
 # Define parameter
 # X_0 = ocp.parameter(nx)
@@ -126,7 +127,7 @@ psi_d_init = np.array([0.001])
 gamma_p = ocp.register_parameter(MX.sym("psi_d", 1))
 ocp.set_value(gamma_p, psi_d_init)
 
-dobs = ocp.register_parameter(MX.sym("dobs", 6))
+dobs = ocp.register_parameter(MX.sym("dobs", obs_n))
 ocp.set_value(dobs, dobs_init)
 
 # Path tracking
@@ -222,15 +223,23 @@ ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
 # ocp.subject_to( (-1.5 <= r) <= 1.5 )
 
-l_list = [0.35]
-for i in range(3):
+l_list = [
+        #   [0., -0.4], [0., 0.4],
+          [0.55,-0.3], [0.55,0.3],
+        #   [0.55,-0.2],[0.55,0.2],
+          [-0.35,-0.3], [-0.35,0.3],
+        #   [0.55,0.]
+        [0.55,0.]
+          ]
+for i in range(5):
     for l in l_list:
-        x_virt = nedx + l*cos(psi)
-        y_virt = nedy + l*sin(psi)
-        ocp.add_objective(ocp.sum(
-            Qds/((sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 9.)**2.)))
-        ocp.add_objective(ocp.at_tf(
-            Qds/((sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 9.)**2.)))
+        x_virt = nedx + l[0]*cos(psi) - l[1]*sin(psi)
+        y_virt = nedy + l[0]*sin(psi) + l[1]*cos(psi)
+        obs_cost = Qds/((sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 3.)**1.5)
+        ocp.add_objective(ocp.sum( obs_cost ))
+        ocp.add_objective(ocp.at_tf( obs_cost ))
+        if(i==0):
+            obs_cost_sample = obs_cost
 
 # ocp.add_objective(ocp.sum(
 #     Qds/sqrt((obs_regs[0]-x_virt)**2 + (obs_regs[1]-y_virt)**2)**2 +
@@ -279,6 +288,7 @@ if code_gen:
     ocp._method.add_sampler("ye",ye)
     ocp._method.add_sampler("psie",sqrt((sin(psi)-sin(gamma_p))**2 + (cos(psi)-cos(gamma_p))**2))
     ocp._method.add_sampler("gamma_p",gamma_p)
+    ocp._method.add_sampler("obs_cost",obs_cost_sample)
 
 sol = ocp.solve()
 '''

@@ -11,7 +11,22 @@ from launch_ros.substitutions import FindPackageShare
 
 from launch.substitutions import FindExecutable
 from launch.actions import ExecuteProcess
+import os
 
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_path
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, LogInfo
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution
+from launch.conditions import IfCondition, UnlessCondition
+from launch.substitutions import Command, LaunchConfiguration
+
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     dynamic_sim_node = Node(
         package="usv_control",
@@ -127,9 +142,16 @@ def generate_launch_description():
         executable="mission_handler_node",
     )
 
+    weights_config = os.path.join(
+        get_package_share_directory('usv_control'),
+        'config',
+        'weights.yaml'
+    )
+
     mpc_node = Node(
         package="usv_control",
         executable="mpc_node",
+        parameters=[weights_config],
     )
 
     waypoint_handler_node = Node(
@@ -154,5 +176,5 @@ def generate_launch_description():
         mission_handler_node,
         waypoint_handler_node,
         obstacle_nearest_publisher,
-        # mpc_node,
+        mpc_node,
     ])

@@ -30,6 +30,7 @@
 
 
 using namespace std::chrono_literals;
+using std::placeholders::_1;
 
 struct Wp {
   double x, y, theta;
@@ -39,19 +40,29 @@ struct MPC_State {
   double x{0.}, y{0.}, yaw{0.};
   double u{0.1}, r{0.1};
   double tp{0.}, ts{0.}, ds{0.};
-  std::array<double, 6> obs{0., 0., 
+  std::array<double, 10> obs{0., 0., 
     0., 0., 0., 0.};
 
-  std::array<double, 11>
+  std::array<double, 15>
     get_state_vector() const {
     return {x, y, yaw, 
-            u, r, obs[0], obs[1], obs[2], obs[3], obs[4], obs[5]};
+            u, r, obs[0], obs[1], obs[2], obs[3], obs[4], obs[5], obs[6], obs[7], obs[8], obs[9]};
     }
 };
 
 class MPCNode : public rclcpp::Node {
 public:
   MPCNode() : Node("mpc_node") {
+
+    this->declare_parameter("path_tracking", rclcpp::PARAMETER_DOUBLE_ARRAY);
+    path_tracking_weights = this->get_parameter("path_tracking").as_double_array();
+    this->declare_parameter("speed", rclcpp::PARAMETER_DOUBLE_ARRAY);
+    speed_weights = this->get_parameter("speed").as_double_array();
+    this->declare_parameter("avoidance", rclcpp::PARAMETER_DOUBLE_ARRAY);
+    avoidance_weights = this->get_parameter("avoidance").as_double_array();
+    this->declare_parameter("dyn_avoidance", rclcpp::PARAMETER_DOUBLE_ARRAY);
+    dyn_avoidance_weights = this->get_parameter("dyn_avoidance").as_double_array();
+    
     auto package_share_directory = boost::filesystem::path(
         ament_index_cpp::get_package_share_directory("usv_control"));
     std::string fatrop_shared_library_path =
@@ -170,6 +181,9 @@ public:
     psie_debug_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "/mpc/debug/psie", 10);
 
+    obs_cost_debug_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+        "/mpc/debug/obs_cost", 10);
+
     qs_debug_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
         "/mpc/debug/qs", 10);
 
@@ -193,13 +207,13 @@ private:
   rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
 
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_pub_,vel_setpoint_pub_;
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ye_debug_pub_, psie_debug_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ye_debug_pub_, psie_debug_pub_, obs_cost_debug_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr qs_debug_pub_;
 
   std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg;
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
 
-  std_msgs::msg::Float64 ye_debug_msg, psie_debug_msg;
+  std_msgs::msg::Float64 ye_debug_msg, psie_debug_msg, obs_cost_debug_msg;
   std_msgs::msg::Float64MultiArray qs_debug_msg;
 
   geometry_msgs::msg::Pose2D pose;
@@ -207,16 +221,17 @@ private:
   std::optional<MPC_State> state_;
 
   std::vector<Wp> wp_vec;
-  std::array<double, 6> obs_arr{1000., 1000., 1000., 1000., 1000., 1000.};
-  std::array<double, 6> dobs_arr{0., 0., 0., 0., 0., 0.};
+  std::array<double, 10> obs_arr{1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000.};
+  std::array<double, 10> dobs_arr{0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
   // xe, ye, psie, u, r, ds
-  std::array<double, 6> path_tracking_weights         {100., 300., 100., 1000., 10., 0.};
-  std::array<double, 6> speed_weights                 {100., 300., 100., 1., 1., 0.};
-  std::array<double, 6> avoidance_weights             {100., 70., 20., 1000., 10., 1.5};
-  std::array<double, 6> dyn_avoidance_weights         {100., 40., 25., 700., 0.1, 1.2};
-  std::array<double, 6> primary_weights;
-  std::array<double, 6> secondary_weights;
+  std::vector<double> path_tracking_weights         {100., 300., 100., 1000., 10., 0.};
+  std::vector<double> speed_weights                 {100., 300., 100., 1., 1., 0.};
+  std::vector<double> avoidance_weights             {100., 70., 20., 1000., 10., 1.5};
+  // std::vector<double> dyn_avoidance_weights         {100., 40., 25., 1000., 10., 1.};
+  std::vector<double> dyn_avoidance_weights         {100., 70., 20., 0., 10., 1.};
+  std::vector<double> primary_weights;
+  std::vector<double> secondary_weights;
 
   int wp_i{0};
 
@@ -246,7 +261,7 @@ private:
     auto dobs_setter = app_->get_parameter_setter("dobs");
     dobs_setter.set_value(dobs_arr.data());
 
-    std::array<double,6> desired_weights = weight_calculator(obj_dist(obs_arr[0], obs_arr[1], pose));
+    std::vector<double> desired_weights = weight_calculator(obj_dist(obs_arr[0], obs_arr[1], pose));
 
     qs_debug_msg.data.clear();
     for(int i = 0 ; i < desired_weights.size() ; i++){
@@ -278,6 +293,8 @@ private:
     std::vector<double> psie_result(1);
     auto eval_gamma_p = app_->get_expression("gamma_p").at_tk(1);
     std::vector<double> gamma_p_result(1);
+    auto eval_obs_cost = app_->get_expression("obs_cost").at_tk(1);
+    std::vector<double> obs_cost_result(1);
 
     app_->last_solution().evaluate(eval_x, x_result);
     app_->last_solution().evaluate(eval_y, y_result);
@@ -288,6 +305,7 @@ private:
     app_->last_solution().evaluate(eval_ye, ye_result);
     app_->last_solution().evaluate(eval_psie, psie_result);
     app_->last_solution().evaluate(eval_gamma_p, gamma_p_result);
+    app_->last_solution().evaluate(eval_obs_cost, obs_cost_result);
     // app_->last_solution().evaluate(eval_r, r_result);
 
     // RCLCPP_ERROR(this->get_logger(), "ye: %f, psie: %f, gamma_p: %f", 
@@ -306,9 +324,12 @@ private:
 
     ye_debug_msg.data = ye_result[0];
     psie_debug_msg.data = psie_result[0];
+    obs_cost_debug_msg.data = obs_cost_result[0];
+    
     ye_debug_pub_->publish(ye_debug_msg);
     psie_debug_pub_->publish(psie_debug_msg);
     qs_debug_pub_->publish(qs_debug_msg);
+    obs_cost_debug_pub_->publish(obs_cost_debug_msg);
   }
 
   double obj_dist(double obj_x, double obj_y, geometry_msgs::msg::Pose2D p){
@@ -316,11 +337,11 @@ private:
   }
 
   // xe, ye, psi, u, r, ds
-  std::array<double, 6> weight_calculator(double dist){
+  std::vector<double> weight_calculator(double dist){
     double dist_sat = std::clamp(dist, 1.0, 5.) / 5.;
-    std::array<double, 6> out;
-    for(int i = 0 ; i < out.size() ; i++){
-      out[i] = primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat);
+    std::vector<double> out;
+    for(int i = 0 ; i < 6 ; i++){
+      out.push_back(primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat));
     }
 
     // Prueba para speed challenge

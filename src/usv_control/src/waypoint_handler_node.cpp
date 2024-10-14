@@ -149,7 +149,7 @@ private:
             closest_wp = j;
             min_distance = distance_to_wp;
         }
-        if(distance_to_wp > lookahead_distance) {
+        if(distance_to_wp > 1.5*lookahead_distance) {
             in_lookregion = false;
         }
         j++;
@@ -282,7 +282,8 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
         if(path_to_follow.poses.size() > 0){
             // Determine lookahead distance
             // double lookahead_distance = 1.5;  // meters (path-tracking)
-            double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
+            // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
+            double lookahead_distance = 1.8;  // meters (path-tracking + dynamic avoidance)
 
             // Find waypoints behind and ahead of the boat
             auto [wp_behind_i, wp_ahead_i] = findLookaheadWaypoints(lookahead_distance);
