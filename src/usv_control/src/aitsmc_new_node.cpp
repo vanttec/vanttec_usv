@@ -14,7 +14,7 @@ class AitsmcNewNode : public rclcpp::Node {
   AitsmcNewNode() : Node("AITSMC_New_Node") {
     using namespace std::placeholders;
     auto params = initialize_params();
-    controller = AITSMC(params);
+    controller = AITSMC_NEW(params);
 
     velocity_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
         "setpoint/velocity", 10,
@@ -78,7 +78,7 @@ class AitsmcNewNode : public rclcpp::Node {
   }
 
  private:
-  AITSMC controller{AITSMC::defaultParams()};
+  AITSMC_NEW controller{AITSMC_NEW::defaultParams()};
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_setpoint_sub_,
       heading_setpoint_sub_;
@@ -99,37 +99,39 @@ class AitsmcNewNode : public rclcpp::Node {
   rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr mode_sub_;
   uint16_t lastMode;
 
-  AITSMCParams initialize_params(bool declare_parameters=true) {
+  AITSMCNEWParams initialize_params(bool declare_parameters=true) {
     if(declare_parameters){
-          auto defaultParams = AITSMC::defaultParams();
+          auto defaultParams = AITSMC_NEW::defaultParams();
     auto params =
         std::map<std::string, double>({{"new_k_u", defaultParams.k_u},
                                        {"new_k_r", defaultParams.k_r},
-                                       {"new_kmin_u", defaultParams.kmin_u},
-                                       {"new_kmin_r", defaultParams.kmin_r},
-                                       {"new_k2_u", defaultParams.k2_u},
-                                       {"new_k2_r", defaultParams.k2_r},
-                                       {"new_mu_u", defaultParams.mu_u},
-                                       {"new_mu_r", defaultParams.mu_r},
+                                       {"new_epsilon_u", defaultParams.epsilon_u},
+                                       {"new_epsilon_r", defaultParams.epsilon_r},
+                                       {"new_alpha_u", defaultParams.alpha_u},
+                                       {"new_alpha_r", defaultParams.alpha_r},
+                                       {"new_beta_u", defaultParams.beta_u},
+                                       {"new_beta_r", defaultParams.beta_r},
                                        {"new_tc_u", defaultParams.tc_u},
                                        {"new_tc_r", defaultParams.tc_r},
                                        {"new_q_u", defaultParams.q_u},
                                        {"new_q_r", defaultParams.q_r},
                                        {"new_p_u", defaultParams.p_u},
-                                       {"new_p_r", defaultParams.p_r}});
+                                       {"new_p_r", defaultParams.p_r},
+                                       });
+
 
     this->declare_parameters("", params);
 
     }
-    AITSMCParams p;
+    AITSMCNEWParams p;
     p.k_u = this->get_parameter("new_k_u").as_double();
     p.k_r = this->get_parameter("new_k_r").as_double();
-    p.kmin_u = this->get_parameter("new_kmin_u").as_double();
-    p.kmin_r = this->get_parameter("new_kmin_r").as_double();
-    p.k2_u = this->get_parameter("new_k2_u").as_double();
-    p.k2_r = this->get_parameter("new_k2_r").as_double();
-    p.mu_u = this->get_parameter("new_mu_u").as_double();
-    p.mu_r = this->get_parameter("new_mu_r").as_double();
+    p.epsilon_u = this->get_parameter("new_epsilon_u").as_double();
+    p.epsilon_r = this->get_parameter("new_epsilon_r").as_double();
+    p.alpha_u = this->get_parameter("new_alpha_u").as_double();
+    p.alpha_r = this->get_parameter("new_alpha_r").as_double();
+    p.beta_u = this->get_parameter("new_beta_u").as_double();
+    p.beta_r = this->get_parameter("new_beta_r").as_double();
     p.tc_u = this->get_parameter("new_tc_u").as_double();
     p.tc_r = this->get_parameter("new_tc_r").as_double();
     p.q_u = this->get_parameter("new_q_u").as_double();

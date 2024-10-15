@@ -25,6 +25,18 @@ def generate_launch_description():
         ],
     )
 
+    dynamic_sim_node2 = Node(
+        package="usv_control",
+        executable="dynamic_model_node",
+        namespace="simulator2",
+        remappings=[
+            ("input/left_thruster", "/usv_new/left_thruster"),
+            ("input/right_thruster", "/usv_new/right_thruster"),
+            ("output/pose", "/usv_new/state/pose"),
+            ("output/vel", "/usv_new/state/velocity"),
+        ],
+    )
+
     rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -33,6 +45,37 @@ def generate_launch_description():
                 'rviz_launch.py'
             ])
         ]),
+    )
+
+    aitsmc_new_node = Node(
+        package="usv_control",
+        executable="aitsmc_new_node",
+        namespace="asmc2",
+        remappings=[
+            ("in/mode", "/usv/op_mode"),
+            ("in/pose", "/usv_new/state/pose"),
+            ("in/velocity", "/usv_new/state/velocity"),
+            ("setpoint/velocity", "/guidance/desired_velocity"),
+            ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
+            ("output/left_thruster", "/usv_new/left_thruster"),
+            ("output/right_thruster", "/usv_new/right_thruster"),
+        ],
+        parameters=[
+            {"new_k_u": 0.3},
+            {"new_k_r": 0.2},
+            {"new_epsilon_u": 0.2},
+            {"new_alpha_u": 0.2},
+            {"new_beta_u": 0.2},
+            {"new_epsilon_r": 0.2},
+            {"new_alpha_r": 0.2},
+            {"new_beta_r": 0.2},
+            {"new_tc_u": 2.0},
+            {"new_tc_r": 2.0},
+            {"new_q_u": 3.0},
+            {"new_q_r": 3.0},
+            {"new_p_u": 5.0},
+            {"new_p_r": 5.0},
+        ],
     )
 
     aitsmc_node = Node(
@@ -88,6 +131,8 @@ def generate_launch_description():
     return LaunchDescription([
         # rviz,
         dynamic_sim_node,
+        dynamic_sim_node2,
+        aitsmc_new_node,
         aitsmc_node,
         foxglove_bridge,
         # teleop_launch,

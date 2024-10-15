@@ -50,6 +50,14 @@ target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and
 ament_target_dependencies(aitsmc_node rclcpp std_msgs Eigen3 geometry_msgs)
 target_link_libraries(aitsmc_node usv_libs)
 
+add_executable(aitsmc_new_node src/aitsmc_new_node.cpp)
+target_include_directories(aitsmc_new_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> libs/usv_libs/src)
+target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(aitsmc_new_node rclcpp std_msgs Eigen3 geometry_msgs)
+target_link_libraries(aitsmc_new_node usv_libs)
+
 add_executable(usv_tf2_broadcaster_node src/usv_tf2_broadcaster_node.cpp)
 target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs Eigen3 geometry_msgs tf2 tf2_ros)
@@ -98,6 +106,7 @@ install(TARGETS
   kinematic_model_node
   waypoint_handler_node
   aitsmc_node
+  aitsmc_new_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
