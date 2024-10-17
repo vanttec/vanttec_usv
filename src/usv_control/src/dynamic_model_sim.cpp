@@ -22,23 +22,26 @@ class DynamicModelSim : public rclcpp::Node {
   DynamicModelSim() : Node("Dynamic_Model_Sim") {
     using namespace std::placeholders;
 
+    // Declare and acquire `boatname` parameter
+    boatname_ = this->declare_parameter<std::string>("boatname", "usv");
+
     posePub =
-        this->create_publisher<geometry_msgs::msg::Pose2D>("output/pose", 10);
+        this->create_publisher<geometry_msgs::msg::Pose2D>("usv/state/pose", 10);
     localVelPub =
-        this->create_publisher<geometry_msgs::msg::Vector3>("output/vel", 10);
+        this->create_publisher<geometry_msgs::msg::Vector3>("usv/state/velocity", 10);
     odomPub =
         this->create_publisher<nav_msgs::msg::Odometry>("output/odom", 10);
 
-    pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
-        "/usv/pose_path", 10);
-
     leftThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
-        "input/left_thruster", 10,
+        "usv/left_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { this->Tport = msg.data; });
 
     rightThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
-        "input/right_thruster", 10,
+        "usv/right_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { this->Tstbd = msg.data; });
+
+    pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
+        "usv/pose_path", 10);
 
     tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     pose_stamped_tmp_.header.frame_id = "world";
@@ -138,6 +141,7 @@ class DynamicModelSim : public rclcpp::Node {
   // DynamicModel model{12,15,-2.3};
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
+  std::string boatname_;
 
   void tf_broadcast(const geometry_msgs::msg::Pose2D &msg) {
     geometry_msgs::msg::TransformStamped t;
@@ -146,7 +150,7 @@ class DynamicModelSim : public rclcpp::Node {
     // corresponding tf variables
     t.header.stamp = this->get_clock()->now();
     t.header.frame_id = "world";
-    t.child_frame_id = "usv";
+    t.child_frame_id = boatname_.c_str();;
 
     // Turtle only exists in 2D, thus we get x and y translation
     // coordinates from the message and set the z coordinate to 0

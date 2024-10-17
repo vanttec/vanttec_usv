@@ -25,24 +25,24 @@ class AitsmcNode : public rclcpp::Node {
         [this](const std_msgs::msg::Float64 &msg) { this->r_d = msg.data; });
 
     velocitySub = this->create_subscription<geometry_msgs::msg::Vector3>(
-        "in/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
+        "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
           this->velocity = msg;
         });
 
     poseSub = this->create_subscription<geometry_msgs::msg::Pose2D>(
-        "in/pose", 10,
+        "usv/state/pose", 10,
         [this](const geometry_msgs::msg::Pose2D &msg) { this->pose = msg; });
 
     rightThrusterPub = this->create_publisher<std_msgs::msg::Float64>(
-        "output/right_thruster", 10);
+        "usv/right_thruster", 10);
     leftThrusterPub = this->create_publisher<std_msgs::msg::Float64>(
-        "output/left_thruster", 10);
+        "usv/left_thruster", 10);
 
     bool reset_on_mode_change =
         this->declare_parameter<bool>("reset_on_mode_change", true);
     if (reset_on_mode_change) {
       modeSub = this->create_subscription<std_msgs::msg::UInt16>(
-          "in/mode", 10, [this](const std_msgs::msg::UInt16 &msg) {
+          "usv/op_mode", 10, [this](const std_msgs::msg::UInt16 &msg) {
             // Trigger reset on change to autonomous
             // 0 -> autonomous
             if (msg.data != this->lastMode && msg.data == 0) {

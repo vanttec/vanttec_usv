@@ -100,14 +100,14 @@ public:
     state_ = MPC_State();
 
     velocity_sub_ = this->create_subscription<geometry_msgs::msg::Vector3>(
-        "/usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
+        "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
           state_->u = msg.x;
           // state_->v = msg.y;
           state_->r = msg.z;
         });
 
     pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-        "/usv/state/pose", 10,
+        "usv/state/pose", 10,
         [this](const geometry_msgs::msg::Pose2D &msg) {
           pose = msg;
           state_->x = msg.x;
@@ -116,13 +116,13 @@ public:
         });
 
     left_thruster_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-        "/usv/left_thruster", 10,
+        "usv/left_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { 
           state_->tp = msg.data; 
         });
 
     right_thruster_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-        "/usv/right_thruster", 10,
+        "usv/right_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { 
           state_->ts = msg.data; 
           });

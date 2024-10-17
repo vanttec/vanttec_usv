@@ -11,12 +11,26 @@ from launch_ros.substitutions import FindPackageShare
 
 from launch.substitutions import FindExecutable
 from launch.actions import ExecuteProcess
+import os
 
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_path
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, LogInfo
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution
+from launch.conditions import IfCondition, UnlessCondition
+from launch.substitutions import Command, LaunchConfiguration
+
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
-    dynamic_sim_node1 = Node(
+    dynamic_sim_node = Node(
         package="usv_control",
         executable="dynamic_model_node",
-        namespace="new1",
         parameters=[
             {"boatname": "usv"},
         ],
@@ -25,18 +39,9 @@ def generate_launch_description():
     dynamic_sim_node2 = Node(
         package="usv_control",
         executable="dynamic_model_node",
-        namespace="new2",
+        namespace="c2",
         parameters=[
             {"boatname": "usv2"},
-        ],
-    )
-
-    dynamic_sim_node3 = Node(
-        package="usv_control",
-        executable="dynamic_model_node",
-        namespace="normal",
-        parameters=[
-            {"boatname": "usv3"},
         ],
     )
 
@@ -50,49 +55,45 @@ def generate_launch_description():
         ]),
     )
 
-    aitsmc_new_node1 = Node(
-        package="usv_control",
-        executable="aitsmc_new_node",
-        namespace="new1",
-        remappings=[
-            ("setpoint/velocity", "/guidance/desired_velocity"),
-            ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
-        ],
-        parameters=[
-            {"k_u": 0.3},
-            {"epsilon_u": 0.5},
-            {"alpha_u": 1.},
-            {"beta_u": 0.2},
-            {"k_r": 0.2},
-            {"epsilon_r": 0.2},
-            {"alpha_r": 0.2},
-            {"beta_r": 0.2},
-            {"tc_u": 2.0},
-            {"tc_r": 2.0},
-            {"q_u": 3.0},
-            {"q_r": 3.0},
-            {"p_u": 5.0},
-            {"p_r": 5.0},
-        ],
-    )
+    # asmc_node = Node(
+    #     package="usv_control",
+    #     executable="asmc_node",
+    #     namespace="asmc",
+    #     remappings=[
+    #         ("setpoint/velocity", "/guidance/desired_velocity"),
+    #         ("setpoint/heading", "/guidance/desired_heading"),
+    #     ],
+    #     parameters=[
+    #         {"k_u": 0.05},
+    #         {"k_psi": 0.2},
+    #         {"kmin_u": 0.025},
+    #         {"kmin_psi": 0.1},
+    #         {"k2_u": 0.02},
+    #         {"k2_psi": 0.2},
+    #         {"mu_u": 0.05},
+    #         {"mu_psi": 0.01},
+    #         {"lambda_u": 0.001},
+    #         {"lambda_psi": 0.5},
+    #     ],
+    # )
 
-    aitsmc_new_node2 = Node(
+    aitsmc_new_node = Node(
         package="usv_control",
         executable="aitsmc_new_node",
-        namespace="new2",
+        # namespace="c1",
         remappings=[
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
         ],
         parameters=[
             {"k_u": 0.3},
-            {"epsilon_u": 0.5},
-            {"alpha_u": 0.01},
-            {"beta_u": 0.01},
+            {"epsilon_u": 200.0},
+            {"alpha_u": 0.05},
+            {"beta_u": 0.05},
             {"k_r": 0.2},
             {"epsilon_r": 0.2},
-            {"alpha_r": 0.2},
-            {"beta_r": 0.2},
+            {"alpha_r": 0.05},
+            {"beta_r": 0.05},
             {"tc_u": 2.0},
             {"tc_r": 2.0},
             {"q_u": 3.0},
@@ -105,7 +106,7 @@ def generate_launch_description():
     aitsmc_node = Node(
         package="usv_control",
         executable="aitsmc_node",
-        namespace="normal",
+        namespace="c2",
         remappings=[
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
@@ -128,33 +129,11 @@ def generate_launch_description():
         ],
     )
 
-    asmc_node = Node(
-        package="usv_control",
-        executable="asmc_node",
-        namespace="c2",
-        remappings=[
-            ("setpoint/velocity", "/guidance/desired_velocity"),
-            ("setpoint/heading", "/guidance/desired_heading"),
-        ],
-        parameters=[
-            {"k_u": 0.05},
-            {"k_psi": 0.2},
-            {"kmin_u": 0.025},
-            {"kmin_psi": 0.1},
-            {"k2_u": 0.02},
-            {"k2_psi": 0.2},
-            {"mu_u": 0.05},
-            {"mu_psi": 0.01},
-            {"lambda_u": 0.001},
-            {"lambda_psi": 0.5},
-        ],
-    )
-
     foxglove_bridge = Node(
         name="foxglove_bridge",
         package="foxglove_bridge",
         executable="foxglove_bridge")
-    
+
     teleop_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -165,16 +144,56 @@ def generate_launch_description():
         ]),
     )
 
+    obstacle_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_missions'),
+                'launch',
+                'obstacle_launch.py'
+            ])
+        ]),
+    )
+
+    mission_handler_node = Node(
+        package="usv_missions",
+        executable="mission_handler_node",
+    )
+
+    weights_config = os.path.join(
+        get_package_share_directory('usv_control'),
+        'config',
+        'weights.yaml'
+    )
+
+    mpc_node = Node(
+        package="usv_control",
+        executable="mpc_node",
+        parameters=[weights_config],
+    )
+
+    waypoint_handler_node = Node(
+        package="usv_control",
+        executable="waypoint_handler_node",
+    )
+
+    obstacle_nearest_publisher = Node(
+        package="usv_utils",
+        executable="obstacle_nearest_publisher",
+    )
+     
     return LaunchDescription([
-        # rviz,
-        dynamic_sim_node1,
+        rviz,
+        dynamic_sim_node,
         dynamic_sim_node2,
-        dynamic_sim_node3,
-        aitsmc_new_node1,
-        aitsmc_new_node2,
-        aitsmc_node,
         # asmc_node,
+        aitsmc_node,
+        aitsmc_new_node,
+        # los_node,
         foxglove_bridge,
-        teleop_launch,
+        obstacle_launch,
+        # teleop_launch,
+        mission_handler_node,
+        waypoint_handler_node,
+        obstacle_nearest_publisher,
+        mpc_node,
     ])
-    

@@ -32,28 +32,28 @@ class AsmcNode : public rclcpp::Node {
         [this](const std_msgs::msg::Float64 &msg) { this->pivot_e = msg.data; });
 
     velocitySub = this->create_subscription<geometry_msgs::msg::Vector3>(
-        "input/velocity", 1, [this](const geometry_msgs::msg::Vector3 &msg) {
+        "usv/state/velocity", 1, [this](const geometry_msgs::msg::Vector3 &msg) {
           this->velocity = msg;
         });
 
     poseSub = this->create_subscription<geometry_msgs::msg::Pose2D>(
-        "input/pose", 1,
+        "usv/state/pose", 1,
         [this](const geometry_msgs::msg::Pose2D &msg) { this->pose = msg; });
 
     arrivedSub = this->create_subscription<std_msgs::msg::Bool>(
-        "/usv/waypoint/arrived", 1,
+        "usv/waypoint/arrived", 1,
         [this](const std_msgs::msg::Bool &msg) { this->wp_arrived.data = msg.data; });
 
     autoSub = this->create_subscription<std_msgs::msg::UInt16>(
-        "/usv/op_mode", 1,
+        "usv/op_mode", 1,
         [this](const std_msgs::msg::UInt16 &msg) {
             this->auto_mode.data = msg.data; 
         });
 
     rightThrusterPub = this->create_publisher<std_msgs::msg::Float64>(
-        "output/right_thruster", 10);
+        "usv/right_thruster", 10);
     leftThrusterPub = this->create_publisher<std_msgs::msg::Float64>(
-        "output/left_thruster", 10);
+        "usv/left_thruster", 10);
 
     speedGainPub =
         this->create_publisher<std_msgs::msg::Float64>("debug/speed_gain", 10);

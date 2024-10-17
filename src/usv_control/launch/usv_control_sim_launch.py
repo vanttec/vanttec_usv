@@ -16,13 +16,6 @@ def generate_launch_description():
     dynamic_sim_node = Node(
         package="usv_control",
         executable="dynamic_model_node",
-        namespace="simulator",
-        remappings=[
-            ("input/left_thruster", "/usv/left_thruster"),
-            ("input/right_thruster", "/usv/right_thruster"),
-            ("output/pose", "/usv/state/pose"),
-            ("output/vel", "/usv/state/velocity"),
-        ],
     )
 
     rviz = IncludeLaunchDescription(
@@ -38,15 +31,9 @@ def generate_launch_description():
     aitsmc_node = Node(
         package="usv_control",
         executable="aitsmc_node",
-        namespace="asmc",
         remappings=[
-            ("in/mode", "/usv/op_mode"),
-            ("in/pose", "/usv/state/pose"),
-            ("in/velocity", "/usv/state/velocity"),
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
-            ("output/left_thruster", "/usv/left_thruster"),
-            ("output/right_thruster", "/usv/right_thruster"),
         ],
         parameters=[
             {"k_u": 0.3},
@@ -85,11 +72,6 @@ def generate_launch_description():
         ]),
     )
 
-    waypoint_handler_node = Node(
-        package="usv_control",
-        executable="waypoint_handler_node.py",
-    )
-
     return LaunchDescription([
         rviz,
         dynamic_sim_node,
@@ -97,5 +79,4 @@ def generate_launch_description():
         los_node,
         foxglove_bridge,
         # teleop_launch,
-        # waypoint_handler_node,
     ])
