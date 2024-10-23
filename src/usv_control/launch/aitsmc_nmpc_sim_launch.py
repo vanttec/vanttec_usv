@@ -36,15 +36,6 @@ def generate_launch_description():
         ],
     )
 
-    dynamic_sim_node2 = Node(
-        package="usv_control",
-        executable="dynamic_model_node",
-        namespace="c2",
-        parameters=[
-            {"boatname": "usv2"},
-        ],
-    )
-
     rviz = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -80,33 +71,32 @@ def generate_launch_description():
     aitsmc_new_node = Node(
         package="usv_control",
         executable="aitsmc_new_node",
-        # namespace="c1",
         remappings=[
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
         ],
         parameters=[
-            {"k_u": 0.3},
-            {"epsilon_u": 200.0},
-            {"alpha_u": 0.05},
-            {"beta_u": 0.05},
+            {"k_u": 1.},
             {"k_r": 0.2},
-            {"epsilon_r": 0.2},
-            {"alpha_r": 0.05},
-            {"beta_r": 0.05},
+            {"epsilon_u": 0.5},
+            {"alpha_u": 5.},
+            {"beta_u": 0.01},
+            {"epsilon_r": 0.5},
+            {"alpha_r": 0.2},
+            {"beta_r": 0.2},
             {"tc_u": 2.0},
             {"tc_r": 2.0},
             {"q_u": 3.0},
             {"q_r": 3.0},
             {"p_u": 5.0},
             {"p_r": 5.0},
+            {"adaptive": 1.},
         ],
     )
 
     aitsmc_node = Node(
         package="usv_control",
         executable="aitsmc_node",
-        namespace="c2",
         remappings=[
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
@@ -184,9 +174,8 @@ def generate_launch_description():
     return LaunchDescription([
         rviz,
         dynamic_sim_node,
-        dynamic_sim_node2,
         # asmc_node,
-        aitsmc_node,
+        # aitsmc_node,
         aitsmc_new_node,
         # los_node,
         foxglove_bridge,

@@ -25,6 +25,7 @@ struct Obstacle {
 
 struct USVUpdate {
   std::vector<Obstacle> obs_list;
+  int docking_color_choice{1};
 };
 
 struct USVOutput {
@@ -63,6 +64,7 @@ class Mission {
   double dist(const Eigen::Vector3f &p1, const Eigen::Vector3f &p2);
   double dist(double x_diff, double y_diff);
   double angle_correct(double ang);
+  double angle_diff(double ang1, double ang2);
   bool unreg(Eigen::Vector3f buoy);
   void register_buoy(Eigen::Vector3f buoy);
   std::vector<Eigen::Vector3f> pack_goal(Eigen::Vector3f wp_base, 

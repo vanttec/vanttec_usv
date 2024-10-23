@@ -103,7 +103,8 @@ class AitsmcNewNode : public rclcpp::Node {
     if(declare_parameters){
           auto defaultParams = AITSMC_NEW::defaultParams();
     auto params =
-        std::map<std::string, double>({{"k_u", defaultParams.k_u},
+        std::map<std::string, double>({
+                                       {"k_u", defaultParams.k_u},
                                        {"k_r", defaultParams.k_r},
                                        {"epsilon_u", defaultParams.epsilon_u},
                                        {"epsilon_r", defaultParams.epsilon_r},
@@ -117,6 +118,7 @@ class AitsmcNewNode : public rclcpp::Node {
                                        {"q_r", defaultParams.q_r},
                                        {"p_u", defaultParams.p_u},
                                        {"p_r", defaultParams.p_r},
+                                       {"adaptive", defaultParams.adaptive},
                                        });
 
 
@@ -138,6 +140,7 @@ class AitsmcNewNode : public rclcpp::Node {
     p.q_r = this->get_parameter("q_r").as_double();
     p.p_u = this->get_parameter("p_u").as_double();
     p.p_r = this->get_parameter("p_r").as_double();
+    p.adaptive = this->get_parameter("adaptive").as_double();
     return p;
   }
 

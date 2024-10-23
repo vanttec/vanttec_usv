@@ -59,12 +59,12 @@ def generate_launch_description():
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
         ],
         parameters=[
-            {"k_u": 0.3},
-            {"epsilon_u": 0.5},
-            {"alpha_u": 1.},
-            {"beta_u": 0.2},
+            {"k_u": 1.},
             {"k_r": 0.2},
-            {"epsilon_r": 0.2},
+            {"epsilon_u": 0.8},
+            {"alpha_u": 5.},
+            {"beta_u": 0.01},
+            {"epsilon_r": 0.5},
             {"alpha_r": 0.2},
             {"beta_r": 0.2},
             {"tc_u": 2.0},
@@ -73,6 +73,7 @@ def generate_launch_description():
             {"q_r": 3.0},
             {"p_u": 5.0},
             {"p_r": 5.0},
+            {"adaptive": 1.},
         ],
     )
 
@@ -85,12 +86,12 @@ def generate_launch_description():
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
         ],
         parameters=[
-            {"k_u": 0.3},
-            {"epsilon_u": 0.5},
-            {"alpha_u": 0.01},
-            {"beta_u": 0.01},
+            {"k_u": 1.},
             {"k_r": 0.2},
-            {"epsilon_r": 0.2},
+            {"epsilon_u": 0.2},
+            {"alpha_u": 5.},
+            {"beta_u": 0.01},
+            {"epsilon_r": 0.5},
             {"alpha_r": 0.2},
             {"beta_r": 0.2},
             {"tc_u": 2.0},
@@ -99,6 +100,7 @@ def generate_launch_description():
             {"q_r": 3.0},
             {"p_u": 5.0},
             {"p_r": 5.0},
+            {"adaptive": 1.},
         ],
     )
 
@@ -128,27 +130,27 @@ def generate_launch_description():
         ],
     )
 
-    asmc_node = Node(
-        package="usv_control",
-        executable="asmc_node",
-        namespace="c2",
-        remappings=[
-            ("setpoint/velocity", "/guidance/desired_velocity"),
-            ("setpoint/heading", "/guidance/desired_heading"),
-        ],
-        parameters=[
-            {"k_u": 0.05},
-            {"k_psi": 0.2},
-            {"kmin_u": 0.025},
-            {"kmin_psi": 0.1},
-            {"k2_u": 0.02},
-            {"k2_psi": 0.2},
-            {"mu_u": 0.05},
-            {"mu_psi": 0.01},
-            {"lambda_u": 0.001},
-            {"lambda_psi": 0.5},
-        ],
-    )
+    # asmc_node = Node(
+    #     package="usv_control",
+    #     executable="asmc_node",
+    #     namespace="c2",
+    #     remappings=[
+    #         ("setpoint/velocity", "/guidance/desired_velocity"),
+    #         ("setpoint/heading", "/guidance/desired_heading"),
+    #     ],
+    #     parameters=[
+    #         {"k_u": 0.05},
+    #         {"k_psi": 0.2},
+    #         {"kmin_u": 0.025},
+    #         {"kmin_psi": 0.1},
+    #         {"k2_u": 0.02},
+    #         {"k2_psi": 0.2},
+    #         {"mu_u": 0.05},
+    #         {"mu_psi": 0.01},
+    #         {"lambda_u": 0.001},
+    #         {"lambda_psi": 0.5},
+    #     ],
+    # )
 
     foxglove_bridge = Node(
         name="foxglove_bridge",

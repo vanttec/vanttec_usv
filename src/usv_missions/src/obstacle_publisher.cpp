@@ -66,39 +66,39 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 marker.pose.position.z = marker_type[type].z_trans;
                 marker_arr.markers.push_back(marker);
             }
-            // Append dynamic obstacles
-            for(int i = 0 ; i < dyn_obs_n; i++){
-                usv_interfaces::msg::Object obj;
-                visualization_msgs::msg::Marker marker;
+            // // Append dynamic obstacles
+            // for(int i = 0 ; i < dyn_obs_n; i++){
+            //     usv_interfaces::msg::Object obj;
+            //     visualization_msgs::msg::Marker marker;
 
-                double x = dyn_obs[i][0];
-                double y = dyn_obs[i][1];
-                double v_x = dyn_obs[i][2];
-                double v_y = dyn_obs[i][3];
-                int64_t color = 3;
-                std::string type = "marker";
+            //     double x = dyn_obs[i][0];
+            //     double y = dyn_obs[i][1];
+            //     double v_x = dyn_obs[i][2];
+            //     double v_y = dyn_obs[i][3];
+            //     int64_t color = 3;
+            //     std::string type = "marker";
 
-                obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(v_x).v_y(v_y).color(color).type(type);
-                dyn_obs_id[i] = object_list_global.obj_list.size();
-                object_list_global.obj_list.push_back(obj);
+            //     obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(v_x).v_y(v_y).color(color).type(type);
+            //     dyn_obs_id[i] = object_list_global.obj_list.size();
+            //     object_list_global.obj_list.push_back(obj);
 
-                int r{color_list[color][0]},
-                    g{color_list[color][1]},
-                    b{color_list[color][2]},
-                    a{color_list[color][3]};
+            //     int r{color_list[color][0]},
+            //         g{color_list[color][1]},
+            //         b{color_list[color][2]},
+            //         a{color_list[color][3]};
 
-                marker.header.frame_id = "world";
-                marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
-                marker.action = 0;
-                marker.id = marker_arr.markers.size();
-                marker.type = marker_type[type].type;
-                marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
-                                x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
-                marker.pose.position.x = x;
-                marker.pose.position.y = y;
-                marker.pose.position.z = marker_type[type].z_trans;
-                marker_arr.markers.push_back(marker);
-            }
+            //     marker.header.frame_id = "world";
+            //     marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
+            //     marker.action = 0;
+            //     marker.id = marker_arr.markers.size();
+            //     marker.type = marker_type[type].type;
+            //     marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
+            //                     x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
+            //     marker.pose.position.x = x;
+            //     marker.pose.position.y = y;
+            //     marker.pose.position.z = marker_type[type].z_trans;
+            //     marker_arr.markers.push_back(marker);
+            // }
 
 
 
@@ -152,13 +152,14 @@ class ObstaclePublisherNode : public rclcpp::Node {
 
         std::map<std::string, MarkerProps> marker_type = {
             {"round", MarkerProps{2, 0.5, 0.5, 0.5, 0}},
+            {"boat", MarkerProps{2, 1.0, 1.0, 1.0, 0}},
             {"marker", MarkerProps{3, 0.5, 0.5, 1, 0.25}},
             {"picture", MarkerProps{1, 0.5, 0.5, 0.5, 0.25}},
         };
                 
         void timer_callback() {
             fill_local_list();
-            update_dyn();
+            // update_dyn();
 
             object_list_global_pub_->publish(object_list_global);
             object_list_pub_->publish(object_list);

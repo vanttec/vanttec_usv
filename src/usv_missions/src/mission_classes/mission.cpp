@@ -42,6 +42,15 @@ double Mission::angle_correct(double ang){
   return std::fmod(ang + M_PI, 2 * M_PI) - M_PI;
 }
 
+double Mission::angle_diff(double ang1, double ang2){
+  double out = std::fabs(ang1 - ang2);
+  if(out > M_PI){
+    return M_PI*2 - out;
+  } else {
+    return out;
+  }
+}
+
 void Mission::re_init(){
   outMsg.state = 0;
   outMsg.status = 0;

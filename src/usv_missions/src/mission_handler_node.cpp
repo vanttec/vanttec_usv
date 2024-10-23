@@ -25,6 +25,7 @@
 #include "mission_classes/m0.cpp"
 #include "mission_classes/m1.cpp"
 #include "mission_classes/m2.cpp"
+#include "mission_classes/m3.cpp"
 #include "mission_classes/m4.cpp"
 #include "mission_classes/m6.cpp"
 
@@ -60,6 +61,9 @@ class MissionHandlerNode : public rclcpp::Node {
                             case 2:
                                 vtec = std::make_shared<M2>();
                                 break;
+                            case 3:
+                                vtec = std::make_shared<M3>();
+                                break;
                             case 4:
                                 vtec = std::make_shared<M4>();
                                 break;
@@ -71,7 +75,7 @@ class MissionHandlerNode : public rclcpp::Node {
                     }
             });
 
-            vtec = std::make_shared<M4>();
+            vtec = std::make_shared<M3>();
 
             mission_id_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/id", 10);
             mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/state", 10);
