@@ -14,6 +14,7 @@
 #include "std_msgs/msg/color_rgba.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "std_msgs/msg/float64.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -23,6 +24,7 @@ class ObstacleNearestPublisherNode : public rclcpp::Node {
         ObstacleNearestPublisherNode(): Node("obstacle_publisher_node") {
 
             object_n_nearest_list_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_n_nearest_list", 10);
+            object_n_nearest_dist_pub_ = this->create_publisher<std_msgs::msg::Float64>("/obj_nearest_dist", 10);
 
             obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
                 "/obj_list_global", 10,
@@ -43,6 +45,7 @@ class ObstacleNearestPublisherNode : public rclcpp::Node {
                     while(out.obj_list.size() < 5){
                         out.obj_list.push_back(usv_interfaces::build<usv_interfaces::msg::Object>().x(0.).y(0.).v_x(0.).v_y(0.).color(5).type("NaN"));
                     }
+                    nearest_dist.data = obj_dist_v[0].first;
                 });
 
             pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
@@ -57,17 +60,19 @@ class ObstacleNearestPublisherNode : public rclcpp::Node {
     private:
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Publisher<usv_interfaces::msg::ObjectList>::SharedPtr object_n_nearest_list_pub_;
+        rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr object_n_nearest_dist_pub_;
 
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
         rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
 
         usv_interfaces::msg::ObjectList out;
-
+        std_msgs::msg::Float64 nearest_dist;
         geometry_msgs::msg::Pose2D pose;
 
                 
         void timer_callback() {
             object_n_nearest_list_pub_->publish(out);
+            object_n_nearest_dist_pub_->publish(nearest_dist);
         }
 
         double obj_dist(usv_interfaces::msg::Object obj, geometry_msgs::msg::Pose2D p){

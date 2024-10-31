@@ -53,6 +53,14 @@ class DynamicModelSim : public rclcpp::Node {
   }
 
  protected:
+
+  double normalize_angle(double ang){
+    double out = std::fmod(ang + M_PI, M_PI*2);
+    if(out < 0)
+      out+=M_PI*2;
+    return out - M_PI;
+  }
+
   void update() {
     auto out = model.update(Tport, Tstbd);
 
@@ -63,25 +71,16 @@ class DynamicModelSim : public rclcpp::Node {
     double y = out.pose_y;  // position in y
     double etheta = out.pose_psi;
 
-    tf2::Quaternion q;
-    q.setRPY(0, 0, etheta);
 
     geometry_msgs::msg::Pose2D pose;
     nav_msgs::msg::Odometry odom;
 
-    if(etheta > 0)
-      etheta -= std::floor(etheta / (M_PI * 2)) * M_PI * 2;
-    else
-      etheta -= std::ceil(etheta / (M_PI * 2)) * M_PI * 2;
-    
-    // if(etheta > M_PI)
-    //   etheta -= 2 * M_PI;
-    // else if(etheta < -M_PI)
-    //   etheta += 2 * M_PI;
-
     pose.x = x;
     pose.y = y;
-    pose.theta = etheta;
+    pose.theta = normalize_angle(etheta);
+
+    tf2::Quaternion q;
+    q.setRPY(0, 0, pose.theta);
 
     odom.pose.pose.position.x = x;
     odom.pose.pose.position.y = y;

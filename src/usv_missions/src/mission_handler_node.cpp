@@ -75,7 +75,7 @@ class MissionHandlerNode : public rclcpp::Node {
                     }
             });
 
-            vtec = std::make_shared<M3>();
+            vtec = std::make_shared<M4>();
 
             mission_id_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/id", 10);
             mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/state", 10);

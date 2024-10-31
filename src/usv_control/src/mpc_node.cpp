@@ -154,14 +154,9 @@ public:
         [this](const std_msgs::msg::Int8 &msg){
           if(msg.data == 4){
             // primary_weights = speed_weights;
-            // secondary_weights = avoidance_weights;
-
-            // Testing
-            primary_weights = dyn_avoidance_weights;
-            // primary_weights = path_tracking_weights;
-            // primary_weights = speed_weights;
-            secondary_weights = dyn_avoidance_weights;
-            // secondary_weights = speed_weights;
+            // secondary_weights = dyn_avoidance_weights;
+            primary_weights = path_tracking_weights;
+            secondary_weights = path_tracking_weights;
           } else {
             primary_weights = path_tracking_weights;
             secondary_weights = avoidance_weights;
@@ -174,6 +169,18 @@ public:
 
     vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "/guidance/desired_velocity", 10);
+
+    heading_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+        "/guidance/desired_heading", 10);
+
+    ang_vel_setpoint_unfiltered_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+        "/guidance/desired_angular_velocity_unfiltered", 10);
+
+    vel_setpoint_unfiltered_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+        "/guidance/desired_velocity_unfiltered", 10);
+
+    heading_setpoint_unfiltered_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+        "/guidance/desired_heading_unfiltered", 10);
 
     ye_debug_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "/mpc/debug/ye", 10);
@@ -206,11 +213,13 @@ private:
   rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ref_path_sub_;
   rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
 
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_pub_,vel_setpoint_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_pub_,vel_setpoint_pub_, heading_setpoint_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_unfiltered_pub_,vel_setpoint_unfiltered_pub_, heading_setpoint_unfiltered_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ye_debug_pub_, psie_debug_pub_, obs_cost_debug_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr qs_debug_pub_;
 
-  std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg;
+  std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg, heading_setpoint_msg;
+  std_msgs::msg::Float64 ang_vel_setpoint_unfiltered_msg, vel_setpoint_unfiltered_msg, heading_setpoint_unfiltered_msg;
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
 
   std_msgs::msg::Float64 ye_debug_msg, psie_debug_msg, obs_cost_debug_msg;
@@ -237,8 +246,12 @@ private:
 
   Wp next_wp{0., 0.}, base_wp{0., 0.};
 
+  double last_u{0.}, last_r{0.}, last_last_r{0.}, last_psi{0.};
+  double alpha_u{0.9}, alpha_r{0.92}, alpha_psi{0.9};
+
   double psi_d{0.};
 
+  double integral_step{0.01};
 
   void update() {
     if (!state_.has_value()) {
@@ -278,8 +291,8 @@ private:
     std::vector<double> x_result(1);
     auto eval_y = app_->get_expression("state_x2").at_tk(1);
     std::vector<double> y_result(1);
-    auto eval_z = app_->get_expression("state_x3").at_tk(1);
-    std::vector<double> z_result(1);
+    auto eval_psi = app_->get_expression("state_x3").at_tk(1);
+    std::vector<double> psi_result(1);
     auto eval_u = app_->get_expression("state_x4").at_tk(1);
     std::vector<double> u_result(1);
     auto eval_r = app_->get_expression("state_x5").at_tk(1);
@@ -298,7 +311,7 @@ private:
 
     app_->last_solution().evaluate(eval_x, x_result);
     app_->last_solution().evaluate(eval_y, y_result);
-    app_->last_solution().evaluate(eval_z, z_result);
+    app_->last_solution().evaluate(eval_psi, psi_result);
     app_->last_solution().evaluate(eval_u, u_result);
     app_->last_solution().evaluate(eval_r, r_result);
     app_->last_solution().evaluate(eval_xe, xe_result);
@@ -312,15 +325,32 @@ private:
     //   ye_result[0], psie_result[0], gamma_p_result[0]);
     RCLCPP_ERROR(this->get_logger(), "qs_e: %f", obj_dist(obs_arr[0], obs_arr[1], pose));
 
-    vel_setpoint_msg.data = u_result[0];
-    ang_vel_setpoint_msg.data = r_result[0];
+    last_u = alpha_u*last_u + (1-alpha_u)*u_result[0];
+    last_last_r = last_r;
+    last_r = alpha_r*last_r + (1-alpha_r)*r_result[0];
+
+    last_psi = integral_step * (last_r + last_last_r) / 2. + last_psi;
+    last_psi = normalize_angle(last_psi);
+    
+    // last_psi = alpha_psi*last_psi + (1-alpha_psi)*psi_result[0];
+    // last_psi = psi_result[0];
+    vel_setpoint_msg.data = last_u;
+    ang_vel_setpoint_msg.data = last_r;
+    heading_setpoint_msg.data = last_psi;
+    vel_setpoint_unfiltered_msg.data = u_result[0];
+    ang_vel_setpoint_unfiltered_msg.data = r_result[0];
+    heading_setpoint_unfiltered_msg.data = psi_result[0];
     RCLCPP_INFO(this->get_logger(), "setpoint: %f, %f, %f, %f, %f", 
-                x_result[0], y_result[0], z_result[0], u_result[0], r_result[0]);
+                x_result[0], y_result[0], psi_result[0], u_result[0], r_result[0]);
 
     app_->set_initial(app_->last_solution());
 
     ang_vel_setpoint_pub_->publish(ang_vel_setpoint_msg);
     vel_setpoint_pub_->publish(vel_setpoint_msg);
+    heading_setpoint_pub_->publish(heading_setpoint_msg);
+    ang_vel_setpoint_unfiltered_pub_->publish(ang_vel_setpoint_unfiltered_msg);
+    vel_setpoint_unfiltered_pub_->publish(vel_setpoint_unfiltered_msg);
+    heading_setpoint_unfiltered_pub_->publish(heading_setpoint_unfiltered_msg);
 
     ye_debug_msg.data = ye_result[0];
     psie_debug_msg.data = psie_result[0];
@@ -338,7 +368,7 @@ private:
 
   // xe, ye, psi, u, r, ds
   std::vector<double> weight_calculator(double dist){
-    double dist_sat = std::clamp(dist, 1.0, 5.) / 5.;
+    double dist_sat = std::clamp(dist, 0.0, 5.) / 5.;
     std::vector<double> out;
     for(int i = 0 ; i < 6 ; i++){
       out.push_back(primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat));
@@ -351,7 +381,15 @@ private:
     
     return out;
   }
-  
+
+  double normalize_angle(double angle_in){
+    double angle_out = std::fmod(angle_in + M_PI, 2 * M_PI);
+    if(angle_out < 0){
+      angle_out += 2*M_PI;
+    }
+    return angle_out - M_PI;
+  }
+
 };
 
 int main(int argc, char *argv[]) {

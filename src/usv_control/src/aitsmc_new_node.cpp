@@ -20,9 +20,13 @@ class AitsmcNewNode : public rclcpp::Node {
         "setpoint/velocity", 10,
         [this](const std_msgs::msg::Float64 &msg) { this->u_d = msg.data; });
 
+    // angular_velocity_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+    //     "setpoint/angular_velocity", 10,
+    //     [this](const std_msgs::msg::Float64 &msg) { this->r_d = msg.data; });
+
     heading_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-        "setpoint/angular_velocity", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->r_d = msg.data; });
+        "setpoint/heading", 10,
+        [this](const std_msgs::msg::Float64 &msg) { this->psi_d = msg.data; });
 
     velocity_sub_ = this->create_subscription<geometry_msgs::msg::Vector3>(
         "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
@@ -70,6 +74,9 @@ class AitsmcNewNode : public rclcpp::Node {
     headingError_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "debug/heading_error", 10);
 
+    headingDotError_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+        "debug/heading_dot_error", 10);
+
     tx_pub_ = this->create_publisher<std_msgs::msg::Float64>("debug/Tx", 10);
     tz_pub_ = this->create_publisher<std_msgs::msg::Float64>("debug/Tz", 10);
 
@@ -81,16 +88,16 @@ class AitsmcNewNode : public rclcpp::Node {
   AITSMC_NEW controller{AITSMC_NEW::defaultParams()};
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_setpoint_sub_,
-      heading_setpoint_sub_;
+      heading_setpoint_sub_, angular_velocity_setpoint_sub_;
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr velocity_sub_;
   rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
 
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr right_thruster_pub_,
       left_thruster_pub_, speedGain_pub_, speedError_pub_, speedSigma_pub_,
-      headingSigma_pub_, headingGain_pub_, headingError_pub_, tx_pub_, tz_pub_;
+      headingSigma_pub_, headingGain_pub_, headingError_pub_, headingDotError_pub_, tx_pub_, tz_pub_;
 
-  double u_d{0}, r_d{0};
+  double u_d{0}, r_d{0}, psi_d{0};
   geometry_msgs::msg::Pose2D pose;
   geometry_msgs::msg::Vector3 velocity;
 
@@ -105,19 +112,19 @@ class AitsmcNewNode : public rclcpp::Node {
     auto params =
         std::map<std::string, double>({
                                        {"k_u", defaultParams.k_u},
-                                       {"k_r", defaultParams.k_r},
+                                       {"k_psi", defaultParams.k_psi},
                                        {"epsilon_u", defaultParams.epsilon_u},
-                                       {"epsilon_r", defaultParams.epsilon_r},
-                                       {"alpha_u", defaultParams.alpha_u},
-                                       {"alpha_r", defaultParams.alpha_r},
-                                       {"beta_u", defaultParams.beta_u},
-                                       {"beta_r", defaultParams.beta_r},
+                                       {"epsilon_psi", defaultParams.epsilon_psi},
+                                       {"k_alpha_u", defaultParams.k_alpha_u},
+                                       {"k_alpha_psi", defaultParams.k_alpha_psi},
+                                       {"k_beta_u", defaultParams.k_beta_u},
+                                       {"k_beta_psi", defaultParams.k_beta_psi},
                                        {"tc_u", defaultParams.tc_u},
-                                       {"tc_r", defaultParams.tc_r},
+                                       {"tc_psi", defaultParams.tc_psi},
                                        {"q_u", defaultParams.q_u},
-                                       {"q_r", defaultParams.q_r},
+                                       {"q_psi", defaultParams.q_psi},
                                        {"p_u", defaultParams.p_u},
-                                       {"p_r", defaultParams.p_r},
+                                       {"p_psi", defaultParams.p_psi},
                                        {"adaptive", defaultParams.adaptive},
                                        });
 
@@ -127,19 +134,19 @@ class AitsmcNewNode : public rclcpp::Node {
     }
     AITSMCNEWParams p;
     p.k_u = this->get_parameter("k_u").as_double();
-    p.k_r = this->get_parameter("k_r").as_double();
+    p.k_psi = this->get_parameter("k_psi").as_double();
     p.epsilon_u = this->get_parameter("epsilon_u").as_double();
-    p.epsilon_r = this->get_parameter("epsilon_r").as_double();
-    p.alpha_u = this->get_parameter("alpha_u").as_double();
-    p.alpha_r = this->get_parameter("alpha_r").as_double();
-    p.beta_u = this->get_parameter("beta_u").as_double();
-    p.beta_r = this->get_parameter("beta_r").as_double();
+    p.epsilon_psi = this->get_parameter("epsilon_psi").as_double();
+    p.k_alpha_u = this->get_parameter("k_alpha_u").as_double();
+    p.k_alpha_psi = this->get_parameter("k_alpha_psi").as_double();
+    p.k_beta_u = this->get_parameter("k_beta_u").as_double();
+    p.k_beta_psi = this->get_parameter("k_beta_psi").as_double();
     p.tc_u = this->get_parameter("tc_u").as_double();
-    p.tc_r = this->get_parameter("tc_r").as_double();
+    p.tc_psi = this->get_parameter("tc_psi").as_double();
     p.q_u = this->get_parameter("q_u").as_double();
-    p.q_r = this->get_parameter("q_r").as_double();
+    p.q_psi = this->get_parameter("q_psi").as_double();
     p.p_u = this->get_parameter("p_u").as_double();
-    p.p_r = this->get_parameter("p_r").as_double();
+    p.p_psi = this->get_parameter("p_psi").as_double();
     p.adaptive = this->get_parameter("adaptive").as_double();
     return p;
   }
@@ -151,16 +158,17 @@ class AitsmcNewNode : public rclcpp::Node {
     state.r = velocity.z;
     state.psi = pose.theta;
 
-    AITSMCSetpoint setpoint;
+    AITSMCNEWSetpoint setpoint;
     setpoint.u = u_d;
-    setpoint.r = r_d;
+    // setpoint.r = r_d;
+    setpoint.psi = psi_d;
     setpoint.dot_u = 0;
     setpoint.dot_r = 0;
 
     auto out = controller.update(state, setpoint);
     auto debug = controller.getDebugData();
 
-    std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, su, sp, txMsg, tzMsg;
+    std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, edotpsi, su, sp, txMsg, tzMsg;
     // if(!(setpoint.u == 0 && setpoint.r == 0)){
       rt.data = out.right_thruster;
       lt.data = out.left_thruster;
@@ -169,11 +177,12 @@ class AitsmcNewNode : public rclcpp::Node {
     //   lt.data = 0.0;
     // }
     sg.data = debug.Ka_u;
-    hg.data = debug.Ka_r;
+    hg.data = debug.Ka_psi;
     eu.data = debug.e_u;
-    epsi.data = debug.e_r;
+    epsi.data = debug.e_psi;
+    edotpsi.data = debug.edot_psi;
     su.data = debug.s_u;
-    sp.data = debug.s_r;
+    sp.data = debug.s_psi;
     txMsg.data = debug.Tx;
     tzMsg.data = debug.Tz;
 
@@ -185,6 +194,7 @@ class AitsmcNewNode : public rclcpp::Node {
     speedSigma_pub_->publish(su);
     headingGain_pub_->publish(hg);
     headingError_pub_->publish(epsi);
+    headingDotError_pub_->publish(edotpsi);
     headingSigma_pub_->publish(sp);
 
     tx_pub_->publish(txMsg);

@@ -299,7 +299,7 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
                 current_path_ref.poses[1].pose.position.y = path_to_follow.poses[wp_ahead_i].pose.position.y;
                 current_path_ref.poses[1].pose.position.z = 1.;
             }
-            RCLCPP_INFO(this->get_logger(), "Indexes: %d, %d", wp_behind_i, wp_ahead_i);
+            // RCLCPP_INFO(this->get_logger(), "Indexes: %d, %d", wp_behind_i, wp_ahead_i);
         }
 
         // Clear the path and add the base waypoint

@@ -221,7 +221,7 @@ ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 # ocp.subject_to( (-0.5 <= u) <= 1.5 )
 ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
-# ocp.subject_to( (-1.5 <= r) <= 1.5 )
+# ocp.subject_to( (-0.25 <= r) <= 0.25 )
 
 l_list = [
         #   [0., -0.4], [0., 0.4],

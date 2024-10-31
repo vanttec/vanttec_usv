@@ -1,6 +1,6 @@
 obstacle_publisher_node:
   ros__parameters:
-    mission_choice: "m3"
+    mission_choice: "m4_v4"
     m1_test:
       obj_names: ["b1", "b2", "b3", "b4"]
       obj_info:
