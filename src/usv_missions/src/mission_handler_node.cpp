@@ -131,7 +131,7 @@ class MissionHandlerNode : public rclcpp::Node {
             status.data = feedback.status;
             id.data = vtec->get_id();
 
-            RCLCPP_INFO(get_logger(), "WP LIST SIZE: %d", wp_list.waypoint_list.size());
+            // RCLCPP_INFO(get_logger(), "WP LIST SIZE: %d", wp_list.waypoint_list.size());
             
             wp_pub_->publish(wp_list);
             mission_id_pub_->publish(id);

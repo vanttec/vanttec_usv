@@ -33,7 +33,7 @@ B = 0.41
 nx    = 11               # the system is composed of 9 states
 nu    = 2               # the system has 2 inputs
 dt    = 0.1             # sample time
-Tf    = 5.           # control horizon [s]
+Tf    = 2.           # control horizon [s]
 Nhor  = (int)(Tf/dt)    # number of control intervals
 
 starting_angle = -0.1
@@ -218,10 +218,10 @@ ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 # ocp.add_objective(ocp.T)
 
 # Path constraints
-# ocp.subject_to( (-0.5 <= u) <= 1.5 )
+ocp.subject_to( (-0.5 <= u) <= 1. )
 ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
-# ocp.subject_to( (-0.25 <= r) <= 0.25 )
+ocp.subject_to( (-0.25 <= r) <= 0.25 )
 
 l_list = [
         #   [0., -0.4], [0., 0.4],
@@ -236,26 +236,11 @@ for i in range(5):
         x_virt = nedx + l[0]*cos(psi) - l[1]*sin(psi)
         y_virt = nedy + l[0]*sin(psi) + l[1]*cos(psi)
         obs_cost = Qds/((sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 3.)**1.5)
-        ocp.add_objective(ocp.sum( obs_cost ))
-        ocp.add_objective(ocp.at_tf( obs_cost ))
+        # TESTING: ADD FOR AVOIDANCE!
+        # ocp.add_objective(ocp.sum( obs_cost ))
+        # ocp.add_objective(ocp.at_tf( obs_cost ))
         if(i==0):
             obs_cost_sample = obs_cost
-
-# ocp.add_objective(ocp.sum(
-#     Qds/sqrt((obs_regs[0]-x_virt)**2 + (obs_regs[1]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[2]-x_virt)**2 + (obs_regs[3]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[4]-x_virt)**2 + (obs_regs[5]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[6]-x_virt)**2 + (obs_regs[7]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[8]-x_virt)**2 + (obs_regs[9]-y_virt)**2)**2
-#     ))
-# ocp.add_objective(ocp.at_tf(
-#     Qds/sqrt((obs_regs[0]-x_virt)**2 + (obs_regs[1]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[2]-x_virt)**2 + (obs_regs[3]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[4]-x_virt)**2 + (obs_regs[5]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[6]-x_virt)**2 + (obs_regs[7]-y_virt)**2)**2 +
-#     Qds/sqrt((obs_regs[8]-x_virt)**2 + (obs_regs[9]-y_virt)**2)**2
-#     ))
-
 
 # Initial constraints
 X = vertcat(nedx,nedy,psi,u,r,obs[0], obs[1], obs[2], obs[3], obs[4], obs[5])

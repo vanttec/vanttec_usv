@@ -258,9 +258,9 @@ private:
       return;
     }
     // RCLCPP_INFO(this->get_logger(), "debug0");
-    RCLCPP_INFO(this->get_logger(), "state: %f,%f,%f,%f,%f,%f,%f", 
-      state_->x,state_->y,state_->yaw,state_->u,state_->r,
-      state_->tp,state_->ts);
+    // RCLCPP_INFO(this->get_logger(), "state: %f,%f,%f,%f,%f,%f,%f", 
+    //   state_->x,state_->y,state_->yaw,state_->u,state_->r,
+    //   state_->tp,state_->ts);
 
     auto initial_state = app_->get_parameter_setter("X_0");
     initial_state.set_value(state_->get_state_vector().data());
@@ -323,7 +323,7 @@ private:
 
     // RCLCPP_ERROR(this->get_logger(), "ye: %f, psie: %f, gamma_p: %f", 
     //   ye_result[0], psie_result[0], gamma_p_result[0]);
-    RCLCPP_ERROR(this->get_logger(), "qs_e: %f", obj_dist(obs_arr[0], obs_arr[1], pose));
+    // RCLCPP_ERROR(this->get_logger(), "qs_e: %f", obj_dist(obs_arr[0], obs_arr[1], pose));
 
     last_u = alpha_u*last_u + (1-alpha_u)*u_result[0];
     last_last_r = last_r;
@@ -332,16 +332,14 @@ private:
     last_psi = integral_step * (last_r + last_last_r) / 2. + last_psi;
     last_psi = normalize_angle(last_psi);
     
-    // last_psi = alpha_psi*last_psi + (1-alpha_psi)*psi_result[0];
-    // last_psi = psi_result[0];
     vel_setpoint_msg.data = last_u;
     ang_vel_setpoint_msg.data = last_r;
     heading_setpoint_msg.data = last_psi;
     vel_setpoint_unfiltered_msg.data = u_result[0];
     ang_vel_setpoint_unfiltered_msg.data = r_result[0];
     heading_setpoint_unfiltered_msg.data = psi_result[0];
-    RCLCPP_INFO(this->get_logger(), "setpoint: %f, %f, %f, %f, %f", 
-                x_result[0], y_result[0], psi_result[0], u_result[0], r_result[0]);
+    // RCLCPP_INFO(this->get_logger(), "setpoint: %f, %f, %f, %f, %f", 
+    //             x_result[0], y_result[0], psi_result[0], u_result[0], r_result[0]);
 
     app_->set_initial(app_->last_solution());
 

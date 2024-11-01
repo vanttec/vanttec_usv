@@ -18,15 +18,21 @@ class AitsmcNewNode : public rclcpp::Node {
 
     velocity_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
         "setpoint/velocity", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->u_d = msg.data; });
+        [this](const std_msgs::msg::Float64 &msg) { u_d = msg.data; });
 
-    // angular_velocity_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-    //     "setpoint/angular_velocity", 10,
-    //     [this](const std_msgs::msg::Float64 &msg) { this->r_d = msg.data; });
+    angular_velocity_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+        "setpoint/angular_velocity", 10,
+        [this](const std_msgs::msg::Float64 &msg) {
+          r_d_last_last = r_d_last; 
+          r_d_last = r_d; 
+          r_d = msg.data; 
+        });
 
     heading_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
         "setpoint/heading", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->psi_d = msg.data; });
+        [this](const std_msgs::msg::Float64 &msg) { 
+          psi_d = msg.data; 
+        });
 
     velocity_sub_ = this->create_subscription<geometry_msgs::msg::Vector3>(
         "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
@@ -77,6 +83,9 @@ class AitsmcNewNode : public rclcpp::Node {
     headingDotError_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "debug/heading_dot_error", 10);
 
+    headingIError_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+        "debug/heading_i_error", 10);
+
     tx_pub_ = this->create_publisher<std_msgs::msg::Float64>("debug/Tx", 10);
     tz_pub_ = this->create_publisher<std_msgs::msg::Float64>("debug/Tz", 10);
 
@@ -95,9 +104,10 @@ class AitsmcNewNode : public rclcpp::Node {
 
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr right_thruster_pub_,
       left_thruster_pub_, speedGain_pub_, speedError_pub_, speedSigma_pub_,
-      headingSigma_pub_, headingGain_pub_, headingError_pub_, headingDotError_pub_, tx_pub_, tz_pub_;
+      headingSigma_pub_, headingGain_pub_, headingError_pub_, headingDotError_pub_, 
+      headingIError_pub_, tx_pub_, tz_pub_;
 
-  double u_d{0}, r_d{0}, psi_d{0};
+  double u_d{0}, r_d{0}, psi_d{0}, r_d_last{0}, r_d_last_last{0}, rdot_d{0};
   geometry_msgs::msg::Pose2D pose;
   geometry_msgs::msg::Vector3 velocity;
 
@@ -152,6 +162,8 @@ class AitsmcNewNode : public rclcpp::Node {
   }
 
   void update() {
+    rdot_d = (1.5*r_d - 2*r_d_last + 0.5*r_d_last_last) / 0.01;
+
     vanttec::ControllerState state;
     state.u = velocity.x;
     state.v = velocity.y;
@@ -160,15 +172,15 @@ class AitsmcNewNode : public rclcpp::Node {
 
     AITSMCNEWSetpoint setpoint;
     setpoint.u = u_d;
-    // setpoint.r = r_d;
+    setpoint.psi_dot = r_d;
     setpoint.psi = psi_d;
-    setpoint.dot_u = 0;
-    setpoint.dot_r = 0;
+    setpoint.dot_u = 0.;
+    setpoint.dot_r = rdot_d;
 
     auto out = controller.update(state, setpoint);
     auto debug = controller.getDebugData();
 
-    std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, edotpsi, su, sp, txMsg, tzMsg;
+    std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, edotpsi, eipsi, su, sp, txMsg, tzMsg;
     // if(!(setpoint.u == 0 && setpoint.r == 0)){
       rt.data = out.right_thruster;
       lt.data = out.left_thruster;
@@ -181,6 +193,7 @@ class AitsmcNewNode : public rclcpp::Node {
     eu.data = debug.e_u;
     epsi.data = debug.e_psi;
     edotpsi.data = debug.edot_psi;
+    eipsi.data = debug.ei_psi;
     su.data = debug.s_u;
     sp.data = debug.s_psi;
     txMsg.data = debug.Tx;
@@ -195,6 +208,7 @@ class AitsmcNewNode : public rclcpp::Node {
     headingGain_pub_->publish(hg);
     headingError_pub_->publish(epsi);
     headingDotError_pub_->publish(edotpsi);
+    headingIError_pub_->publish(eipsi);
     headingSigma_pub_->publish(sp);
 
     tx_pub_->publish(txMsg);
