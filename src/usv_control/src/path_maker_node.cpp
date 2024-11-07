@@ -33,50 +33,19 @@ struct Wp
     double x, y, theta;
 };
 
-class WaypointHandlerNode : public rclcpp::Node
+class PathMakerNode : public rclcpp::Node
 {
 public:
-    WaypointHandlerNode() : Node("waypoint_handler_node")
+    PathMakerNode() : Node("path_maker_node")
     {
-        pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-            "/usv/state/pose", 10,
-            [this](const geometry_msgs::msg::Pose2D &msg)
-            {
-                pose[0] = msg.x;
-                pose[1] = msg.y;
-                pose[2] = msg.theta;
-            });
-
-        goals_sub_ = this->create_subscription<usv_interfaces::msg::WaypointList>(
-            "/usv/goals", 10,
-            [this](const usv_interfaces::msg::WaypointList &msg)
-            {
-                if(wp_vec.size() == 0){
-                    register_wp(pose[0], pose[1], pose[2]);
-                }
-                // next_wp = Wp{msg.waypoint_list[0].x, msg.waypoint_list[0].y};
-                if (msg.waypoint_list.size() == 0)
-                {
-                    return;
-                }
-                for (int i = 0; i < msg.waypoint_list.size(); i++)
-                {
-                    bool wp_repeats{false};
-                    for (int j = 0; j < wp_vec.size(); j++)
-                    {
-                        if (sqrt(pow(wp_vec[j].x - msg.waypoint_list[i].x, 2) + pow(wp_vec[j].y - msg.waypoint_list[i].y, 2)) < 0.2
-                            && fabs(wp_vec[j].theta - msg.waypoint_list[i].theta) < 0.1
-                            )
-                        {
-                            wp_repeats = true;
-                        }
-                    }
-                    if (!wp_repeats)
-                    {
-                        register_wp(msg.waypoint_list[i].x, msg.waypoint_list[i].y, msg.waypoint_list[i].theta);
-                    }
-                }
-            });
+        for (int i = 0; i < 100; i++){
+            for (int j = 0; j < wp_vec.size(); j++){
+                x = ...
+                y = ...
+                z = ...
+                register_wp(x, y, theta);
+            }
+        }
 
         path_to_follow_pub_ = this->create_publisher<nav_msgs::msg::Path>(
             "/usv/path_to_follow", 10);
@@ -91,17 +60,17 @@ public:
         tmp_marker.type = visualization_msgs::msg::Marker::ARROW;
         tmp_marker.action = 0;
         tmp_marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().x(1.).y(0.1).z(0.1);
-        tmp_marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(0).g(0).b(1).a(0.6);
+        tmp_marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(0).g(0).b(1).a(1);
         tmp_marker.pose.position.z = 1.;
 
         pose_stamped_tmp_.header.frame_id = "world";
-        pose_stamped_tmp_.header.stamp = WaypointHandlerNode::now();
+        pose_stamped_tmp_.header.stamp = PathMakerNode::now();
         current_path_ref.header = pose_stamped_tmp_.header;
         path_to_follow.header   = pose_stamped_tmp_.header;
         current_path_ref.poses.push_back(pose_stamped_tmp_);
         current_path_ref.poses.push_back(pose_stamped_tmp_);
 
-        timer_ = this->create_wall_timer(10ms, std::bind(&WaypointHandlerNode::update, this));
+        timer_ = this->create_wall_timer(10ms, std::bind(&PathMakerNode::update, this));
     }
 
 private:
@@ -283,7 +252,6 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
             // Determine lookahead distance
             // double lookahead_distance = 1.5;  // meters (path-tracking)
             // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
-            // double lookahead_distance = 2.5;  // meters (path-tracking + dynamic avoidance)
             double lookahead_distance = 1.8;  // meters (path-tracking + dynamic avoidance)
 
             // Find waypoints behind and ahead of the boat
@@ -323,83 +291,12 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
         current_path_ref_pub_->publish(current_path_ref);
         goals_markers_pub_->publish(goals_markers);
     }
-
-// void update()
-// {
-//     path_to_follow.poses.clear();
-//     goals_markers.markers.clear();
-    
-//     double amplitude = 5.0;    // Amplitude of the sine wave
-//     double frequency = 0.3;    // Frequency of the sine wave
-//     int num_waypoints = 1000;   // Number of waypoints to generate
-//     double delta_x = 0.1;      // Step increment in x (controls the spacing between waypoints)
-
-//     for (int i = 0; i < num_waypoints; ++i) {
-//         double x = i * delta_x;                     // Linear increase in x
-//         double y = amplitude * sin(frequency * x);  // Sine wave for y
-
-//         // Derivative to compute theta
-//         double dy = amplitude * frequency * cos(frequency * x);  // Derivative of sine for y
-//         double dx = 1.0;  // Change in x is constant
-//         double theta = atan2(dy, dx);  // Calculate theta as the angle of the tangent
-
-//         // Register waypoint with calculated theta
-//         register_wp(x, y, theta);
-
-//         // Create the pose for the waypoint and add it to the path
-//         geometry_msgs::msg::PoseStamped pose_stamped;
-//         pose_stamped.header.frame_id = "world";
-//         pose_stamped.pose.position.x = x;
-//         pose_stamped.pose.position.y = y;
-        
-//         // Set orientation using theta
-//         tf2::Quaternion q;
-//         q.setRPY(0, 0, theta);  // Roll and pitch are 0
-//         pose_stamped.pose.orientation.x = q.x();
-//         pose_stamped.pose.orientation.y = q.y();
-//         pose_stamped.pose.orientation.z = q.z();
-//         pose_stamped.pose.orientation.w = q.w();
-
-//         path_to_follow.poses.push_back(pose_stamped);
-//     }
-
-//         if(path_to_follow.poses.size() > 0){
-//             // Determine lookahead distance
-//             // double lookahead_distance = 1.5;  // meters (path-tracking)
-//             // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
-//             double lookahead_distance = 1.8;  // meters (path-tracking + dynamic avoidance)
-
-//             // Find waypoints behind and ahead of the boat
-//             auto [wp_behind_i, wp_ahead_i] = findLookaheadWaypoints(lookahead_distance);
-
-//             // If valid waypoints were found, create a guidance line for control
-//             if (wp_behind_i != -1 && wp_ahead_i != -1) {
-//                 current_path_ref.poses[0].pose.position.x = path_to_follow.poses[wp_behind_i].pose.position.x;
-//                 current_path_ref.poses[0].pose.position.y = path_to_follow.poses[wp_behind_i].pose.position.y;
-//                 // current_path_ref.poses[0].pose.position.x = pose[0];
-//                 // current_path_ref.poses[0].pose.position.y = pose[1];
-//                 current_path_ref.poses[0].pose.position.z = 0.;
-//                 current_path_ref.poses[1].pose.position.x = path_to_follow.poses[wp_ahead_i].pose.position.x;
-//                 current_path_ref.poses[1].pose.position.y = path_to_follow.poses[wp_ahead_i].pose.position.y;
-//                 current_path_ref.poses[1].pose.position.z = 1.;
-//             }
-//             // RCLCPP_INFO(this->get_logger(), "Indexes: %d, %d", wp_behind_i, wp_ahead_i);
-//             current_path_ref_pub_->publish(current_path_ref);
-//         }
-
-//     // Publish the path, markers, and current path reference
-//     path_to_follow_pub_->publish(path_to_follow);
-//     // goals_markers_pub_->publish(goals_markers);
-// }
-
-
-
 };
 
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<WaypointHandlerNode>());
+    rclcpp::spin(std::make_shared<PathMakerNode>());
     rclcpp::shutdown();
     return 0;
 }

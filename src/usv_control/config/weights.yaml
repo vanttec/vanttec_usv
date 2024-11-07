@@ -1,7 +1,11 @@
 mpc_node:
   ros__parameters:
     # xe, ye, psi, u, r, ds
-    path_tracking: [100.0, 300.0, 100.0, 1000.0, 0.0, 0.0]
-    speed: [100.0, 80.0, 20.0, 1.0, 0.0, 0.0]
-    avoidance: [100.0, 70.0, 20.0, 1000.0, 10.0, 1.5]
-    dyn_avoidance: [60.0, 80.0, 20.0, 1000.0, 0.0, 5.0]
+    path_tracking: [100.0, 500.0, 200.0, 1000.0, 1000.0, 0.0]
+    speed: [100.0, 80.0, 20.0, 1.0, 750.0, 0.0]
+    avoidance: [70.0, 80.0, 5.0, 1000.0, 750.0, 5.0]
+    # dyn_avoidance: [60.0, 80.0, 20.0, 1000.0, 0.0, 5.0]
+    # dyn_avoidance: [70.0, 80.0, 5.0, 1000.0, 750.0, 7.5]
+    # dyn_avoidance: [40.0, 10.0, 10.0, 1000.0, 200.0, 3.]  # Working ok, just increase both ye and psi (testing)
+    # dyn_avoidance: [70.0, 80.0, 5.0, 1000.0, 750.0, 5.0]  # This works when just using this policy!
+    dyn_avoidance: [70.0, 80.0, 5.0, 1000.0, 750.0, 5.8]

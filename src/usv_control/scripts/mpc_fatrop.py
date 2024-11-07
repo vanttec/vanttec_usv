@@ -30,17 +30,25 @@ m = 30
 Iz = 4.1
 B = 0.41
 
-nx    = 11               # the system is composed of 9 states
+obs_n = (int)(6)
+nx    = (int)(5 + (int)(obs_n))               # the system is composed of 9 states
 nu    = 2               # the system has 2 inputs
 dt    = 0.1             # sample time
-Tf    = 2.           # control horizon [s]
+
+# Static avoidance - general processing
+# Tf    = 20.           # control horizon [s]
+
+# Dynamic avoidance
+Tf    = 9.           # control horizon [s]
+
+
+
 Nhor  = (int)(Tf/dt)    # number of control intervals
 
 starting_angle = -0.1
 ned_x = 0.01
 ned_y = 0.01
 
-obs_n = (int)(10)
 
 target = np.array([0., 0., 
 10., 0.
@@ -178,8 +186,11 @@ Xuu = -70.92
 Nr = (-0.52)*fabs(u)
 # gamma_p = atan2(ocp._param_value(tg)[3] - ocp._param_value(tg)[1], ocp._param_value(tg)[2] - ocp._param_value(tg)[0])
 # gamma_p = psi_d
-ye = -(nedx-tg[2])*sin(gamma_p)+(nedy-tg[3])*cos(gamma_p)
-xe =  (nedx-tg[2])*cos(gamma_p)+(nedy-tg[3])*sin(gamma_p)
+l_dist = 0.25
+x_ = nedx + l_dist*cos(psi)
+y_ = nedy + l_dist*sin(psi)
+ye = -(x_-tg[2])*sin(gamma_p)+(y_-tg[3])*cos(gamma_p)
+xe =  (x_-tg[2])*cos(gamma_p)+(y_-tg[3])*sin(gamma_p)
 
 ocp.set_der(nedx, u*cos(psi))
 ocp.set_der(nedy, u*sin(psi))
@@ -218,10 +229,10 @@ ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 # ocp.add_objective(ocp.T)
 
 # Path constraints
-ocp.subject_to( (-0.5 <= u) <= 1. )
+# ocp.subject_to( (-0.2 <= u) <= 1. )
 ocp.subject_to( (-30.0 <= Tport) <= 36.5 )
 ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
-ocp.subject_to( (-0.25 <= r) <= 0.25 )
+# ocp.subject_to( (-0.25 <= r) <= 0.25 )
 
 l_list = [
         #   [0., -0.4], [0., 0.4],
@@ -231,19 +242,22 @@ l_list = [
         #   [0.55,0.]
         [0.55,0.]
           ]
-for i in range(5):
+for i in range((int)(obs_n/2)):
     for l in l_list:
         x_virt = nedx + l[0]*cos(psi) - l[1]*sin(psi)
         y_virt = nedy + l[0]*sin(psi) + l[1]*cos(psi)
         obs_cost = Qds/((sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 3.)**1.5)
-        # TESTING: ADD FOR AVOIDANCE!
-        # ocp.add_objective(ocp.sum( obs_cost ))
-        # ocp.add_objective(ocp.at_tf( obs_cost ))
+        ocp.add_objective(ocp.sum( obs_cost ))
+        ocp.add_objective(ocp.at_tf( obs_cost ))
         if(i==0):
             obs_cost_sample = obs_cost
 
 # Initial constraints
-X = vertcat(nedx,nedy,psi,u,r,obs[0], obs[1], obs[2], obs[3], obs[4], obs[5])
+X = vertcat(nedx,nedy,psi,u,r,
+  obs[0], obs[1], obs[2], obs[3], obs[4], 
+  obs[5]
+  # , obs[6], obs[7], obs[8], obs[9]
+  )
 ocp.subject_to(ocp.at_t0(X)==X_0)
 
 # Pick a solution method

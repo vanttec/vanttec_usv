@@ -75,7 +75,7 @@ def generate_launch_description():
         executable="aitsmc_new_node",
         remappings=[
             ("setpoint/velocity", "/guidance/desired_velocity"),
-            # ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
+            ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
             ("setpoint/heading", "/guidance/desired_heading"),
         ],
         parameters=[
@@ -83,17 +83,17 @@ def generate_launch_description():
             {"k_psi": 0.2},
             {"epsilon_u": 0.3},
             {"k_alpha_u": 1.},
-            {"k_beta_u": 0.1},
+            {"k_beta_u": 0.5},
             {"epsilon_psi": 0.3},
-            {"k_alpha_psi": 100.},
-            {"k_beta_psi": 0.01},
+            {"k_alpha_psi": 3.},
+            {"k_beta_psi": 0.1},
             {"tc_u": 2.0},
             {"tc_psi": 2.0},
             {"q_u": 3.0},
             {"q_psi": 3.0},
             {"p_u": 5.0},
             {"p_psi": 5.0},
-            {"adaptive": 1.},
+            {"adaptive": 0.},
 
             # en canva
             # {"k_u": 1.},
@@ -197,14 +197,15 @@ def generate_launch_description():
     return LaunchDescription([
         rviz,
         dynamic_sim_node,
-        # asmc_node,
         # aitsmc_node,
         aitsmc_new_node,
         foxglove_bridge,
-        obstacle_launch,
         # teleop_launch,
         mission_handler_node,
-        waypoint_handler_node,
         obstacle_nearest_publisher,
         mpc_node,
+
+        waypoint_handler_node,
+        obstacle_launch,
+        
     ])

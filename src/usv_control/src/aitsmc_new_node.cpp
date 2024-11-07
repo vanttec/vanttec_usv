@@ -172,10 +172,12 @@ class AitsmcNewNode : public rclcpp::Node {
 
     AITSMCNEWSetpoint setpoint;
     setpoint.u = u_d;
-    setpoint.psi_dot = r_d;
-    setpoint.psi = psi_d;
+    // setpoint.psi_dot = r_d;
+    setpoint.psi = psi_d; // Control heading (second order ss)
+    // setpoint.psi = r_d; // Control yaw rate (first order ss)
     setpoint.dot_u = 0.;
-    setpoint.dot_r = rdot_d;
+    // setpoint.dot_r = rdot_d;
+    setpoint.dot_r = 0.;
 
     auto out = controller.update(state, setpoint);
     auto debug = controller.getDebugData();

@@ -19,6 +19,7 @@ class TeleopControl(Node):
             Twist, '/cmd_vel', self.convert_key, 10
         )
 
+        # self.angle_pub = self.create_publisher(Float64, '/guidance/desired_angular_velocity', 10)
         self.angle_pub = self.create_publisher(Float64, '/guidance/desired_heading', 10)
         self.angle_msg = Float64()
 
@@ -41,13 +42,20 @@ class TeleopControl(Node):
 
     def convert_joy(self, msg):
         joy_steer_i = 0
+
+        # Wired
         joy_throttle_i = 5
         joy_brake_i = 2
 
+        # # Wireles
+        joy_throttle_i = 4
+        joy_brake_i = 5
+        
         steer = -msg.axes[joy_steer_i]
+
         if abs(steer) < 0.1:
             steer = 0
-        self.curr_angle = self.curr_angle + steer*0.01
+        self.curr_angle = self.curr_angle + steer*0.1
         self.curr_angle = (self.curr_angle + math.pi) % (2*math.pi) - math.pi
 
         throttle = (-msg.axes[joy_throttle_i] + 0.5) / 1.5 # From [1,-1] to [-0.333, 1]

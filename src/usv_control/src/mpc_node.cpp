@@ -140,7 +140,8 @@ public:
     obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
         "/obj_n_nearest_list", 10,
         [this](const usv_interfaces::msg::ObjectList &msg){
-          for(int i = 0 ; i < 3; i++){
+          int n_size = 3;
+          for(int i = 0 ; i < n_size; i++){
             obs_arr[i*2] = msg.obj_list[i].x;
             obs_arr[i*2+1] = msg.obj_list[i].y;
             dobs_arr[i*2] = msg.obj_list[i].v_x;
@@ -153,15 +154,18 @@ public:
         "/usv/mission/id", 10,
         [this](const std_msgs::msg::Int8 &msg){
           if(msg.data == 4){
-            // primary_weights = speed_weights;
+            primary_weights = speed_weights;
             // secondary_weights = dyn_avoidance_weights;
-            primary_weights = path_tracking_weights;
-            secondary_weights = path_tracking_weights;
+            // primary_weights = avoidance_weights;
+            // secondary_weights = avoidance_weights;
+            // primary_weights = dyn_avoidance_weights;
+            secondary_weights = dyn_avoidance_weights;
+            // primary_weights = path_tracking_weights;
+            // secondary_weights = path_tracking_weights;
           } else {
             primary_weights = path_tracking_weights;
             secondary_weights = avoidance_weights;
           }
-
         });
 
     ang_vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
@@ -247,7 +251,8 @@ private:
   Wp next_wp{0., 0.}, base_wp{0., 0.};
 
   double last_u{0.}, last_r{0.}, last_last_r{0.}, last_psi{0.};
-  double alpha_u{0.9}, alpha_r{0.92}, alpha_psi{0.9};
+  // double alpha_u{0.9}, alpha_r{0.92}, alpha_psi{0.9};
+  double alpha_u{0.99}, alpha_r{0.94}, alpha_psi{0.9};
 
   double psi_d{0.};
 
@@ -366,7 +371,11 @@ private:
 
   // xe, ye, psi, u, r, ds
   std::vector<double> weight_calculator(double dist){
-    double dist_sat = std::clamp(dist, 0.0, 5.) / 5.;
+
+    // When dist < 2.0 -> use policy #1
+    // When dist > 5.0 -> use policy #2
+    
+    double dist_sat = std::clamp(dist - 2.0, 0.0, 3.0) / 3.0;
     std::vector<double> out;
     for(int i = 0 ; i < 6 ; i++){
       out.push_back(primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat));
