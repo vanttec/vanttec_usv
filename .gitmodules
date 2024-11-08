@@ -46,6 +46,9 @@
 [submodule "src/usv_control/libs/fatrop"]
 	path = src/usv_control/libs/fatrop
 	url = https://github.com/meco-group/fatrop.git
+[submodule "src/usv_control/libs/rockit"]
+	path = src/usv_control/libs/rockit
+	url = https://github.com/meco-group/rockit.git
 [submodule "src/deps/ros_gz"]
 	path = src/deps/ros_gz
 	url = https://github.com/gazebosim/ros_gz.git
