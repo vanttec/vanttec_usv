@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
 
   // TODO move can to parameter
-  auto handler = std::make_shared<vanttec::CANHandler>("can1");
+  auto handler = std::make_shared<vanttec::CANHandler>("can0");
   auto txNode = std::make_shared<CANTxNode>(handler);
   auto rxNode = std::make_shared<CANRxNode>(handler);
   auto thrusterNode = std::make_shared<IndividualThrusterNode>();

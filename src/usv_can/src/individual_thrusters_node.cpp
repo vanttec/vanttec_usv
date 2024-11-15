@@ -68,9 +68,11 @@ void IndividualThrusterNode::update_thrust(){
 
     std_msgs::msg::Float32MultiArray msg;
     msg.data = std::vector<float>{
-        static_cast<float>(right_thrust), 
         static_cast<float>(-left_thrust), 
-        0, 
-        0,0,0,0,0};
+        static_cast<float>(-left_thrust), 
+        0,0,0,0,
+        static_cast<float>(right_thrust), 
+        static_cast<float>(right_thrust),
+        };
     motorPub->publish(msg);
 }

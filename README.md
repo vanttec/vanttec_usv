@@ -36,6 +36,15 @@ docker build -t vtec_rb25 .
 usv start 
 ```
 
+```Shell
+# Build ROS 2 packages
+colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release --parallel-workers $(nproc)
+
+# (Pull and) Run docker image ->
+docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ -it maxpacheco02/vanttec_usv:rb25
+```
+
+
 **NOTE:** Add the *scripts* repository to the *${PATH}* variable in ~/.bashrc
 ```Shell
 export PATH="$PATH":~/vanttec_usv/scripts
