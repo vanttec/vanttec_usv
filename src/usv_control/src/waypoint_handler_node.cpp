@@ -119,7 +119,7 @@ private:
     visualization_msgs::msg::Marker tmp_marker;
 
     nav_msgs::msg::Path current_path_ref, path_to_follow;
-
+    
     std::vector<Wp> wp_vec;
     int wp_i{0};
 

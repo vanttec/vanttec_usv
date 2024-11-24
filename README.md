@@ -41,7 +41,15 @@ usv start
 colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release --parallel-workers $(nproc)
 
 # (Pull and) Run docker image ->
-docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ -it maxpacheco02/vanttec_usv:rb25
+# Jetson TX2
+sudo docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ --device=/dev/ttyUSB0 -it maxpacheco02/vanttec_usv:rb25
+
+# Jetson Orin Nano
+sudo docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ -it my_container:l4t-r36.3.0
+
+sudo docker start usv
+sudo docker attach usv
+sudo docker exec -it usv bash
 ```
 
 

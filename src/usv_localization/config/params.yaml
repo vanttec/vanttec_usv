@@ -30,7 +30,7 @@
     downsampleRate: 1                            # default: 1. Downsample your data if too many
     # points. i.e., 16 = 64 / 4, 16 = 16 / 1
     lidarMinRange: 1.0                           # default: 1.0, minimum lidar range to be used
-    lidarMaxRange: 50.0                        # default: 1000.0, maximum lidar range to be used
+    lidarMaxRange: 1000.0                        # default: 1000.0, maximum lidar range to be used
 
     # IMU Settings
     imuAccNoise: 3.9939570888238808e-03
@@ -39,7 +39,7 @@
     imuGyrBiasN: 3.5640318696367613e-05
 
     imuGravity: 9.80511
-    imuRPYWeight: 0.001
+    imuRPYWeight: 0.01
 
     extrinsicTrans:  [ 0.0,  0.0,  0.0 ]
     # extrinsicRot:    [-1.0,  0.0,  0.0,
