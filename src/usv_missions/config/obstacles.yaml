@@ -1,6 +1,6 @@
 obstacle_publisher_node:
   ros__parameters:
-    dynamic_obstacles: true
+    dynamic_obstacles: false
     mission_choice: "m4_v4"
     m1_test:
       obj_names: ["b1", "b2", "b3", "b4"]
@@ -426,7 +426,7 @@ obstacle_publisher_node:
           type: "round"
         b6:
           x: 5.0
-          y: 0.0
+          y: 1.0
           color: 4
           type: "round"
         b7:

@@ -201,6 +201,7 @@ public:
     timer_ = this->create_wall_timer(10ms, std::bind(&MPCNode::update, this));
 
     primary_weights = path_tracking_weights;
+    // secondary_weights = path_tracking_weights;
     secondary_weights = avoidance_weights;
     
   }

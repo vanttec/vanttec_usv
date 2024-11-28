@@ -406,18 +406,10 @@
 
     <!-- VTec - SIII -->
     <include>
-      <name>vtec_s4</name>
+      <name>vtec_s3</name>
       <pose>-180 1088 0 0 0 0</pose>
-      <uri>vtec_s4</uri>
+      <uri>vtec_s3</uri>
     </include>
-
-    <!-- UUV -->
-    <include>
-      <name>uuv</name>
-      <pose>-178 1089 0 0 0 1</pose>
-      <uri>uuv</uri>
-    </include>
-
 
     <!-- Mandatory Challenge -->
     <!-- <include>

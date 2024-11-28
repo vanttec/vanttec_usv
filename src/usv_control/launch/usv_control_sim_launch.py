@@ -1,5 +1,10 @@
 import os
 from launch import LaunchDescription
+
+import launch_ros
+import launch_ros.actions
+import launch_ros.events
+
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
@@ -11,6 +16,7 @@ from launch_ros.substitutions import FindPackageShare
 
 from launch.substitutions import FindExecutable
 from launch.actions import ExecuteProcess
+from launch_ros.actions import Node
 
 def generate_launch_description():
     dynamic_sim_node = Node(
@@ -72,6 +78,13 @@ def generate_launch_description():
         ]),
     )
 
+    base_link_tf = launch_ros.actions.Node(
+        name='usv_tf',
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=['1.5','0','0','0','0','3.14159','usv','base_link']
+        )
+
     return LaunchDescription([
         rviz,
         dynamic_sim_node,
@@ -79,4 +92,5 @@ def generate_launch_description():
         los_node,
         foxglove_bridge,
         # teleop_launch,
+        base_link_tf,
     ])
