@@ -47,9 +47,9 @@ class TeleopControl(Node):
         joy_throttle_i = 5
         joy_brake_i = 2
 
-        # # Wireles
-        joy_throttle_i = 4
-        joy_brake_i = 5
+        # Wireles
+        # joy_throttle_i = 4
+        # joy_brake_i = 5
         
         steer = -msg.axes[joy_steer_i]
 

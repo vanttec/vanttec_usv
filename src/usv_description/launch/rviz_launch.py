@@ -7,7 +7,7 @@ from launch_ros.actions import Node
 from launch.conditions import IfCondition, UnlessCondition
 
 def generate_launch_description():
-    rviz_config = os.path.join(get_package_share_directory("usv_description"),'rviz/','urdf.rviz')
+    rviz_config = os.path.join(get_package_share_directory("usv_description"),'rviz/','urdf2.rviz')
 
     rviz = Node(
         package='rviz2',

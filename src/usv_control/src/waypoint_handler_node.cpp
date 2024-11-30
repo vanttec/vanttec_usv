@@ -92,7 +92,7 @@ public:
         tmp_marker.action = 0;
         tmp_marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().x(1.).y(0.1).z(0.1);
         tmp_marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(0).g(0).b(1).a(0.6);
-        tmp_marker.pose.position.z = 1.;
+        tmp_marker.pose.position.z = 0.;
 
         pose_stamped_tmp_.header.frame_id = "world";
         pose_stamped_tmp_.header.stamp = WaypointHandlerNode::now();
@@ -284,7 +284,7 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
             // double lookahead_distance = 1.5;  // meters (path-tracking)
             // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
             // double lookahead_distance = 2.5;  // meters (path-tracking + dynamic avoidance)
-            double lookahead_distance = 1.8;  // meters (path-tracking + dynamic avoidance)
+            double lookahead_distance = 1.;  // meters (path-tracking + dynamic avoidance)
 
             // Find waypoints behind and ahead of the boat
             auto [wp_behind_i, wp_ahead_i] = findLookaheadWaypoints(lookahead_distance);
@@ -298,7 +298,7 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
                 current_path_ref.poses[0].pose.position.z = 0.;
                 current_path_ref.poses[1].pose.position.x = path_to_follow.poses[wp_ahead_i].pose.position.x;
                 current_path_ref.poses[1].pose.position.y = path_to_follow.poses[wp_ahead_i].pose.position.y;
-                current_path_ref.poses[1].pose.position.z = 1.;
+                current_path_ref.poses[1].pose.position.z = 0.;
             }
             // RCLCPP_INFO(this->get_logger(), "Indexes: %d, %d", wp_behind_i, wp_ahead_i);
         }

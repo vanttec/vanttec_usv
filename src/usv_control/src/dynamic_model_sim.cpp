@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cmath>
 #include <algorithm>
+#include <random>
+#include <cstdlib>
 
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -12,6 +14,7 @@
 #include "nav_msgs/msg/path.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "model/dynamic_model.h"
 
@@ -21,6 +24,8 @@ class DynamicModelSim : public rclcpp::Node {
  public:
   DynamicModelSim() : Node("Dynamic_Model_Sim") {
     using namespace std::placeholders;
+
+    distribution = std::uniform_real_distribution<double>(-1.0, 1.0);
 
     // Declare and acquire `boatname` parameter
     boatname_ = this->declare_parameter<std::string>("boatname", "usv");
@@ -32,13 +37,22 @@ class DynamicModelSim : public rclcpp::Node {
     odomPub =
         this->create_publisher<nav_msgs::msg::Odometry>("output/odom", 10);
 
+    disturbancesPub = 
+        this->create_publisher<std_msgs::msg::Float64MultiArray>("/usv/disturbances", 10);
+
     leftThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
         "usv/left_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->Tport = msg.data; });
+        [this](const std_msgs::msg::Float64 &msg) { 
+          disturbance_msg.data[0] = 0.*distribution(generator);
+          this->Tport = msg.data + disturbance_msg.data[0]; 
+        });
 
     rightThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
         "usv/right_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->Tstbd = msg.data; });
+        [this](const std_msgs::msg::Float64 &msg) { 
+          disturbance_msg.data[1] = 0.*distribution(generator);
+          this->Tstbd = msg.data + disturbance_msg.data[1]; 
+          });
 
     pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
         "usv/pose_path", 10);
@@ -50,6 +64,11 @@ class DynamicModelSim : public rclcpp::Node {
 
     updateTimer = this->create_wall_timer(
         10ms, std::bind(&DynamicModelSim::update, this));
+
+    generator.seed(std::random_device{}());
+
+    disturbance_msg.data.push_back(0.);
+    disturbance_msg.data.push_back(0.);
   }
 
  protected:
@@ -62,6 +81,7 @@ class DynamicModelSim : public rclcpp::Node {
   }
 
   void update() {
+
     auto out = model.update(Tport, Tstbd);
 
     /**
@@ -117,6 +137,7 @@ class DynamicModelSim : public rclcpp::Node {
     odomPub->publish(odom);
     localVelPub->publish(velMsg);
     pose_path_pub->publish(pose_path);
+    disturbancesPub->publish(disturbance_msg);
 
     tf_broadcast(pose);
   }
@@ -126,9 +147,12 @@ class DynamicModelSim : public rclcpp::Node {
   rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr localVelPub;
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pose_path_pub;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odomPub;
+  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr disturbancesPub;
+  
   rclcpp::TimerBase::SharedPtr updateTimer;
 
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
+    std_msgs::msg::Float64MultiArray disturbance_msg;
     nav_msgs::msg::Path pose_path;
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr leftThrusterSub,
@@ -141,6 +165,9 @@ class DynamicModelSim : public rclcpp::Node {
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
   std::string boatname_;
+
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution;
 
   void tf_broadcast(const geometry_msgs::msg::Pose2D &msg) {
     geometry_msgs::msg::TransformStamped t;

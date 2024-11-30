@@ -406,9 +406,9 @@
 
     <!-- VTec - SIII -->
     <include>
-      <name>vtec_s3</name>
+      <name>vtec_s4</name>
       <pose>-180 1088 0 0 0 0</pose>
-      <uri>vtec_s3</uri>
+      <uri>vtec_s4</uri>
     </include>
 
     <!-- Mandatory Challenge -->

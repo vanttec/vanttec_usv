@@ -196,16 +196,18 @@ def generate_launch_description():
      
     return LaunchDescription([
         rviz,
+        foxglove_bridge,
+
         dynamic_sim_node,
         # aitsmc_node,
         aitsmc_new_node,
-        foxglove_bridge,
-        # teleop_launch,
-        mission_handler_node,
-        obstacle_nearest_publisher,
-        mpc_node,
 
+        # teleop_launch,
+        mpc_node,
         waypoint_handler_node,
+
+        mission_handler_node,
         obstacle_launch,
+        obstacle_nearest_publisher,
         
     ])

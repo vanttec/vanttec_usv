@@ -39,7 +39,9 @@ dt    = 0.1             # sample time
 # Tf    = 20.           # control horizon [s]
 
 # Dynamic avoidance
-Tf    = 9.           # control horizon [s]
+# Tf    = 9.           # control horizon [s] : Everything Else, also dynamic obstacles
+# Tf    = 5.           # control horizon [s] : Gazebo SIM!
+Tf    = 7.           # control horizon [s] : Gazebo SIM! dynamic obs
 
 
 
@@ -219,6 +221,7 @@ ocp.add_objective(ocp.sum  (Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 + 
                             Qpsi*(cos(psi)-cos(gamma_p))**2 + Qu*((u))**2 + Qr*((r))**2 +
                             Qxe*(xe)**2))
+ocp.add_objective(ocp.at_tf(Qxe*(xe)**20))
 # ocp.add_objective(ocp.sum  (Qye*(ye**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 + 
 #                             Qpsi*(cos(psi)-cos(gamma_p))**2 + Qu*(u)**2 + Qr*(r)**2 +
 #                             Qxe*(xe**2)))
@@ -236,11 +239,11 @@ ocp.subject_to( (-30.0 <= Tstbd) <= 36.5 )
 
 l_list = [
         #   [0., -0.4], [0., 0.4],
-          [1.05,-0.3], [1.05,0.3],
+          [0.55,-0.3], [0.55,0.3],
         #   [0.55,-0.2],[0.55,0.2],
           [-0.35,-0.3], [-0.35,0.3],
         #   [0.55,0.]
-        [1.55,0.]
+        [0.55,0.]
           ]
 for i in range((int)(obs_n/2)):
     for l in l_list:

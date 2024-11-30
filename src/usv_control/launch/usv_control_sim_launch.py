@@ -22,6 +22,9 @@ def generate_launch_description():
     dynamic_sim_node = Node(
         package="usv_control",
         executable="dynamic_model_node",
+        output='screen',
+        emulate_tty=True,
+        arguments=[('__log_level:=debug')],
     )
 
     rviz = IncludeLaunchDescription(
@@ -34,28 +37,30 @@ def generate_launch_description():
         ]),
     )
 
-    aitsmc_node = Node(
+    aitsmc_new_node = Node(
         package="usv_control",
-        executable="aitsmc_node",
+        executable="aitsmc_new_node",
         remappings=[
             ("setpoint/velocity", "/guidance/desired_velocity"),
             ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
+            ("setpoint/heading", "/guidance/desired_heading"),
         ],
         parameters=[
-            {"k_u": 0.3},
-            {"k_r": 0.2},
-            {"kmin_u": 0.01},
-            {"kmin_r": 0.01},
-            {"k2_u": 0.01},
-            {"k2_r": 0.01},
-            {"mu_u": 0.05},
-            {"mu_r": 0.04},
+            {"k_u": 1.},
+            {"k_psi": 0.2},
+            {"epsilon_u": 0.3},
+            {"k_alpha_u": 1.},
+            {"k_beta_u": 0.5},
+            {"epsilon_psi": 0.3},
+            {"k_alpha_psi": 3.},
+            {"k_beta_psi": 0.1},
             {"tc_u": 2.0},
-            {"tc_r": 2.0},
+            {"tc_psi": 2.0},
             {"q_u": 3.0},
-            {"q_r": 3.0},
+            {"q_psi": 3.0},
             {"p_u": 5.0},
-            {"p_r": 5.0},
+            {"p_psi": 5.0},
+            {"adaptive": 0.},
         ],
     )
 
@@ -63,10 +68,6 @@ def generate_launch_description():
         name="foxglove_bridge",
         package="foxglove_bridge",
         executable="foxglove_bridge")
-
-    los_node = Node(
-        package="usv_control",
-        executable="los_node")    
 
     teleop_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -82,15 +83,22 @@ def generate_launch_description():
         name='usv_tf',
         package='tf2_ros',
         executable='static_transform_publisher',
-        arguments=['1.5','0','0','0','0','3.14159','usv','base_link']
+        arguments=['0.','0','0','0','0','3.14159','usv','base_link']
+        )
+
+    world_tf = launch_ros.actions.Node(
+        name='usv_tf2',
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=['0.','0','0','0','0','3.14159','world','inertial']
         )
 
     return LaunchDescription([
         rviz,
         dynamic_sim_node,
-        aitsmc_node,
-        los_node,
+        aitsmc_new_node,
         foxglove_bridge,
-        # teleop_launch,
+        teleop_launch,
         base_link_tf,
+        world_tf,
     ])

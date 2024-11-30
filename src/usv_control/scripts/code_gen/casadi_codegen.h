@@ -247,7 +247,7 @@ int RSQrqtF_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw
 #define RSQrqtF_SZ_ARG 14
 #define RSQrqtF_SZ_RES 7
 #define RSQrqtF_SZ_IW 12
-#define RSQrqtF_SZ_W 840
+#define RSQrqtF_SZ_W 837
 int RSQrqtFGN(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int RSQrqtFGN_alloc_mem(void);
 int RSQrqtFGN_init_mem(int mem);
@@ -268,7 +268,7 @@ int RSQrqtFGN_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_
 #define RSQrqtFGN_SZ_ARG 14
 #define RSQrqtFGN_SZ_RES 7
 #define RSQrqtFGN_SZ_IW 12
-#define RSQrqtFGN_SZ_W 863
+#define RSQrqtFGN_SZ_W 860
 int rqF(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int rqF_alloc_mem(void);
 int rqF_init_mem(int mem);

@@ -16,18 +16,18 @@ public:
 
     leftSub = this->create_subscription<std_msgs::msg::Float64>(
       "/usv/left_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->left.data = msg.data * 1; });
+        [this](const std_msgs::msg::Float64 &msg) { this->left.data = msg.data * 1.; });
 
     rightSub = this->create_subscription<std_msgs::msg::Float64>(
       "/usv/right_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { this->right.data = msg.data * 1; });
+        [this](const std_msgs::msg::Float64 &msg) { this->right.data = msg.data * 1.; });
 
     arrivedSub = this->create_subscription<std_msgs::msg::Bool>(
       "/usv/waypoint/arrived", 10,
         [this](const std_msgs::msg::Bool &msg) { this->arrived.data = msg.data; });
 
-    leftPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust", 10);
-    rightPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust", 10);
+    leftPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s4/joint/left_engine_propeller_joint/cmd_thrust", 10);
+    rightPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s4/joint/right_engine_propeller_joint/cmd_thrust", 10);
 
     service = this->create_service<std_srvs::srv::Empty>("auto", std::bind(&KillSwitchSimNode::autonomous, this, _1, _2));
 
@@ -61,8 +61,8 @@ private:
 
   void update() {
     // if(!this->arrived.data ^ this->autonomous_on){
-      leftPub->publish(this->left);
-      rightPub->publish(this->right);
+      leftPub->publish(this->right);
+      rightPub->publish(this->left);
     // } else{
     //   leftPub->publish(zero);
     //   rightPub->publish(zero);

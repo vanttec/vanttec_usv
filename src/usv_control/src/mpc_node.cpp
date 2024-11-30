@@ -101,9 +101,11 @@ public:
 
     velocity_sub_ = this->create_subscription<geometry_msgs::msg::Vector3>(
         "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
+          if(std::fabs(msg.x < 100)){
           state_->u = msg.x;
           // state_->v = msg.y;
           state_->r = msg.z;
+          }
         });
 
     pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
@@ -134,6 +136,8 @@ public:
           base_wp.y = msg.poses[0].pose.position.y;
           next_wp.x = msg.poses[1].pose.position.x;
           next_wp.y = msg.poses[1].pose.position.y;
+
+          // TODO: CHANGES HERE
           psi_d = atan2(next_wp.y - base_wp.y, next_wp.x - base_wp.x);
           });
 
@@ -154,13 +158,13 @@ public:
         "/usv/mission/id", 10,
         [this](const std_msgs::msg::Int8 &msg){
           if(msg.data == 4){
-            primary_weights = speed_weights;
-            // secondary_weights = dyn_avoidance_weights;
-            // primary_weights = avoidance_weights;
-            // secondary_weights = avoidance_weights;
-            // primary_weights = dyn_avoidance_weights;
-            secondary_weights = dyn_avoidance_weights;
+            // primary_weights = speed_weights;
             // primary_weights = path_tracking_weights;
+            primary_weights = dyn_avoidance_weights;
+            // primary_weights = avoidance_weights;
+
+            secondary_weights = dyn_avoidance_weights;
+            // secondary_weights = avoidance_weights;
             // secondary_weights = path_tracking_weights;
           } else {
             primary_weights = path_tracking_weights;
@@ -252,8 +256,8 @@ private:
   Wp next_wp{0., 0.}, base_wp{0., 0.};
 
   double last_u{0.}, last_r{0.}, last_last_r{0.}, last_psi{0.};
-  // double alpha_u{0.9}, alpha_r{0.92}, alpha_psi{0.9};
-  double alpha_u{0.99}, alpha_r{0.94}, alpha_psi{0.9};
+  // double alpha_u{0.99}, alpha_r{0.94}, alpha_psi{0.9};
+  double alpha_u{0.9}, alpha_r{0.94}, alpha_psi{0.9};
 
   double psi_d{0.};
 
@@ -337,7 +341,7 @@ private:
 
     last_psi = integral_step * (last_r + last_last_r) / 2. + last_psi;
     last_psi = normalize_angle(last_psi);
-    
+
     vel_setpoint_msg.data = last_u;
     ang_vel_setpoint_msg.data = last_r;
     heading_setpoint_msg.data = last_psi;
@@ -373,10 +377,11 @@ private:
   // xe, ye, psi, u, r, ds
   std::vector<double> weight_calculator(double dist){
 
-    // When dist < 2.0 -> use policy #1
-    // When dist > 5.0 -> use policy #2
-    
-    double dist_sat = std::clamp(dist - 2.0, 0.0, 3.0) / 3.0;
+    // When dist <= 2.0 -> use policy #1
+    // When dist >= 5.0 -> use policy #2
+    // When in-between  -> use the interpolation of both
+    double dist_p1{2.}, dist_p2{3.};
+    double dist_sat = std::clamp(dist - dist_p1, 0.0, dist_p2-dist_p1) / (dist_p2-dist_p1);
     std::vector<double> out;
     for(int i = 0 ; i < 6 ; i++){
       out.push_back(primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat));
