@@ -79,7 +79,7 @@ int RSQrqtI_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw
 #define RSQrqtI_SZ_ARG 140
 #define RSQrqtI_SZ_RES 25
 #define RSQrqtI_SZ_IW 14
-#define RSQrqtI_SZ_W 6461
+#define RSQrqtI_SZ_W 6454
 int RSQrqtIGN(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int RSQrqtIGN_alloc_mem(void);
 int RSQrqtIGN_init_mem(int mem);
@@ -100,7 +100,7 @@ int RSQrqtIGN_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_
 #define RSQrqtIGN_SZ_ARG 140
 #define RSQrqtIGN_SZ_RES 25
 #define RSQrqtIGN_SZ_IW 14
-#define RSQrqtIGN_SZ_W 6533
+#define RSQrqtIGN_SZ_W 6526
 int rqI(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int rqI_alloc_mem(void);
 int rqI_init_mem(int mem);
@@ -121,7 +121,7 @@ int rqI_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, ca
 #define rqI_SZ_ARG 13
 #define rqI_SZ_RES 2
 #define rqI_SZ_IW 0
-#define rqI_SZ_W 152
+#define rqI_SZ_W 149
 int RSQrqt(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int RSQrqt_alloc_mem(void);
 int RSQrqt_init_mem(int mem);
@@ -142,7 +142,7 @@ int RSQrqt_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw,
 #define RSQrqt_SZ_ARG 140
 #define RSQrqt_SZ_RES 25
 #define RSQrqt_SZ_IW 14
-#define RSQrqt_SZ_W 6461
+#define RSQrqt_SZ_W 6454
 int RSQrqtGN(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int RSQrqtGN_alloc_mem(void);
 int RSQrqtGN_init_mem(int mem);
@@ -163,7 +163,7 @@ int RSQrqtGN_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_i
 #define RSQrqtGN_SZ_ARG 140
 #define RSQrqtGN_SZ_RES 25
 #define RSQrqtGN_SZ_IW 14
-#define RSQrqtGN_SZ_W 6533
+#define RSQrqtGN_SZ_W 6526
 int rqk(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int rqk_alloc_mem(void);
 int rqk_init_mem(int mem);
@@ -184,7 +184,7 @@ int rqk_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, ca
 #define rqk_SZ_ARG 13
 #define rqk_SZ_RES 2
 #define rqk_SZ_IW 0
-#define rqk_SZ_W 152
+#define rqk_SZ_W 149
 int LI(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int LI_alloc_mem(void);
 int LI_init_mem(int mem);
@@ -247,7 +247,7 @@ int RSQrqtF_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw
 #define RSQrqtF_SZ_ARG 14
 #define RSQrqtF_SZ_RES 7
 #define RSQrqtF_SZ_IW 12
-#define RSQrqtF_SZ_W 840
+#define RSQrqtF_SZ_W 831
 int RSQrqtFGN(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int RSQrqtFGN_alloc_mem(void);
 int RSQrqtFGN_init_mem(int mem);
@@ -268,7 +268,7 @@ int RSQrqtFGN_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_
 #define RSQrqtFGN_SZ_ARG 14
 #define RSQrqtFGN_SZ_RES 7
 #define RSQrqtFGN_SZ_IW 12
-#define RSQrqtFGN_SZ_W 863
+#define RSQrqtFGN_SZ_W 854
 int rqF(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int rqF_alloc_mem(void);
 int rqF_init_mem(int mem);
@@ -289,7 +289,7 @@ int rqF_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, ca
 #define rqF_SZ_ARG 7
 #define rqF_SZ_RES 2
 #define rqF_SZ_IW 0
-#define rqF_SZ_W 128
+#define rqF_SZ_W 125
 int LF(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int LF_alloc_mem(void);
 int LF_init_mem(int mem);
@@ -583,7 +583,7 @@ int sampler_xe_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz
 #define sampler_xe_SZ_ARG 6
 #define sampler_xe_SZ_RES 2
 #define sampler_xe_SZ_IW 0
-#define sampler_xe_SZ_W 9
+#define sampler_xe_SZ_W 8
 int sampler_ye(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int sampler_ye_alloc_mem(void);
 int sampler_ye_init_mem(int mem);
@@ -604,7 +604,7 @@ int sampler_ye_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz
 #define sampler_ye_SZ_ARG 6
 #define sampler_ye_SZ_RES 2
 #define sampler_ye_SZ_IW 0
-#define sampler_ye_SZ_W 9
+#define sampler_ye_SZ_W 8
 int sampler_psie(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
 int sampler_psie_alloc_mem(void);
 int sampler_psie_init_mem(int mem);
@@ -668,6 +668,27 @@ int sampler_obs_cost_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_i
 #define sampler_obs_cost_SZ_RES 2
 #define sampler_obs_cost_SZ_IW 0
 #define sampler_obs_cost_SZ_W 12
+int sampler_n_horizon(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem);
+int sampler_n_horizon_alloc_mem(void);
+int sampler_n_horizon_init_mem(int mem);
+void sampler_n_horizon_free_mem(int mem);
+int sampler_n_horizon_checkout(void);
+void sampler_n_horizon_release(int mem);
+void sampler_n_horizon_incref(void);
+void sampler_n_horizon_decref(void);
+casadi_int sampler_n_horizon_n_in(void);
+casadi_int sampler_n_horizon_n_out(void);
+casadi_real sampler_n_horizon_default_in(casadi_int i);
+const char* sampler_n_horizon_name_in(casadi_int i);
+const char* sampler_n_horizon_name_out(casadi_int i);
+const casadi_int* sampler_n_horizon_sparsity_in(casadi_int i);
+const casadi_int* sampler_n_horizon_sparsity_out(casadi_int i);
+int sampler_n_horizon_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w);
+int sampler_n_horizon_work_bytes(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w);
+#define sampler_n_horizon_SZ_ARG 4
+#define sampler_n_horizon_SZ_RES 2
+#define sampler_n_horizon_SZ_IW 0
+#define sampler_n_horizon_SZ_W 1
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

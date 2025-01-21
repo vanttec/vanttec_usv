@@ -10,7 +10,7 @@
 using namespace std::chrono_literals;
 
 class AitsmcNode : public rclcpp::Node {
- public:
+public:
   AitsmcNode() : Node("AITSMC_Node") {
     using namespace std::placeholders;
     auto params = initialize_params();
@@ -25,7 +25,8 @@ class AitsmcNode : public rclcpp::Node {
         [this](const std_msgs::msg::Float64 &msg) { this->r_d = msg.data; });
 
     velocitySub = this->create_subscription<geometry_msgs::msg::Vector3>(
-        "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
+        "usv/state/velocity", 10,
+        [this](const geometry_msgs::msg::Vector3 &msg) {
           this->velocity = msg;
         });
 
@@ -35,8 +36,8 @@ class AitsmcNode : public rclcpp::Node {
 
     rightThrusterPub = this->create_publisher<std_msgs::msg::Float64>(
         "usv/right_thruster", 10);
-    leftThrusterPub = this->create_publisher<std_msgs::msg::Float64>(
-        "usv/left_thruster", 10);
+    leftThrusterPub =
+        this->create_publisher<std_msgs::msg::Float64>("usv/left_thruster", 10);
 
     bool reset_on_mode_change =
         this->declare_parameter<bool>("reset_on_mode_change", true);
@@ -77,7 +78,7 @@ class AitsmcNode : public rclcpp::Node {
         this->create_wall_timer(10ms, std::bind(&AitsmcNode::update, this));
   }
 
- private:
+private:
   AITSMC controller{AITSMC::defaultParams()};
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocitySetpointSub,
@@ -99,27 +100,26 @@ class AitsmcNode : public rclcpp::Node {
   rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr modeSub;
   uint16_t lastMode;
 
-  AITSMCParams initialize_params(bool declare_parameters=true) {
-    if(declare_parameters){
-          auto defaultParams = AITSMC::defaultParams();
-    auto params =
-        std::map<std::string, double>({{"k_u", defaultParams.k_u},
-                                       {"k_r", defaultParams.k_r},
-                                       {"kmin_u", defaultParams.kmin_u},
-                                       {"kmin_r", defaultParams.kmin_r},
-                                       {"k2_u", defaultParams.k2_u},
-                                       {"k2_r", defaultParams.k2_r},
-                                       {"mu_u", defaultParams.mu_u},
-                                       {"mu_r", defaultParams.mu_r},
-                                       {"tc_u", defaultParams.tc_u},
-                                       {"tc_r", defaultParams.tc_r},
-                                       {"q_u", defaultParams.q_u},
-                                       {"q_r", defaultParams.q_r},
-                                       {"p_u", defaultParams.p_u},
-                                       {"p_r", defaultParams.p_r}});
+  AITSMCParams initialize_params(bool declare_parameters = true) {
+    if (declare_parameters) {
+      auto defaultParams = AITSMC::defaultParams();
+      auto params =
+          std::map<std::string, double>({{"k_u", defaultParams.k_u},
+                                         {"k_r", defaultParams.k_r},
+                                         {"kmin_u", defaultParams.kmin_u},
+                                         {"kmin_r", defaultParams.kmin_r},
+                                         {"k2_u", defaultParams.k2_u},
+                                         {"k2_r", defaultParams.k2_r},
+                                         {"mu_u", defaultParams.mu_u},
+                                         {"mu_r", defaultParams.mu_r},
+                                         {"tc_u", defaultParams.tc_u},
+                                         {"tc_r", defaultParams.tc_r},
+                                         {"q_u", defaultParams.q_u},
+                                         {"q_r", defaultParams.q_r},
+                                         {"p_u", defaultParams.p_u},
+                                         {"p_r", defaultParams.p_r}});
 
-    this->declare_parameters("", params);
-
+      this->declare_parameters("", params);
     }
     AITSMCParams p;
     p.k_u = this->get_parameter("k_u").as_double();
@@ -157,8 +157,8 @@ class AitsmcNode : public rclcpp::Node {
 
     std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, su, sp, txMsg, tzMsg;
     // if(!(setpoint.u == 0 && setpoint.r == 0)){
-      rt.data = out.right_thruster;
-      lt.data = out.left_thruster;
+    rt.data = out.right_thruster;
+    lt.data = out.left_thruster;
     // } else {
     //   rt.data = 0.0;
     //   lt.data = 0.0;

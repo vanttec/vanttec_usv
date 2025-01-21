@@ -137,7 +137,6 @@ public:
           next_wp.x = msg.poses[1].pose.position.x;
           next_wp.y = msg.poses[1].pose.position.y;
 
-          // TODO: CHANGES HERE
           psi_d = atan2(next_wp.y - base_wp.y, next_wp.x - base_wp.x);
           });
 
@@ -158,12 +157,13 @@ public:
         "/usv/mission/id", 10,
         [this](const std_msgs::msg::Int8 &msg){
           if(msg.data == 4){
-            // primary_weights = speed_weights;
+            primary_weights = speed_weights;
             // primary_weights = path_tracking_weights;
-            primary_weights = dyn_avoidance_weights;
+            // primary_weights = dyn_avoidance_weights;
             // primary_weights = avoidance_weights;
 
             secondary_weights = dyn_avoidance_weights;
+            // secondary_weights = speed_weights;
             // secondary_weights = avoidance_weights;
             // secondary_weights = path_tracking_weights;
           } else {
@@ -202,6 +202,9 @@ public:
     qs_debug_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
         "/mpc/debug/qs", 10);
 
+    mpc_projection_path_pub_ = this->create_publisher<nav_msgs::msg::Path>(
+        "/mpc/projection_path", 10);
+
     timer_ = this->create_wall_timer(10ms, std::bind(&MPCNode::update, this));
 
     primary_weights = path_tracking_weights;
@@ -226,6 +229,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_unfiltered_pub_,vel_setpoint_unfiltered_pub_, heading_setpoint_unfiltered_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ye_debug_pub_, psie_debug_pub_, obs_cost_debug_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr qs_debug_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr mpc_projection_path_pub_;
 
   std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg, heading_setpoint_msg;
   std_msgs::msg::Float64 ang_vel_setpoint_unfiltered_msg, vel_setpoint_unfiltered_msg, heading_setpoint_unfiltered_msg;
@@ -233,6 +237,7 @@ private:
 
   std_msgs::msg::Float64 ye_debug_msg, psie_debug_msg, obs_cost_debug_msg;
   std_msgs::msg::Float64MultiArray qs_debug_msg;
+  nav_msgs::msg::Path mpc_projection_path_msg;
 
   geometry_msgs::msg::Pose2D pose;
 
@@ -256,8 +261,9 @@ private:
   Wp next_wp{0., 0.}, base_wp{0., 0.};
 
   double last_u{0.}, last_r{0.}, last_last_r{0.}, last_psi{0.};
+  // The closer to 1, the slower it will reach the actual value.
   // double alpha_u{0.99}, alpha_r{0.94}, alpha_psi{0.9};
-  double alpha_u{0.9}, alpha_r{0.94}, alpha_psi{0.9};
+  double alpha_u{0.}, alpha_r{0.}, alpha_psi{0.};
 
   double psi_d{0.};
 
@@ -319,6 +325,9 @@ private:
     auto eval_obs_cost = app_->get_expression("obs_cost").at_tk(1);
     std::vector<double> obs_cost_result(1);
 
+    auto eval_nhor = app_->get_expression("n_horizon").at_tk(1);
+    std::vector<double> nhor_result(1);
+
     app_->last_solution().evaluate(eval_x, x_result);
     app_->last_solution().evaluate(eval_y, y_result);
     app_->last_solution().evaluate(eval_psi, psi_result);
@@ -329,6 +338,33 @@ private:
     app_->last_solution().evaluate(eval_psie, psie_result);
     app_->last_solution().evaluate(eval_gamma_p, gamma_p_result);
     app_->last_solution().evaluate(eval_obs_cost, obs_cost_result);
+    app_->last_solution().evaluate(eval_nhor, nhor_result);
+
+    // Get Projection Path
+    int projection_n = nhor_result[0];
+
+    mpc_projection_path_msg.header.frame_id = "world";
+    mpc_projection_path_msg.header.stamp = MPCNode::get_clock()->now();
+    mpc_projection_path_msg.poses.clear();
+
+    if(projection_n > 0){
+      for(int i = 0 ; i < projection_n ; i++){
+        // Get projected states
+        auto eval_x_path = app_->get_expression("state_x1").at_tk(i+1);
+        std::vector<double> x_result_path(1);
+        auto eval_y_path = app_->get_expression("state_x2").at_tk(i+1);
+        std::vector<double> y_result_path(1);
+        app_->last_solution().evaluate(eval_x_path, x_result_path);
+        app_->last_solution().evaluate(eval_y_path, y_result_path);
+
+        // Fill ros msg
+        geometry_msgs::msg::PoseStamped tmp_pose_stamped;
+        tmp_pose_stamped.pose.position.x = x_result_path[0];
+        tmp_pose_stamped.pose.position.y = y_result_path[0];
+        mpc_projection_path_msg.poses.push_back(tmp_pose_stamped);
+      }
+    }
+
     // app_->last_solution().evaluate(eval_r, r_result);
 
     // RCLCPP_ERROR(this->get_logger(), "ye: %f, psie: %f, gamma_p: %f", 
@@ -368,6 +404,7 @@ private:
     psie_debug_pub_->publish(psie_debug_msg);
     qs_debug_pub_->publish(qs_debug_msg);
     obs_cost_debug_pub_->publish(obs_cost_debug_msg);
+    mpc_projection_path_pub_->publish(mpc_projection_path_msg);
   }
 
   double obj_dist(double obj_x, double obj_y, geometry_msgs::msg::Pose2D p){
@@ -389,7 +426,8 @@ private:
 
     // Prueba para speed challenge
     double speed_e_sat = std::clamp(sqrt(pow(psie_debug_msg.data,2)+pow(ye_debug_msg.data,2)), 0., 0.5) / 0.5;
-    double qu_safe = 1000;
+    // double qu_safe = 5000;
+    double qu_safe = out[3]*10;
     out[3] = out[3]*(1-speed_e_sat) + qu_safe*speed_e_sat;
     
     return out;

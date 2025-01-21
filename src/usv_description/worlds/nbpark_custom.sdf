@@ -342,7 +342,10 @@
     </include>
 
     <!-- Load the plugin for the wind --> 
-    <plugin
+      <!-- Wind -->
+      <!-- in degrees -->
+      <!-- set to zero/empty to randomize -->
+    <!-- <plugin
       filename="libUSVWind.so"
       name="vrx::USVWind">
       <wind_obj>
@@ -350,21 +353,18 @@
         <link_name>wamv/base_link</link_name>
         <coeff_vector>.5 .5 .33</coeff_vector>
       </wind_obj>
-      <!-- Wind -->
       <wind_direction>240</wind_direction>
-      <!-- in degrees -->
       <wind_mean_velocity>0.0</wind_mean_velocity>
       <var_wind_gain_constants>0</var_wind_gain_constants>
       <var_wind_time_constants>2</var_wind_time_constants>
       <random_seed>10</random_seed>
-      <!-- set to zero/empty to randomize -->
       <update_rate>10</update_rate>
       <topic_wind_speed>/usv_description/debug/wind/speed</topic_wind_speed>
       <topic_wind_direction>/usv_description/debug/wind/direction</topic_wind_direction>
-     </plugin>
+     </plugin> -->
 
     <!-- The wave field -->
-    <plugin filename="libPublisherPlugin.so" name="vrx::PublisherPlugin">
+    <!-- <plugin filename="libPublisherPlugin.so" name="vrx::PublisherPlugin">
       <message type="gz.msgs.Param" topic="/usv_description/wavefield/parameters"
                every="2.0">
         params {
@@ -396,7 +396,7 @@
           }
         }
       </message>
-    </plugin>
+    </plugin> -->
 
     <!-- Nathan Benderson Park -->
     <!-- <include>
@@ -406,17 +406,17 @@
 
     <!-- VTec - SIII -->
     <include>
-      <name>vtec_s4</name>
+      <name>vtec_s3</name>
       <pose>-180 1088 0 0 0 0</pose>
-      <uri>vtec_s4</uri>
+      <uri>vtec_s3</uri>
     </include>
 
     <!-- Mandatory Challenge -->
-    <!-- <include>
+    <include>
       <name>mandatory_challenge</name>
       <pose>-180 1088 0 0 0 3.14</pose>
       <uri>mandatory_challenge</uri>
-    </include> -->
+    </include>
 
     <!-- Follow the Path Challenge -->
     <!-- <include>

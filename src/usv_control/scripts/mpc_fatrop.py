@@ -41,7 +41,7 @@ dt    = 0.1             # sample time
 # Dynamic avoidance
 # Tf    = 9.           # control horizon [s] : Everything Else, also dynamic obstacles
 # Tf    = 5.           # control horizon [s] : Gazebo SIM!
-Tf    = 7.           # control horizon [s] : Gazebo SIM! dynamic obs
+Tf    = 3.           # control horizon [s] : Gazebo SIM! dynamic obs
 
 
 
@@ -188,7 +188,7 @@ Xuu = -70.92
 Nr = (-0.52)*fabs(u)
 # gamma_p = atan2(ocp._param_value(tg)[3] - ocp._param_value(tg)[1], ocp._param_value(tg)[2] - ocp._param_value(tg)[0])
 # gamma_p = psi_d
-l_dist = 0.25
+l_dist = 0.
 x_ = nedx + l_dist*cos(psi)
 y_ = nedy + l_dist*sin(psi)
 ye = -(x_-tg[2])*sin(gamma_p)+(y_-tg[3])*cos(gamma_p)
@@ -221,7 +221,9 @@ ocp.add_objective(ocp.sum  (Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 +
 ocp.add_objective(ocp.at_tf(Qye*((ye)**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 + 
                             Qpsi*(cos(psi)-cos(gamma_p))**2 + Qu*((u))**2 + Qr*((r))**2 +
                             Qxe*(xe)**2))
-ocp.add_objective(ocp.at_tf(Qxe*(xe)**20))
+
+# ocp.add_objective(ocp.at_tf(Qxe*(xe)**20))
+
 # ocp.add_objective(ocp.sum  (Qye*(ye**2) + Qpsi*(sin(psi)-sin(gamma_p))**2 + 
 #                             Qpsi*(cos(psi)-cos(gamma_p))**2 + Qu*(u)**2 + Qr*(r)**2 +
 #                             Qxe*(xe**2)))
@@ -291,6 +293,7 @@ if code_gen:
     ocp._method.add_sampler("psie",sqrt((sin(psi)-sin(gamma_p))**2 + (cos(psi)-cos(gamma_p))**2))
     ocp._method.add_sampler("gamma_p",gamma_p)
     ocp._method.add_sampler("obs_cost",obs_cost_sample)
+    ocp._method.add_sampler("n_horizon",Nhor)
 
 sol = ocp.solve()
 '''

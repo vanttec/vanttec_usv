@@ -56,13 +56,13 @@ def generate_launch_description():
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=[
-                   '/model/vtec_s4/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
-                   '/model/vtec_s4/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
-                #    '/world/nbpark/model/vtec_s4/link/base_link/sensor/imu/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
-                #    '/world/nbpark/model/vtec_s4/link/base_link/sensor/navsat/navsat@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat',
-                #    '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
-                #    '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
-                #    '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
+                   '/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
+                   '/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
+                #    '/world/nbpark/model/vtec_s3/link/base_link/sensor/imu/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
+                #    '/world/nbpark/model/vtec_s3/link/base_link/sensor/navsat/navsat@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat',
+                   '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+                   '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
+                   '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
                    '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
                    ],
         # parameters=[{
@@ -81,5 +81,5 @@ def generate_launch_description():
 
 '''
 # Lidar Frame
-vtec_s4/base_link/gpu_lidar
+vtec_s3/base_link/gpu_lidar
 '''

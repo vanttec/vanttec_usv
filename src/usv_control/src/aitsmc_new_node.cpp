@@ -10,7 +10,7 @@
 using namespace std::chrono_literals;
 
 class AitsmcNewNode : public rclcpp::Node {
- public:
+public:
   AitsmcNewNode() : Node("AITSMC_Node") {
     using namespace std::placeholders;
     auto params = initialize_params();
@@ -20,22 +20,22 @@ class AitsmcNewNode : public rclcpp::Node {
         "setpoint/velocity", 10,
         [this](const std_msgs::msg::Float64 &msg) { u_d = msg.data; });
 
-    angular_velocity_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-        "setpoint/angular_velocity", 10,
-        [this](const std_msgs::msg::Float64 &msg) {
-          r_d_last_last = r_d_last; 
-          r_d_last = r_d; 
-          r_d = msg.data; 
-        });
+    angular_velocity_setpoint_sub_ =
+        this->create_subscription<std_msgs::msg::Float64>(
+            "setpoint/angular_velocity", 10,
+            [this](const std_msgs::msg::Float64 &msg) {
+              r_d_last_last = r_d_last;
+              r_d_last = r_d;
+              r_d = msg.data;
+            });
 
     heading_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
         "setpoint/heading", 10,
-        [this](const std_msgs::msg::Float64 &msg) { 
-          psi_d = msg.data; 
-        });
+        [this](const std_msgs::msg::Float64 &msg) { psi_d = msg.data; });
 
     velocity_sub_ = this->create_subscription<geometry_msgs::msg::Vector3>(
-        "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
+        "usv/state/velocity", 10,
+        [this](const geometry_msgs::msg::Vector3 &msg) {
           this->velocity = msg;
         });
 
@@ -45,8 +45,8 @@ class AitsmcNewNode : public rclcpp::Node {
 
     right_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "usv/right_thruster", 10);
-    left_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "usv/left_thruster", 10);
+    left_thruster_pub_ =
+        this->create_publisher<std_msgs::msg::Float64>("usv/left_thruster", 10);
 
     bool reset_on_mode_change =
         this->declare_parameter<bool>("reset_on_mode_change", true);
@@ -93,10 +93,11 @@ class AitsmcNewNode : public rclcpp::Node {
         this->create_wall_timer(10ms, std::bind(&AitsmcNewNode::update, this));
   }
 
- private:
+private:
   AITSMC_NEW controller{AITSMC_NEW::defaultParams()};
 
-  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr velocity_setpoint_sub_,
+  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr
+      velocity_setpoint_sub_,
       heading_setpoint_sub_, angular_velocity_setpoint_sub_;
 
   rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr velocity_sub_;
@@ -104,8 +105,8 @@ class AitsmcNewNode : public rclcpp::Node {
 
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr right_thruster_pub_,
       left_thruster_pub_, speedGain_pub_, speedError_pub_, speedSigma_pub_,
-      headingSigma_pub_, headingGain_pub_, headingError_pub_, headingDotError_pub_, 
-      headingIError_pub_, tx_pub_, tz_pub_;
+      headingSigma_pub_, headingGain_pub_, headingError_pub_,
+      headingDotError_pub_, headingIError_pub_, tx_pub_, tz_pub_;
 
   double u_d{0}, r_d{0}, psi_d{0}, r_d_last{0}, r_d_last_last{0}, rdot_d{0};
   geometry_msgs::msg::Pose2D pose;
@@ -116,31 +117,28 @@ class AitsmcNewNode : public rclcpp::Node {
   rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr mode_sub_;
   uint16_t lastMode;
 
-  AITSMCNEWParams initialize_params(bool declare_parameters=true) {
-    if(declare_parameters){
-          auto defaultParams = AITSMC_NEW::defaultParams();
-    auto params =
-        std::map<std::string, double>({
-                                       {"k_u", defaultParams.k_u},
-                                       {"k_psi", defaultParams.k_psi},
-                                       {"epsilon_u", defaultParams.epsilon_u},
-                                       {"epsilon_psi", defaultParams.epsilon_psi},
-                                       {"k_alpha_u", defaultParams.k_alpha_u},
-                                       {"k_alpha_psi", defaultParams.k_alpha_psi},
-                                       {"k_beta_u", defaultParams.k_beta_u},
-                                       {"k_beta_psi", defaultParams.k_beta_psi},
-                                       {"tc_u", defaultParams.tc_u},
-                                       {"tc_psi", defaultParams.tc_psi},
-                                       {"q_u", defaultParams.q_u},
-                                       {"q_psi", defaultParams.q_psi},
-                                       {"p_u", defaultParams.p_u},
-                                       {"p_psi", defaultParams.p_psi},
-                                       {"adaptive", defaultParams.adaptive},
-                                       });
+  AITSMCNEWParams initialize_params(bool declare_parameters = true) {
+    if (declare_parameters) {
+      auto defaultParams = AITSMC_NEW::defaultParams();
+      auto params = std::map<std::string, double>({
+          {"k_u", defaultParams.k_u},
+          {"k_psi", defaultParams.k_psi},
+          {"epsilon_u", defaultParams.epsilon_u},
+          {"epsilon_psi", defaultParams.epsilon_psi},
+          {"k_alpha_u", defaultParams.k_alpha_u},
+          {"k_alpha_psi", defaultParams.k_alpha_psi},
+          {"k_beta_u", defaultParams.k_beta_u},
+          {"k_beta_psi", defaultParams.k_beta_psi},
+          {"tc_u", defaultParams.tc_u},
+          {"tc_psi", defaultParams.tc_psi},
+          {"q_u", defaultParams.q_u},
+          {"q_psi", defaultParams.q_psi},
+          {"p_u", defaultParams.p_u},
+          {"p_psi", defaultParams.p_psi},
+          {"adaptive", defaultParams.adaptive},
+      });
 
-
-    this->declare_parameters("", params);
-
+      this->declare_parameters("", params);
     }
     AITSMCNEWParams p;
     p.k_u = this->get_parameter("k_u").as_double();
@@ -162,7 +160,7 @@ class AitsmcNewNode : public rclcpp::Node {
   }
 
   void update() {
-    rdot_d = (1.5*r_d - 2*r_d_last + 0.5*r_d_last_last) / 0.01;
+    rdot_d = (1.5 * r_d - 2 * r_d_last + 0.5 * r_d_last_last) / 0.01;
 
     vanttec::ControllerState state;
     state.u = velocity.x;
@@ -182,10 +180,11 @@ class AitsmcNewNode : public rclcpp::Node {
     auto out = controller.update(state, setpoint);
     auto debug = controller.getDebugData();
 
-    std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, edotpsi, eipsi, su, sp, txMsg, tzMsg;
+    std_msgs::msg::Float64 rt, lt, sg, hg, eu, epsi, edotpsi, eipsi, su, sp,
+        txMsg, tzMsg;
     // if(!(setpoint.u == 0 && setpoint.r == 0)){
-      rt.data = out.right_thruster;
-      lt.data = out.left_thruster;
+    rt.data = out.right_thruster;
+    lt.data = out.left_thruster;
     // } else {
     //   rt.data = 0.0;
     //   lt.data = 0.0;

@@ -18,22 +18,8 @@ from launch.actions import ExecuteProcess
 def generate_launch_description():
     is_sim = DeclareLaunchArgument(
         'is_simulation',
-        default_value = 'true',
+        default_value = 'false',
         description = 'Defines if the application will run in simulation or in real life'
-    )
-
-    sbg_config = os.path.join(
-        get_package_share_directory('usv_control'),
-        'config',
-        'sbg_device.yaml'
-    )
-
-    sbg_node = Node(
-        package='sbg_driver',
-        executable='sbg_device',
-        output='screen',
-        parameters=[sbg_config],
-        condition=UnlessCondition(LaunchConfiguration('is_simulation')),
     )
 
     imu_converter_node = Node(
@@ -74,6 +60,18 @@ def generate_launch_description():
         ]),
         # condition=IfCondition(LaunchConfiguration('is_simulation'))
     )
+
+    sbg_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_control'),
+                'launch',
+                'sbg_launch.py'
+            ])
+        ]),
+        # condition=IfCondition(LaunchConfiguration('is_simulation'))
+    )
+
 
     asmc_node = Node(
         package="usv_control",
@@ -159,6 +157,34 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('is_simulation'))
     )
 
+
+    aitsmc_new_node = Node(
+        package="usv_control",
+        executable="aitsmc_new_node",
+        remappings=[
+            ("setpoint/velocity", "/guidance/desired_velocity"),
+            ("setpoint/angular_velocity", "/guidance/desired_angular_velocity"),
+            ("setpoint/heading", "/guidance/desired_heading"),
+        ],
+        parameters=[
+            {"k_u": 1.},
+            {"k_psi": 0.2},
+            {"epsilon_u": 0.3},
+            {"k_alpha_u": 1.},
+            {"k_beta_u": 0.5},
+            {"epsilon_psi": 0.3},
+            {"k_alpha_psi": 3.},
+            {"k_beta_psi": 0.1},
+            {"tc_u": 2.0},
+            {"tc_psi": 2.0},
+            {"q_u": 3.0},
+            {"q_psi": 3.0},
+            {"p_u": 5.0},
+            {"p_psi": 5.0},
+            {"adaptive": 0.},
+        ],
+    )
+
     can_node = Node(
         package="vanttec_can_comms",
         executable="can_node",
@@ -190,17 +216,18 @@ def generate_launch_description():
     return LaunchDescription([
         is_sim,
 
-        rviz,
-        dynamic_sim_node,
+       # rviz,
+        # dynamic_sim_node,
         # asmc_node,
-        aitsmc_node,
-        los_node,
-        sbg_node,
+        # aitsmc_node,
+        aitsmc_new_node,        
+        # los_node,
+        sbg_launch,
         imu_converter_node,
         foxglove_bridge,
         # tf2,
         # can_node,
         # teleop_launch,
-        obstacle_launch,
-        waypoint_handler_node,
+        # obstacle_launch,
+        # waypoint_handler_node,
     ])

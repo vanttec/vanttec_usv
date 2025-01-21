@@ -41,7 +41,16 @@
         </material> -->
       </visual>
 
-      <collision name="Box011">
+      <collision name="Coll">
+        <geometry>
+           <mesh>
+            <uri>file://vtec_s3/meshes/vtec_s3.dae</uri>
+            <scale>0.1 0.1 0.1</scale>
+          </mesh>
+        </geometry>
+      </collision>
+
+      <!-- <collision name="Box011">
         <pose>-0.020046 0.204338 -0.1352701 0.0 0.0 0.0</pose>
         <geometry>
           <box>
@@ -64,7 +73,7 @@
             <size>0.998409 0.789244 0.4260934</size>
           </box>
         </geometry>
-      </collision>
+      </collision> -->
 
       <sensor name="navsat" type="navsat">
         <pose>0.3 0.0 0.25 0 0 0</pose>
@@ -93,14 +102,14 @@
             <vertical>
               <samples>16</samples>
               <resolution>1</resolution>
-              <min_angle>-0.261799</min_angle>
+              <min_angle>-0.1061799</min_angle>
               <max_angle>0.261799</max_angle>
             </vertical>
           </scan>
           <range>
-            <min>0.08</min>
-            <max>10.0</max>
-            <resolution>0.01</resolution>
+            <min>0.9</min>
+            <max>20.0</max>
+            <resolution>0.1</resolution>
           </range>
         </lidar>
         <alwaysOn>1</alwaysOn>
@@ -448,7 +457,7 @@
       <joint_name>left_engine_propeller_joint</joint_name>
       <thrust_coefficient>0.0001</thrust_coefficient>
       <fluid_density>1000</fluid_density>
-      <propeller_diameter>0.1</propeller_diameter>
+      <propeller_diameter>0.5</propeller_diameter>
       <velocity_control>true</velocity_control>
     </plugin>
 
@@ -458,7 +467,7 @@
       <joint_name>right_engine_propeller_joint</joint_name>
       <thrust_coefficient>0.0001</thrust_coefficient>
       <fluid_density>1000</fluid_density>
-      <propeller_diameter>0.1</propeller_diameter>
+      <propeller_diameter>0.5</propeller_diameter>
       <velocity_control>true</velocity_control>
     </plugin>
 

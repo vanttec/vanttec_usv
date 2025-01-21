@@ -81,19 +81,19 @@ def generate_launch_description():
         parameters=[
             {"k_u": 1.},
             {"k_psi": 0.2},
-            {"epsilon_u": 0.5},
-            {"k_alpha_u": 3.},
-            {"k_beta_u": 0.25},
-            {"epsilon_psi": 0.5},
-            {"k_alpha_psi": 1.},
-            {"k_beta_psi": 0.25},
+            {"epsilon_u": 0.3},
+            {"k_alpha_u": 1.},
+            {"k_beta_u": 0.5},
+            {"epsilon_psi": 0.3},
+            {"k_alpha_psi": 3.},
+            {"k_beta_psi": 0.1},
             {"tc_u": 2.0},
             {"tc_psi": 2.0},
             {"q_u": 3.0},
             {"q_psi": 3.0},
             {"p_u": 5.0},
             {"p_psi": 5.0},
-            {"adaptive": 1.0},
+            {"adaptive": 0.},
 
             # en canva
             # {"k_u": 1.},
@@ -195,19 +195,19 @@ def generate_launch_description():
     )
      
     return LaunchDescription([
-        rviz,
-        foxglove_bridge,
+        # rviz,
+        # foxglove_bridge,
 
-        dynamic_sim_node,
-        # aitsmc_node,
-        aitsmc_new_node,
+        # dynamic_sim_node,
+        # # aitsmc_node,
+        # aitsmc_new_node,
 
         # teleop_launch,
         mpc_node,
-        waypoint_handler_node,
+        # waypoint_handler_node,
 
-        mission_handler_node,
-        obstacle_launch,
-        obstacle_nearest_publisher,
+        # mission_handler_node,
+        # obstacle_launch,
+        # obstacle_nearest_publisher,
         
     ])

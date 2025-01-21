@@ -41,7 +41,8 @@
     imuGravity: 9.80511
     imuRPYWeight: 0.01
 
-    extrinsicTrans:  [ 0.0,  0.0,  0.0 ]
+    extrinsicTrans:  [ 0.69,  0.0,  0.23 ]
+    # Default config.
     # extrinsicRot:    [-1.0,  0.0,  0.0,
     #                    0.0,  1.0,  0.0,
     #                    0.0,  0.0, -1.0 ]
@@ -49,12 +50,9 @@
     #                -1.0,  0.0,  0.0,
     #                 0.0,  0.0,  1.0 ]
 
-    # extrinsicRot: [ 1.0,  0.0,  0.0,
-    #                 0.0, -1.0,  0.0,
-    #                 0.0,  0.0, -1.0 ]
-    # extrinsicRPY: [ 1.0,  0.0,  0.0,
-    #                 0.0, -1.0,  0.0,
-    #                 0.0,  0.0, -1.0 ]
+    # Real config.
+    # Nothing. IMU is pointing backwards and LiDAR forwards.
+
 
     # LOAM feature threshold
     edgeThreshold: 1.0
