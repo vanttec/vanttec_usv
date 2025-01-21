@@ -28,28 +28,28 @@ Enter the following commands into your **Ubuntu** terminal:
 cd
 git clone --recurse-submodules http://github.com/vanttec/vanttec_usv.git
 
-# Build docker container
-cd ~/vanttec_usv
-docker build -t vtec_rb25 .
+# # Build docker container
+# cd ~/vanttec_usv
+# docker build -t vtec_rb25 .
 
-# Run container
-usv start 
-```
+# # Run container
+# usv start 
+# ```
 
-```Shell
-# Build ROS 2 packages
-colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release --parallel-workers $(nproc)
+# ```Shell
+# # Build ROS 2 packages
+# colcon build --symlink-install --cmake-args=-DCMAKE_BUILD_TYPE=Release --parallel-workers $(nproc)
 
-# (Pull and) Run docker image ->
-# Jetson TX2
-sudo docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ --device=/dev/ttyUSB0 -it maxpacheco02/vanttec_usv:rb25
+# # (Pull and) Run docker image ->
+# # Jetson TX2
+# sudo docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ --device=/dev/ttyUSB0 -it maxpacheco02/vanttec_usv:rb25
 
-# Jetson Orin Nano
-sudo docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ --device=/dev/ttyUSB0 --net=host -it my_container:l4t-r36.3.0
+# # Jetson Orin Nano
+# sudo docker run --hostname vtec --name usv -v ~/vanttec_usv/:/ws/ --device=/dev/ttyUSB0 --net=host -it my_container:l4t-r36.3.0
 
-sudo docker start usv
-sudo docker attach usv
-sudo docker exec -it usv bash
+# sudo docker start usv
+# sudo docker attach usv
+# sudo docker exec -it usv bash
 
 
 export ROS_LOCALHOST_ONLY=0
@@ -123,7 +123,7 @@ Just restart ros daemon
 # To install dependencies automatically:
 rosdep install --from-paths src -y --ignore-src
 
-sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations
+sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations libgz-sim7-dev libignition-transport12-dev libignition-msgs9-dev python3-sdformat13
 
 sudo add-apt-repository ppa:borglab/gtsam-release-4.1
 sudo apt install libgtsam-dev libgtsam-unstable-dev
