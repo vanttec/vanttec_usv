@@ -30,7 +30,7 @@ class ObstaclePublisherNode : public rclcpp::Node {
             this->declare_parameter("dynamic_obstacles", rclcpp::PARAMETER_BOOL);
             dynamic_obs = this->get_parameter("dynamic_obstacles").as_bool();
 
-            this->declare_parameter("mission_choice", rclcpp::PARAMETER_STRING);
+            this->declare_parameter("global_tasks", rclcpp::PARAMETER_STRING_ARRAY);
             update_params();
 
             // Append dynamic obstacles
@@ -151,7 +151,7 @@ class ObstaclePublisherNode : public rclcpp::Node {
                     std::shared_ptr<std_srvs::srv::Empty::Response> response) {
 
             // this->declare_parameter("mission_choice", rclcpp::PARAMETER_STRING);
-            std::string mission_prefix = this->get_parameter("mission_choice").as_string();
+            std::string mission_prefix = this->get_parameter("m3.name").as_string();
             
             int docking_versions = 3;
 
@@ -163,7 +163,7 @@ class ObstaclePublisherNode : public rclcpp::Node {
             
             // std::vector<rclcpp::Parameter> all_new_parameters{rclcpp::Parameter("mission_choice", new_prefix)};
             // this->set_parameters(all_new_parameters);
-            rclcpp::Parameter updated_param("mission_choice", new_prefix);
+            rclcpp::Parameter updated_param("m3.name", new_prefix);
             this->set_parameter(updated_param);
             update_params();
         }
@@ -247,51 +247,73 @@ class ObstaclePublisherNode : public rclcpp::Node {
         }
 
         void update_params(){
-            std::string mission_prefix = this->get_parameter("mission_choice").as_string();
-
-            if(!this->has_parameter(mission_prefix + ".obj_names")){
-            this->declare_parameter(mission_prefix + ".obj_names", rclcpp::PARAMETER_STRING_ARRAY);
-            }
-            std::vector<std::string> n = this->get_parameter(mission_prefix + ".obj_names").as_string_array();
-
+            std::vector<std::string> global_tasks = this->get_parameter("global_tasks").as_string_array();
             object_list_global.obj_list.clear();
             marker_arr.markers.clear();
-            for(std::string &name : n) {
-                usv_interfaces::msg::Object obj;
-                visualization_msgs::msg::Marker marker;
-
-                if(!this->has_parameter(mission_prefix + ".obj_info." + name + ".x")){
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".x", rclcpp::PARAMETER_DOUBLE);
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".y", rclcpp::PARAMETER_DOUBLE);
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".color", rclcpp::PARAMETER_INTEGER);
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".type", rclcpp::PARAMETER_STRING);
+            for(std::string &mission_id : global_tasks) {
+                if(!this->has_parameter(mission_id + ".name")){
+                    this->declare_parameter(mission_id + ".name", rclcpp::PARAMETER_STRING);
+                    this->declare_parameter(mission_id + ".pose", rclcpp::PARAMETER_DOUBLE_ARRAY);
                 }
+                std::string mission_prefix = this->get_parameter(mission_id + ".name").as_string();
+                std::vector<double> mission_pose = this->get_parameter(mission_id + ".pose").as_double_array();
+                Eigen::Vector3f mission_base_pose{mission_pose[0],mission_pose[1],mission_pose[2]};
 
-                double x = this->get_parameter(mission_prefix + ".obj_info." + name + ".x").as_double();
-                double y = this->get_parameter(mission_prefix + ".obj_info." + name + ".y").as_double();
-                int64_t color = this->get_parameter(mission_prefix + ".obj_info." + name + ".color").as_int();
-                std::string type = this->get_parameter(mission_prefix + ".obj_info." + name + ".type").as_string();
+                if(!this->has_parameter(mission_prefix + ".obj_names")){
+                this->declare_parameter(mission_prefix + ".obj_names", rclcpp::PARAMETER_STRING_ARRAY);
+                }
+                std::vector<std::string> n = this->get_parameter(mission_prefix + ".obj_names").as_string_array();
 
-                obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(0.).v_y(0.).color(color).type(type);
-                object_list_global.obj_list.push_back(obj);
+                for(std::string &name : n) {
+                    usv_interfaces::msg::Object obj;
+                    visualization_msgs::msg::Marker marker;
 
-                int r{color_list[color][0]},
-                    g{color_list[color][1]},
-                    b{color_list[color][2]},
-                    a{color_list[color][3]};
+                    if(!this->has_parameter(mission_prefix + ".obj_info." + name + ".x")){
+                    this->declare_parameter(mission_prefix + ".obj_info." + name + ".x", rclcpp::PARAMETER_DOUBLE);
+                    this->declare_parameter(mission_prefix + ".obj_info." + name + ".y", rclcpp::PARAMETER_DOUBLE);
+                    this->declare_parameter(mission_prefix + ".obj_info." + name + ".color", rclcpp::PARAMETER_INTEGER);
+                    this->declare_parameter(mission_prefix + ".obj_info." + name + ".type", rclcpp::PARAMETER_STRING);
+                    }
 
-                marker.header.frame_id = "world";
-                marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
-                marker.action = 0;
-                marker.id = marker_arr.markers.size();
-                marker.type = marker_type[type].type;
-                marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
-                                x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
-                marker.pose.position.x = x;
-                marker.pose.position.y = y;
-                marker.pose.position.z = marker_type[type].z_trans;
-                marker_arr.markers.push_back(marker);
+                    double x = this->get_parameter(mission_prefix + ".obj_info." + name + ".x").as_double();
+                    double y = this->get_parameter(mission_prefix + ".obj_info." + name + ".y").as_double();
+
+                    Eigen::Vector3f tf_obs_pose = tf_body_to_world(mission_base_pose, Eigen::Vector3f{x, y, 0.0});
+                    x = tf_obs_pose(0);
+                    y = tf_obs_pose(1);
+
+                    int64_t color = this->get_parameter(mission_prefix + ".obj_info." + name + ".color").as_int();
+                    std::string type = this->get_parameter(mission_prefix + ".obj_info." + name + ".type").as_string();
+
+                    obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(0.).v_y(0.).color(color).type(type);
+                    object_list_global.obj_list.push_back(obj);
+
+                    int r{color_list[color][0]},
+                        g{color_list[color][1]},
+                        b{color_list[color][2]},
+                        a{color_list[color][3]};
+
+                    marker.header.frame_id = "world";
+                    marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
+                    marker.action = 0;
+                    marker.id = marker_arr.markers.size();
+                    marker.type = marker_type[type].type;
+                    marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
+                                    x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
+                    marker.pose.position.x = x;
+                    marker.pose.position.y = y;
+                    marker.pose.position.z = marker_type[type].z_trans;
+                    marker_arr.markers.push_back(marker);
+                }
             }
+        }
+
+        Eigen::Vector3f tf_body_to_world(Eigen::Vector3f pose_, Eigen::Vector3f relative){
+        Eigen::Matrix3f rotM;
+        rotM << std::cos(pose_(2)), - std::sin(pose_(2)), 0, 
+                std::sin(pose_(2)), std::cos(pose_(2)), 0, 
+                0, 0, 1;
+        return pose_ + rotM * relative;
         }
 };
 
