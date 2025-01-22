@@ -23,6 +23,12 @@ struct Obstacle {
   int color; // 0 = red, 1 = green, 2 = blue, 3 = yellow, 4 = black
 };
 
+struct State {
+  int state;
+  int status;
+  std::vector<Eigen::Vector3f> goals;
+};
+
 struct USVUpdate {
   std::vector<Obstacle> obs_list;
   int docking_color_choice{1};
