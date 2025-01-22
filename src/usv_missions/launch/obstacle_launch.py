@@ -26,6 +26,9 @@ def generate_launch_description():
         package='usv_missions',
         executable='obstacle_publisher_node',
         parameters=[obstacles_config],
+        output='screen',
+        emulate_tty=True,
+        arguments=[('__log_level:=debug')],
     )
 
     return LaunchDescription([

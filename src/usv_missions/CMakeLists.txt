@@ -10,6 +10,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
@@ -20,7 +21,7 @@ ament_target_dependencies(mission_handler_node rclcpp std_msgs geometry_msgs vis
 target_compile_features(mission_handler_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 add_executable(obstacle_publisher_node src/obstacle_publisher.cpp)
-ament_target_dependencies(obstacle_publisher_node rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
+ament_target_dependencies(obstacle_publisher_node rclcpp std_msgs std_srvs geometry_msgs visualization_msgs usv_interfaces Eigen3)
 target_compile_features(obstacle_publisher_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 install(TARGETS

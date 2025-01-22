@@ -13,9 +13,10 @@
 #include "std_msgs/msg/color_rgba.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "std_srvs/srv/empty.hpp"
 
 using namespace std::chrono_literals;
-using std::placeholders::_1;
+using namespace std::placeholders;
 
 struct MarkerProps {
   int type;
@@ -26,49 +27,12 @@ class ObstaclePublisherNode : public rclcpp::Node {
     public:
         ObstaclePublisherNode(): Node("obstacle_publisher_node") {
 
-            this->declare_parameter("mission_choice", rclcpp::PARAMETER_STRING);
-            std::string mission_prefix = this->get_parameter("mission_choice").as_string();
-
             this->declare_parameter("dynamic_obstacles", rclcpp::PARAMETER_BOOL);
             dynamic_obs = this->get_parameter("dynamic_obstacles").as_bool();
 
-            this->declare_parameter(mission_prefix + ".obj_names", rclcpp::PARAMETER_STRING_ARRAY);
-            std::vector<std::string> n = this->get_parameter(mission_prefix + ".obj_names").as_string_array();
+            this->declare_parameter("mission_choice", rclcpp::PARAMETER_STRING);
+            update_params();
 
-            for(std::string &name : n) {
-                usv_interfaces::msg::Object obj;
-                visualization_msgs::msg::Marker marker;
-
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".x", rclcpp::PARAMETER_DOUBLE);
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".y", rclcpp::PARAMETER_DOUBLE);
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".color", rclcpp::PARAMETER_INTEGER);
-                this->declare_parameter(mission_prefix + ".obj_info." + name + ".type", rclcpp::PARAMETER_STRING);
-
-                double x = this->get_parameter(mission_prefix + ".obj_info." + name + ".x").as_double();
-                double y = this->get_parameter(mission_prefix + ".obj_info." + name + ".y").as_double();
-                int64_t color = this->get_parameter(mission_prefix + ".obj_info." + name + ".color").as_int();
-                std::string type = this->get_parameter(mission_prefix + ".obj_info." + name + ".type").as_string();
-
-                obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(0.).v_y(0.).color(color).type(type);
-                object_list_global.obj_list.push_back(obj);
-
-                int r{color_list[color][0]},
-                    g{color_list[color][1]},
-                    b{color_list[color][2]},
-                    a{color_list[color][3]};
-
-                marker.header.frame_id = "world";
-                marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
-                marker.action = 0;
-                marker.id = marker_arr.markers.size();
-                marker.type = marker_type[type].type;
-                marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
-                                x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
-                marker.pose.position.x = x;
-                marker.pose.position.y = y;
-                marker.pose.position.z = marker_type[type].z_trans;
-                marker_arr.markers.push_back(marker);
-            }
             // Append dynamic obstacles
             if(dynamic_obs){
                 for(int i = 0 ; i < dyn_obs_n; i++){
@@ -105,8 +69,6 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 }
             }
 
-
-
             object_list_global_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_list_global", 10);
             object_list_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_list", 10);
             marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/marker_array", 10);
@@ -115,6 +77,9 @@ class ObstaclePublisherNode : public rclcpp::Node {
             pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
                 "/usv/state/pose", 10,
                 [this](const geometry_msgs::msg::Pose2D &msg){  pose = msg; });
+
+            docking_rotate_srv_ = this->create_service<std_srvs::srv::Empty>("/usv/obstacle_publisher/docking/rotate",
+                std::bind(&ObstaclePublisherNode::docking_rotate_srv, this, _1, _2));
 
             timer_ = this->create_wall_timer(
             10ms, std::bind(&ObstaclePublisherNode::timer_callback, this));
@@ -127,6 +92,8 @@ class ObstaclePublisherNode : public rclcpp::Node {
         rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_, on_watch_marker_pub_;
 
         rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
+
+        rclcpp::Service<std_srvs::srv::Empty>::SharedPtr docking_rotate_srv_;
 
         usv_interfaces::msg::ObjectList object_list, object_list_global;
         visualization_msgs::msg::MarkerArray marker_arr, on_watch_arr;
@@ -178,6 +145,27 @@ class ObstaclePublisherNode : public rclcpp::Node {
             object_list_pub_->publish(object_list);
             marker_pub_->publish(marker_arr);
             on_watch_marker_pub_->publish(on_watch_arr);
+        }
+
+        void docking_rotate_srv(const std::shared_ptr<std_srvs::srv::Empty::Request> request,
+                    std::shared_ptr<std_srvs::srv::Empty::Response> response) {
+
+            // this->declare_parameter("mission_choice", rclcpp::PARAMETER_STRING);
+            std::string mission_prefix = this->get_parameter("mission_choice").as_string();
+            
+            int docking_versions = 3;
+
+            // int new_docking_version = std::stoi(mission_prefix.back())%(docking_versions) + 1;
+            int new_docking_version = std::stoi(std::string(1, mission_prefix.back())) % docking_versions + 1;
+
+            std::string new_prefix = "m3_v"+std::to_string(new_docking_version);
+            std::cout << "new prefix: " << new_prefix << std::endl;
+            
+            // std::vector<rclcpp::Parameter> all_new_parameters{rclcpp::Parameter("mission_choice", new_prefix)};
+            // this->set_parameters(all_new_parameters);
+            rclcpp::Parameter updated_param("mission_choice", new_prefix);
+            this->set_parameter(updated_param);
+            update_params();
         }
 
         void update_dyn(){
@@ -256,7 +244,55 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 marker.id = i;
                 on_watch_arr.markers.push_back(marker);
             }
-        }       
+        }
+
+        void update_params(){
+            std::string mission_prefix = this->get_parameter("mission_choice").as_string();
+
+            if(!this->has_parameter(mission_prefix + ".obj_names")){
+            this->declare_parameter(mission_prefix + ".obj_names", rclcpp::PARAMETER_STRING_ARRAY);
+            }
+            std::vector<std::string> n = this->get_parameter(mission_prefix + ".obj_names").as_string_array();
+
+            object_list_global.obj_list.clear();
+            marker_arr.markers.clear();
+            for(std::string &name : n) {
+                usv_interfaces::msg::Object obj;
+                visualization_msgs::msg::Marker marker;
+
+                if(!this->has_parameter(mission_prefix + ".obj_info." + name + ".x")){
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".x", rclcpp::PARAMETER_DOUBLE);
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".y", rclcpp::PARAMETER_DOUBLE);
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".color", rclcpp::PARAMETER_INTEGER);
+                this->declare_parameter(mission_prefix + ".obj_info." + name + ".type", rclcpp::PARAMETER_STRING);
+                }
+
+                double x = this->get_parameter(mission_prefix + ".obj_info." + name + ".x").as_double();
+                double y = this->get_parameter(mission_prefix + ".obj_info." + name + ".y").as_double();
+                int64_t color = this->get_parameter(mission_prefix + ".obj_info." + name + ".color").as_int();
+                std::string type = this->get_parameter(mission_prefix + ".obj_info." + name + ".type").as_string();
+
+                obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(0.).v_y(0.).color(color).type(type);
+                object_list_global.obj_list.push_back(obj);
+
+                int r{color_list[color][0]},
+                    g{color_list[color][1]},
+                    b{color_list[color][2]},
+                    a{color_list[color][3]};
+
+                marker.header.frame_id = "world";
+                marker.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(r).g(g).b(b).a(a);
+                marker.action = 0;
+                marker.id = marker_arr.markers.size();
+                marker.type = marker_type[type].type;
+                marker.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().
+                                x(marker_type[type].x).y(marker_type[type].y).z(marker_type[type].z); 
+                marker.pose.position.x = x;
+                marker.pose.position.y = y;
+                marker.pose.position.z = marker_type[type].z_trans;
+                marker_arr.markers.push_back(marker);
+            }
+        }
 };
 
 int main(int argc, char * argv[]) {

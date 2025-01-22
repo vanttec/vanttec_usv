@@ -49,6 +49,13 @@ class MissionHandlerNode : public rclcpp::Node {
                 "/obj_list", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
             );
 
+            wp_arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
+                "/usv/wp_arrived", 1,
+                [this](const std_msgs::msg::Bool &msg) {
+                    update_params.wp_arrived = msg.data;
+                    update_params.docking_color_choice = 1;
+                });
+
             mission_command_sub_ = this->create_subscription<std_msgs::msg::Int8>(
                 "/usv/mission_command", 10, 
                 [this](const std_msgs::msg::Int8 &msg) { 
@@ -75,7 +82,7 @@ class MissionHandlerNode : public rclcpp::Node {
                     }
             });
 
-            vtec = std::make_shared<M4>();
+            vtec = std::make_shared<M3>();
 
             mission_id_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/id", 10);
             mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/state", 10);
@@ -92,6 +99,7 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_command_sub_;
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_;
 
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
@@ -110,7 +118,7 @@ class MissionHandlerNode : public rclcpp::Node {
         
         std::shared_ptr<Mission> vtec;
 
-        bool goal_reached{false}, moving{false};
+        bool wp_arrived{false}, moving{false};
         double goal_dist{0.0};
         double x_diff{0.0}, y_diff{0.0};
         int yellow_found{0}, black_found{0}, pivots_to_do{-1}, pivots_done{0};
@@ -125,6 +133,7 @@ class MissionHandlerNode : public rclcpp::Node {
             
             if(feedback.goals.size() > 0){
                 set_goals(feedback.goals);
+                wp_pub_->publish(wp_list);
             }
 
             state.data = feedback.state;
@@ -133,7 +142,6 @@ class MissionHandlerNode : public rclcpp::Node {
 
             // RCLCPP_INFO(get_logger(), "WP LIST SIZE: %d", wp_list.waypoint_list.size());
             
-            wp_pub_->publish(wp_list);
             mission_id_pub_->publish(id);
             mission_state_pub_->publish(state);
             mission_status_pub_->publish(status);

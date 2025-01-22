@@ -8,6 +8,8 @@
 #include <string>
 #include <optional>
 #include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/int8.hpp"
+#include "std_msgs/msg/bool.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include <limits>
@@ -68,7 +70,7 @@ public:
                             && fabs(wp_vec[j].theta - msg.waypoint_list[i].theta) < 0.1
                             )
                         {
-                            wp_repeats = true;
+                            // wp_repeats = true;
                         }
                     }
                     if (!wp_repeats)
@@ -77,6 +79,25 @@ public:
                     }
                 }
             });
+
+        mission_id_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+            "/usv/mission/id", 10,
+            [this](const std_msgs::msg::Int8 &msg){
+            switch(msg.data){
+                case 3:
+                    lookahead_distance = 1.;  // meters (path-tracking)
+                    break;
+                case 4:
+                    lookahead_distance = 2.;  // meters (path-tracking + dynamic avoidance)
+                    break;
+                default:
+                    lookahead_distance = 2.;  // meters (path-tracking + dynamic avoidance)
+                    break;
+            }
+            });
+
+        wp_arrived_pub_ = this->create_publisher<std_msgs::msg::Bool>(
+            "/usv/wp_arrived", 10);
 
         path_to_follow_pub_ = this->create_publisher<nav_msgs::msg::Path>(
             "/usv/path_to_follow", 10);
@@ -108,12 +129,16 @@ private:
     rclcpp::TimerBase::SharedPtr timer_{nullptr};
 
     rclcpp::Subscription<usv_interfaces::msg::WaypointList>::SharedPtr goals_sub_;
+    rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_id_sub_;
     rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
 
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr goals_markers_pub_;
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_to_follow_pub_, current_path_ref_pub_;
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr wp_arrived_pub_;
 
     geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
+
+    std_msgs::msg::Bool wp_arrived_msg;
 
     visualization_msgs::msg::MarkerArray goals_markers;
     visualization_msgs::msg::Marker tmp_marker;
@@ -121,13 +146,23 @@ private:
     nav_msgs::msg::Path current_path_ref, path_to_follow;
     
     std::vector<Wp> wp_vec;
-    int wp_i{0};
+    int wp_count{0};
 
     double pose[3]{0., 0., 0.};
     int closest_wp = 0;
+    bool has_been_in_first{false};
+    bool has_been_in_second_wp{false};
 
     Wp next_wp{pose[0], pose[1]}, base_wp{pose[0], pose[1]};
     bool suitable_wp{false};
+    int num_interpolations = 100; // Number of intermediate points
+    double control_distance = 0.9;  // Distance for Bezier control points
+
+    // Determine lookahead distance
+    // double lookahead_distance = 1.5;  // meters (path-tracking)
+    // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
+    // double lookahead_distance = 2.5;  // meters (path-tracking + dynamic avoidance)
+    double lookahead_distance = 2.;  // meters (path-tracking + dynamic avoidance)
 
     // Function to compute the Euclidean distance between two points (x1, y1) and (x2, y2)
     double computeDistance(double x1, double y1, double x2, double y2) {
@@ -215,13 +250,13 @@ private:
         tmp_marker.pose.orientation.y = q.y();
         tmp_marker.pose.orientation.z = q.z();
         tmp_marker.pose.orientation.w = q.w();
-        tmp_marker.id = wp_vec.size();
+        tmp_marker.id = wp_count++;
         goals_markers.markers.push_back(tmp_marker);
     }
 
     
     // Helper function to compute a control point based on theta and a control distance
-    Wp computeControlPoint(const Wp& wp, double control_distance) {
+    Wp computeControlPoint(Wp wp, double control_distance) {
     Wp control_point;
     control_point.x = wp.x + control_distance * cos(wp.theta);
     control_point.y = wp.y + control_distance * sin(wp.theta);
@@ -230,7 +265,7 @@ private:
     }
 
 // Bezier interpolation function with quaternion SLERP for angles
-void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpolations, double control_distance) {
+void interpolateWaypoints( Wp start_wp, Wp end_wp, int num_interpolations, double control_distance) {
     // Compute the control points for the Bezier curve
     Wp control_point_start = computeControlPoint(start_wp, control_distance);
     Wp control_point_end = computeControlPoint(end_wp, -control_distance);  // Control point for end wp is in the reverse direction
@@ -279,18 +314,43 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
 
     void update()
     {
-        if(path_to_follow.poses.size() > 0){
-            // Determine lookahead distance
-            // double lookahead_distance = 1.5;  // meters (path-tracking)
-            // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
-            // double lookahead_distance = 2.5;  // meters (path-tracking + dynamic avoidance)
-            double lookahead_distance = 2.;  // meters (path-tracking + dynamic avoidance)
+        if(wp_vec.size() > 2){
+            double second_wp_dist = computeDistance(
+                pose[0],
+                pose[1],
+                wp_vec[1].x,
+                wp_vec[1].y
+            );
 
+            if(has_been_in_second_wp && second_wp_dist > 0.8){
+                wp_vec.erase(wp_vec.begin());
+                has_been_in_second_wp = false;
+                closest_wp -= num_interpolations;
+            } else if(second_wp_dist < 0.3){
+                has_been_in_second_wp = true;
+            }
+        }
+
+        // Clear the path and add the base waypoint
+        path_to_follow.poses.clear();
+
+        // Iterate through the waypoints and interpolate between each pair
+        if (wp_vec.size() >= 2) {
+            for (int i = 0; i < wp_vec.size() - 1; ++i) {
+            Wp start_wp = wp_vec[i];
+            Wp end_wp = wp_vec[i + 1];
+            
+            // Interpolate between the current pair of waypoints
+            interpolateWaypoints(start_wp, end_wp, num_interpolations, control_distance);
+            }
+        }
+
+        if(path_to_follow.poses.size() > 0){
             // Find waypoints behind and ahead of the boat
             auto [wp_behind_i, wp_ahead_i] = findLookaheadWaypoints(lookahead_distance);
 
             // If valid waypoints were found, create a guidance line for control
-            if (wp_behind_i != -1 && wp_ahead_i != -1) {
+            if (wp_behind_i != -1 && wp_ahead_i != -1 && wp_ahead_i > wp_behind_i) {
                 current_path_ref.poses[0].pose.position.x = path_to_follow.poses[wp_behind_i].pose.position.x;
                 current_path_ref.poses[0].pose.position.y = path_to_follow.poses[wp_behind_i].pose.position.y;
                 // current_path_ref.poses[0].pose.position.x = pose[0];
@@ -301,26 +361,23 @@ void interpolateWaypoints(const Wp &start_wp, const Wp &end_wp, int num_interpol
                 current_path_ref.poses[1].pose.position.z = 0.;
             }
             // RCLCPP_INFO(this->get_logger(), "Indexes: %d, %d", wp_behind_i, wp_ahead_i);
+            path_to_follow_pub_->publish(path_to_follow);
+            current_path_ref_pub_->publish(current_path_ref);
         }
 
-        // Clear the path and add the base waypoint
-        path_to_follow.poses.clear();
-
-        // Iterate through the waypoints and interpolate between each pair
-        if (wp_vec.size() >= 2) {
-            for (size_t i = 0; i < wp_vec.size() - 1; ++i) {
-            const Wp &start_wp = wp_vec[i];
-            const Wp &end_wp = wp_vec[i + 1];
-            
-            // Interpolate between the current pair of waypoints
-            int num_interpolations = 100; // Number of intermediate points
-            double control_distance = 0.9;  // Distance for Bezier control points
-            interpolateWaypoints(start_wp, end_wp, num_interpolations, control_distance);
-            }
+        double wp_arrived_dist = computeDistance(
+                    current_path_ref.poses[0].pose.position.x,
+                    current_path_ref.poses[0].pose.position.y,
+                    current_path_ref.poses[1].pose.position.x,
+                    current_path_ref.poses[1].pose.position.y
+        );
+        if( wp_arrived_dist < 0.2 ) {
+            wp_arrived_msg.data = true;
+        } else {
+            wp_arrived_msg.data = false;
         }
 
-        path_to_follow_pub_->publish(path_to_follow);
-        current_path_ref_pub_->publish(current_path_ref);
+        wp_arrived_pub_->publish(wp_arrived_msg);
         goals_markers_pub_->publish(goals_markers);
     }
 

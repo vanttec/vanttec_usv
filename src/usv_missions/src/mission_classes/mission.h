@@ -32,6 +32,7 @@ struct State {
 struct USVUpdate {
   std::vector<Obstacle> obs_list;
   int docking_color_choice{1};
+  bool wp_arrived;
 };
 
 struct USVOutput {
@@ -75,6 +76,7 @@ class Mission {
   void register_buoy(Eigen::Vector3f buoy);
   std::vector<Eigen::Vector3f> pack_goal(Eigen::Vector3f wp_base, 
                                 Eigen::Vector3f wp_goal, double dist);
+  Eigen::Vector3f tf_body_to_world(Eigen::Vector3f p, Eigen::Vector3f relative);
 };
 
 #endif  // MISSION_H

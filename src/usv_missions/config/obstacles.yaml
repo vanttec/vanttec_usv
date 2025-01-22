@@ -1,8 +1,8 @@
 obstacle_publisher_node:
   ros__parameters:
     dynamic_obstacles: false
-    mission_choice: "m4_v4"
-    m1_test:
+    mission_choice: "m3_v1"
+    m1_t:
       obj_names: ["b1", "b2", "b3", "b4"]
       obj_info:
         b1:
@@ -25,7 +25,7 @@ obstacle_publisher_node:
           y: -9.0
           color: 1
           type: "marker"
-    m1:
+    m1_v1:
       obj_names: ["b1", "b2", "b3", "b4"]
       obj_info:
         b1:
@@ -48,7 +48,7 @@ obstacle_publisher_node:
           y: -1.0
           color: 1
           type: "marker"
-    m2:
+    m2_v1:
       obj_names: ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9"]
       obj_info:
         b1:
@@ -299,7 +299,7 @@ obstacle_publisher_node:
           y: 2.8140804767608643
           color: 4
           type: "round"
-    m3:
+    m3_v1:
       obj_names: ["picture1", "picture2", "picture3", "boat1"]
       obj_info:
         picture1:
@@ -320,9 +320,65 @@ obstacle_publisher_node:
         boat1:
           x: 5.8
           y: 4.8
-          color: 1
+          color: 4
           type: "boat"
-    m4:
+    m3_v2:
+      obj_names: ["picture1", "picture2", "picture3", "boat1", "boat2"]
+      obj_info:
+        picture1:
+          x: 7.0
+          y: 1.0
+          color: 1
+          type: "picture"
+        picture2:
+          x: 6.5
+          y: 3.0
+          color: 3
+          type: "picture"
+        picture3:
+          x: 6.
+          y: 5.0
+          color: 2
+          type: "picture"
+        boat1:
+          x: 7.5
+          y: 1.5
+          color: 4
+          type: "boat"
+        boat2:
+          x: 7.0
+          y: 3.5
+          color: 4
+          type: "boat"
+    m3_v3:
+      obj_names: ["picture1", "picture2", "picture3", "boat1", "boat2"]
+      obj_info:
+        picture1:
+          x: 7.0
+          y: 1.0
+          color: 3
+          type: "picture"
+        picture2:
+          x: 6.5
+          y: 3.0
+          color: 2
+          type: "picture"
+        picture3:
+          x: 6.
+          y: 5.0
+          color: 1
+          type: "picture"
+        boat1:
+          x: 7.5
+          y: 1.5
+          color: 4
+          type: "boat"
+        boat2:
+          x: 7.0
+          y: 3.5
+          color: 4
+          type: "boat"
+    m4_v1:
       obj_names: ["b1", "b2", "b3", "b4"]
       obj_info:
         b1:
@@ -439,7 +495,7 @@ obstacle_publisher_node:
           y: 2.0981484651565552
           color: 4
           type: "round"
-    m6:
+    m6_v1:
       obj_names: ["b1", "b2"]
       obj_info:
         b1:

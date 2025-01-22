@@ -156,19 +156,20 @@ public:
     mission_id_sub_ = this->create_subscription<std_msgs::msg::Int8>(
         "/usv/mission/id", 10,
         [this](const std_msgs::msg::Int8 &msg){
-          if(msg.data == 4){
-            primary_weights = speed_weights;
-            // primary_weights = path_tracking_weights;
-            // primary_weights = dyn_avoidance_weights;
-            // primary_weights = avoidance_weights;
-
-            secondary_weights = dyn_avoidance_weights;
-            // secondary_weights = speed_weights;
-            // secondary_weights = avoidance_weights;
-            // secondary_weights = path_tracking_weights;
-          } else {
-            primary_weights = path_tracking_weights;
-            secondary_weights = avoidance_weights;
+          switch(msg.data){
+            case 3:
+              primary_weights = speed_weights;
+              // primary_weights = path_tracking_weights;
+              secondary_weights = path_tracking_weights;
+              break;
+            case 4:
+              primary_weights = speed_weights;
+              secondary_weights = dyn_avoidance_weights;
+              break;
+            default:
+              primary_weights = path_tracking_weights;
+              secondary_weights = avoidance_weights;
+              break;
           }
         });
 

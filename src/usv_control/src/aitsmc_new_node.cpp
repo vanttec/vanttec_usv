@@ -31,7 +31,10 @@ public:
 
     heading_setpoint_sub_ = this->create_subscription<std_msgs::msg::Float64>(
         "setpoint/heading", 10,
-        [this](const std_msgs::msg::Float64 &msg) { psi_d = msg.data; });
+        [this](const std_msgs::msg::Float64 &msg) { 
+          psi_d = msg.data;
+          virgin_heading = false;
+        });
 
     velocity_sub_ = this->create_subscription<geometry_msgs::msg::Vector3>(
         "usv/state/velocity", 10,
@@ -41,7 +44,12 @@ public:
 
     pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
         "usv/state/pose", 10,
-        [this](const geometry_msgs::msg::Pose2D &msg) { this->pose = msg; });
+        [this](const geometry_msgs::msg::Pose2D &msg) {
+          this->pose = msg;
+          if(virgin_heading){
+            psi_d = msg.theta;
+          }
+        });
 
     right_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
         "usv/right_thruster", 10);
@@ -109,6 +117,7 @@ private:
       headingDotError_pub_, headingIError_pub_, tx_pub_, tz_pub_;
 
   double u_d{0}, r_d{0}, psi_d{0}, r_d_last{0}, r_d_last_last{0}, rdot_d{0};
+  bool virgin_heading{true};
   geometry_msgs::msg::Pose2D pose;
   geometry_msgs::msg::Vector3 velocity;
 

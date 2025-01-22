@@ -133,6 +133,9 @@ class DynamicModelSim : public rclcpp::Node {
     pose_stamped_tmp_.pose.position.x = pose.x;
     pose_stamped_tmp_.pose.position.y = pose.y;
     pose_path.poses.push_back(pose_stamped_tmp_);
+    if(pose_path.poses.size() > 5000){
+      pose_path.poses.erase(pose_path.poses.begin(), pose_path.poses.begin()+1);
+    }
 
     odomPub->publish(odom);
     localVelPub->publish(velMsg);
@@ -161,7 +164,7 @@ class DynamicModelSim : public rclcpp::Node {
 
   DynamicModel model{0,0,0};
   // DynamicModel model{0,0,M_PI/4};
-  // DynamicModel model{12,15,-2.3};
+  // DynamicModel model{11,4,-3.0};
 
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster;
   std::string boatname_;
