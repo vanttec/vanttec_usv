@@ -53,6 +53,7 @@ class Mission {
   virtual ~Mission() = default;
   virtual USVOutput update(const Eigen::Vector3f &pose, const  USVUpdate &params) = 0;
   int get_id();
+  int set_status(int new_status);
 
  protected:
   std::vector<Obstacle> obs_list;

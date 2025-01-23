@@ -35,6 +35,18 @@ using std::placeholders::_1;
 class MissionHandlerNode : public rclcpp::Node {
     public:
         MissionHandlerNode(): Node("mission_handler_node"){
+            if(!this->has_parameter("task_schedule")){
+                this->declare_parameter("task_schedule", rclcpp::PARAMETER_INTEGER_ARRAY);
+            }
+            std::vector<int64_t> task_schedule_og = this->get_parameter("task_schedule").as_integer_array();
+            if(task_schedule_og.size() > 0){
+                task_schedule.clear();
+                for(int i = 0 ; i < task_schedule_og.size() ; i++){
+                    std::cout << task_schedule_og[i] << std::endl;
+                    task_schedule.push_back(int(task_schedule_og[i]));
+                }
+            }
+            
             pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
                 "/usv/state/pose", 10, 
                 [this](const geometry_msgs::msg::Pose2D &msg) { 
@@ -56,33 +68,9 @@ class MissionHandlerNode : public rclcpp::Node {
                     update_params.docking_color_choice = 1;
                 });
 
-            mission_command_sub_ = this->create_subscription<std_msgs::msg::Int8>(
-                "/usv/mission_command", 10, 
-                [this](const std_msgs::msg::Int8 &msg) { 
-                    if(mission_command != msg.data){
-                        mission_command = msg.data;
-                        switch(mission_command){
-                            case 1:
-                                vtec = std::make_shared<M1>();
-                                break;
-                            case 2:
-                                vtec = std::make_shared<M2>();
-                                break;
-                            case 3:
-                                vtec = std::make_shared<M3>();
-                                break;
-                            case 4:
-                                vtec = std::make_shared<M4>();
-                                break;
-                            case 6:
-                                vtec = std::make_shared<M6>();
-                                break;
-                        }
-
-                    }
-            });
-
-            vtec = std::make_shared<M3>();
+            id.data = 0;
+            vtec = std::make_shared<M0>();
+            vtec->set_status(1);    // Initially reached wp, to enable new mission assignment
 
             mission_id_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/id", 10);
             mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/state", 10);
@@ -98,7 +86,6 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr auto_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
-        rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_command_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_;
 
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
@@ -127,8 +114,82 @@ class MissionHandlerNode : public rclcpp::Node {
         int mission_command{0};
         
         std::vector<usv_interfaces::msg::Waypoint> goals;
+        std::vector<int> task_schedule{2,1,3};
+
+        // Check for all tasks if their starting point has been found, get first in schedule
+        int get_next_known_id(){
+            for(int i = 0 ; i < task_schedule.size() ; i++){
+                std::string str_id = "m" + std::to_string(task_schedule[i]);
+                if(!this->has_parameter(str_id + ".pose")){
+                    this->declare_parameter(str_id + ".pose", rclcpp::PARAMETER_DOUBLE_ARRAY);
+                }
+                std::vector<double> tmp_task_pose = this->get_parameter(str_id + ".pose").as_double_array();
+                if(tmp_task_pose.size() == 3){
+                    return task_schedule[i];
+                }
+            }
+            return 0;
+        }
+
+        // Check if task id should be updated.
+        void check_mission_jump(){
+            if(task_schedule.size() > 0 && status.data){    // If task is completed
+                int suitable_id = get_next_known_id();  // Find next reachable task from schedule
+                if(!suitable_id){
+                    std::cout << "EXPLORE" << std::endl;
+                    // TODO: No mission init pose found, explore to finish it.
+                    // TODO: id.data = 0; // ID 0 means 'travelling' ...
+                    return;
+                }
+                if(id.data == 0){   // If just arrived to task
+                    update_mission_id(suitable_id); // Update state machine
+                    task_schedule.erase(
+                        std::remove(task_schedule.begin(), task_schedule.end(), suitable_id),
+                        task_schedule.end());   // Remove task from schedule
+                } else {
+                    // Travel to the beginning of next task
+                    std::vector<double> travel_arr;
+                    std::string str_id = "m" + std::to_string(suitable_id);
+                    travel_arr = this->get_parameter(str_id + ".pose").as_double_array();
+                    Eigen::Vector3f travel_wp{travel_arr[0], travel_arr[1], travel_arr[2]};
+                    std::vector<Eigen::Vector3f> travel_wp_vec{travel_wp};
+                    set_goals(travel_wp_vec);
+                    wp_pub_->publish(wp_list);
+                    update_mission_id(0);   // Change mission id to 'travelling'
+                }
+            }
+        }
+
+        void update_mission_id(int mission_command){
+
+            switch(mission_command){
+                case 1:
+                    vtec = std::make_shared<M1>();
+                    break;
+                case 2:
+                    vtec = std::make_shared<M2>();
+                    break;
+                case 3:
+                    vtec = std::make_shared<M3>();
+                    break;
+                case 4:
+                    vtec = std::make_shared<M4>();
+                    break;
+                case 6:
+                    vtec = std::make_shared<M6>();
+                    break;
+                default:
+                    vtec = std::make_shared<M0>();
+                    break;
+            }
+            
+            vtec->re_init();
+
+        }
 
         void timer_callback() {
+            check_mission_jump();
+
             feedback = vtec->update(pose, update_params);
             
             if(feedback.goals.size() > 0){

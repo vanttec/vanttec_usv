@@ -19,21 +19,26 @@ USVOutput M3::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       goal = get_goal(params.obs_list, params.docking_color_choice);
 
       if(goal.norm() > 0.01){
-        std::cout << "psi: " << pose(2) << ", gol: " << goal(2) << ", diff: " << angle_diff(pose(2),goal(2)) << std::endl;
-        std::cout << "goal: " << goal(0) << "," << goal(1) << std::endl;
-        Eigen::Vector3f goal2 = forward(goal, 1.0);
-        std::cout << "goal2: " << goal2(0) << "," << goal2(1) << std::endl;
+
+        std::vector<int> limit_id = get_min_max_pic_ids(params.obs_list);
+        Eigen::Vector3f docking_center_relative = get_docking_face_middlepoint(params.obs_list, limit_id[0], limit_id[1], pose(2));
+        Eigen::Vector3f docking_center = tf_body_to_world(pose, docking_center_relative);
+        if(!base_goal_registered){
+          base_goal_registered = true;
+          base_goal = forward(docking_center, -5.0);
+        }
+
         if(std::fabs(angle_diff(pose(2),goal(2))) < M_PI_2){
+          
           outMsg.state = 2;
+          docking_goal = goal;
+
         } else {
+
           outMsg.state = 1;
-          std::vector<int> limit_id = get_min_max_pic_ids(params.obs_list);
-          Eigen::Vector3f docking_center_relative = get_docking_face_middlepoint(params.obs_list, limit_id[0], limit_id[1], pose(2));
-          Eigen::Vector3f docking_center = tf_body_to_world(pose, docking_center_relative);
-          std::cout << "relative center: " << docking_center_relative(0) << "," << docking_center_relative(1) << "," << docking_center_relative(2) << std::endl;
-          std::cout << "real center: " << docking_center(0) << "," << docking_center(1) << "," << docking_center(2) << std::endl;
           outMsg.goals.push_back(diagonal(docking_center, -1.0, 5.0));
           outMsg.goals.push_back(diagonal(docking_center, 1.0, 5.0));
+
         }
         outMsg.goals.push_back(goal);
       }
@@ -45,8 +50,18 @@ USVOutput M3::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.state = 0;
       }
       break;
-    case 2:
+    case 2: // Docked, now un-dock
       if(params.wp_arrived){
+        outMsg.goals.push_back(rotate_goal(        docking_goal,        M_PI));
+        outMsg.goals.push_back(rotate_goal(forward(docking_goal, -1.0), M_PI));
+        outMsg.goals.push_back(rotate_goal(forward(docking_goal, -2.0), M_PI));
+        outMsg.goals.push_back(base_goal);
+        outMsg.state = 3;
+      }
+      break;
+    case 3:
+      if(params.wp_arrived){
+        outMsg.state = 4;
         outMsg.status = 1;
       }
       break;

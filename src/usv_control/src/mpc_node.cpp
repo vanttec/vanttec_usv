@@ -167,8 +167,10 @@ public:
               secondary_weights = dyn_avoidance_weights;
               break;
             default:
-              primary_weights = path_tracking_weights;
-              secondary_weights = avoidance_weights;
+              primary_weights = speed_weights;
+              // primary_weights = path_tracking_weights;
+              // secondary_weights = avoidance_weights;
+              secondary_weights = dyn_avoidance_weights;
               break;
           }
         });

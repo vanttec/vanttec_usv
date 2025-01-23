@@ -167,9 +167,14 @@ def generate_launch_description():
         ]),
     )
 
-    mission_handler_node = Node(
-        package="usv_missions",
-        executable="mission_handler_node",
+    mission_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_missions'),
+                'launch',
+                'mission_launch.py'
+            ])
+        ]),
     )
 
     weights_config = os.path.join(
@@ -206,7 +211,7 @@ def generate_launch_description():
         mpc_node,
         waypoint_handler_node,
 
-        mission_handler_node,
+        # mission_launch,
         obstacle_launch,
         obstacle_nearest_publisher,
         

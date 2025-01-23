@@ -1,0 +1,3 @@
+mission_handler_node:
+  ros__parameters:
+    task_schedule: [3,2,1] 

@@ -8,5 +8,8 @@ M0::M0(){
 
 USVOutput M0::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
-  return USVOutput();
+  if(params.wp_arrived){
+    outMsg.status = 1;
+  }
+  return outMsg;
 }

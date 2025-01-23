@@ -1,12 +1,16 @@
-obstacle_publisher_node:
+/**:
   ros__parameters:
-    global_tasks: ["m1", "m2", "m3"] 
+    global_tasks: [
+        "m1", 
+        "m2", 
+        "m3"
+    ] 
     m1:
       name: "m1_v1"
-      pose: [0.0, 0.0, 0.0]
+      pose: [60.0, 0.0, 0.0]
     m2:
       name: "m2_v1"
       pose: [30.0, 0.0, 0.0]
     m3:
-      name: "m3_v1"
-      pose: [60.0, 0.0, 0.0]
+      name: "m3_v3"
+      pose: [0.0, 0.0, 0.0]

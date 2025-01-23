@@ -25,7 +25,6 @@ ament_target_dependencies(obstacle_publisher_node rclcpp std_msgs std_srvs geome
 target_compile_features(obstacle_publisher_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 install(TARGETS
-  # usv_master
   mission_handler_node
   obstacle_publisher_node
   DESTINATION lib/${PROJECT_NAME})

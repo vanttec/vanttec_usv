@@ -16,6 +16,8 @@ class M3 : public Mission {
   USVOutput update(const Eigen::Vector3f &pose, const  USVUpdate &params) override;
 
  private:  
+  Eigen::Vector3f base_goal, docking_goal;
+  bool base_goal_registered{false};
   Eigen::Vector3f get_goal(std::vector<Obstacle> obs_list, int choice);
   bool is_occupied(const Eigen::Vector3f &picture, std::vector<Obstacle> boat_reg);
   Eigen::Vector3f get_docking_face_middlepoint(std::vector<Obstacle> obs_list, int min_id, int max_id, double psi);

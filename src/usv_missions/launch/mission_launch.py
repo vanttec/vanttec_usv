@@ -16,10 +16,10 @@ from launch.actions import ExecuteProcess
 
 
 def generate_launch_description():
-    tasks_config = os.path.join(
+    scheduler_config = os.path.join(
         get_package_share_directory('usv_missions'),
         'config',
-        'obstacles.yaml'
+        'task_schedule.yaml'
     )
 
     tasks_arrangement_config = os.path.join(
@@ -28,18 +28,18 @@ def generate_launch_description():
         'task_arrangement.yaml'
     )
 
-    obstacle_publisher_node = Node(
+    mission_handler_node = Node(
         package='usv_missions',
-        executable='obstacle_publisher_node',
+        executable='mission_handler_node',
         parameters=[
-            tasks_config,
+            scheduler_config,
             tasks_arrangement_config,
             ],
-        # output='screen',
-        # emulate_tty=True,
-        # arguments=[('__log_level:=debug')],
+        output='screen',
+        emulate_tty=True,
+        arguments=[('__log_level:=debug')],
     )
 
     return LaunchDescription([
-        obstacle_publisher_node
+        mission_handler_node
     ])

@@ -14,6 +14,10 @@ int Mission::get_id(){
   return id;
 }
 
+int Mission::set_status(int new_status){
+  outMsg.status = new_status;
+}
+
 Eigen::Vector3f Mission::forward(const Eigen::Vector3f &goal, double distance){
   Eigen::Vector3f p;
   p << std::cos(goal(2)), std::sin(goal(2)), 0.0;
@@ -58,6 +62,7 @@ double Mission::angle_diff(double ang1, double ang2){
 void Mission::re_init(){
   outMsg.state = 0;
   outMsg.status = 0;
+  outMsg.goals.clear();
 }
 
 bool Mission::unreg(Eigen::Vector3f buoy){

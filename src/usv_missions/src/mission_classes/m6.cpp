@@ -9,6 +9,7 @@ M6::M6(){
 
 USVOutput M6::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
+  outMsg.goals.clear();
   Eigen::Vector3f goal;
   this->pose = pose;
 
