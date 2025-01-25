@@ -117,6 +117,7 @@ install(DIRECTORY
   models
   worlds
   rviz
+  config
   DESTINATION share/${PROJECT_NAME})
 
 # install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})
