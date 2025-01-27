@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="Dock">
+    <static>true</static>
+    <link name="base_link">
+      <visual name="dock">
+        <geometry>
+          <mesh>
+            <uri>model://dock/assets/dock.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.34 0.31 0.27 1</ambient>
+          <!-- Red color -->
+          <diffuse>0.559642 0.515643 0.446934 1</diffuse>
+          <specular>0.01 0.01 0.01 1</specular>
+        </material>
+      </visual>
+      <collision name='base'>
+        <geometry>
+          <box>
+            <size>1.51954 7.60376 0.406521</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name='tine1'>
+        <pose>1.77361 3.02886 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.02606 0.506918 0.406521</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name='tine2'>
+        <pose>1.77361 1.001188 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.02606 0.506918 0.406521</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name='tine3'>
+        <pose>1.77361 -1.02648 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.02606 0.506918 0.406521</size>
+          </box>
+        </geometry>
+      </collision>
+      <collision name='tine4'>
+        <pose>1.77361 -3.05416 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.02606 0.506918 0.406521</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

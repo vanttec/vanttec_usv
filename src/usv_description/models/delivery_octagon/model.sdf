@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="Delivery Octogon">
+    <static>true</static>
+    <link name="base_link">
+      <visual name="delivery octagon">
+        <geometry>
+          <mesh>
+            <uri>model://delivery_octagon/assets/delivery_octagon.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="delivery_octagon">
+        <geometry>
+          <mesh>
+            <uri>model://delivery_octagon/assets/delivery_octagon.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

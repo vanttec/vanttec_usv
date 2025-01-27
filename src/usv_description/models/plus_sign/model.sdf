@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="plus_sign">
+    <static>true</static>
+    <link name="base_link"> 
+      <collision name="sign">
+        <geometry>
+          <box>
+            <size>0.019 0.6096 0.6096</size>
+          </box>
+        </geometry>  
+      </collision>
+      <visual name="sign">
+        
+        <geometry>
+          <box>
+            <size>0.019 0.6096 0.6096</size>
+          </box>
+        </geometry>
+        
+        <material> 
+          <ambient>0.1 0.1 0.1 1</ambient>
+          <diffuse>0.1 0.1 0.2 1</diffuse>
+          <specular>0 0 0 0</specular>
+          <emissive>0 0 0 1</emissive>
+        </material>         
+      </visual>
+    </link>
+  </model>
+</sdf>
+

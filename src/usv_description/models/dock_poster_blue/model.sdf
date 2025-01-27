@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="dock_poster_blue">
+    <static>true</static>
+    <link name="base_link">
+      <collision name="dock">
+        <geometry>
+          <box>
+            <size>0.2 1 1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="dock">
+        <geometry>
+          <box>
+            <size>0.2 1 1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Blue</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
