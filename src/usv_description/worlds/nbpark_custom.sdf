@@ -412,18 +412,26 @@
       <uri>vtec_s3</uri>
     </include>
 
-    <!-- Mandatory Challenge -->
+    <!-- Task 1 - Mandatory Challenge -->
     <include>
       <name>mandatory_challenge</name>
       <pose>-180 1088 0 0 0 3.14</pose>
       <uri>mandatory_challenge</uri>
     </include>
 
-    <!-- Follow the Path Challenge -->
-    <!-- <include>
+    <!-- Taks 2 -Follow the Path Challenge -->
+    <include>
       <name>follow_the_path_challenge</name>
       <pose>-205 1089 0 0 0 3.14</pose>
       <uri>follow_the_path_challenge</uri>
-    </include> -->
+    </include>
+
+    <!-- Task 3 - Docking -->
+    <include>
+      <name>docking_challenge</name>
+      <pose>-185 1115 0 0 0 0</pose>
+      <uri>docking_challenge</uri>
+    </include>
+
   </world>
 </sdf>
