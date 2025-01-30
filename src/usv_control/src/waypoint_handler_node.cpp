@@ -107,6 +107,15 @@ public:
             "/usv/current_path_ref", 10);
 
         goals_markers_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/goals_markers", 10);
+        
+        wp_toggle_vec_sub_ = this->create_subscription<std_msgs::msg::Bool>(
+            "/usv/wp_toggle_vec", 10,
+            [this](const std_msgs::msg::Bool &msg)
+            {
+                if (msg.data == true){
+                    toggle_wp_index();
+                }
+            });
 
         tmp_marker.header.frame_id = "world";
         tmp_marker.id = 0;
