@@ -1,0 +1,19 @@
+# /etc/systemd/system/custom-getty@.service
+
+[Unit]
+Description=Custom Serial Getty on %I
+Documentation=man:agetty(8)
+After=systemd-user-sessions.service plymouth-quit-wait.service
+After=rc-local.service
+
+[Service]
+ExecStart=-/sbin/agetty -L 115200 %I vt220
+Type=idle
+Restart=always
+UtmpIdentifier=%I
+TTYPath=/dev/ttyHOLY%I
+TTYReset=yes
+TTYVHangup=yes
+
+[Install]
+WantedBy=multi-user.target

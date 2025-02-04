@@ -1,0 +1,7 @@
+# /etc/systemd/network/10-can.link
+
+[Match]
+Driver=gs_usb
+
+[Link]
+Name=can_vtec
