@@ -22,6 +22,23 @@ def generate_launch_description():
         description = 'Defines if the application will run in simulation or in real life'
     )
 
+    weights_config = os.path.join(
+        get_package_share_directory('usv_control'),
+        'config',
+        'weights.yaml'
+    )
+
+    mpc_node = Node(
+        package="usv_control",
+        executable="mpc_node",
+        parameters=[weights_config],
+    )
+
+    waypoint_handler_node = Node(
+        package="usv_control",
+        executable="waypoint_handler_node",
+    )
+
     imu_converter_node = Node(
         package='usv_utils',
         executable='imu_converter_node',
@@ -208,11 +225,6 @@ def generate_launch_description():
         ]),
     )
 
-    waypoint_handler_node = Node(
-        package="usv_control",
-        executable="waypoint_handler_node.py",
-    )
-
     return LaunchDescription([
         is_sim,
 
@@ -224,10 +236,11 @@ def generate_launch_description():
         # los_node,
         sbg_launch,
         imu_converter_node,
-        foxglove_bridge,
+        # foxglove_bridge,
         # tf2,
-        # can_node,
+        can_node,
         # teleop_launch,
         # obstacle_launch,
-        # waypoint_handler_node,
+        waypoint_handler_node,
+        # mpc_node,
     ])

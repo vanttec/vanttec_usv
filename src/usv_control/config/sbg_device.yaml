@@ -26,7 +26,7 @@
     # Uart configuration
     uartConf:
       # Port Name
-      portName: "/dev/ttyUSB0"
+      portName: "/dev/ttyIMU"
     
       # Baude rate (4800 ,9600 ,19200 ,38400 ,115200 [default],230400 ,460800 ,921600)
       baudRate: 921600
@@ -42,17 +42,17 @@
     # Sensor Parameters
     sensorParameters:
       # Initial latitude (°)
-      initLat: 25.6866
+      initLat: 25.4111922
       # Initial longitude (°)
-      initLong: -100.3161
+      initLong: -100.1374073
       # Initial altitude (above WGS84 ellipsoid) (m)
       initAlt: 540.0
       # Year at startup
       year: 2025
       # month in year at startup
-      month: 01
+      month: 02
       # day in month at startup
-      day: 10
+      day: 01 
     
       # Montion profile ID
       # 1 GENERAL_PURPOSE Should be used as a default when other profiles do not apply
