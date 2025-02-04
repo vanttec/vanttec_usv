@@ -6,8 +6,8 @@
 # VantTec USV Main Repository
 
 This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platform.
+Official documentation [here][vanttec-documentation].
 
-<br/><br/>
 
 ### Packages
 - **usv_comms**: ROS package that allows the USV software to interface with the Digi XBee Hardware for communication with the ground control station.
@@ -20,7 +20,6 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 - **velodyne**: ROS package for the Velodyne LIDAR.
 - **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
 
-<br/><br/>
 
 ### Needed Dependencies
 - Nvidia CUDA
@@ -39,7 +38,6 @@ sudo add-apt-repository ppa:borglab/gtsam-release-4.1
 sudo apt install libgtsam-dev libgtsam-unstable-dev
 ```
 
-<br/><br/>
 
 ### How to start working?
 
@@ -59,7 +57,6 @@ colcon build --packages-select usv_interfaces
 source install/setup.bash
 ```
 
-<br/><br/>
 
 ## HOW TOs (Pending: Modify for updated launch files):
 **Run mission #2:** 
@@ -78,4 +75,5 @@ ros2 run usv_missions mission_handler_node
 ros2 launch usv_control usv_control_sim_launch.py
 ros2 launch usv_control teleop_launch.py 
 ```
-#
+
+[vanttec-documentation]: https://vanttec-documentation.readthedocs.io/en/latest/usv_documentation.html
