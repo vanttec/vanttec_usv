@@ -12,4 +12,7 @@ sudo systemctl disable serial-getty@ttyTCU0.service
 sudo systemctl stop custom-getty@ttyXBEE.service
 sudo systemctl disable custom-getty@ttyXBEE.service
 
+sudo systemctl stop custom-getty@ttyHOLY.service
+sudo systemctl disable custom-getty@ttyHOLY.service
+
 sudo systemctl daemon-reload

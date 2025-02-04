@@ -1,8 +1,8 @@
 # Important commands
 
 ## Stop current getty service
-sudo systemctl stop custom-getty@ttyXBEE.service
-sudo systemctl disable custom-getty@ttyXBEE.service
+sudo systemctl stop custom-getty@ttyHOLY.service
+sudo systemctl disable custom-getty@ttyHOLY.service
 
 ## For example, stop a running TCU service
 sudo systemctl stop serial-getty@ttyTCU0.service
@@ -15,8 +15,8 @@ sudo pkill agetty
 sudo systemctl daemon-reload
 
 ## Start custom getty service
-sudo systemctl enable custom-getty@ttyXBEE.service
-sudo systemctl start custom-getty@ttyXBEE.service
+sudo systemctl enable custom-getty@ttyHOLY.service
+sudo systemctl start custom-getty@ttyHOLY.service
 
 ## See which serial devices are using getty
 ps aux | grep agetty
@@ -26,10 +26,10 @@ FILE NAME: /etc/systemd/system/custom-getty@.services
 
 [Unit]
 Description=Custom Serial Getty on %I
-ConditionPathExists=/dev/ttyXBEE%I
+ConditionPathExists=/dev/ttyHOLY%I
 
 [Service]
-ExecStart=-/sbin/agetty -L -8 230400 %I vt220
+ExecStart=-/sbin/agetty -L -8 115200 %I vt220
 Type=idle
 Restart=always
 RestartSec=0
@@ -43,10 +43,10 @@ WantedBy=multi-user.target
 
 
 ## Read status of getty service
-systemctl status custom-getty@ttyXBEE.service
+systemctl status custom-getty@ttyHOLY.service
 
 ## Seek lsof serial port's conflicts
-lsof | grep ttyXBEE
+lsof | grep ttyHOLY
 
 ## Connect via serial (minicom)
-minicom -D /dev/ttyXBEE -b 230400 -c on
+minicom -D /dev/ttyHOLY -b 115200 -c on
