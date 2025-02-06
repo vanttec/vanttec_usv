@@ -39,17 +39,12 @@ class XBeeBaseNode(Node):
         
     def load_config(self) -> Dict:
         """Load configuration from YAML file"""
-        try:
-            # First try package share directory
-            config_path = os.path.join(
-                get_package_share_directory('usv_comms'),
-                'config',
-                'topics_config.yaml'
-            )
-        except Exception:
-            # Fallback to direct path for testing
-            config_path = '/home/max/vanttec_usv/src/usv_comms/cofig/topics_config.yaml'
-            self.get_logger().warn(f"Using fallback config path: {config_path}")
+        # First try package share directory
+        config_path = os.path.join(
+        get_package_share_directory('usv_comms'),
+        'config',
+        'topics_config.yaml'
+        )
             
         if not os.path.exists(config_path):
             self.get_logger().error(f"Config file not found at {config_path}")
@@ -99,13 +94,56 @@ class XBeeBaseNode(Node):
         """Abstract method to be implemented by child classes"""
         raise NotImplementedError
         
-    def pack_data(self, data: List[float]) -> bytes:
-        """Pack data into bytes for transmission"""
-        return struct.pack('!' + 'f'*len(data), *data)
+    def pack_string(self, s: str) -> bytes:
+        """Pack a string into bytes, prefixed with its length"""
+        encoded = s.encode('utf-8')
+        return struct.pack('!H', len(encoded)) + encoded
         
-    def unpack_data(self, data: bytes, num_fields: int) -> List[float]:
-        """Unpack received bytes into data"""
-        return list(struct.unpack('!' + 'f'*num_fields, data))
+    def unpack_string(self, data: bytes) -> tuple[str, bytes]:
+        """Unpack a string from bytes, return string and remaining bytes"""
+        str_len = struct.unpack('!H', data[:2])[0]
+        string = data[2:2+str_len].decode('utf-8')
+        return string, data[2+str_len:]
+        
+    def pack_data(self, data: List[Any]) -> bytes:
+        """Pack data into bytes, handling both numbers and strings"""
+        result = b''
+        type_markers = []  # 0 for float, 1 for string
+        
+        for item in data:
+            if isinstance(item, (int, float)):
+                type_markers.append(0)
+                result += struct.pack('!f', float(item))
+            elif isinstance(item, str):
+                type_markers.append(1)
+                result += self.pack_string(item)
+                
+        # Prepend type markers
+        markers_bytes = struct.pack(f'!{len(type_markers)}B', *type_markers)
+        return struct.pack('!H', len(type_markers)) + markers_bytes + result
+        
+    def unpack_data(self, data: bytes) -> List[Any]:
+        """Unpack mixed data (numbers and strings) from bytes"""
+        # Read number of items
+        num_items = struct.unpack('!H', data[:2])[0]
+        
+        # Read type markers
+        markers = struct.unpack(f'!{num_items}B', data[2:2+num_items])
+        
+        # Process data according to markers
+        result = []
+        current_pos = 2 + num_items
+        
+        for marker in markers:
+            if marker == 0:  # Float
+                result.append(struct.unpack('!f', data[current_pos:current_pos+4])[0])
+                current_pos += 4
+            elif marker == 1:  # String
+                string, remaining = self.unpack_string(data[current_pos:])
+                result.append(string)
+                current_pos += 2 + len(string.encode('utf-8'))
+                
+        return result
         
     def get_message_type(self, type_str: str):
         """Convert string message type to actual message type class"""
@@ -123,25 +161,21 @@ class XBeeBaseNode(Node):
                     })
         return enabled_topics
         
-    def create_message_chunk(self, msg_id: int, data: List[float]) -> bytes:
+    def create_message_chunk(self, msg_id: int, data: List[Any]) -> bytes:
         """Create a message chunk for transmission"""
         data_bytes = self.pack_data(data)
-        # Header format: msg_id (1 byte), data_length (2 bytes), total_message_size (2 bytes)
-        header = struct.pack('!BHH', msg_id, len(data), len(data_bytes))
+        # Header format: msg_id (1 byte), total_message_size (2 bytes)
+        header = struct.pack('!BH', msg_id, len(data_bytes))
         return header + data_bytes
-        
+
     def parse_message_chunk(self, chunk: bytes) -> tuple:
         """Parse a message chunk into msg_id and data"""
         try:
             # Parse header
-            msg_id, data_len, msg_size = struct.unpack('!BHH', chunk[:5])
+            msg_id, msg_size = struct.unpack('!BH', chunk[:3])
             
-            # Verify message size
-            if len(chunk) != msg_size + 5:  # 5 is header size
-                raise ValueError(f"Message size mismatch. Expected {msg_size + 5}, got {len(chunk)}")
-                
             # Parse data
-            data = self.unpack_data(chunk[5:], data_len)
+            data = self.unpack_data(chunk[3:])
             return msg_id, data
         except struct.error as e:
             self.get_logger().error(f"Failed to parse message header: {e}")

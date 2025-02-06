@@ -62,7 +62,7 @@ class XBeeBoatNode(XBeeBaseNode):
         obj_data = []
         max_objects = self.config['topics']['objects']['max_objects']
         for obj in msg.obj_list[:max_objects]:
-            obj_data.extend([obj.x, obj.y, float(obj.color)])
+            obj_data.extend([obj.x, obj.y, float(obj.color), obj.type])  # type is now included
         return obj_data
         
     def process_standard_message(self, msg, topic_name: str) -> list:
@@ -85,11 +85,21 @@ class XBeeBoatNode(XBeeBaseNode):
         for topic_name, data in self.topic_data.items():
             if data is not None:
                 try:
-                    msg_id = list(self.topic_data.keys()).index(topic_name)
+                    topic_names = list(self.topic_data.keys())
+                    msg_id = topic_names.index(topic_name)
+                    
+                    self.get_logger().debug(f"Sending data for topic {topic_name} (ID: {msg_id})")
+                    self.get_logger().debug(f"Data: {data}")
+                    
                     chunk = self.create_message_chunk(msg_id, data)
+                    self.get_logger().debug(f"Created chunk of size {len(chunk)} bytes")
+                    
                     self.device.send_data(self.remote_device, chunk)
+                    self.get_logger().debug(f"Successfully sent data for {topic_name}")
                 except Exception as e:
                     self.get_logger().error(f"Failed to send data for {topic_name}: {e}")
+                    self.get_logger().error(f"Available topics: {topic_names}")
+                    self.get_logger().error(f"Data: {data}")
 
 def main(args=None):
     rclpy.init(args=args)
