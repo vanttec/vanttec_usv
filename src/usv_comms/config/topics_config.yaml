@@ -1,7 +1,7 @@
 xbee_config:
   port:
-    boat: "/dev/ttyUSB1"
-    station: "/dev/ttyUSB0"
+    boat: "/dev/ttyXBEEBOAT"
+    station: "/dev/ttyXBEESTATION"
   baud_rate: 230400 
   remote_ids:
     boat: "BOAT_XBEE"

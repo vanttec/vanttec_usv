@@ -1,7 +1,7 @@
 # /etc/udev/rules.d/99-dev.rules
 
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="00000000", SYMLINK+="ttyXBEE"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D30DS1HZ", SYMLINK+="ttyXBEE"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="00000000", SYMLINK+="ttyXBEESTATION"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D30DS1HZ", SYMLINK+="ttyXBEEBOAT"
 
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D30GM3SB", SYMLINK+="ttyHOLY"
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="D30GJX3L", SYMLINK+="ttyHOLY"
