@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="Dock_m4">
+    <static>true</static>
+    <link name="base_link">
+      <visual name="dock">
+        <geometry>
+          <mesh>
+            <uri>model://dock_m4/assets/dock_m4.stl</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.34 0.31 0.27 1</ambient>
+          <!-- Red color -->
+          <diffuse>0.559642 0.515643 0.446934 1</diffuse>
+          <specular>0.01 0.01 0.01 1</specular>
+        </material>
+      </visual>
+      <collision name='tine1'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.02606 0.506918 0.406521</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>
+

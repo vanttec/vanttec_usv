@@ -433,5 +433,20 @@
       <uri>docking_challenge</uri>
     </include>
 
+    <!-- Task 4 - Speed Challenge -->
+    <include>
+      <name>speed_challenge</name>
+      <pose>-190 1104 0 0 0 3.14</pose>
+      <uri>speed_challenge</uri>
+    </include>
+
+    <!-- Task 6 - Return to Home Challenge -->
+    <include>
+      <name>return2home_challenge</name>
+      <pose>-175 1100 0 0 0 0</pose>
+      <uri>return2home_challenge</uri>
+    </include>
+
+
   </world>
 </sdf>
