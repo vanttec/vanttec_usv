@@ -156,7 +156,6 @@ def generate_launch_description():
     tf2 = Node(
         package="usv_control",
         executable="usv_tf2_broadcaster_node",
-        # condition=UnlessCondition(LaunchConfiguration('is_simulation'))
     )
 
     los_node = Node(
