@@ -1,6 +1,7 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Matrix3x3.h"
 #include "tf2_ros/transform_broadcaster.h"
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -33,10 +34,25 @@ public:
 
 protected:
   void odom_cb(const nav_msgs::msg::Odometry::SharedPtr msg){
-    // TODO process imu, and publish new rotated and zero imu
     nav_msgs::msg::Odometry newOdom = *msg;
+
     tf2::Quaternion q(newOdom.pose.pose.orientation.x, newOdom.pose.pose.orientation.y,
                       newOdom.pose.pose.orientation.z, newOdom.pose.pose.orientation.w);
+    
+    bool ENU = true; // If SBG is sending ENU, covert to NED.
+    if(ENU){
+      tf2::Quaternion q_rot, q_new;
+      
+      double r=0, p=0, y=-M_PI_2;
+      q_rot.setRPY(r, p, y);
+
+      q_new = q_rot*q;  // Calculate the new orientation
+      q_new.normalize();
+
+      q = q_new;
+      tf2::convert(q_new, newOdom.pose.pose.orientation);
+    }
+
     tf2::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
@@ -45,23 +61,22 @@ protected:
     newOdom.header.stamp = msg->header.stamp;
     newOdom.header.frame_id = msg->header.frame_id;
 
-    newOdom.pose.pose.position.x = msg->pose.pose.position.y - zero_x;
-    newOdom.pose.pose.position.y = msg->pose.pose.position.x - zero_y;
+    newOdom.pose.pose.position.x = msg->pose.pose.position.x - zero_x;
+    newOdom.pose.pose.position.y = msg->pose.pose.position.y - zero_y;
 
     double u_orig = msg->twist.twist.linear.x;
     double v_orig = -msg->twist.twist.linear.y;
 
-/*    newOdom.twist.twist.linear.x =
+    newOdom.twist.twist.linear.x =
         std::cos(psi) * u_orig - std::sin(psi) * v_orig;
     newOdom.twist.twist.linear.y =
         -(std::sin(psi) * u_orig + std::cos(psi) * v_orig);
-    newOdom.twist.twist.angular.z = msg->twist.twist.angular.z;*/
-    newOdom.twist.twist.linear.x =
-        u_orig;
-    newOdom.twist.twist.linear.y =
-        v_orig;
-    newOdom.twist.twist.angular.z = msg->twist.twist.angular.z;
-
+    newOdom.twist.twist.angular.z = -msg->twist.twist.angular.z;
+    // newOdom.twist.twist.linear.x =
+    //     u_orig;
+    // newOdom.twist.twist.linear.y =
+    //     v_orig;
+    // newOdom.twist.twist.angular.z = msg->twist.twist.angular.z;
 
     convertedOdomPub->publish(newOdom);
     last_odom = newOdom;
@@ -81,10 +96,7 @@ protected:
     velocity.y = newOdom.twist.twist.linear.y;
     velocity.z = newOdom.twist.twist.angular.z;
     velocityPub->publish(velocity);
-  }
 
-  void tf_broadcast(const geometry_msgs::msg::Pose2D &msg){
-    // TODO send tf broadcast to new usv stamp
   }
 
   void zero_imu(const std::shared_ptr<std_srvs::srv::Empty::Request> request,
@@ -109,7 +121,7 @@ private:
   double zero_x{0}, zero_y{0};
 
   void timer_callback() {
-    RCLCPP_INFO(get_logger(), "OKAAAYYYY LET'S GO!");
+    // RCLCPP_INFO(get_logger(), "OKAAAYYYY LET'S GO!");
   }        
 };
 
