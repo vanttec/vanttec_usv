@@ -1,0 +1,10 @@
+float32 voxel_grid_x
+float32 voxel_grid_y
+float32 voxel_grid_z
+int32 ksearch
+float32 normal_distance_weight
+int32 max_iterations
+float32 distance_threshold
+float32 cluster_tolerance
+int32 min_cluster
+int32 max_cluster

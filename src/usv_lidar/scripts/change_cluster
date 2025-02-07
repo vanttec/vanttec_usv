@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Default values for arguments
+CLUSTER_TOLERANCE=0.25
+MIN_CLUSTER=300
+MAX_CLUSTER=600
+
+# Function to display help
+show_help() {
+    echo "Usage: $0 [-c] [-mn] [-mx]"
+    echo "Options:"
+    echo "  -c : Cluster tolerance (default: $CLUSTER_TOLERANCE)"
+    echo "  -mn: Min cluster(default: $MIN_CLUSTER)"
+    echo "  -mx: Max cluster (default: $MAX_CLUSTER)"
+    exit 1
+}
+
+# Function to display how the script was called
+display_values() {
+    echo "Using values:"
+    echo "Cluster tolerance: $1"
+    echo "Min cluster: $2"
+    echo "Max cluster: $3"
+}
+
+
+# Parse named arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -c)
+            c="$2"
+            shift 2
+            ros2 param set /clustering_segmentation cluster_tolerance $c
+
+            ;;
+        -mn)
+            mn="$2"
+            shift 2
+            ros2 param set /clustering_segmentation min_cluster $mn
+
+            ;;
+        -mx)
+            mx="$2"
+            shift 2
+            ros2 param set /clustering_segmentation max_cluster $mx
+            ;;
+        -h|--help)
+            show_help
+            ;;
+        *)
+            echo "Unknown parameter: $1"
+            show_help
+            ;;
+    esac
+done
+
+display_values "$c" "$mn" "$mx"
+

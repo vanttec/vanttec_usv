@@ -1,0 +1,20 @@
+testing_cloud:
+  ros__parameters:
+    test_file_name: "lava_lamp.txt"
+    # test_file_name: "bowl.txt"
+    # test_file_name: "landscape.txt"
+    # test_file_name: "chair.txt"
+    # test_file_name: "cube1000-0-in-z.txt"
+
+clustering_segmentation:
+  ros__parameters:
+    voxel_grid_x: 0.2
+    voxel_grid_y: 0.2
+    voxel_grid_z: 0.2
+    ksearch: 30
+    normal_distance_weight: 0.5
+    max_iterations: 100
+    distance_threshold: 0.2
+    cluster_tolerance: 0.25
+    min_cluster: 20
+    max_cluster: 200

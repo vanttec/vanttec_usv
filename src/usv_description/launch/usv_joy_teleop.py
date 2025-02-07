@@ -11,31 +11,47 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import os
-
-from ament_index_python.packages import get_package_share_directory from launch import LaunchDescription
+from ament_index_python.packages import get_package_share_directory 
+from launch import LaunchDescription
 import launch.actions
 import launch_ros.actions
 
-
 def generate_launch_description():
-
+    # Get path to teleop parameters
     parameters_file = os.path.join(
         get_package_share_directory('usv_description'),
         'config', 'vtec_s3.yaml'
     )
     
-
+    # Get path to joy parameters
+    joy_params_file = os.path.join(
+        get_package_share_directory('usv_description'),
+        'config', 'joy_params.yaml'
+    )
+    
     ld = LaunchDescription([
         launch.actions.DeclareLaunchArgument('cmd_vel', default_value='cmd_vel'),
         launch.actions.DeclareLaunchArgument('teleop_config', default_value=parameters_file),
     ])
-
-    ld.add_action(launch_ros.actions.Node(package='joy', executable='joy_node'))
-
+    
+    # Modified joy_node with parameters
     ld.add_action(launch_ros.actions.Node(
-        package='joy_teleop', executable='joy_teleop',
-        parameters=[launch.substitutions.LaunchConfiguration('teleop_config')]))
-
+        package='joy',
+        executable='joy_node',
+        parameters=[joy_params_file],
+        additional_env={
+            'GZ_IP': '127.0.0.1'
+        }
+    ))
+    
+    ld.add_action(launch_ros.actions.Node(
+        package='joy_teleop',
+        executable='joy_teleop',
+        parameters=[launch.substitutions.LaunchConfiguration('teleop_config')],
+        additional_env={
+            'GZ_IP': '127.0.0.1'
+        }
+    ))
+    
     return ld
