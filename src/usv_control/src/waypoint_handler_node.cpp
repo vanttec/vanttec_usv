@@ -146,7 +146,7 @@ private:
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr goals_markers_pub_;
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_to_follow_pub_, current_path_ref_pub_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr wp_arrived_pub_;
-    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr wp_toggle_vec_sub_;
+    rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_toggle_vec_sub_;
     geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
 
     std_msgs::msg::Bool wp_arrived_msg;
