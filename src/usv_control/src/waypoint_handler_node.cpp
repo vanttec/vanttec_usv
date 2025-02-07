@@ -53,11 +53,10 @@ public:
             "/usv/goals", 10,
             [this](const usv_interfaces::msg::WaypointList &msg)
             {
-                if (wp_primary_vec.size() == 0)
+                if (current_vec->size() == 0)
                 {
                     register_wp(pose[0], pose[1], pose[2]);
                 }
-                // next_wp = Wp{msg.waypoint_list[0].x, msg.waypoint_list[0].y};
                 if (msg.waypoint_list.size() == 0)
                 {
                     return;
@@ -65,9 +64,11 @@ public:
                 for (int i = 0; i < msg.waypoint_list.size(); i++)
                 {
                     bool wp_repeats{false};
-                    for (int j = 0; j < wp_primary_vec.size(); j++)
+                    for (int j = 0; j < current_vec->size(); j++)
                     {
-                        if (sqrt(pow(wp_primary_vec[j].x - msg.waypoint_list[i].x, 2) + pow(wp_primary_vec[j].y - msg.waypoint_list[i].y, 2)) < 0.2 && fabs(wp_primary_vec[j].theta - msg.waypoint_list[i].theta) < 0.1)
+                        if (sqrt(pow((*current_vec)[j].x - msg.waypoint_list[i].x, 2) + 
+                            pow((*current_vec)[j].y - msg.waypoint_list[i].y, 2)) < 0.2 && 
+                            fabs((*current_vec)[j].theta - msg.waypoint_list[i].theta) < 0.1)
                         {
                             // wp_repeats = true;
                         }
@@ -145,7 +146,7 @@ private:
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr goals_markers_pub_;
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_to_follow_pub_, current_path_ref_pub_;
     rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr wp_arrived_pub_;
-
+    rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr wp_toggle_vec_sub_;
     geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
 
     std_msgs::msg::Bool wp_arrived_msg;
@@ -157,6 +158,8 @@ private:
 
     std::vector<Wp> wp_primary_vec;
     std::vector<Wp> wp_secondary_vec;
+    std::vector<Wp>* current_vec{&wp_primary_vec}; 
+    
     int current_wp_index{0};
     int wp_count{0};
 
@@ -268,7 +271,7 @@ private:
 
     void register_wp(double reg_x, double reg_y, double reg_theta)
     {
-        wp_primary_vec.push_back(Wp{reg_x, reg_y, reg_theta});
+        current_vec->push_back(Wp{reg_x, reg_y, reg_theta});
         tmp_marker.pose.position.x = reg_x;
         tmp_marker.pose.position.y = reg_y;
         tf2::Quaternion q;
@@ -294,27 +297,30 @@ private:
     // Toggle between waypoint vectors
     void toggle_wp_index()
     {
-        Wp start_wp, end_wp;
+        // Clear existing path
+        path_to_follow.poses.clear(); 
 
-        if (wp_primary_vec.empty() || wp_secondary_vec.empty()) {
-            RCLCPP_WARN(this->get_logger(), "Waypoint vectors are empty. Cannot toggle.");
-            return;
-        }
-
-        if (current_wp_index == 0)
+        if (current_vec == &wp_primary_vec)
         {
-            current_wp_index = 1;
-            start_wp = wp_primary_vec.back(); 
-            end_wp = wp_secondary_vec.front(); 
+            current_vec = &wp_secondary_vec;
+            if (!wp_primary_vec.empty() && !wp_secondary_vec.empty()) {
+                // Interpolate between vectors
+                set_interpolation_num(wp_primary_vec.back(), wp_secondary_vec.front());
+                interpolateWaypoints(wp_primary_vec.back(), wp_secondary_vec.front(), 
+                                   num_interpolations, control_distance);
+            }
         }
         else
         {
-            current_wp_index = 0;
-            start_wp = wp_secondary_vec.back(); 
-            end_wp = wp_primary_vec.front(); 
+            // Switch to primary vector
+            current_vec = &wp_primary_vec;
+            if (!wp_secondary_vec.empty() && !wp_primary_vec.empty()) {
+                // Interpolate between vectors
+                set_interpolation_num(wp_secondary_vec.back(), wp_primary_vec.front());
+                interpolateWaypoints(wp_secondary_vec.back(), wp_primary_vec.front(), 
+                                   num_interpolations, control_distance);
+            }
         }
-
-        interpolateWaypoints(start_wp, end_wp, num_interpolations, control_distance);
     }
 
     // Set the number of interpolations based on the distance between the start and end waypoints
@@ -374,17 +380,17 @@ private:
 
     void update()
     {
-        if (wp_primary_vec.size() > 2)
+        if (current_vec->size() > 2)
         {
             double second_wp_dist = computeDistance(
                 pose[0],
                 pose[1],
-                wp_primary_vec[1].x,
-                wp_primary_vec[1].y);
+                (*current_vec)[1].x,
+                (*current_vec)[1].y);
 
             if (has_been_in_second_wp && second_wp_dist > 0.8)
             {
-                wp_primary_vec.erase(wp_primary_vec.begin());
+                current_vec->erase(current_vec->begin());
                 has_been_in_second_wp = false;
                 closest_wp -= num_interpolations;
             }
@@ -398,12 +404,12 @@ private:
         path_to_follow.poses.clear();
 
         // Iterate through the waypoints and interpolate between each pair
-        if (wp_primary_vec.size() >= 2)
+        if (current_vec->size() >= 2)
         {
-            for (int i = 0; i < wp_primary_vec.size() - 1; ++i)
+            for (int i = 0; i < current_vec->size() - 1; ++i)
             {
-                Wp start_wp = wp_primary_vec[i];
-                Wp end_wp = wp_primary_vec[i + 1];
+                Wp start_wp = (*current_vec)[i];
+                Wp end_wp = (*current_vec)[i + 1];
 
                 // Interpolate between the current pair of waypoints
                 interpolateWaypoints(start_wp, end_wp, num_interpolations, control_distance);
