@@ -8,3 +8,8 @@ float32 distance_threshold
 float32 cluster_tolerance
 int32 min_cluster
 int32 max_cluster
+int32 original_size
+int32 clean_size
+int32 voxel_size
+int32 plane_size
+int32 clusters

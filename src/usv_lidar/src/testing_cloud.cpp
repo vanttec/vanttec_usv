@@ -57,7 +57,7 @@ class TestingCloud: public rclcpp::Node
   private:
 
     Eigen::MatrixXd opening_file(){
-      std::string package_share_directory = ament_index_cpp::get_package_share_directory("point_cloud_processing");
+      std::string package_share_directory = ament_index_cpp::get_package_share_directory("usv_lidar");
       std::string file_path = package_share_directory + "/config/"+test_file_name;
       std::ifstream file(file_path); 
       if (!file) {

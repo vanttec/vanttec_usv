@@ -22,6 +22,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <cmath>
 #include "usv_interfaces/msg/clustering_segmentation.hpp"
+#include <iostream>
+#include <stdexcept>
 
 using namespace std::chrono_literals;
 typedef pcl::PointXYZ PointT;
@@ -53,21 +55,18 @@ class VoxelGrid_filter : public rclcpp::Node
       this->declare_parameter("max_cluster",rclcpp::PARAMETER_INTEGER);
 
       /* Subscriptions */
-      // subscription_ =
-      // this->create_subscription<sensor_msgs::msg::PointCloud2>(
-      // "/kitti/point_cloud", 10, std::bind(&VoxelGrid_filter::timer_callback, this, std::placeholders::_1));
 
       // subscription_ = // From .txt file
       // this->create_subscription<sensor_msgs::msg::PointCloud2>(
       //   "/test_pointcloud_pub", 10, std::bind(&VoxelGrid_filter::timer_callback, this, std::placeholders::_1));
 
-      subscription_ = // Gazebo
-      this->create_subscription<sensor_msgs::msg::PointCloud2>(
-        "/lidar/points", 10, std::bind(&VoxelGrid_filter::timer_callback, this, std::placeholders::_1));
-
-      // subscription_ =  // Real life
+      // subscription_ = // Gazebo
       // this->create_subscription<sensor_msgs::msg::PointCloud2>(
-      //   "velodyne_points", 10, std::bind(&VoxelGrid_filter::timer_callback, this, std::placeholders::_1));
+      //   "/lidar/points", 10, std::bind(&VoxelGrid_filter::timer_callback, this, std::placeholders::_1));
+
+      subscription_ =  // Real life
+      this->create_subscription<sensor_msgs::msg::PointCloud2>(
+        "velodyne_points", 10, std::bind(&VoxelGrid_filter::timer_callback, this, std::placeholders::_1));
 
       /* Publishers */
       clusters_seg_pub =
@@ -75,6 +74,9 @@ class VoxelGrid_filter : public rclcpp::Node
 
       raw_input_pub = 
         this->create_publisher<sensor_msgs::msg::PointCloud2>("/raw_input", 10);
+
+      clean_cloud_pub = 
+        this->create_publisher<sensor_msgs::msg::PointCloud2>("/clean_cloud", 10);
 
        boxes_pub =
         this->create_publisher<visualization_msgs::msg::MarkerArray>("boxes_marker_array", 10);
@@ -97,7 +99,7 @@ class VoxelGrid_filter : public rclcpp::Node
       clust_seg_data_pub = 
         this->create_publisher<usv_interfaces::msg::ClusteringSegmentation>("/clust_seg_data", 10);
 
-      RCLCPP_INFO(this->get_logger(), "Starting VoxelGrid_filter Node");
+      RCLCPP_INFO(this->get_logger(), "Starting Clustering & Segmentation Node");
 
     }
 
@@ -334,7 +336,19 @@ class VoxelGrid_filter : public rclcpp::Node
         pcl::PointCloud<PointT>::Ptr cropped_cloud (new pcl::PointCloud<PointT>); // Cropped Cloud
 
         pcl::fromROSMsg(*input_cloud, *pcl_cloud);
-        RCLCPP_INFO(this->get_logger(),"Original size: %ld", pcl_cloud->size());
+        int original_size = pcl_cloud->points.size();
+        params_msg.original_size = original_size;
+        // RCLCPP_INFO(this->get_logger(),"Original size: %d", original_size);
+        
+        pcl::PointCloud<PointT>::Ptr pcl_clean_cloud(new pcl::PointCloud<PointT>);
+        std::vector<int> indices;
+        pcl::removeNaNFromPointCloud(*pcl_cloud, *pcl_clean_cloud, indices);
+        int clean_size = pcl_clean_cloud->points.size();
+        params_msg.clean_size = clean_size;
+        sensor_msgs::msg::PointCloud2 ros_clean_cloud;
+        pcl::toROSMsg(*pcl_clean_cloud, ros_clean_cloud);
+        clean_cloud_pub->publish(ros_clean_cloud);
+
 
   //==================================== Displaying raw data ====================================
 
@@ -347,7 +361,7 @@ class VoxelGrid_filter : public rclcpp::Node
         pcl::PassThrough<PointT> passing_x;
         pcl::PassThrough<PointT> passing_y;
         int radius = 2.5;
-        passing_x.setInputCloud(pcl_cloud);
+        passing_x.setInputCloud(pcl_clean_cloud);
         passing_x.setFilterFieldName("x");
         passing_x.setFilterLimits(-radius,radius);
         passing_x.filter(*cropped_cloud);
@@ -378,7 +392,7 @@ class VoxelGrid_filter : public rclcpp::Node
 
         pcl::PointCloud<PointT>::Ptr voxel_cloud (new pcl::PointCloud<PointT>); // Voxel Cloud
         pcl::VoxelGrid<PointT> voxel_filter;
-        voxel_filter.setInputCloud(pcl_cloud);
+        voxel_filter.setInputCloud(pcl_clean_cloud);
         voxel_filter.setLeafSize(voxel_grid_x ,voxel_grid_y ,voxel_grid_z);
         // voxel_filter.setLeafSize(1.0 ,1.0 ,1.0);
         voxel_filter.filter(*voxel_cloud);
@@ -387,7 +401,9 @@ class VoxelGrid_filter : public rclcpp::Node
         pcl::toROSMsg(*voxel_cloud, ros_voxel_cloud);
         voxel_grid_pub->publish(ros_voxel_cloud);
 
-        RCLCPP_INFO(this->get_logger(),"Voxel size: %ld", voxel_cloud->size());
+        int voxel_size = voxel_cloud->size();
+        params_msg.voxel_size = voxel_size;
+        // RCLCPP_INFO(this->get_logger(),"Voxel size: %d", voxel_size);
         
   //==================================== Plane Segmentation  ====================================
         pcl::NormalEstimation<PointT, pcl::Normal> normal_extractor;
@@ -402,15 +418,36 @@ class VoxelGrid_filter : public rclcpp::Node
 
 
         // Normals Extractions
+        bool normals_exist = false;
         rclcpp::Parameter ksearch_param = this->get_parameter("ksearch");
         float ksearch = ksearch_param.as_int();
         params_msg.ksearch = ksearch;
-        normal_extractor.setSearchMethod(tree);
-        normal_extractor.setInputCloud(voxel_cloud);
-        normal_extractor.setKSearch(ksearch);
-        normal_extractor.compute(*normals);
+        try {
+          normal_extractor.setSearchMethod(tree);
+          // normal_extractor.setInputCloud(voxel_cloud);
+          normal_extractor.setInputCloud(pcl_clean_cloud);
+          normal_extractor.setKSearch(ksearch);
+          normal_extractor.compute(*normals);
 
-        draw_normals(normals, voxel_cloud);
+          if (normals->empty()) {
+              throw pcl::PCLException("Failed to compute normals - resulting cloud is empty");
+          }
+          
+          normals_exist = true;
+          // RCLCPP_INFO(this->get_logger(),"Normals Computed");
+
+        } catch (const pcl::PCLException& e) {
+           std::cerr << "PCL error during normal estimation: " << e.what() << std::endl; 
+           normals_exist = false;
+           
+        } catch (const std::exception& e) {
+           std::cerr << "Error during normal estimation: " << e.what() << std::endl;
+            normals_exist = false;
+        }
+
+        // draw_normals(normals, voxel_cloud);
+        // draw_normals(normals, pcl_cloud);
+
 
         // Parameters for Planar Segmentation
         rclcpp::Parameter normal_distance_weight_param = this->get_parameter("normal_distance_weight");
@@ -423,36 +460,57 @@ class VoxelGrid_filter : public rclcpp::Node
         float distance_threshold = distance_threshold_param.as_double();
         params_msg.distance_threshold = distance_threshold;
 
-        plane_seg_frm_normals.setOptimizeCoefficients(true);
-        plane_seg_frm_normals.setModelType(pcl::SACMODEL_NORMAL_PLANE);
-        plane_seg_frm_normals.setMethodType(pcl::SAC_RANSAC);
-        plane_seg_frm_normals.setNormalDistanceWeight(normal_distance_weight);
-        plane_seg_frm_normals.setMaxIterations(max_iterations);
-        plane_seg_frm_normals.setDistanceThreshold(distance_threshold);
-        plane_seg_frm_normals.setInputCloud(voxel_cloud);
-        plane_seg_frm_normals.setInputNormals(normals);
-        plane_seg_frm_normals.segment(*plane_inliers,*plane_coefficients);
+        if(normals_exist){
+          try {
+            plane_seg_frm_normals.setOptimizeCoefficients(true);
+            plane_seg_frm_normals.setModelType(pcl::SACMODEL_NORMAL_PLANE);
+            plane_seg_frm_normals.setMethodType(pcl::SAC_RANSAC);
+            plane_seg_frm_normals.setNormalDistanceWeight(normal_distance_weight);
+            plane_seg_frm_normals.setMaxIterations(max_iterations);
+            plane_seg_frm_normals.setDistanceThreshold(distance_threshold);
+            // plane_seg_frm_normals.setInputCloud(voxel_cloud);
+            plane_seg_frm_normals.setInputCloud(pcl_clean_cloud);
+            plane_seg_frm_normals.setInputNormals(normals);
+            plane_seg_frm_normals.segment(*plane_inliers,*plane_coefficients);
 
-        //Extracting Cloud based on Inliers indices
-        plane_extract_indices.setInputCloud(voxel_cloud);
-        plane_extract_indices.setIndices(plane_inliers);
-        plane_extract_indices.setNegative(true);
-        plane_extract_indices.filter(*plane_cloud);
+            if (plane_inliers->indices.size() == 0) {
+              throw std::runtime_error("Could not estimate a planar model for the given dataset.");
+            }
 
-        sensor_msgs::msg::PointCloud2 ros_plane_normals;
-        pcl::toROSMsg(*plane_cloud, ros_plane_normals);
-        ros_plane_normals.header = input_cloud->header;
-        plane_normal_pub->publish(ros_plane_normals);
-        RCLCPP_INFO(this->get_logger(),"plane size: %ld", plane_cloud->size());
+            //Extracting Cloud based on Inliers indices
+            // plane_extract_indices.setInputCloud(voxel_cloud);
+            plane_extract_indices.setInputCloud(pcl_clean_cloud);
+            plane_extract_indices.setIndices(plane_inliers);
+            plane_extract_indices.setNegative(true);
+            plane_extract_indices.filter(*plane_cloud);
+            // RCLCPP_INFO(this->get_logger(),"Plane Computed");
+          } catch (const pcl::PCLException& e) {
+            std::cerr << "PCL error: " << e.what() << std::endl; 
+            pcl::copyPointCloud(*pcl_clean_cloud, *plane_cloud);
+          } catch (const std::exception& e) {
+            std::cerr << "Standard error: " << e.what() << std::endl; 
+            pcl::copyPointCloud(*pcl_clean_cloud, *plane_cloud);
+          }
+
+        }else{
+          pcl::copyPointCloud(*pcl_clean_cloud, *plane_cloud);
+        }
+
+        sensor_msgs::msg::PointCloud2 ros_plane_cloud;
+        pcl::toROSMsg(*plane_cloud, ros_plane_cloud);
+        ros_plane_cloud.header = input_cloud->header;
+        plane_normal_pub->publish(ros_plane_cloud);
+        int plane_size = plane_cloud->size();
+        params_msg.plane_size = plane_size;
+        // RCLCPP_INFO(this->get_logger(),"plane size: %d", plane_size);
   //==================================== Clusters Segmentation  ====================================
-    pcl::PointCloud<PointT>::Ptr segmented_cluster (new pcl::PointCloud<PointT>);
     pcl::PointCloud<PointT>::Ptr all_clusters (new pcl::PointCloud<PointT>);
     tree->setInputCloud (plane_cloud);
     std::vector<pcl::PointIndices> cluster_indices;
     pcl::EuclideanClusterExtraction<PointT> ec;
 
 
-        struct BBox
+    struct BBox
     {
       float x_min;
       float x_max;
@@ -515,11 +573,16 @@ class VoxelGrid_filter : public rclcpp::Node
             bboxes.push_back(bbox);
         }
     }
-    RCLCPP_INFO(this->get_logger(),"Clusters: %d", num_reasonable_clusters);
+    params_msg.clusters = num_reasonable_clusters;
+    // RCLCPP_INFO(this->get_logger(),"Clusters: %d", num_reasonable_clusters);
 
     //==================================== Drawing Boxes  ====================================
 
     visualization_msgs::msg::MarkerArray marker_array;
+
+    visualization_msgs::msg::Marker delete_marker;
+    delete_marker.action = visualization_msgs::msg::Marker::DELETEALL;
+    marker_array.markers.push_back(delete_marker);
 
     int id = 0;
     const std_msgs::msg::Header& inp_header = input_cloud->header;
@@ -667,16 +730,16 @@ class VoxelGrid_filter : public rclcpp::Node
         corner_marker.id = id++;
         marker_array.markers.push_back(corner_marker);
 
-        boxes_pub->publish(marker_array);
     }
+
+    boxes_pub->publish(marker_array);
+
   //==================================== Cloud publishing to ROS  ====================================
 
         // Convert cloud to ros2 message
         sensor_msgs::msg::PointCloud2 clusters_seg_ros2;
         pcl::toROSMsg(*all_clusters, clusters_seg_ros2);
         clusters_seg_ros2.header = input_cloud->header;
-        // std::cout << "PointCloud size before voxelization: " << pcl_cloud->size() << std::endl;
-        // std::cout << "PointCloud size after voxelization: " << voxel_cloud->size() << std::endl;
 
         clusters_seg_pub->publish(clusters_seg_ros2);
         
@@ -693,6 +756,7 @@ class VoxelGrid_filter : public rclcpp::Node
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr normals_cloud_pub;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr clusters_seg_pub;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr raw_input_pub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr clean_cloud_pub;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr cropped_cloud_pup;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr voxel_grid_pub;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr plane_normal_pub;

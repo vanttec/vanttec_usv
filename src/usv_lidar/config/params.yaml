@@ -8,13 +8,13 @@ testing_cloud:
 
 clustering_segmentation:
   ros__parameters:
-    voxel_grid_x: 0.2
-    voxel_grid_y: 0.2
-    voxel_grid_z: 0.2
+    voxel_grid_x: 0.1
+    voxel_grid_y: 0.1
+    voxel_grid_z: 0.1
     ksearch: 30
     normal_distance_weight: 0.5
     max_iterations: 100
-    distance_threshold: 0.2
+    distance_threshold: 0.1
     cluster_tolerance: 0.25
     min_cluster: 20
     max_cluster: 200
