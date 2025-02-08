@@ -95,6 +95,10 @@ add_executable(waypoint_handler_node src/waypoint_handler_node.cpp)
 target_include_directories(waypoint_handler_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
 ament_target_dependencies(waypoint_handler_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
 
+add_executable(path_publisher_node src/path_publisher_node.cpp)
+target_include_directories(path_publisher_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
+ament_target_dependencies(path_publisher_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
+
 # add_executable(path_maker_node src/path_maker_node.cpp)
 # target_include_directories(path_maker_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
 # ament_target_dependencies(path_maker_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
@@ -109,6 +113,7 @@ install(TARGETS
   obstacle_avoidance_node
   kinematic_model_node
   waypoint_handler_node
+  path_publisher_node
   # path_maker_node
   aitsmc_node
   aitsmc_new_node
@@ -121,7 +126,7 @@ install(DIRECTORY
 
 # Install Python executables
 install(PROGRAMS
-  scripts/path_publisher_node.py
+  # scripts/path_publisher_node.py
   scripts/teleop_control_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
