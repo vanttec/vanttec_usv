@@ -39,11 +39,11 @@ protected:
     tf2::Quaternion q(newOdom.pose.pose.orientation.x, newOdom.pose.pose.orientation.y,
                       newOdom.pose.pose.orientation.z, newOdom.pose.pose.orientation.w);
     
-    bool ENU = true; // If SBG is sending ENU, covert to NED.
+    bool ENU = false; // If SBG is sending ENU, covert to NED.
     if(ENU){
       tf2::Quaternion q_rot, q_new;
       
-      double r=0, p=0, y=-M_PI_2;
+      double r=0, p=0, y=-0;
       q_rot.setRPY(r, p, y);
 
       q_new = q_rot*q;  // Calculate the new orientation
@@ -56,22 +56,26 @@ protected:
     tf2::Matrix3x3 m(q);
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
-    double psi = yaw;
+    double psi = -yaw;
+
+    tf2::Quaternion q_symetric;
+    q_symetric.setRPY(0, 0, psi);
+    tf2::convert(q_symetric, newOdom.pose.pose.orientation);
 
     newOdom.header.stamp = msg->header.stamp;
     newOdom.header.frame_id = msg->header.frame_id;
 
-    newOdom.pose.pose.position.x = msg->pose.pose.position.x - zero_x;
-    newOdom.pose.pose.position.y = msg->pose.pose.position.y - zero_y;
+    newOdom.pose.pose.position.x = msg->pose.pose.position.y - zero_x;
+    newOdom.pose.pose.position.y = msg->pose.pose.position.x - zero_y;
 
     double u_orig = msg->twist.twist.linear.x;
-    double v_orig = -msg->twist.twist.linear.y;
+    double v_orig = msg->twist.twist.linear.y;
 
     newOdom.twist.twist.linear.x =
         std::cos(psi) * u_orig - std::sin(psi) * v_orig;
     newOdom.twist.twist.linear.y =
         -(std::sin(psi) * u_orig + std::cos(psi) * v_orig);
-    newOdom.twist.twist.angular.z = -msg->twist.twist.angular.z;
+    newOdom.twist.twist.angular.z = msg->twist.twist.angular.z;
     // newOdom.twist.twist.linear.x =
     //     u_orig;
     // newOdom.twist.twist.linear.y =
@@ -88,7 +92,7 @@ protected:
     geometry_msgs::msg::Pose2D pose;
     pose.x = newOdom.pose.pose.position.x;
     pose.y = newOdom.pose.pose.position.y;
-    pose.theta = psi;
+    pose.theta = -psi;
     posePub->publish(pose);
 
     geometry_msgs::msg::Vector3 velocity;

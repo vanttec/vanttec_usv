@@ -60,7 +60,7 @@ target_link_libraries(aitsmc_new_node usv_libs)
 
 add_executable(usv_tf2_broadcaster_node src/usv_tf2_broadcaster_node.cpp)
 target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs Eigen3 geometry_msgs tf2 tf2_ros)
+ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs nav_msgs Eigen3 geometry_msgs tf2 tf2_ros)
 
 add_executable(dynamic_model_node src/dynamic_model_sim.cpp)
 target_include_directories(dynamic_model_node PUBLIC

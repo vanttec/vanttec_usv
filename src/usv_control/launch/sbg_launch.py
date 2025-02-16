@@ -64,6 +64,6 @@ def generate_launch_description():
     return LaunchDescription([
         sbg_node,
         imu_converter_node,
-        urdf_node,
-        tf2,
+        # urdf_node,
+        # tf2,
     ])

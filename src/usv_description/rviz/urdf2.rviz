@@ -5,17 +5,12 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Status1
-        - /Grid1
-        - /RobotModel1
-        - /Path1
-        - /Path3
         - /TF1
         - /TF1/Frames1
         - /TF1/Tree1
-        - /Path4
+        - /MPC1
       Splitter Ratio: 0.5
-    Tree Height: 946
+    Tree Height: 931
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -28,6 +23,7 @@ Panels:
     Expanded:
       - /Current View1
       - /usv_follower1
+      - /GPS DEBUG1
     Name: Views
     Splitter Ratio: 0.5
   - Class: rviz_common/Time
@@ -97,7 +93,7 @@ Visualization Manager:
       Length: 0.30000001192092896
       Line Style: Billboards
       Line Width: 0.07000000029802322
-      Name: Path
+      Name: MPCref
       Offset:
         X: 0
         Y: 0
@@ -125,7 +121,7 @@ Visualization Manager:
       Length: 0.30000001192092896
       Line Style: Lines
       Line Width: 0.10000000149011612
-      Name: Path
+      Name: posepath
       Offset:
         X: 0
         Y: 0
@@ -151,9 +147,9 @@ Visualization Manager:
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
-      Line Style: Lines
-      Line Width: 0.05000000074505806
-      Name: Path
+      Line Style: Billboards
+      Line Width: 0.10000000149011612
+      Name: path2follow
       Offset:
         X: 0
         Y: 0
@@ -173,9 +169,9 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: ObsMarkers
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -185,7 +181,7 @@ Visualization Manager:
       Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: false
-      Name: MarkerArray
+      Name: OnWatch
       Namespaces:
         {}
       Topic:
@@ -195,37 +191,11 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /on_watch
       Value: false
-    - Alpha: 1
-      Class: rviz_default_plugins/GridCells
-      Color: 94; 92; 100
-      Enabled: true
-      Name: GridCells
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /usv/obstacle_margins_map
-      Value: true
-    - Alpha: 1
-      Class: rviz_default_plugins/GridCells
-      Color: 246; 97; 81
-      Enabled: true
-      Name: GridCells
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        Filter size: 10
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /usv/obstacle_map
-      Value: true
     - Class: rviz_default_plugins/MarkerArray
       Enabled: true
-      Name: MarkerArray
+      Name: Goals
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -234,30 +204,42 @@ Visualization Manager:
         Value: /goals_markers
       Value: true
     - Class: rviz_default_plugins/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base_link:
+          Value: false
+        map:
+          Value: false
+        odom:
+          Value: false
+        usv:
+          Value: true
+        world:
+          Value: true
       Marker Scale: 5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        world:
+          usv:
+            {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz_default_plugins/Path
-      Color: 25; 255; 0
+      Color: 28; 113; 216
       Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
       Line Style: Billboards
-      Line Width: 0.30000001192092896
-      Name: Path
+      Line Width: 0.699999988079071
+      Name: MPC
       Offset:
         X: 0
         Y: 0
@@ -277,7 +259,7 @@ Visualization Manager:
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 61; 56; 70
+    Background Color: 94; 92; 100
     Fixed Frame: world
     Frame Rate: 30
   Name: root
@@ -320,26 +302,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz_default_plugins/ThirdPersonFollower
-      Distance: 12.058058738708496
+      Angle: -4.155818462371826
+      Class: rviz_default_plugins/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: -1.4148006439208984
-        Y: 0.1702585220336914
-        Z: 1.239776611328125e-05
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
-      Target Frame: usv
-      Value: ThirdPersonFollower (rviz_default_plugins)
-      Yaw: 3.057373285293579
+      Scale: -253.74737548828125
+      Target Frame: <Fixed Frame>
+      Value: TopDownOrtho (rviz_default_plugins)
+      X: 0.266647607088089
+      Y: 0.25308170914649963
     Saved:
       - Angle: -1.5707999467849731
         Class: rviz_default_plugins/TopDownOrtho
@@ -364,9 +341,9 @@ Visualization Manager:
           Swap Stereo Eyes: false
           Value: false
         Focal Point:
-          X: -1.4148006439208984
-          Y: 0.1702585220336914
-          Z: 1.239776611328125e-05
+          X: -1.4148000478744507
+          Y: 0.1702599972486496
+          Z: 1.2397999853419606e-05
         Focal Shape Fixed Size: true
         Focal Shape Size: 0.05000000074505806
         Invert Z Axis: false
@@ -391,13 +368,28 @@ Visualization Manager:
         Value: TopDownOrtho (rviz_default_plugins)
         X: 11.814085960388184
         Y: 2.1549177169799805
+      - Angle: -1.5707999467849731
+        Class: rviz_default_plugins/TopDownOrtho
+        Enable Stereo Rendering:
+          Stereo Eye Separation: 0.05999999865889549
+          Stereo Focal Distance: 1
+          Swap Stereo Eyes: false
+          Value: false
+        Invert Z Axis: false
+        Name: GPS DEBUG
+        Near Clip Distance: 0.009999999776482582
+        Scale: 100
+        Target Frame: <Fixed Frame>
+        Value: TopDownOrtho (rviz_default_plugins)
+        X: 0
+        Y: 0
 Window Geometry:
   Displays:
     collapsed: true
   Height: 1136
   Hide Left Dock: true
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001560000043dfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c00610079007300000000160000043d000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c0000026100000001000001000000043dfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a0056006900650077007300000000160000043d000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005a000000039fc0100000002fb0000000800540069006d00650000000000000005a0000002fb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003c00000043d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730000000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000004000000000000015f00000435fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005f00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073000000001a00000435000000d000fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010000000435fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000001a00000435000000af00fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005a000000039fc0100000002fb0000000800540069006d00650000000000000005a0000002a700fffffffb0000000800540069006d00650100000000000004500000000000000000000003c00000043500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730000000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:

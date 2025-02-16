@@ -24,7 +24,13 @@ def generate_launch_description():
     with open(urdf, 'r') as infp:
         robot_desc = infp.read()
 
+    tf2 = Node(
+        package="usv_control",
+        executable="usv_tf2_broadcaster_node",
+    )
+
     return LaunchDescription([
+        tf2,
         rviz,
         DeclareLaunchArgument(
             'use_sim_time',

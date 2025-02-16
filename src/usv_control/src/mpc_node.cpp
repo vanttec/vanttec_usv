@@ -265,8 +265,9 @@ private:
 
   double last_u{0.}, last_r{0.}, last_last_r{0.}, last_psi{0.};
   // The closer to 1, the slower it will reach the actual value.
+  double alpha_u{0.9}, alpha_r{0.9}, alpha_psi{0.9};
   // double alpha_u{0.99}, alpha_r{0.94}, alpha_psi{0.9};
-  double alpha_u{0.}, alpha_r{0.}, alpha_psi{0.};
+  // double alpha_u{0.}, alpha_r{0.}, alpha_psi{0.};
 
   double psi_d{0.};
 
@@ -379,6 +380,7 @@ private:
     last_r = alpha_r*last_r + (1-alpha_r)*r_result[0];
 
     last_psi = integral_step * (last_r + last_last_r) / 2. + last_psi;
+    // last_psi = alpha_psi*last_psi + (1-alpha_psi)*psi_result[0];
     last_psi = normalize_angle(last_psi);
 
     vel_setpoint_msg.data = last_u;
