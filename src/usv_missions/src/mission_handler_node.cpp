@@ -27,6 +27,7 @@
 #include "mission_classes/m2.cpp"
 #include "mission_classes/m3.cpp"
 #include "mission_classes/m4.cpp"
+#include "mission_classes/m5.cpp"
 #include "mission_classes/m6.cpp"
 
 using namespace std::chrono_literals;
@@ -68,6 +69,12 @@ class MissionHandlerNode : public rclcpp::Node {
                     update_params.docking_color_choice = 1;
                 });
 
+            vessel_sub = this->create_subscription<std_msgs::msg::Bool>(
+                "/usv/vessel_detected", 1,
+                [this](const std_msgs::msg::Bool &msg) {
+                    vessel_detected = msg.data;
+                });
+
             id.data = 0;
             vtec = std::make_shared<M0>();
             vtec->set_status(1);    // Initially reached wp, to enable new mission assignment
@@ -87,6 +94,7 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_;
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr vessel_sub;
 
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
@@ -116,6 +124,8 @@ class MissionHandlerNode : public rclcpp::Node {
         std::vector<usv_interfaces::msg::Waypoint> goals;
         std::vector<int> task_schedule{2,1,3};
 
+        bool vessel_detected{false};
+
         // Check for all tasks if their starting point has been found, get first in schedule
         int get_next_known_id(){
             for(int i = 0 ; i < task_schedule.size() ; i++){
@@ -133,6 +143,13 @@ class MissionHandlerNode : public rclcpp::Node {
 
         // Check if task id should be updated.
         void check_mission_jump(){
+            // Check if vessel is detected
+            if (vessel_detected == true){
+                // Jumpt to mission 5
+                update_mission_id(5);
+                return;
+            }
+
             if(task_schedule.size() > 0 && status.data){    // If task is completed
                 int suitable_id = get_next_known_id();  // Find next reachable task from schedule
                 if(!suitable_id){
@@ -175,6 +192,10 @@ class MissionHandlerNode : public rclcpp::Node {
                 case 4:
                     vtec = std::make_shared<M4>();
                     break;
+                case 5:
+                    vtec = std::make_shared<M5>();
+                    break;
+
                 case 6:
                     vtec = std::make_shared<M6>();
                     break;
