@@ -75,6 +75,12 @@ class MissionHandlerNode : public rclcpp::Node {
                     vessel_detected = msg.data;
                 });
 
+            racquetball_sub = this->create_subscription<std_msgs::msg::Bool>(
+                "/usv/shoot_racquetball", 1,
+                [this](const std_msgs::msg::Bool &msg) {
+                    shoot_racquetball();
+                });
+
             id.data = 0;
             vtec = std::make_shared<M0>();
             vtec->set_status(1);    // Initially reached wp, to enable new mission assignment
@@ -95,6 +101,7 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr vessel_sub;
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr racquetball_sub;
 
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
@@ -254,6 +261,11 @@ class MissionHandlerNode : public rclcpp::Node {
                 wp.theta = vec[i](2);
                 wp_list.waypoint_list.push_back(wp);
             }
+        }
+
+        void shoot_racquetball(){
+            // TODO: Implement racquetball shooting
+            std::cout << "Shooting racquetball" << std::endl;
         }
 };
 
