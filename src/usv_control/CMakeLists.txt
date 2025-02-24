@@ -127,7 +127,9 @@ install(DIRECTORY
 # Install Python executables
 install(PROGRAMS
   # scripts/path_publisher_node.py
-  scripts/teleop_control_node.py
+  scripts/teleop_aitsmc_node.py
+  scripts/teleop_can_node.py
+  scripts/teleop_mpc_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
