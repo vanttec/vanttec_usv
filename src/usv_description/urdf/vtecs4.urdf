@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<robot name="usv_comms/usv" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <link name="usv_comms/usv">
+    <visual>
+      <!-- <origin rpy="0 0 0" xyz="-0.5 0 0.15"/> -->
+      <origin rpy="0 0 0" xyz="0 0 0.15"/>
+      <geometry>
+        <mesh filename="package://usv_description/models/vtec_s4/meshes/vtec_s4.dae" scale="1 1 1"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <gazebo reference="world">
+    <material>Gazebo/White</material>
+    <gravity>true</gravity>
+  </gazebo>
+
+</robot>
+
