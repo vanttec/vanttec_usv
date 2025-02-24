@@ -30,7 +30,7 @@ class WaypointGenerator(Node):
         self.waypoint_pub = self.create_publisher(WaypointList, '/usv/goals', 10)
         
         # Publisher for the visualization marker (virtual waypoint arrow).
-        self.marker_pub = self.create_publisher(Marker, '/visualization_marker', 10)
+        self.marker_pub = self.create_publisher(Marker, '/usv/tmp_goal', 10)
         
         # Latest boat pose (from /usv/state/pose).
         self.current_pose = Pose2D()
