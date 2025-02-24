@@ -13,6 +13,7 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
+find_package(sbg_driver REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(tf2 REQUIRED)
@@ -35,6 +36,7 @@ set(DEPENDENCIES
   tf2_ros
   Eigen3
   tf2_geometry_msgs
+  sbg_driver
   usv_interfaces
 )
 
@@ -53,12 +55,16 @@ ament_target_dependencies(obstacle_viewer_node ${DEPENDENCIES})
 add_executable(obstacle_nearest_publisher src/obstacle_nearest_publisher.cpp)
 ament_target_dependencies(obstacle_nearest_publisher ${DEPENDENCIES})
 
+add_executable(system_validation_node src/system_validation_node.cpp)
+ament_target_dependencies(system_validation_node ${DEPENDENCIES})
+
 install(TARGETS 
   imu_converter_node
   odom_converter_node
   killswitch_node
   obstacle_viewer_node
   obstacle_nearest_publisher
+  system_validation_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
