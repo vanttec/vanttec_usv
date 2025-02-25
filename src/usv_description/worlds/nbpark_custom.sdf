@@ -22,7 +22,7 @@
         <scene>scene</scene>
         <ambient_light>0.4 0.4 0.4</ambient_light>
         <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>-178 1089 0.5 0 0.25 -2.6</camera_pose>
+        <camera_pose>-175 1086 9.7012 0 0.5272 2.4282</camera_pose>
         <camera_clip>
           <near>0.25</near>
           <far>10000</far>
@@ -445,6 +445,12 @@
       <name>return2home_challenge</name>
       <pose>-175 1100 0 0 0 0</pose>
       <uri>return2home_challenge</uri>
+    </include>
+
+    <include>
+      <name>static_vessel</name>
+      <pose>-175 1100 0.27 0 0 0</pose>
+      <uri>static_vessel</uri>
     </include>
 
 
