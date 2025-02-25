@@ -58,6 +58,14 @@ target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and
 ament_target_dependencies(aitsmc_new_node rclcpp std_msgs Eigen3 geometry_msgs)
 target_link_libraries(aitsmc_new_node usv_libs)
 
+add_executable(pid_node src/pid_node.cpp)
+target_include_directories(pid_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> libs/usv_libs/src)
+target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(pid_node rclcpp std_msgs Eigen3 geometry_msgs)
+target_link_libraries(pid_node usv_libs)
+
 add_executable(usv_tf2_broadcaster_node src/usv_tf2_broadcaster_node.cpp)
 target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs nav_msgs Eigen3 geometry_msgs tf2 tf2_ros)
@@ -106,6 +114,7 @@ ament_target_dependencies(path_publisher_node rclcpp tf2 tf2_ros geometry_msgs n
 
 install(TARGETS
   asmc_node
+  pid_node
   mpc_node
   los_node
   usv_tf2_broadcaster_node
