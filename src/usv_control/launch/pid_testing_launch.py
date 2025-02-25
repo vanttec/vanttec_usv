@@ -153,11 +153,15 @@ def generate_launch_description():
     ])
     ]),
     )
-
-
-    mission_handler_node = Node(
-        package="usv_missions",
-        executable="mission_handler_node",
+    
+    mission_handler_launch = IncludeLaunchDescription(
+    PythonLaunchDescriptionSource([
+    PathJoinSubstitution([
+        FindPackageShare('usv_missions'),
+        'launch',
+        'mission_launch.py'
+    ])
+    ]),
     )
 
     weights_config = os.path.join(
@@ -189,10 +193,10 @@ def generate_launch_description():
         # aitsmc_node,
         pid_launch,
         # los_node,
-        foxglove_bridge,
+        # foxglove_bridge,
         obstacle_launch,
         # teleop_launch,
-        mission_handler_node,
+        mission_handler_launch,
         waypoint_handler_node,
         obstacle_nearest_publisher,
         mpc_node,
