@@ -11,7 +11,7 @@
 
 int main() {
     // vanttec::CANHandler handler("can_vtec");
-  vanttec::CANHandler handler("can0");
+  vanttec::CANHandler handler("can_vtec");
 //    std::thread writeThread([&]{
 //        for(;;) {
 //            handler.write(vanttec::CANMessage());
