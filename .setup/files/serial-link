@@ -1,0 +1,20 @@
+# /etc/ppp/peers/serial-link
+
+# Jetson
+/dev/ttyHOLY
+230400
+local
+noauth
+noipdefault
+10.0.0.2:10.0.0.1
+persist
+
+# Ground Station
+#/dev/ttyHOLY
+#115200
+#local
+#noauth
+#defaultroute
+#noipdefault
+#10.0.0.1:10.0.0.2
+#persist
