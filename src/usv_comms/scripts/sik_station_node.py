@@ -45,7 +45,7 @@ class SiKStationNode(SiKBaseNode):
         for topic in self.receiving_topics:
             topic_name = topic['config']['topic']
             msg_type = self.get_message_type(topic['config']['msg_type'])
-            pub_topic = f"/usv_comms{topic_name}"
+            pub_topic = f"{topic_name}"
             self.topic_publishers[topic['name']] = self.create_publisher(
                 msg_type,
                 pub_topic,

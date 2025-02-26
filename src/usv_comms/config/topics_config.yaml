@@ -1,7 +1,7 @@
 radio_config:
   port:
-    boat: "/dev/ttyUSB0"
-    station: "/dev/ttyUSB1"
+    boat: "/dev/ttyHOLY"
+    station: "/dev/ttyHOLY"
   baud_rate: 115200
   update_rate: 0.05
 
@@ -23,7 +23,7 @@ topics:
   waypoint:
     topic: "/usv/waypoint"
     msg_type: "usv_interfaces/msg/Waypoint"
-    enabled: true
+    enabled: false
     direction: "station_to_boat"  # Station sends waypoints to boat
     fields: ["x", "y"]
 
@@ -31,13 +31,13 @@ topics:
     heading:
       topic: "/guidance/desired_heading"
       msg_type: "std_msgs/msg/Float64"
-      enabled: true
+      enabled: false
       direction: "station_to_boat"
       fields: ["data"]
     velocity:
       topic: "/guidance_desired_velocity"
       msg_type: "std_msgs/msg/Float64"
-      enabled: true
+      enabled: false
       direction: "station_to_boat"
       fields: ["data"]
 
@@ -45,13 +45,13 @@ topics:
     tx:
       topic: "/debug/Tx"
       msg_type: "std_msgs/msg/Float64"
-      enabled: true
+      enabled: false
       direction: "boat_to_station"
       fields: ["data"]
     tz:
       topic: "/debug/Tz"
       msg_type: "std_msgs/msg/Float64"
-      enabled: true
+      enabled: false
       direction: "boat_to_station"
       fields: ["data"]
 
@@ -60,13 +60,13 @@ topics:
       topic: "/usv/left_thruster"
       msg_type: "std_msgs/msg/Float64"
       enabled: true
-      direction: "boat_to_station"
+      direction: "station_to_boat"
       fields: ["data"]
     right:
       topic: "/usv/right_thruster"
       msg_type: "std_msgs/msg/Float64"
       enabled: true
-      direction: "boat_to_station"
+      direction: "station_to_boat"
       fields: ["data"]
 
   missions:
@@ -74,19 +74,19 @@ topics:
       topic: "/usv/mission/state"
       msg_type: "std_msgs/msg/Int8"
       fields: ["data"]
-      enabled: true
+      enabled: false
       direction: "boat_to_station"
     status:
       topic: "/usv/mission/status"
       msg_type: "std_msgs/msg/Int8"
       fields: ["data"]
-      enabled: true
+      enabled: false
       direction: "station_to_boat"
         
   objects:
     topic: "/objects"
     msg_type: "usv_interfaces/msg/ObjectList"
-    enabled: true
+    enabled: false
     direction: "boat_to_station"
     max_objects: 5
     fields: ["x", "y", "color", "type"]

@@ -21,7 +21,7 @@ using std::placeholders::_1;
 
 class SystemStatusNode : public rclcpp::Node {
     public:
-        SystemStatusNode(): Node("obstacle_publisher_node") {
+        SystemStatusNode(): Node("system_validation_node") {
 
             system_status_pub_ = this->create_publisher<usv_interfaces::msg::SystemStatus>("/usv/status", 10);
 
