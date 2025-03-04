@@ -93,6 +93,6 @@ def generate_launch_description():
         # mpc_node,
         path_publisher_node,
         # sbg_launch,
-        aitsmc_new_node,
+        # aitsmc_new_node,
         # can_node,
     ])

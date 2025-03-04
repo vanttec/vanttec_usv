@@ -42,28 +42,8 @@ def generate_launch_description():
         ],
     )
 
-    urdf_file_name = 'usv.urdf'
-    urdf = os.path.join(
-        get_package_share_directory("usv_description"), "urdf/", urdf_file_name)
-    with open(urdf, 'r') as infp:
-        robot_desc = infp.read()
-   
-    urdf_node = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        output='screen',
-        parameters=[{'use_sim_time': False, 'robot_description': robot_desc}],
-        arguments=[urdf])
-
-    tf2 = Node(
-        package="usv_control",
-        executable="usv_tf2_broadcaster_node",
-    )
 
     return LaunchDescription([
         sbg_node,
         imu_converter_node,
-        # urdf_node,
-        # tf2,
     ])

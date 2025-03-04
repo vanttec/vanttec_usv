@@ -31,13 +31,13 @@ topics:
     heading:
       topic: "/guidance/desired_heading"
       msg_type: "std_msgs/msg/Float64"
-      enabled: false
+      enabled: true 
       direction: "station_to_boat"
       fields: ["data"]
     velocity:
-      topic: "/guidance_desired_velocity"
+      topic: "/guidance/desired_velocity"
       msg_type: "std_msgs/msg/Float64"
-      enabled: false
+      enabled: true 
       direction: "station_to_boat"
       fields: ["data"]
 
@@ -59,13 +59,13 @@ topics:
     left:
       topic: "/usv/left_thruster"
       msg_type: "std_msgs/msg/Float64"
-      enabled: true
+      enabled: false 
       direction: "station_to_boat"
       fields: ["data"]
     right:
       topic: "/usv/right_thruster"
       msg_type: "std_msgs/msg/Float64"
-      enabled: true
+      enabled: false 
       direction: "station_to_boat"
       fields: ["data"]
 

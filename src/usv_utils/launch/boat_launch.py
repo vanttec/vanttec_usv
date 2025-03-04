@@ -49,7 +49,7 @@ def generate_launch_description():
     return LaunchDescription([
         can_launch,
         sik_boat_node,
-        # sbg_launch,
+        sbg_launch,
         system_validation_node,
     ])
 

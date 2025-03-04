@@ -225,7 +225,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        is_sim,
+        # is_sim,
 
        # rviz,
         # dynamic_sim_node,
@@ -233,13 +233,13 @@ def generate_launch_description():
         # aitsmc_node,
         aitsmc_new_node,        
         # los_node,
-        sbg_launch,
-        imu_converter_node,
+        # sbg_launch,
+        # imu_converter_node,
         # foxglove_bridge,
         # tf2,
-        can_node,
+        # can_node,
         # teleop_launch,
         # obstacle_launch,
-        waypoint_handler_node,
+        # waypoint_handler_node,
         # mpc_node,
     ])
