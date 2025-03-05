@@ -23,6 +23,9 @@ install(PROGRAMS
   scripts/sik_base_node.py
   scripts/sik_station_node.py
   scripts/sik_boat_node.py
+  scripts/xbee_base_node.py
+  scripts/xbee_station_node.py
+  scripts/xbee_boat_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
