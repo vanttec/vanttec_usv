@@ -53,7 +53,7 @@ class TeleopControl(Node):
             self.curr_angle = self.current_pose_theta
         else:
             # Add a small rotation relative to current pose
-            self.curr_angle = self.current_pose_theta + msg.angular.z * 0.1
+            self.curr_angle = self.current_pose_theta + msg.angular.z * 0.5
             self.curr_angle = (self.curr_angle + math.pi) % (2 * math.pi) - math.pi
 
         # Use the linear velocity from the key input directly.
@@ -84,7 +84,7 @@ class TeleopControl(Node):
             self.curr_angle = self.current_pose_theta
         else:
             # Compute a small offset relative to the current orientation
-            self.curr_angle = self.current_pose_theta + steer * 0.1
+            self.curr_angle = self.current_pose_theta + steer * 0.5
             self.curr_angle = (self.curr_angle + math.pi) % (2 * math.pi) - math.pi
 
         # Scale throttle and brake to compute surge (velocity) command.

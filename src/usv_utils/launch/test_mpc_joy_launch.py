@@ -44,8 +44,8 @@ def generate_launch_description():
     return LaunchDescription([
         joy_node,
         teleop_node,
-        waypoint_handler_node,
-        mpc_launch,
+        # waypoint_handler_node,
+        # mpc_launch,
         # Also, run regular LAUNCH on jetson (CAN+SBG)
     ])
 
