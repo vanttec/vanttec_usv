@@ -24,7 +24,7 @@ public:
             10,
             std::bind(&CustomBridge::right_callback, this, std::placeholders::_1));
 
-        lidar_ros_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>( "/lidar/points", 10);
+        lidar_ros_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>( "/velodyne_points", 10);
 
         // Gazebo publishers 
         left_gz_pub = gz_node.Advertise<gz::msgs::Double>(

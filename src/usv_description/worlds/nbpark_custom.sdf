@@ -408,7 +408,7 @@
     <!-- VTec - SIII -->
     <include>
       <name>vtec_s3</name>
-      <pose>-180 1088 0 0 0 0</pose>
+      <pose>-180 1088 0 0 0 3.14</pose>
       <uri>vtec_s3</uri>
     </include>
 

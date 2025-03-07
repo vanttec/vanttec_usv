@@ -43,13 +43,13 @@ def generate_launch_description():
     ) 
 
     ## Custom Bridge
-    custom_bridge = Node(
-       package='usv_description',
-       executable='custom_bridge',
-       additional_env={
-               'GZ_IP': '127.0.0.1',
-           }
-    )
+    # custom_bridge = Node(
+    #    package='usv_description',
+    #    executable='custom_bridge',
+    #    additional_env={
+    #            'GZ_IP': '127.0.0.1',
+    #        }
+    # )
 
     usv_launchfile = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
@@ -62,50 +62,52 @@ def generate_launch_description():
     rviz = Node(
        package='rviz2',
        executable='rviz2',
-       arguments=['-d', os.path.join(pkg_usv_description, 'rviz', 'diff_drive.rviz')],
+       arguments=['-d', os.path.join(pkg_usv_description, 'rviz', 'gz.rviz')],
        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
-    ## Launch Gazebo with ros_gz_sim
-    #  Uncomment package in package.xml
+    # # Launch Gazebo with ros_gz_sim
+    # #  Uncomment package in package.xml
     # pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     # gz_args = ['sim', '-v 4 -r']
     # gz_args.append('../worlds/nbpark_custom.sdf')
-    #
+    
     # gz_sim = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource(
     #         os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
     #     launch_arguments={'gz_args': ' '.join(gz_args)}.items(),
     # )
 
-    ## Bridge
-    # bridge = Node(
-    #     package='ros_gz_bridge',
-    #     executable='parameter_bridge',
-    #     arguments=[
-    #                # '/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double',
-    #                # '/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double',
-    #             #    '/world/nbpark/model/vtec_s3/link/base_link/sensor/imu/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
-    #             #    '/world/nbpark/model/vtec_s3/link/base_link/sensor/navsat/navsat@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat',
-    #                # '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
-    #                # '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
-    #                # '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
-    #                # '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
-    #                ],
-    #     # parameters=[{
-    #     #     'qos_overrides./model/my_roboboat.subscriber.reliability': 'reliable',
-    #     #             }],
-    #     output='screen',
-    #     additional_env={
-    #         'GZ_IP': '127.0.0.1',
-    #     }
-    # )
+    # Bridge
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+                   '/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double',
+                   '/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double',
+                   '/world/nbpark/model/vtec_s3/link/base_link/sensor/imu/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
+                #    '/world/nbpark/model/vtec_s3/link/base_link/sensor/navsat/navsat@sensor_msgs/msg/NavSatFix@gz.msgs.NavSat',
+                   '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+                   '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
+                   '/zed_rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
+                   '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
+                #    '/zed_rgbd/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
+                   '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
+                   ],
+        # parameters=[{
+        #     'qos_overrides./model/my_roboboat.subscriber.reliability': 'reliable',
+        #             }],
+        output='screen',
+        additional_env={
+            'GZ_IP': '127.0.0.1',
+        }
+    )
 
     return LaunchDescription([
         gz_sim,
-        custom_bridge,
+        # custom_bridge,
         usv_launchfile,
-        # bridge,
+        bridge,
         # rviz
     ])
 
