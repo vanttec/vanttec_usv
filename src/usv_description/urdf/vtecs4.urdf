@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<robot name="usv_comms/usv" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="usv" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <link name="usv_comms/usv">
+  <link name="usv">
     <visual>
       <!-- <origin rpy="0 0 0" xyz="-0.5 0 0.15"/> -->
       <origin rpy="0 0 0" xyz="0 0 0.15"/>

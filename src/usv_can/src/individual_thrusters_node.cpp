@@ -9,7 +9,7 @@ IndividualThrusterNode::IndividualThrusterNode() : Node("IndividualThrusterNode"
         [this](const std_msgs::msg::Float64 &msg){
             this->left_thrust = map_thruster(msg.data);
             this->last_recev = this->now();
-            this->update_thrust();
+            // this->update_thrust();
         }
     );
 
@@ -28,7 +28,7 @@ IndividualThrusterNode::IndividualThrusterNode() : Node("IndividualThrusterNode"
         [this](const std_msgs::msg::Float64 &msg){
             this->right_thrust = map_thruster(msg.data);
             this->last_recev = this->now();
-            this->update_thrust();
+            // this->update_thrust();
         }
     );
 
@@ -64,15 +64,20 @@ void IndividualThrusterNode::update_thrust(){
         RCLCPP_INFO_THROTTLE(this->get_logger(), clock, 10000, "Setting motors to 0, no input recieved in %d!", elapsed_ms);
         left_thrust = 0;
         right_thrust = 0;
+        shoot = 0;
     }
 
     std_msgs::msg::Float32MultiArray msg;
     msg.data = std::vector<float>{
         static_cast<float>(left_thrust), 
-        static_cast<float>(left_thrust), 
-        0,0,0,0,
+        static_cast<float>(left_thrust),
+
+        static_cast<float>(shoot), 
+        0,0,0,
+
         static_cast<float>(-right_thrust), 
         static_cast<float>(-right_thrust),
         };
+
     motorPub->publish(msg);
 }
