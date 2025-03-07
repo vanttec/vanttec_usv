@@ -53,3 +53,6 @@
 [submodule "src/deps/ros_gz"]
 	path = src/deps/ros_gz
 	url = https://github.com/gazebosim/ros_gz.git
+[submodule "src/visionsystemx"]
+	path = src/visionsystemx
+	url = https://github.com/vanttec/visionsystemx.git
