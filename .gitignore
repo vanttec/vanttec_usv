@@ -5,4 +5,4 @@ install/
 */.vscode
 .vscode
 src/usv_description/models/vtec_s4/meshes/vtec_s4.dae
-*/code_gen/*
+src/usv_control/config/code_gen/
