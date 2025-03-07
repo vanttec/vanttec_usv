@@ -68,6 +68,12 @@ class MissionHandlerNode : public rclcpp::Node {
                     update_params.docking_color_choice = 1;
                 });
 
+            green_light_sub_ = this->create_subscription<std_msgs::msg::Bool>(
+                "/usv/mission/green_light", 1,
+                [this](const std_msgs::msg::Bool &msg) {
+                    update_params.green_light = msg.data;
+                });
+
             id.data = 0;
             vtec = std::make_shared<M0>();
             vtec->set_status(1);    // Initially reached wp, to enable new mission assignment
@@ -86,7 +92,7 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr auto_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
-        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_;
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_, green_light_sub_;
 
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;

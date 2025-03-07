@@ -1,9 +1,10 @@
 /**:
   ros__parameters:
     global_tasks: [
-        "m1", 
-        "m2", 
-        "m3"
+        # "m1", 
+        # "m2", 
+        # "m3",
+        "m4",
     ] 
     m1:
       name: "m1_v1"
@@ -14,3 +15,6 @@
     m3:
       name: "m3_v3"
       pose: [60.0, 0.0, 0.0]
+    m4:
+      name: "m4_v4"
+      pose: [3.0, 0.0, 0.0]
