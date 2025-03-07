@@ -58,7 +58,7 @@ class MissionHandlerNode : public rclcpp::Node {
                 [this](const std_msgs::msg::UInt16 &msg) { auto_mode.data = msg.data; });
 
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-                "/obj_list", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
+                "/bebblebrox/objects/yolo", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
             );
 
             wp_arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(

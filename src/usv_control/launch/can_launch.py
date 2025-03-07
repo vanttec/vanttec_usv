@@ -19,7 +19,6 @@ def generate_launch_description():
     can_node = Node(
         package="vanttec_can_comms",
         executable="can_node",
-        output="screen",
         remappings=[
             ("out/mode", "/usv/op_mode"),
             ("out/stm32_ping", "/usv/can/stm32_ping"),
