@@ -200,7 +200,7 @@ def generate_launch_description():
     )
      
     return LaunchDescription([
-        # rviz,
+        rviz,
         # foxglove_bridge,
 
         dynamic_sim_node,
