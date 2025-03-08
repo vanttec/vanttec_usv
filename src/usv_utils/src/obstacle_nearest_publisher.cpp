@@ -43,7 +43,7 @@ class ObstacleNearestPublisherNode : public rclcpp::Node {
                         }
                     }
                     while(out.obj_list.size() < 5){
-                        out.obj_list.push_back(usv_interfaces::build<usv_interfaces::msg::Object>().x(0.).y(0.).v_x(0.).v_y(0.).color(5).type("NaN"));
+                        out.obj_list.push_back(usv_interfaces::build<usv_interfaces::msg::Object>().x(0.).y(0.).v_x(0.).v_y(0.).color(5).type("NaN").uuid(""));
                     }
                     nearest_dist.data = obj_dist_v[0].first;
                 });
