@@ -54,7 +54,7 @@ def generate_launch_description():
     usv_launchfile = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                         'usv_joy_teleop.py')
+                         'usv_joy_teleop_launch.py')
         ])
     )
 
@@ -106,7 +106,7 @@ def generate_launch_description():
     return LaunchDescription([
         gz_sim,
         # custom_bridge,
-        usv_launchfile,
+        # usv_launchfile,
         bridge,
         # rviz
     ])
