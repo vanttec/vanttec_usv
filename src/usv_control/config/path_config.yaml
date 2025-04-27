@@ -1,0 +1,8 @@
+path_publisher_node:
+  ros__parameters:
+    wave:
+      pattern: "sine"  # Options: straight, sine, zigzag
+      amplitude: 5.0
+      frequency: 1.0
+      length: 20.0
+      delta: 0.1

@@ -58,7 +58,7 @@ class MissionHandlerNode : public rclcpp::Node {
                 [this](const std_msgs::msg::UInt16 &msg) { auto_mode.data = msg.data; });
 
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-                "/obj_list", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
+                "/bebblebrox/objects/yolo", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
             );
 
             wp_arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
@@ -66,6 +66,12 @@ class MissionHandlerNode : public rclcpp::Node {
                 [this](const std_msgs::msg::Bool &msg) {
                     update_params.wp_arrived = msg.data;
                     update_params.docking_color_choice = 1;
+                });
+
+            green_light_sub_ = this->create_subscription<std_msgs::msg::Bool>(
+                "/usv/mission/green_light", 1,
+                [this](const std_msgs::msg::Bool &msg) {
+                    update_params.green_light = msg.data;
                 });
 
             id.data = 0;
@@ -86,7 +92,7 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr auto_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
-        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_;
+        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_, green_light_sub_;
 
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
@@ -94,10 +100,12 @@ class MissionHandlerNode : public rclcpp::Node {
 
         usv_interfaces::msg::Object obj;
         usv_interfaces::msg::WaypointList wp_list;
+        usv_interfaces::msg::Waypoint latest_wp;
         std_msgs::msg::Int8 id, state, status;
         std_msgs::msg::Bool pivot, arrived;
         std_msgs::msg::UInt16 auto_mode;
         std::vector<Obstacle> obs_v;
+
 
         USVOutput feedback;
         Eigen::Vector3f pose;
@@ -152,8 +160,12 @@ class MissionHandlerNode : public rclcpp::Node {
                     std::string str_id = "m" + std::to_string(suitable_id);
                     travel_arr = this->get_parameter(str_id + ".pose").as_double_array();
                     Eigen::Vector3f travel_wp{travel_arr[0], travel_arr[1], travel_arr[2]};
+
+                    travel_wp = {latest_wp.x, latest_wp.y, latest_wp.theta};
+
                     std::vector<Eigen::Vector3f> travel_wp_vec{travel_wp};
                     set_goals(travel_wp_vec);
+
                     wp_pub_->publish(wp_list);
                     update_mission_id(0);   // Change mission id to 'travelling'
                 }
@@ -233,6 +245,10 @@ class MissionHandlerNode : public rclcpp::Node {
                 wp.theta = vec[i](2);
                 wp_list.waypoint_list.push_back(wp);
             }
+
+                if(wp_list.waypoint_list.size() > 0){
+                    latest_wp = wp_list.waypoint_list[wp_list.waypoint_list.size() - 1];
+                }
         }
 };
 

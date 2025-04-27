@@ -54,13 +54,21 @@ add_executable(aitsmc_new_node src/aitsmc_new_node.cpp)
 target_include_directories(aitsmc_new_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(aitsmc_new_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 ament_target_dependencies(aitsmc_new_node rclcpp std_msgs Eigen3 geometry_msgs)
 target_link_libraries(aitsmc_new_node usv_libs)
 
+add_executable(pid_node src/pid_node.cpp)
+target_include_directories(pid_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> libs/usv_libs/src)
+target_compile_features(pid_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(pid_node rclcpp std_msgs Eigen3 geometry_msgs)
+target_link_libraries(pid_node usv_libs)
+
 add_executable(usv_tf2_broadcaster_node src/usv_tf2_broadcaster_node.cpp)
-target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs Eigen3 geometry_msgs tf2 tf2_ros)
+target_compile_features(usv_tf2_broadcaster_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs nav_msgs Eigen3 geometry_msgs tf2 tf2_ros)
 
 add_executable(dynamic_model_node src/dynamic_model_sim.cpp)
 target_include_directories(dynamic_model_node PUBLIC
@@ -95,6 +103,10 @@ add_executable(waypoint_handler_node src/waypoint_handler_node.cpp)
 target_include_directories(waypoint_handler_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
 ament_target_dependencies(waypoint_handler_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
 
+add_executable(path_publisher_node src/path_publisher_node.cpp)
+target_include_directories(path_publisher_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
+ament_target_dependencies(path_publisher_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
+
 # add_executable(path_maker_node src/path_maker_node.cpp)
 # target_include_directories(path_maker_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
 # ament_target_dependencies(path_maker_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
@@ -102,6 +114,7 @@ ament_target_dependencies(waypoint_handler_node rclcpp tf2 tf2_ros geometry_msgs
 
 install(TARGETS
   asmc_node
+  pid_node
   mpc_node
   los_node
   usv_tf2_broadcaster_node
@@ -109,6 +122,7 @@ install(TARGETS
   obstacle_avoidance_node
   kinematic_model_node
   waypoint_handler_node
+  path_publisher_node
   # path_maker_node
   aitsmc_node
   aitsmc_new_node
@@ -121,8 +135,10 @@ install(DIRECTORY
 
 # Install Python executables
 install(PROGRAMS
-  scripts/path_publisher_node.py
-  scripts/teleop_control_node.py
+  # scripts/path_publisher_node.py
+  scripts/teleop_aitsmc_node.py
+  scripts/teleop_can_node.py
+  scripts/teleop_mpc_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

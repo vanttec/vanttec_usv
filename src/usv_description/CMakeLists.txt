@@ -32,11 +32,34 @@ set(GZ_SENSORS_VER ${gz-sensors7_VERSION_MAJOR})
 find_package(gz-utils2 REQUIRED)
 set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 find_package(sdformat13 REQUIRED)
+find_package(gz-msgs9 REQUIRED)
 
 find_package(std_msgs REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 
+# Custom Bridges
+find_package(rclcpp)
+find_package(sensor_msgs REQUIRED)
+
+add_library(gz_ros_conversions
+  custom_bridges/gz_ros_conversions.cpp
+)
+
+add_executable(custom_bridge custom_bridges/custom_bridge.cpp)
+ament_target_dependencies(custom_bridge rclcpp std_msgs sensor_msgs gz-transport12 gz-msgs9)
+
+target_link_libraries(custom_bridge
+  gz_ros_conversions
+)
+
+ament_target_dependencies(gz_ros_conversions
+  rclcpp std_msgs sensor_msgs gz-transport12 gz-msgs9
+)
+
+install(TARGETS
+  custom_bridge
+  DESTINATION lib/${PROJECT_NAME})
 #============================================================================
 # Hooks
 ament_environment_hooks("hooks/resource_paths.dsv.in")

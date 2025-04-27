@@ -32,7 +32,7 @@ Official documentation [here][vanttec-documentation].
 # To install dependencies automatically:
 rosdep install --from-paths src -y --ignore-src
 
-sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations libgz-sim7-dev libignition-transport12-dev libignition-msgs9-dev python3-sdformat13
+sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations libgz-sim7-dev libignition-transport12-dev libignition-msgs9-dev python3-sdformat13 ros-humble-diagnostic-updater ros-humble-geographic-msgs ros-humble-nmea-msgs ros-humble-robot-localization
 
 sudo add-apt-repository ppa:borglab/gtsam-release-4.1
 sudo apt install libgtsam-dev libgtsam-unstable-dev

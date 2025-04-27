@@ -26,6 +26,7 @@ USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       }
       break;
     case 1: // Finding second gate
+      if(params.green_light){
       goal = get_goal(params.obs_list);
 
       if(goal.norm() > 0.0001){ // If a goal was actually found
@@ -33,6 +34,7 @@ USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.goals = pack_goal(last_goal, goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
         second_goal = last_goal;
+      }
       }
       break;
     case 2: // Finding blue buoy to round

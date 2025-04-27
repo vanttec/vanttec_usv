@@ -29,7 +29,21 @@ def generate_launch_description():
         parameters=[sbg_config],
     )
 
+    imu_converter_node = Node(
+        package='usv_utils',
+        executable='imu_converter_node',
+        output='screen',
+        remappings=[
+            ("out/pose", "/usv/state/pose"),
+            ("out/velocity", "/usv/state/velocity"),
+            ("in/data", "/imu/data"),
+            ("in/odometry", "/imu/odometry"),
+            ("in/pose", "/imu/pos_ecef"),
+        ],
+    )
+
 
     return LaunchDescription([
-        sbg_node
+        sbg_node,
+        imu_converter_node,
     ])

@@ -19,8 +19,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WaypointList.msg"
   "msg/Object.msg"
   "msg/ObjectList.msg"
+  "msg/SystemStatus.msg"
   "msg/Zbbox.msg"
   "msg/ZbboxArray.msg"
+  "msg/ClusteringSegmentation.msg"
   DEPENDENCIES std_msgs 
 )
 

@@ -45,8 +45,8 @@ class ObstaclePublisherNode : public rclcpp::Node {
                     double v_y = dyn_obs[i][3];
                     int64_t color = 3;
                     std::string type = "marker";
-
-                    obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(v_x).v_y(v_y).color(color).type(type);
+		    std::string uuid = "";
+                    obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(v_x).v_y(v_y).color(color).type(type).uuid(uuid);
                     dyn_obs_id[i] = object_list_global.obj_list.size();
                     object_list_global.obj_list.push_back(obj);
 
@@ -284,8 +284,8 @@ class ObstaclePublisherNode : public rclcpp::Node {
 
                     int64_t color = this->get_parameter(mission_prefix + ".obj_info." + name + ".color").as_int();
                     std::string type = this->get_parameter(mission_prefix + ".obj_info." + name + ".type").as_string();
-
-                    obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(0.).v_y(0.).color(color).type(type);
+		    std::string uuid = "";
+                    obj = usv_interfaces::build<usv_interfaces::msg::Object>().x(x).y(y).v_x(0.).v_y(0.).color(color).type(type).uuid(uuid);
                     object_list_global.obj_list.push_back(obj);
 
                     int r{color_list[color][0]},

@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Default values for arguments
+NORMAL_DISTANCE_WEIGHT=0.5
+MAX_ITERATIONS=100
+DISTANCE_THRESHOLD=0.4
+
+# Function to display help
+show_help() {
+    echo "Usage: $0 [-nd ] [-mx ] [-dh ]"
+    echo "Options:"
+    echo "  -nd : Normal distance weight (default: $NORMAL_DISTANCE_WEIGHT)"
+    echo "  -mx : Maximum iterations (default: $MAX_ITERATIONS)"
+    echo "  -dh : Distance threshold (default: $DISTANCE_THRESHOLD)"
+    exit 1
+}
+
+# Function to display how the script was called
+display_values() {
+    echo "Using values:"
+    echo "Normal distance weight: $1"
+    echo "Max iterations: $2"
+    echo "Distance threshold: $3"
+}
+
+# Initialize with default values
+nd=$NORMAL_DISTANCE_WEIGHT
+mx=$MAX_ITERATIONS
+dh=$DISTANCE_THRESHOLD
+
+# Parse named arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -nd)
+            nd="$2"
+            shift 2
+            ros2 param set /clustering_segmentation normal_distance_weight $nd
+
+            ;;
+        -mx)
+            mx="$2"
+            shift 2
+            ros2 param set /clustering_segmentation max_iterations $mx
+
+            ;;
+        -dh)
+            dh="$2"
+            shift 2
+            ros2 param set /clustering_segmentation distance_threshold $dh
+            ;;
+        -h|--help)
+            show_help
+            ;;
+        *)
+            echo "Unknown parameter: $1"
+            show_help
+            ;;
+    esac
+done
+
+display_values "$nd" "$mx" "$dh"
+

@@ -32,6 +32,7 @@ struct State {
 struct USVUpdate {
   std::vector<Obstacle> obs_list;
   int docking_color_choice{1};
+  bool green_light;
   bool wp_arrived;
 };
 

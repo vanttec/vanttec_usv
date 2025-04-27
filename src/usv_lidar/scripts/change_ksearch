@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Check if at least 1 argument is provided
+if [ $# -lt 1 ]; then
+    echo "Error: At least one argument is required."
+    echo "Usage: $0 arg1 "
+    exit 1
+fi
+
+# Assign default values if arguments are missing
+arg1=$1
+
+ros2 param set /clustering_segmentation ksearch $arg1

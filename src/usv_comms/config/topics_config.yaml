@@ -1,0 +1,92 @@
+radio_config:
+  port:
+    boat: "/dev/ttyHOLY"
+    station: "/dev/ttyHOLY"
+  baud_rate: 115200
+  update_rate: 0.05
+
+topics:
+  pose:
+    topic: "/usv/state/pose"
+    msg_type: "geometry_msgs/msg/Pose2D"
+    enabled: true
+    direction: "boat_to_station"  # Boat sends pose data to station
+    fields: ["x", "y", "theta"]
+    
+  velocity:
+    topic: "/usv/state/velocity"
+    msg_type: "geometry_msgs/msg/Vector3"
+    enabled: true
+    direction: "boat_to_station"
+    fields: ["x", "y", "z"]
+    
+  waypoint:
+    topic: "/usv/waypoint"
+    msg_type: "usv_interfaces/msg/Waypoint"
+    enabled: false
+    direction: "station_to_boat"  # Station sends waypoints to boat
+    fields: ["x", "y"]
+
+  guidance:
+    heading:
+      topic: "/guidance/desired_heading"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      direction: "station_to_boat"
+      fields: ["data"]
+    velocity:
+      topic: "/guidance/desired_velocity"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      direction: "station_to_boat"
+      fields: ["data"]
+
+  control_debug:
+    tx:
+      topic: "/debug/Tx"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: false
+      direction: "boat_to_station"
+      fields: ["data"]
+    tz:
+      topic: "/debug/Tz"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: false
+      direction: "boat_to_station"
+      fields: ["data"]
+
+  thrusters:
+    left:
+      topic: "/usv/left_thruster"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: false
+      direction: "station_to_boat"
+      fields: ["data"]
+    right:
+      topic: "/usv/right_thruster"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: false
+      direction: "station_to_boat"
+      fields: ["data"]
+
+  missions:
+    state:
+      topic: "/usv/mission/state"
+      msg_type: "std_msgs/msg/Int8"
+      fields: ["data"]
+      enabled: false
+      direction: "boat_to_station"
+    status:
+      topic: "/usv/mission/status"
+      msg_type: "std_msgs/msg/Int8"
+      fields: ["data"]
+      enabled: false
+      direction: "station_to_boat"
+        
+  objects:
+    topic: "/objects"
+    msg_type: "usv_interfaces/msg/ObjectList"
+    enabled: false
+    direction: "boat_to_station"
+    max_objects: 5
+    fields: ["x", "y", "color", "type"]

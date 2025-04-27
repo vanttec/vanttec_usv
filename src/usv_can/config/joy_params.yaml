@@ -1,0 +1,5 @@
+/joy_node:
+  ros__parameters:
+    deadzone: 0.1
+    # device_id: 0
+    # autorepeat_rate: 20.0

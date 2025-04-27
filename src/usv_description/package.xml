@@ -15,10 +15,13 @@
   <!-- <build_depend>vrx_ros</build_depend> -->
   <build_depend>std_msgs</build_depend>
 
+  <depend>gz-transport13</depend>
+  <depend>gz-msgs10</depend>
+
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
-  <exec_depend>ros_gz_sim</exec_depend>
+  <!-- <exec_depend>ros_gz_sim</exec_depend> -->
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>xacro</exec_depend>
   <!-- <exec_depend>vrx_ros</exec_depend> -->

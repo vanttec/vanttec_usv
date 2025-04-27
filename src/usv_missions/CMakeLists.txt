@@ -24,9 +24,14 @@ add_executable(obstacle_publisher_node src/obstacle_publisher.cpp)
 ament_target_dependencies(obstacle_publisher_node rclcpp std_msgs std_srvs geometry_msgs visualization_msgs usv_interfaces Eigen3)
 target_compile_features(obstacle_publisher_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
+add_executable(global_obstacle_register_node src/global_obstacle_register_node.cpp)
+ament_target_dependencies(global_obstacle_register_node rclcpp std_msgs std_srvs geometry_msgs visualization_msgs usv_interfaces Eigen3)
+target_compile_features(global_obstacle_register_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
 install(TARGETS
   mission_handler_node
   obstacle_publisher_node
+  global_obstacle_register_node
   DESTINATION lib/${PROJECT_NAME})
 
 # Resources
