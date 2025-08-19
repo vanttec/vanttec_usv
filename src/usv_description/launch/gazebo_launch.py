@@ -30,19 +30,21 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     pkg_usv_description = get_package_share_directory('usv_description')
+    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    ## Launch Gazebo with command 
-    #  Useful if user has different versions of Gazebo 
-    world_path = PathJoinSubstitution([pkg_usv_description, 'worlds', 'nbpark_custom.sdf'])
+    # Launch Gazebo with command
+    #  Useful if user has different versions of Gazebo
+    world_path = PathJoinSubstitution(
+        [pkg_usv_description, 'worlds', 'waves.sdf'])
     gz_sim = ExecuteProcess(
-        cmd=['gz', 'sim', '-v', '4', '-r', world_path],
+        cmd=['gz', 'sim', '-v', '4', world_path],
         output='screen',
         additional_env={
             'GZ_IP': '127.0.0.1'
         }
-    ) 
+    )
 
-    ## Custom Bridge
+    # Custom Bridge
     # custom_bridge = Node(
     #    package='usv_description',
     #    executable='custom_bridge',
@@ -58,12 +60,12 @@ def generate_launch_description():
         ])
     )
 
-    ## RViz
+    # RViz
     rviz = Node(
-       package='rviz2',
-       executable='rviz2',
-       arguments=['-d', os.path.join(pkg_usv_description, 'rviz', 'gz.rviz')],
-       condition=IfCondition(LaunchConfiguration('rviz'))
+        package='rviz2',
+        executable='rviz2',
+        arguments=['-d', os.path.join(pkg_usv_description, 'rviz', 'gz.rviz')],
+        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
     # # Launch Gazebo with ros_gz_sim
@@ -71,7 +73,7 @@ def generate_launch_description():
     # pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
     # gz_args = ['sim', '-v 4 -r']
     # gz_args.append('../worlds/nbpark_custom.sdf')
-    
+
     # gz_sim = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource(
     #         os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
@@ -93,7 +95,7 @@ def generate_launch_description():
                    '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
                 #    '/zed_rgbd/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
                    '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
-                   ],
+        ],
         # parameters=[{
         #     'qos_overrides./model/my_roboboat.subscriber.reliability': 'reliable',
         #             }],
@@ -103,13 +105,21 @@ def generate_launch_description():
         }
     )
 
+    cam_world_tf = Node(package="tf2_ros",
+                        executable="static_transform_publisher",
+                        arguments=["0", "0", "0", "0", "0", "0",
+                                   "usv", "vtec_s3/base_link/rgbd_camera"],
+                        )
+
     return LaunchDescription([
         gz_sim,
         # custom_bridge,
-        # usv_launchfile,
+        usv_launchfile,
         bridge,
-        # rviz
+        # rviz,
+        # cam_world_tf,
     ])
+
 
 '''
 # Lidar Frame

@@ -162,7 +162,7 @@ private:
     // double lookahead_distance = 1.5;  // meters (path-tracking)
     // double lookahead_distance = 2.;  // meters (path-tracking + avoidance)
     // double lookahead_distance = 2.5;  // meters (path-tracking + dynamic avoidance)
-    double lookahead_distance = 2.;  // meters (path-tracking + dynamic avoidance)
+    double lookahead_distance = 1.;  // meters (path-tracking + dynamic avoidance)
 
     // Function to compute the Euclidean distance between two points (x1, y1) and (x2, y2)
     double computeDistance(double x1, double y1, double x2, double y2) {

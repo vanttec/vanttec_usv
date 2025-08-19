@@ -4,7 +4,7 @@
     <link name="base_link">
       <inertial>
         <pose>0 0 -0.2 0 0 0</pose>
-        <mass>10</mass>
+        <mass>50.0</mass>
         <inertia>
           <ixx>0.5666666666666668</ixx>
           <ixy>0</ixy>
@@ -42,10 +42,11 @@
       </visual>
 
       <collision name="Coll">
+        <pose>-0.4 0 0 0 0 0</pose>
         <geometry>
            <mesh>
-            <uri>file://vtec_s3/meshes/vtec_s3.dae</uri>
-            <scale>0.1 0.1 0.1</scale>
+            <uri>file://vtec_s3/meshes/vtec_s4_minimal2.stl</uri>
+            <scale>0.7 0.95 1.5</scale>
           </mesh>
         </geometry>
       </collision>
@@ -75,7 +76,7 @@
         </geometry>
       </collision> -->
 
-      <sensor name="navsat" type="navsat">
+      <!-- <sensor name="navsat" type="navsat">
         <pose>0.3 0.0 0.25 0 0 0</pose>
         <always_on>1</always_on>
         <update_rate>1</update_rate>
@@ -140,14 +141,16 @@
         <update_rate>30</update_rate>
         <visualize>true</visualize>
         <topic>zed_rgbd</topic>
+        <gz_frame_id>usv</gz_frame_id>
+
         <plugin
           filename="RosGzPointCloud"
           name="ros_gz_point_cloud::PointCloud">
           <namespace>custom_params</namespace>
           <topic>pc2</topic>
-          <frame_id>map</frame_id>
+          <frame_id>world</frame_id>
         </plugin>
-      </sensor>
+      </sensor> -->
 
     </link>
 
@@ -396,7 +399,7 @@
     </joint>
 
     <!-- Left hull -->
-    <plugin
+    <!-- <plugin
       filename="libSurface.so"
       name="vrx::Surface">
       <link_name>base_link</link_name>
@@ -410,10 +413,10 @@
       <wavefield>
         <topic>/vrx/wavefield/parameters</topic>
       </wavefield>
-    </plugin>
+    </plugin> -->
 
     <!-- Right hull -->
-    <plugin
+    <!-- <plugin
       filename="libSurface.so"
       name="vrx::Surface">
       <link_name>base_link</link_name>
@@ -427,17 +430,17 @@
       <wavefield>
         <topic>/vrx/wavefield/parameters</topic>
       </wavefield>
-    </plugin>
+    </plugin> -->
 
-    <plugin
+    <!-- <plugin
       filename="libSimpleHydrodynamics.so"
       name="vrx::SimpleHydrodynamics">
       <link_name>base_link</link_name>
-      <!-- Added mass -->
+
       <xDotU>0.0</xDotU>
       <yDotV>0.0</yDotV>
       <nDotR>0.0</nDotR>
-      <!-- Linear and quadratic drag -->
+
       <xU>4.0</xU>
       <xUU>6.0</xUU>
       <yV>4.0</yV>
@@ -449,7 +452,7 @@
       <mQQ>35.0</mQQ>
       <nR>32.0</nR>
       <nRR>32.0</nRR>
-    </plugin>
+    </plugin> -->
 
     <plugin
       filename="gz-sim-thruster-system"
@@ -476,6 +479,40 @@
       name="gz::sim::systems::OdometryPublisher">
       <odom_frame>world</odom_frame>
       <odom_covariance_topic>/gz_sim/odometry</odom_covariance_topic>
+    </plugin>
+
+    <!-- Hydrodynamics plugin -->
+    <plugin
+        filename="gz-waves1-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
+        
+        <enable>vtec_s3::base_link</enable>
+
+        <!-- <enable>wam-v::left_engine_link</enable>
+        <enable>wam-v::left_propeller_link</enable>
+        <enable>wam-v::right_engine_link</enable>
+        <enable>wam-v::right_propeller_link</enable> -->
+
+        <hydrodynamics>
+          <damping_on>1</damping_on>
+          <viscous_drag_on>1</viscous_drag_on>
+          <pressure_drag_on>1</pressure_drag_on>
+        
+          <!-- Linear and Angular Damping -->
+          <cDampL1>1.0E-6</cDampL1>
+          <cDampL2>1.0E-6</cDampL2>
+          <cDampR1>1.0E-6</cDampR1>
+          <cDampR2>1.0E-6</cDampR2>
+        
+          <!-- 'Pressure' Drag -->
+          <cPDrag1>1.0E+2</cPDrag1>
+          <cPDrag2>1.0E+2</cPDrag2>
+          <fPDrag>0.4</fPDrag>
+          <cSDrag1>1.0E+2</cSDrag1>
+          <cSDrag2>1.0E+2</cSDrag2>
+          <fSDrag>0.4</fSDrag>
+          <vRDrag>1.0</vRDrag>
+        </hydrodynamics>
     </plugin>
   </model>
 </sdf>

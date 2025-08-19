@@ -43,15 +43,13 @@ class DynamicModelSim : public rclcpp::Node {
     leftThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
         "usv/left_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { 
-          disturbance_msg.data[0] = 0.*distribution(generator);
-          this->Tport = msg.data + disturbance_msg.data[0]; 
+          this->Tport = msg.data; 
         });
 
     rightThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
         "usv/right_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { 
-          disturbance_msg.data[1] = 0.*distribution(generator);
-          this->Tstbd = msg.data + disturbance_msg.data[1]; 
+          this->Tstbd = msg.data; 
           });
 
     pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
@@ -67,8 +65,8 @@ class DynamicModelSim : public rclcpp::Node {
 
     generator.seed(std::random_device{}());
 
-    disturbance_msg.data.push_back(0.);
-    disturbance_msg.data.push_back(0.);
+    disturbance_msg.data.push_back(5.);
+    disturbance_msg.data.push_back(5.);
   }
 
  protected:
@@ -81,6 +79,12 @@ class DynamicModelSim : public rclcpp::Node {
   }
 
   void update() {
+
+    disturbance_msg.data[0] = 0.*distribution(generator);
+    disturbance_msg.data[1] = 0.*distribution(generator);
+
+    Tport+=disturbance_msg.data[0];
+    Tstbd+=disturbance_msg.data[1];
 
     auto out = model.update(Tport, Tstbd);
 
