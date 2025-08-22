@@ -21,21 +21,25 @@ Official documentation [here][vanttec-documentation].
 - **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
 
 
-### Needed Dependencies
-- Nvidia CUDA
+### Prerequisites 
+- CUDA 12.8 Toolkit
 - ZED SDK
-- Gazebo Sim - Garden
-- TensorRT
+- Gazebo Sim - Harmonic 
+- TensorRT 10.13.2
 - The following dependencies:
 
 ```Shell
-# To install dependencies automatically:
-rosdep install --from-paths src -y --ignore-src
+
+sudo apt-get install ros-humble-xacro
 
 sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations libgz-sim7-dev libignition-transport12-dev libignition-msgs9-dev python3-sdformat13 ros-humble-diagnostic-updater ros-humble-geographic-msgs ros-humble-nmea-msgs ros-humble-robot-localization
 
 sudo add-apt-repository ppa:borglab/gtsam-release-4.1
 sudo apt install libgtsam-dev libgtsam-unstable-dev
+
+# If for any reason, some dependencies are missing, this can be used to install them automatically:
+rosdep install --from-paths src -y --ignore-src
+
 ```
 
 

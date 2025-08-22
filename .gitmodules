@@ -22,9 +22,6 @@
 [submodule "src/deps/perception_pcl"]
 	path = src/deps/perception_pcl
 	url = https://github.com/ros-perception/perception_pcl
-[submodule "src/deps/robot_localization"]
-	path = src/deps/robot_localization
-	url = https://github.com/cra-ros-pkg/robot_localization
 [submodule "src/deps/geographic_info"]
 	path = src/deps/geographic_info
 	url = https://github.com/ros-geographic-info/geographic_info
