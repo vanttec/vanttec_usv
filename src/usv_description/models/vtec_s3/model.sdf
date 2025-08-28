@@ -16,142 +16,22 @@
       </inertial>
       <visual name="visual">
         <geometry>
-           <mesh>
+          <mesh>
             <uri>file://vtec_s3/meshes/vtec_s3.dae</uri>
             <scale>0.1 0.1 0.1</scale>
           </mesh>
         </geometry>
-        <!-- <material>
-          <diffuse>1.0 1.0 1.0</diffuse>
-          <specular>1.0 1.0 1.0</specular> -->
-          <!-- <pbr>
-            <metal>
-              <albedo_map>file://vtec_s3/materials/textures/Boat01_Albedo.png</albedo_map>
-              <normal_map>file://vtec_s3/materials/textures/Boat01_Normal.png</normal_map>
-              <roughness_map>file://vtec_s3/materials/textures/Boat01_Roughness.png</roughness_map>
-              <metalness_map>file://vtec_s3/materials/textures/Boat01_Metallic.png</metalness_map>
-            </metal>
-          </pbr> -->
-          <!-- fallback to script if no PBR support-->
-          <!-- <script>
-            <uri>file://vtec_s3/materials/scripts/</uri>
-            <uri>file://vtec_s3/materials/textures/</uri>
-            <name>Fallback/Boat01_Diffuse</name>
-          </script>
-        </material> -->
       </visual>
 
       <collision name="Coll">
         <pose>-0.4 0 0 0 0 0</pose>
         <geometry>
-           <mesh>
+          <mesh>
             <uri>file://vtec_s3/meshes/vtec_s4_minimal2.stl</uri>
             <scale>0.7 0.95 1.5</scale>
           </mesh>
         </geometry>
       </collision>
-
-      <!-- <collision name="Box011">
-        <pose>-0.020046 0.204338 -0.1352701 0.0 0.0 0.0</pose>
-        <geometry>
-          <box>
-            <size>0.89985 0.273203 0.232172</size>
-          </box>
-        </geometry>
-      </collision>
-      <collision name="Box012">
-        <pose>-0.020046 -0.20434 -0.1352701 0.0 0.0 0.0</pose>
-        <geometry>
-          <box>
-            <size>0.89985 0.273203 0.232172</size>
-          </box>
-        </geometry>
-      </collision>
-      <collision name="Box013">
-        <pose>0.0099115 0.0 0.060029 0.0 0.0 0.0</pose>
-        <geometry>
-          <box>
-            <size>0.998409 0.789244 0.4260934</size>
-          </box>
-        </geometry>
-      </collision> -->
-
-      <!-- <sensor name="navsat" type="navsat">
-        <pose>0.3 0.0 0.25 0 0 0</pose>
-        <always_on>1</always_on>
-        <update_rate>1</update_rate>
-      </sensor>
-
-      <sensor name="imu" type="imu">
-        <pose>0.2 0.0 0.25 0 0 0</pose>
-        <always_on>1</always_on>
-        <update_rate>1</update_rate>
-      </sensor>
-
-      <sensor name='gpu_lidar' type='gpu_lidar'>
-        <pose>0.2 0.0 0.55 0 0 0</pose>
-        <topic>lidar</topic>
-        <update_rate>10</update_rate>
-        <lidar>
-          <scan>
-            <horizontal>
-              <samples>640</samples>
-              <resolution>1</resolution>
-              <min_angle>-3.14</min_angle>
-              <max_angle>3.14</max_angle>
-            </horizontal>
-            <vertical>
-              <samples>16</samples>
-              <resolution>1</resolution>
-              <min_angle>-0.1061799</min_angle>
-              <max_angle>0.261799</max_angle>
-            </vertical>
-          </scan>
-          <range>
-            <min>0.9</min>
-            <max>20.0</max>
-            <resolution>0.1</resolution>
-          </range>
-        </lidar>
-        <alwaysOn>1</alwaysOn>
-        <visualize>true</visualize>
-        <plugin
-          filename="RosGzPointCloud"
-          name="ros_gz_point_cloud::PointCloud">
-          <namespace>custom_params</namespace>
-          <topic>pc2</topic>
-          <frame_id>custom_params/link</frame_id>
-        </plugin>
-      </sensor>
-
-      <sensor name="rgbd_camera" type="rgbd_camera">
-        <pose>0.55 0 0.25 0 0 0</pose>
-        <camera>
-          <horizontal_fov>1.047</horizontal_fov>
-          <image>
-            <width>320</width>
-            <height>240</height>
-          </image>
-          <clip>
-            <near>0.1</near>
-            <far>100</far>
-          </clip>
-        </camera>
-        <always_on>1</always_on>
-        <update_rate>30</update_rate>
-        <visualize>true</visualize>
-        <topic>zed_rgbd</topic>
-        <gz_frame_id>usv</gz_frame_id>
-
-        <plugin
-          filename="RosGzPointCloud"
-          name="ros_gz_point_cloud::PointCloud">
-          <namespace>custom_params</namespace>
-          <topic>pc2</topic>
-          <frame_id>world</frame_id>
-        </plugin>
-      </sensor> -->
-
     </link>
 
     <!-- Left thruster housing -->
@@ -172,7 +52,7 @@
       <visual name="left_housing_visual">
         <pose>-0.3 0.23 -0.31 0 0 0</pose>
         <geometry>
-           <mesh>
+          <mesh>
             <uri>file://vtec_s3/meshes/housing.dae</uri>
           </mesh>
         </geometry>
@@ -187,7 +67,7 @@
           </pbr>
         </material>
       </visual>
-  
+
       <collision name="Cylinder263d">
         <pose>-0.2833463 0.22986701 -0.31 1.5708 0.0 -1.5708</pose>
         <geometry>
@@ -216,7 +96,7 @@
       <visual name="left_prop_visual">
         <pose>-0.3 0.23 -0.31 0 0 0</pose>
         <geometry>
-           <mesh>
+          <mesh>
             <uri>file://vtec_s3/meshes/prop.dae</uri>
           </mesh>
         </geometry>
@@ -260,7 +140,7 @@
       <visual name="right_housing_visual">
         <pose>-0.3 -0.23 -0.31 0 0 0</pose>
         <geometry>
-           <mesh>
+          <mesh>
             <uri>file://vtec_s3/meshes/housing.dae</uri>
           </mesh>
         </geometry>
@@ -305,7 +185,7 @@
       <visual name="right_prop_visual">
         <pose>-0.3 -0.23 -0.31 0 0 0</pose>
         <geometry>
-           <mesh>
+          <mesh>
             <uri>file://vtec_s3/meshes/prop.dae</uri>
           </mesh>
         </geometry>
@@ -398,62 +278,6 @@
       <child>right_prop_link</child>
     </joint>
 
-    <!-- Left hull -->
-    <!-- <plugin
-      filename="libSurface.so"
-      name="vrx::Surface">
-      <link_name>base_link</link_name>
-      <hull_length>1.15</hull_length>
-      <hull_radius>0.12</hull_radius>
-      <fluid_level>0.1</fluid_level>
-      <points>
-        <point>0.68 0.204338 -0.1552701</point>
-        <point>-0.465 0.204338 -0.1552701</point>
-      </points>
-      <wavefield>
-        <topic>/vrx/wavefield/parameters</topic>
-      </wavefield>
-    </plugin> -->
-
-    <!-- Right hull -->
-    <!-- <plugin
-      filename="libSurface.so"
-      name="vrx::Surface">
-      <link_name>base_link</link_name>
-      <hull_length>1.15</hull_length>
-      <hull_radius>0.12</hull_radius>
-      <fluid_level>0.1</fluid_level>
-      <points>
-        <point>0.68 -0.204338 -0.1552701 </point>
-        <point>-0.465 -0.204338 -0.1552701 </point>
-      </points>
-      <wavefield>
-        <topic>/vrx/wavefield/parameters</topic>
-      </wavefield>
-    </plugin> -->
-
-    <!-- <plugin
-      filename="libSimpleHydrodynamics.so"
-      name="vrx::SimpleHydrodynamics">
-      <link_name>base_link</link_name>
-
-      <xDotU>0.0</xDotU>
-      <yDotV>0.0</yDotV>
-      <nDotR>0.0</nDotR>
-
-      <xU>4.0</xU>
-      <xUU>6.0</xUU>
-      <yV>4.0</yV>
-      <yVV>4.0</yVV>
-      <zW>20.0</zW>
-      <kP>12.0</kP>
-      <kPP>24.0</kPP>
-      <mQ>36.0</mQ>
-      <mQQ>35.0</mQQ>
-      <nR>32.0</nR>
-      <nRR>32.0</nRR>
-    </plugin> -->
-
     <plugin
       filename="gz-sim-thruster-system"
       name="gz::sim::systems::Thruster">
@@ -483,36 +307,31 @@
 
     <!-- Hydrodynamics plugin -->
     <plugin
-        filename="gz-waves1-hydrodynamics-system"
-        name="gz::sim::systems::Hydrodynamics">
-        
-        <enable>vtec_s3::base_link</enable>
+      filename="gz-waves1-hydrodynamics-system"
+      name="gz::sim::systems::Hydrodynamics">
 
-        <!-- <enable>wam-v::left_engine_link</enable>
-        <enable>wam-v::left_propeller_link</enable>
-        <enable>wam-v::right_engine_link</enable>
-        <enable>wam-v::right_propeller_link</enable> -->
+      <enable>vtec_s3::base_link</enable>
 
-        <hydrodynamics>
-          <damping_on>1</damping_on>
-          <viscous_drag_on>1</viscous_drag_on>
-          <pressure_drag_on>1</pressure_drag_on>
-        
-          <!-- Linear and Angular Damping -->
-          <cDampL1>1.0E-6</cDampL1>
-          <cDampL2>1.0E-6</cDampL2>
-          <cDampR1>1.0E-6</cDampR1>
-          <cDampR2>1.0E-6</cDampR2>
-        
-          <!-- 'Pressure' Drag -->
-          <cPDrag1>1.0E+2</cPDrag1>
-          <cPDrag2>1.0E+2</cPDrag2>
-          <fPDrag>0.4</fPDrag>
-          <cSDrag1>1.0E+2</cSDrag1>
-          <cSDrag2>1.0E+2</cSDrag2>
-          <fSDrag>0.4</fSDrag>
-          <vRDrag>1.0</vRDrag>
-        </hydrodynamics>
+      <hydrodynamics>
+        <damping_on>1</damping_on>
+        <viscous_drag_on>1</viscous_drag_on>
+        <pressure_drag_on>1</pressure_drag_on>
+
+        <!-- Linear and Angular Damping -->
+        <cDampL1>1.0E-6</cDampL1>
+        <cDampL2>1.0E-6</cDampL2>
+        <cDampR1>1.0E-6</cDampR1>
+        <cDampR2>1.0E-6</cDampR2>
+
+        <!-- 'Pressure' Drag -->
+        <cPDrag1>1.0E+2</cPDrag1>
+        <cPDrag2>1.0E+2</cPDrag2>
+        <fPDrag>0.4</fPDrag>
+        <cSDrag1>1.0E+2</cSDrag1>
+        <cSDrag2>1.0E+2</cSDrag2>
+        <fSDrag>0.4</fSDrag>
+        <vRDrag>1.0</vRDrag>
+      </hydrodynamics>
     </plugin>
   </model>
 </sdf>
@@ -521,10 +340,14 @@
 
 ros2 launch vrx_gz vrx_environment.launch.py world:=nbpark
 
-ros2 run ros_gz_bridge parameter_bridge /model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
-ros2 run ros_gz_bridge parameter_bridge /model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+ros2 run ros_gz_bridge parameter_bridge
+/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+ros2 run ros_gz_bridge parameter_bridge
+/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
 
-ros2 topic pub /model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust std_msgs/msg/Float64 "data: 150"
-ros2 topic pub /model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust std_msgs/msg/Float64 "data: 150"
+ros2 topic pub /model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust std_msgs/msg/Float64
+"data: 150"
+ros2 topic pub /model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust std_msgs/msg/Float64
+"data: 150"
 
 -->

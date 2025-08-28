@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+
+<sdf version="1.6">
+  <world name="waves">
+    <plugin filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+      <background_color>0.8 0.8 0.8</background_color>
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+
+    <scene>
+      <ambient>1.0 1.0 1.0</ambient>
+      <background>0.8 0.8 0.8</background>
+      <sky></sky>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.6 0.6 0.6 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <!-- Waves Plugin -->
+    <include>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>calm_waves</uri>
+    </include>
+
+    <!-- Nathan Benderson Park -->
+    <include>
+      <pose>180 -1088 -2 0 0 0</pose>
+      <uri>https://fuel.gazebosim.org/1.0/openrobotics/models/nathan_benderson_park</uri>
+    </include>
+
+    <!-- VTec - SIV -->
+    <include>
+      <name>vtec_s4</name>
+      <pose>0 0 0.3 0 0 3.14</pose>
+      <uri>vtec_s4</uri>
+    </include>
+
+    <!-- Task 1 - Mandatory Challenge -->
+    <!-- <include>
+      <name>mandatory_challenge</name>
+      <pose>-180 1088 0.3 0 0 3.14</pose>
+      <uri>mandatory_challenge</uri>
+    </include> -->
+
+    <!-- Taks 2 -Follow the Path Challenge -->
+    <!-- <include>
+      <name>follow_the_path_challenge</name>
+      <pose>-205 1089 0.3 0 0 3.14</pose>
+      <uri>follow_the_path_challenge</uri>
+    </include> -->
+
+    <!-- Task 3 - Docking -->
+    <!-- <include>
+      <name>docking_challenge</name>
+      <pose>-185 1115 0.3 0 0 0</pose>
+      <uri>docking_challenge</uri>
+    </include> -->
+
+    <!-- Task 4 - Speed Challenge -->
+    <!-- <include>
+      <name>speed_challenge</name>
+      <pose>-190 1104 0.3 0 0 3.14</pose>
+      <uri>speed_challenge</uri>
+    </include> -->
+
+    <!-- Task 6 - Return to Home Challenge -->
+    <!-- <include>
+      <name>return2home_challenge</name>
+      <pose>-175 1100 0.3 0 0 0</pose>
+      <uri>return2home_challenge</uri>
+    </include> -->
+
+    <!-- <include>
+      <name>static_vessel</name>
+      <pose>-175 1100 0.57 0 0 0</pose>
+      <uri>static_vessel</uri>
+    </include> -->
+
+  </world>
+</sdf>
