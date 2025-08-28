@@ -23,9 +23,62 @@ sudo apt install libgtsam-dev libgtsam-unstable-dev ros-humble-xacro libpcap-dev
 
 # Install other missing dependencies automatically if needed:
 rosdep install --from-paths src -y --ignore-src
-
 ```
 
+7. Download the gz sim waves plugin
+```Shell
+# Install the plugin dependenciess
+sudo apt-get update
+sudo apt-get install libcgal-dev libfftw3-dev
+
+# Create a ws for the plugin
+cd
+mkdir -p gz_ws/src
+
+# Clone the repo
+cd ~/gz_ws/src
+git clone https://github.com/srmainwaring/asv_wave_sim.git
+
+# Specify $GZ_VERSION before compiling
+export GZ_VERSION=harmonic
+
+# Compile it
+colcon build --symlink-install --merge-install --cmake-args \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DBUILD_TESTING=ON \
+-DCMAKE_CXX_STANDARD=17
+
+# Also build the GUI plugin
+cd ~/gz_ws/src/asv_wave_sim/gz-waves/src/gui/plugins/waves_control 
+mkdir build && cd build
+cmake .. && make
+```
+8. Setup Gz Sim and the waves plugin, by adding these lines to the end of your ~/.bashrc file
+
+```Shell
+source ~/gz_ws/install/setup.bash
+
+export GZ_VERSION=harmonic
+
+export GZ_SIM_RESOURCE_PATH=:~/vanttec_usv/src/usv_description/models:$GZ_SIM_RESOURCE_PATH
+
+# ensure the model and world files are found
+export GZ_SIM_RESOURCE_PATH=\
+$GZ_SIM_RESOURCE_PATH:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/models:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/world_models:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/worlds
+
+# ensure the system plugins are found
+export GZ_SIM_SYSTEM_PLUGIN_PATH=\
+$GZ_SIM_SYSTEM_PLUGIN_PATH:\
+$HOME/gz_ws/install/lib
+
+# ensure the gui plugin is found
+export GZ_GUI_PLUGIN_PATH=\
+$GZ_GUI_PLUGIN_PATH:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves/src/gui/plugins/waves_control/build
+```
 
 ### How to start working?
 
