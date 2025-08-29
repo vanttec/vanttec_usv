@@ -80,9 +80,7 @@ $GZ_GUI_PLUGIN_PATH:\
 $HOME/gz_ws/src/asv_wave_sim/gz-waves/src/gui/plugins/waves_control/build
 ```
 
-### How to start working?
-
-Enter the following commands into your **Ubuntu 22** terminal:
+9. Download and build this workspace
 
 ```Shell
 # Clone repository and its submodules
@@ -101,6 +99,70 @@ source ./install/setup.bash
 colcon build
 ```
 
+10. Install fatrop for usv_control's MPC's functionalities
+```Shell
+# For the official, latest instructions, visit the fatrop repository
+
+######
+
+# Installing blasfeo from source 
+cd
+git clone https://github.com/giaf/blasfeo.git
+cd blasfeo
+mkdir build
+cd build
+
+# Configure project (if you have a different architecture, please refer to blasfeo's repository to view complete list of options)
+cmake .. -DTARGET=X64_INTEL_CORE -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j$(nproc)
+
+# Install blasfeo
+sudo make install
+
+######
+
+# Installing fatrop
+cd ~/vanttec_usv/src/usv_control/libs/fatrop/
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j$(nproc)
+sudo make install
+
+######
+
+# Install CASADI's dependency
+sudo apt-get install swig
+
+# Install CASADI
+cd
+git clone https://github.com/casadi/casadi.git
+cd casadi
+mkdir build
+cd build
+cmake .. \
+    -DWITH_IPOPT=ON -DWITH_BUILD_IPOPT=ON \
+    -DWITH_BUILD_MUMPS=ON -DWITH_BUILD_METIS=ON \
+    -DWITH_FATROP=ON \
+    -DWITH_PYTHON=ON -DWITH_PYTHON3=ON \
+    -DPYTHON_PREFIX=$(python3 -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())') \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+sudo make install
+
+# Finally, go back to the fatrop dir. to build for CASADI
+cd ~/vanttec_usv/src/usv_control/libs/fatrop/build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j$(nproc)
+sudo make install
+
+# Test it
+cd ~/vanttec_usv/src/usv_control/libs/fatrop/examples/
+python3 car_reference_tracking_example.py
+```
+
+## Congratulations, you're ready to navigate the future @ VantTec!
 
 <!-- ## HOW TOs (Pending: Modify for updated launch files):
 **Run mission #2:** 
