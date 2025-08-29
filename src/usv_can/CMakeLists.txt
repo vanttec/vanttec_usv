@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(vanttec_can_comms)
+project(usv_can)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,9 +7,6 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 
@@ -17,7 +14,7 @@ add_executable(can_node src/can_node.cpp src/CANTxNode.cpp src/CANRxNode.cpp src
 target_include_directories(can_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_compile_features(can_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(can_node PUBLIC c_std_99 cxx_std_17)
 ament_target_dependencies(can_node rclcpp std_msgs)
 add_subdirectory(libs/vanttec_CANLib)
 target_link_libraries(can_node Vanttec_CANLibLIB)
@@ -28,10 +25,8 @@ install(TARGETS can_node
 
 install(DIRECTORY
   launch
-  config
   DESTINATION share/${PROJECT_NAME}/
 )
-
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

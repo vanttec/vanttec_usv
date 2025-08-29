@@ -1,3 +1,7 @@
+'''
+This script is used to test the performance of different dynamic models and/or low-level/high-level controllers simultaneously
+'''
+
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node

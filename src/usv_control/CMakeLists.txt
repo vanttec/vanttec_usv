@@ -19,10 +19,11 @@ find_package(tf2_ros REQUIRED)
 find_package(usv_interfaces REQUIRED)
 find_package(Boost 1.45.0 COMPONENTS filesystem)
 
+find_path(FATROP_INCLUDE_DIR fatrop/fatrop.hpp PATHS /usr/local/include)
+find_library(FATROP_LIBRARY fatrop PATHS /usr/local/lib)
+
 add_subdirectory(libs/usv_libs)
 add_subdirectory(libs/a-star)
-add_subdirectory(libs/fatrop)
-add_subdirectory(libs/rockit)
 
 set(DEPENDENCIES
   ament_cmake
@@ -58,7 +59,7 @@ add_executable(aitsmc_node src/aitsmc_node.cpp)
 target_include_directories(aitsmc_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)
+target_compile_features(aitsmc_node PUBLIC c_std_99 cxx_std_17)
 ament_target_dependencies(aitsmc_node ${DEPENDENCIES})
 target_link_libraries(aitsmc_node usv_libs)
 
@@ -79,10 +80,11 @@ ament_target_dependencies(pid_node ${DEPENDENCIES})
 target_link_libraries(pid_node usv_libs)
 
 # High-level controller nodes
-add_executable(mpc_node src/mpc_node.cpp)
-target_link_libraries(mpc_node fatrop ${Boost_LIBRARIES})
-target_include_directories(mpc_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
-ament_target_dependencies(mpc_node ${DEPENDENCIES})
+# add_executable(mpc_node src/mpc_node.cpp)
+# target_link_libraries(mpc_node ${FATROP_LIBRARY} ${Boost_LIBRARIES})
+# target_include_directories(mpc_node PRIVATE ${FATROP_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+# target_compile_options(mpc_node PRIVATE ${FATROP_CFLAGS_OTHER})
+# ament_target_dependencies(mpc_node ${DEPENDENCIES})
 
 add_executable(a_star_avoidance_node src/a_star_avoidance_node.cpp)
 target_include_directories(a_star_avoidance_node PUBLIC
@@ -119,21 +121,17 @@ ament_target_dependencies(waypoint_handler_node ${DEPENDENCIES})
 add_executable(path_publisher_node src/path_publisher_node.cpp)
 ament_target_dependencies(path_publisher_node ${DEPENDENCIES})
 
-# add_executable(path_maker_node src/path_maker_node.cpp)
-# ament_target_dependencies(path_maker_node ${DEPENDENCIES})
-
 install(TARGETS
   asmc_node
   pid_node
-  mpc_node
+  # mpc_node
   los_node
   usv_tf2_broadcaster_node
   dynamic_model_node
-  obstacle_avoidance_node
+  a_star_avoidance_node
   kinematic_model_node
   waypoint_handler_node
   path_publisher_node
-  # path_maker_node
   aitsmc_node
   aitsmc_new_node
   DESTINATION lib/${PROJECT_NAME})

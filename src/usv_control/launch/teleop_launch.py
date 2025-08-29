@@ -1,3 +1,7 @@
+'''
+Launches Xbox controller interface for MPC references
+'''
+
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node

@@ -17,7 +17,7 @@ from launch.actions import ExecuteProcess
 
 def generate_launch_description():
     can_node = Node(
-        package="vanttec_can_comms",
+        package="usv_can",
         executable="can_node",
         remappings=[
             ("out/mode", "/usv/op_mode"),

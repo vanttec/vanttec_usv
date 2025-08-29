@@ -1,3 +1,7 @@
+'''
+Launch file with all scripts needed for autonomous navigation
+'''
+
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node

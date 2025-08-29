@@ -157,7 +157,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
 make -j$(nproc)
 sudo make install
 
-# Test it
+# Test the fatrop interface
 cd ~/vanttec_usv/src/usv_control/libs/fatrop/examples/
 python3 car_reference_tracking_example.py
 ```

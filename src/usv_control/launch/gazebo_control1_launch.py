@@ -1,3 +1,7 @@
+'''
+This script is used to launch a gz sim environment for control. This 1/2 file deals with all the gz sim's side and interface to ros2
+'''
+
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
