@@ -8,24 +8,31 @@
 This is the main working repository for the USV (Unmanned Surface Vehicle) VantTec Platform.
 Official documentation [here][vanttec-documentation].
 
-
 ### Packages
 - **usv_comms**: ROS package that allows the USV software to interface with the Digi XBee Hardware for communication with the ground control station.
 - **usv_control**: ROS package for the implementation of the control algorithms for the USV.
 - **usv_missions**: ROS package where the algorithms to solve the different RoboBoat 2024 challenges are implemented.
-- **usv_perception**: ROS package for the perception algorithms used in the USV.
+- **usv_descrpition**: Gazebo Sim - Garden simulation
+- **usv_utils**: utility package for various functions
+- **usv_can**: CAN communication package
+- **usv_interfaces**: usv's custom ROS messages
+
 ### Submodules
 - **sbg_driver**: ROS package that allows the USV to interface with SBG's IMU.
 - **usv_libs**: Control library.
+- **visionsystemx**: ROS package for the vision algorithms used.
 - **velodyne**: ROS package for the Velodyne LIDAR.
 - **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
 
+## Unused Submodules
+- **usv_localization**: Launch files for LIO-SAM
+
 
 ### Needed Dependencies
-- Nvidia CUDA
+- Nvidia CUDA 12.6 
 - ZED SDK
-- Gazebo Sim - Garden
-- TensorRT
+- Gazebo Sim - Garden (7.9.0)
+- TensorRT 10.3
 - The following dependencies:
 
 ```Shell

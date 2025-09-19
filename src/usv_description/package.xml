@@ -15,6 +15,7 @@
   <!-- <build_depend>vrx_ros</build_depend> -->
   <build_depend>std_msgs</build_depend>
 
+  <!-- Gazebo Garden dependencies -->
   <depend>gz-transport13</depend>
   <depend>gz-msgs10</depend>
 

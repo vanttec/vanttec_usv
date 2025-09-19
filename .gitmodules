@@ -56,3 +56,4 @@
 [submodule "src/visionsystemx"]
 	path = src/visionsystemx
 	url = https://github.com/vanttec/visionsystemx.git
+	branch = feature/cmake_fix
