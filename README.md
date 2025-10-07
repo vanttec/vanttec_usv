@@ -33,18 +33,6 @@ Official documentation [here][vanttec-documentation].
 - ZED SDK
 - Gazebo Sim - Garden (7.9.0)
 - TensorRT 10.3
-- The following dependencies:
-
-```Shell
-# To install dependencies automatically:
-rosdep install --from-paths src -y --ignore-src
-
-sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations libgz-sim7-dev libignition-transport12-dev libignition-msgs9-dev python3-sdformat13 ros-humble-diagnostic-updater ros-humble-geographic-msgs ros-humble-nmea-msgs ros-humble-robot-localization
-
-sudo add-apt-repository ppa:borglab/gtsam-release-4.1
-sudo apt install libgtsam-dev libgtsam-unstable-dev
-```
-
 
 ### How to start working?
 
@@ -59,11 +47,39 @@ git submodule update --init --recursive
 
 # Build the usv_interfaces package
 colcon build --packages-select usv_interfaces
+```
 
+**Note**: When building everything ignore or skip lio_sam and usv_localization
+```Shell
+colcon build --packages-ignore lio_sam usv_localization
+```
+
+```Shell
+# To install dependencies automatically:
+rosdep install --from-paths src -y --ignore-src
+
+sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations libgz-sim7-dev libignition-transport12-dev libignition-msgs9-dev python3-sdformat13 ros-humble-diagnostic-updater ros-humble-geographic-msgs ros-humble-nmea-msgs ros-humble-robot-localization
+sudo add-apt-repository ppa:borglab/gtsam-release-4.1
+sudo apt install libgtsam-dev libgtsam-unstable-dev
+```
+
+```Shell
 # Set environment variables with install/setup.bash file
 source install/setup.bash
 ```
 
+## Connect to Jetson:
+- **SSH with USB-C or ethernet port:**
+```Shell
+ssh vanttec@192.168.55.1
+```
+- **With a VPN (Zero-Tier):**
+```Shell
+## Assuming Zero-Tier already installed and enabled
+sudo zerotier-cli join <NETWORK_ID>
+ssh vanttec@<VIRTUAL_IP>
+```
+**Note:** If possible, connect through cable rather than via a VPN
 
 ## HOW TOs (Pending: Modify for updated launch files):
 **Run mission #2:** 
