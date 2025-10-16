@@ -4,7 +4,7 @@
   <name>usv_description</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="A01552369@tec.mx">max</maintainer>
+  <maintainer email="maxprpxam@icloud.com">max</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
@@ -12,19 +12,11 @@
   <build_depend>launch_ros</build_depend>
 
   <build_depend>ament_cmake_python</build_depend>
-  <!-- <build_depend>vrx_ros</build_depend> -->
-  <build_depend>std_msgs</build_depend>
-
-  <depend>gz-transport13</depend>
-  <depend>gz-msgs10</depend>
 
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
-  <!-- <exec_depend>ros_gz_sim</exec_depend> -->
-  <exec_depend>std_msgs</exec_depend>
   <exec_depend>xacro</exec_depend>
-  <!-- <exec_depend>vrx_ros</exec_depend> -->
 
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>

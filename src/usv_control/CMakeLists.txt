@@ -19,111 +19,119 @@ find_package(tf2_ros REQUIRED)
 find_package(usv_interfaces REQUIRED)
 find_package(Boost 1.45.0 COMPONENTS filesystem)
 
-
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_path(FATROP_INCLUDE_DIR fatrop/fatrop.hpp PATHS /usr/local/include)
+find_library(FATROP_LIBRARY fatrop PATHS /usr/local/lib)
 
 add_subdirectory(libs/usv_libs)
 add_subdirectory(libs/a-star)
 
+set(DEPENDENCIES
+  ament_cmake
+  geometry_msgs
+  visualization_msgs
+  std_msgs
+  rclcpp
+  sensor_msgs
+  nav_msgs
+  tf2_ros
+  Eigen3
+  tf2_geometry_msgs
+  usv_interfaces
+)
+
+# Low-level controller nodes
 add_executable(asmc_node src/asmc_node.cpp)
 target_include_directories(asmc_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(asmc_node rclcpp std_msgs Eigen3 geometry_msgs)
+target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(asmc_node ${DEPENDENCIES})
 target_link_libraries(asmc_node usv_libs)
 
 add_executable(los_node src/los_node.cpp)
 target_include_directories(los_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(los_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(los_node rclcpp nav_msgs std_msgs Eigen3 geometry_msgs)
+target_compile_features(los_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(los_node ${DEPENDENCIES})
 
 add_executable(aitsmc_node src/aitsmc_node.cpp)
 target_include_directories(aitsmc_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(asmc_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(aitsmc_node rclcpp std_msgs Eigen3 geometry_msgs)
+target_compile_features(aitsmc_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(aitsmc_node ${DEPENDENCIES})
 target_link_libraries(aitsmc_node usv_libs)
 
 add_executable(aitsmc_new_node src/aitsmc_new_node.cpp)
 target_include_directories(aitsmc_new_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(aitsmc_new_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(aitsmc_new_node rclcpp std_msgs Eigen3 geometry_msgs)
+target_compile_features(aitsmc_new_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(aitsmc_new_node ${DEPENDENCIES})
 target_link_libraries(aitsmc_new_node usv_libs)
 
 add_executable(pid_node src/pid_node.cpp)
 target_include_directories(pid_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(pid_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(pid_node rclcpp std_msgs Eigen3 geometry_msgs)
+target_compile_features(pid_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(pid_node ${DEPENDENCIES})
 target_link_libraries(pid_node usv_libs)
 
-add_executable(usv_tf2_broadcaster_node src/usv_tf2_broadcaster_node.cpp)
-target_compile_features(usv_tf2_broadcaster_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(usv_tf2_broadcaster_node rclcpp std_msgs nav_msgs Eigen3 geometry_msgs tf2 tf2_ros)
+# High-level controller nodes
+# add_executable(mpc_node src/mpc_node.cpp)
+# target_link_libraries(mpc_node ${FATROP_LIBRARY} ${Boost_LIBRARIES})
+# target_include_directories(mpc_node PRIVATE ${FATROP_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
+# target_compile_options(mpc_node PRIVATE ${FATROP_CFLAGS_OTHER})
+# ament_target_dependencies(mpc_node ${DEPENDENCIES})
 
+add_executable(a_star_avoidance_node src/a_star_avoidance_node.cpp)
+target_include_directories(a_star_avoidance_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> libs/a-star/source)
+target_compile_features(a_star_avoidance_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(a_star_avoidance_node ${DEPENDENCIES})
+target_link_libraries(a_star_avoidance_node a-star)
+
+# Dynamic / kinematic models
 add_executable(dynamic_model_node src/dynamic_model_sim.cpp)
 target_include_directories(dynamic_model_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include> libs/usv_libs/src)
-target_compile_features(dynamic_model_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(dynamic_model_node rclcpp std_msgs Eigen3 geometry_msgs nav_msgs tf2_ros)
+target_compile_features(dynamic_model_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(dynamic_model_node ${DEPENDENCIES})
 target_link_libraries(dynamic_model_node usv_libs)
 
 add_executable(kinematic_model_node src/kinematic_model_sim.cpp)
 target_include_directories(kinematic_model_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
-target_compile_features(kinematic_model_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(kinematic_model_node rclcpp std_msgs Eigen3 geometry_msgs nav_msgs tf2_ros)
+target_compile_features(kinematic_model_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(kinematic_model_node ${DEPENDENCIES})
 
-add_executable(obstacle_avoidance_node src/obstacle_avoidance_node.cpp)
-target_include_directories(obstacle_avoidance_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include> libs/a-star/source)
-target_compile_features(obstacle_avoidance_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-ament_target_dependencies(obstacle_avoidance_node rclcpp std_msgs Eigen3 usv_interfaces geometry_msgs nav_msgs tf2_ros)
-target_link_libraries(obstacle_avoidance_node a-star)
 
-add_subdirectory(libs/fatrop)
-add_executable(mpc_node src/mpc_node.cpp)
-target_link_libraries(mpc_node fatrop ${Boost_LIBRARIES})
-target_include_directories(mpc_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
-ament_target_dependencies(mpc_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs)
+# Supporting nodes
+add_executable(usv_tf2_broadcaster_node src/usv_tf2_broadcaster_node.cpp)
+ament_target_dependencies(usv_tf2_broadcaster_node ${DEPENDENCIES})
 
 add_executable(waypoint_handler_node src/waypoint_handler_node.cpp)
-target_include_directories(waypoint_handler_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
-ament_target_dependencies(waypoint_handler_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
+ament_target_dependencies(waypoint_handler_node ${DEPENDENCIES})
 
 add_executable(path_publisher_node src/path_publisher_node.cpp)
-target_include_directories(path_publisher_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
-ament_target_dependencies(path_publisher_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
-
-# add_executable(path_maker_node src/path_maker_node.cpp)
-# target_include_directories(path_maker_node PRIVATE deps/fatrop/fatrop ${Boost_INCLUDE_DIRS})
-# ament_target_dependencies(path_maker_node rclcpp tf2 tf2_ros geometry_msgs nav_msgs usv_interfaces visualization_msgs tf2_geometry_msgs)
-
+ament_target_dependencies(path_publisher_node ${DEPENDENCIES})
 
 install(TARGETS
   asmc_node
   pid_node
-  mpc_node
+  # mpc_node
   los_node
   usv_tf2_broadcaster_node
   dynamic_model_node
-  obstacle_avoidance_node
+  a_star_avoidance_node
   kinematic_model_node
   waypoint_handler_node
   path_publisher_node
-  # path_maker_node
   aitsmc_node
   aitsmc_new_node
   DESTINATION lib/${PROJECT_NAME})

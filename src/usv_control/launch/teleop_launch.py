@@ -1,3 +1,7 @@
+'''
+Launches Xbox controller interface for MPC references
+'''
+
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node
@@ -23,7 +27,7 @@ def generate_launch_description():
 
     teleop_node = Node(
         package="usv_control",
-        executable="teleop_control_node.py",
+        executable="teleop_mpc_node.py",
     )
 
     return LaunchDescription([

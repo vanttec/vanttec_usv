@@ -1,3 +1,7 @@
+'''
+This script launches the low and high level controllers to perform path-following and obstacle avoidance
+'''
+
 import os
 from launch import LaunchDescription
 from launch_ros.actions import Node

@@ -9,39 +9,78 @@ This is the main working repository for the USV (Unmanned Surface Vehicle) VantT
 Official documentation [here][vanttec-documentation].
 
 
-### Packages
-- **usv_comms**: ROS package that allows the USV software to interface with the Digi XBee Hardware for communication with the ground control station.
-- **usv_control**: ROS package for the implementation of the control algorithms for the USV.
-- **usv_missions**: ROS package where the algorithms to solve the different RoboBoat 2024 challenges are implemented.
-- **usv_perception**: ROS package for the perception algorithms used in the USV.
-### Submodules
-- **sbg_driver**: ROS package that allows the USV to interface with SBG's IMU.
-- **usv_libs**: Control library.
-- **velodyne**: ROS package for the Velodyne LIDAR.
-- **zed_ros_wrapper**: ROS package for the Stereolabs ZED Camera.
-
-
-### Needed Dependencies
-- Nvidia CUDA
-- ZED SDK
-- Gazebo Sim - Garden
-- TensorRT
-- The following dependencies:
+### Prerequisites
+1. CUDA 12.8 Toolkit
+2. CUDNN 8.9.7
+3. TensorRT 10.3.0
+4. ZED SDK
+5. Gazebo Sim - Harmonic
+6. Install the following dependencies:
 
 ```Shell
-# To install dependencies automatically:
+sudo add-apt-repository ppa:borglab/gtsam-release-5.1
+sudo apt install libgtsam-dev libgtsam-unstable-dev ros-humble-xacro libpcap-dev ros-humble-robot-localization ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-tf-transformations ros-humble-foxglove-bridge ros-humble-nmea-msgs ros-humble-joy-teleop libgz-sim8 libgz-sim8-dev ros-humble-ros-gz ros-humble-ros-gzharmonic
+
+# Install other missing dependencies automatically if needed:
 rosdep install --from-paths src -y --ignore-src
-
-sudo apt-get install libpcap-dev libgeographic-dev ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-xacro ros-humble-tf-transformations libgz-sim7-dev libignition-transport12-dev libignition-msgs9-dev python3-sdformat13 ros-humble-diagnostic-updater ros-humble-geographic-msgs ros-humble-nmea-msgs ros-humble-robot-localization
-
-sudo add-apt-repository ppa:borglab/gtsam-release-4.1
-sudo apt install libgtsam-dev libgtsam-unstable-dev
 ```
 
+7. Download the gz sim waves plugin
+```Shell
+# Install the plugin dependenciess
+sudo apt-get update
+sudo apt-get install libcgal-dev libfftw3-dev
 
-### How to start working?
+# Create a ws for the plugin
+cd
+mkdir -p gz_ws/src
 
-Enter the following commands into your **Ubuntu 22** terminal:
+# Clone the repo
+cd ~/gz_ws/src
+git clone https://github.com/srmainwaring/asv_wave_sim.git
+
+# Specify $GZ_VERSION before compiling
+export GZ_VERSION=harmonic
+
+# Compile it
+colcon build --symlink-install --merge-install --cmake-args \
+-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+-DBUILD_TESTING=ON \
+-DCMAKE_CXX_STANDARD=17
+
+# Also build the GUI plugin
+cd ~/gz_ws/src/asv_wave_sim/gz-waves/src/gui/plugins/waves_control 
+mkdir build && cd build
+cmake .. && make
+```
+8. Setup Gz Sim and the waves plugin, by adding these lines to the end of your ~/.bashrc file
+
+```Shell
+source ~/gz_ws/install/setup.bash
+
+export GZ_VERSION=harmonic
+
+export GZ_SIM_RESOURCE_PATH=:~/vanttec_usv/src/usv_description/models:$GZ_SIM_RESOURCE_PATH
+
+# ensure the model and world files are found
+export GZ_SIM_RESOURCE_PATH=\
+$GZ_SIM_RESOURCE_PATH:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/models:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/world_models:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/worlds
+
+# ensure the system plugins are found
+export GZ_SIM_SYSTEM_PLUGIN_PATH=\
+$GZ_SIM_SYSTEM_PLUGIN_PATH:\
+$HOME/gz_ws/install/lib
+
+# ensure the gui plugin is found
+export GZ_GUI_PLUGIN_PATH=\
+$GZ_GUI_PLUGIN_PATH:\
+$HOME/gz_ws/src/asv_wave_sim/gz-waves/src/gui/plugins/waves_control/build
+```
+
+9. Download and build this workspace
 
 ```Shell
 # Clone repository and its submodules
@@ -50,15 +89,82 @@ git clone http://github.com/vanttec/vanttec_usv.git
 cd vanttec_usv
 git submodule update --init --recursive
 
-# Build the usv_interfaces package
+# Build the usv_interfaces package first
 colcon build --packages-select usv_interfaces
 
 # Set environment variables with install/setup.bash file
-source install/setup.bash
+source ./install/setup.bash
+
+# Build the rest of the packages
+colcon build
 ```
 
+10. Install fatrop for usv_control's MPC's functionalities
+```Shell
+# For the official, latest instructions, visit the fatrop repository
 
-## HOW TOs (Pending: Modify for updated launch files):
+######
+
+# Installing blasfeo from source 
+cd
+git clone https://github.com/giaf/blasfeo.git
+cd blasfeo
+mkdir build
+cd build
+
+# Configure project (if you have a different architecture, please refer to blasfeo's repository to view complete list of options)
+cmake .. -DTARGET=X64_INTEL_CORE -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j$(nproc)
+
+# Install blasfeo
+sudo make install
+
+######
+
+# Installing fatrop
+cd ~/vanttec_usv/src/usv_control/libs/fatrop/
+mkdir build
+cd build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j$(nproc)
+sudo make install
+
+######
+
+# Install CASADI's dependency
+sudo apt-get install swig
+
+# Install CASADI
+cd
+git clone https://github.com/casadi/casadi.git
+cd casadi
+mkdir build
+cd build
+cmake .. \
+    -DWITH_IPOPT=ON -DWITH_BUILD_IPOPT=ON \
+    -DWITH_BUILD_MUMPS=ON -DWITH_BUILD_METIS=ON \
+    -DWITH_FATROP=ON \
+    -DWITH_PYTHON=ON -DWITH_PYTHON3=ON \
+    -DPYTHON_PREFIX=$(python3 -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())') \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
+sudo make install
+
+# Finally, go back to the fatrop dir. to build for CASADI
+cd ~/vanttec_usv/src/usv_control/libs/fatrop/build
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j$(nproc)
+sudo make install
+
+# Test the fatrop interface
+cd ~/vanttec_usv/src/usv_control/libs/fatrop/examples/
+python3 car_reference_tracking_example.py
+```
+
+## Congratulations, you're ready to navigate the future @ VantTec!
+
+<!-- ## HOW TOs (Pending: Modify for updated launch files):
 **Run mission #2:** 
 ```Shell
 ros2 launch usv_control usv_control_sim_launch.py
@@ -74,6 +180,6 @@ ros2 run usv_missions mission_handler_node
 ```Shell
 ros2 launch usv_control usv_control_sim_launch.py
 ros2 launch usv_control teleop_launch.py 
-```
+``` -->
 
 [vanttec-documentation]: https://vanttec-documentation.readthedocs.io/en/latest/usv_documentation.html
