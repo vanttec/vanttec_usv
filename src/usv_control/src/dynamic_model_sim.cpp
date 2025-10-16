@@ -35,7 +35,7 @@ class DynamicModelSim : public rclcpp::Node {
     localVelPub =
         this->create_publisher<geometry_msgs::msg::Vector3>("usv/state/velocity", 10);
     odomPub =
-        this->create_publisher<nav_msgs::msg::Odometry>("output/odom", 10);
+        this->create_publisher<nav_msgs::msg::Odometry>("/usv/state/odom", 10);
 
     disturbancesPub = 
         this->create_publisher<std_msgs::msg::Float64MultiArray>("/usv/disturbances", 10);

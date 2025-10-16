@@ -86,6 +86,15 @@ target_link_libraries(pid_node usv_libs)
 # target_compile_options(mpc_node PRIVATE ${FATROP_CFLAGS_OTHER})
 # ament_target_dependencies(mpc_node ${DEPENDENCIES})
 
+# New MPC node
+add_library(asv_lib SHARED IMPORTED)
+set_target_properties(asv_lib PROPERTIES
+  IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/scripts/mpc/asv.so)
+
+add_executable(mpc_node src/mpc_node.cpp)
+target_link_libraries(mpc_node asv_lib fatrop blasfeo)
+ament_target_dependencies(mpc_node ${DEPENDENCIES})
+
 add_executable(a_star_avoidance_node src/a_star_avoidance_node.cpp)
 target_include_directories(a_star_avoidance_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -124,7 +133,7 @@ ament_target_dependencies(path_publisher_node ${DEPENDENCIES})
 install(TARGETS
   asmc_node
   pid_node
-  # mpc_node
+  mpc_node
   los_node
   usv_tf2_broadcaster_node
   dynamic_model_node
@@ -139,6 +148,7 @@ install(TARGETS
 install(DIRECTORY
   config 
   launch
+  scripts
   DESTINATION share/${PROJECT_NAME})
 
 # Install Python executables
