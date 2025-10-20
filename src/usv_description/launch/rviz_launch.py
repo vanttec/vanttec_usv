@@ -7,7 +7,7 @@ from launch_ros.actions import Node
 from launch.conditions import IfCondition, UnlessCondition
 
 def generate_launch_description():
-    rviz_config = os.path.join(get_package_share_directory("usv_description"),'rviz/','urdf2.rviz')
+    rviz_config = os.path.join(get_package_share_directory("usv_description"),'rviz/','mpc.rviz')
 
     rviz = Node(
         package='rviz2',
@@ -32,7 +32,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         tf2,
-        rviz,
+        # rviz,
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',

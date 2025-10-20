@@ -5,20 +5,21 @@ from scipy.interpolate import CubicSpline, interp1d
 from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Circle, Rectangle
 import matplotlib.patches as mpatches
+import math
 
 from mpc import *
 
 wp_x = 1.0
 wp_y = 0.0
-wp_psi = 0
+wp_psi = 0.5
 
 class AsvOpt:
     def __init__(self):
         # Parameters
-        self.u_lims = [-0.5 , 1.5] # min/max surge [m/s]
-        self.r_lims = [-1.0 , 1.0] # min/max yaw [rad/s]
-        self.tx_lims = [-60.0 , 73.0] # min/max linear thrust
-        self.tz_lims = [-66.5 , 66.5] # min/max angular thrust
+        self.u_lims = [-0.3 , 1.5] # min/max surge [m/s]
+        self.r_lims = [-1.5 , 1.5] # min/max yaw [rad/s]
+        self.tp_lims = [-30.0, 36.5] # min/max port thrust
+        self.ts_lims = [-30.0, 36.5] # min/max stbd thrust
         
         # Optimization parameters
         self.T = 5.0  # time horizon [s]
@@ -31,8 +32,8 @@ class AsvOpt:
         self.Q_heading = 10.0  # heading tracking weight
         self.R_u = 0.1  # surge penalty weight
         self.R_r = 0.1  # yaw penalty weight
-        self.R_tx = 0.1  # Tx penalty weight
-        self.R_tz = 0.1  # Tz penalty weight
+        self.R_tp = 0.001  # tp penalty weight
+        self.R_ts = 0.001  # ts penalty weight
         
         # Define dimensions following fatrop structure
         self.nx = [5 for _ in range(self.K)]  # state dimensions
@@ -49,22 +50,40 @@ class AsvOpt:
         """
         # RK4 integration of bicycle model
         def bicycle_model_continuous(x, u):
-            m = 30.0       # mass [kg]
-            Iz = 10.0      # moment of inertia [kg*m^2]
-            d_u = 5.0      # linear drag coefficient [N/(m/s)]
-            d_r = 2.0      # angular drag coefficient [N*m/(rad/s)]
+            X_u_dot = -2.25
+            Y_v_dot = -23.13
+            Y_r_dot = -1.31
+            N_v_dot = -16.41
+            N_r_dot = -2.79
+            Yvv = -99.99
+            Yvr = -5.49
+            Yrv = -5.49
+            Yrr = -8.8
+            Nvv = -5.49
+            Nvr = -8.8
+            Nrv = -8.8
+            Nrr = -3.49
+            m = 30
+            Iz = 4.1
+            B = 0.41
         
             x_pos, y_pos, psi, surge, yaw = x[0], x[1], x[2], x[3], x[4]
-            tx, tz = u[0], u[1]
+            t_port, t_stbd = u[0], u[1]
             
+            Xu = 64.55
+            Xuu = -70.92
+            Nr = (-0.52)*ca.fabs(surge)
+
             x_dot = surge * ca.cos(psi)
             y_dot = surge * ca.sin(psi)
             psi_dot = yaw
-            # surge_dot = tx
-            # yaw_dot = tz
-            surge_dot = (tx - d_u * surge) / m
-            yaw_dot = (tz - d_r * yaw) / Iz
-        
+
+            surge_dot = ((t_port +  t_stbd
+                - (Y_r_dot + N_v_dot)*yaw*yaw
+                - (-Xu*surge - Xuu*ca.fabs(surge)*surge))
+                / (m - X_u_dot))
+            yaw_dot = (( (t_port - t_stbd) * B / 2 + 
+              Nrr*ca.fabs(yaw)*yaw + Nr*yaw) / (Iz - N_r_dot))
             
             return ca.vertcat(x_dot, y_dot, psi_dot, surge_dot, yaw_dot)
         
@@ -88,14 +107,30 @@ class AsvOpt:
         # Goal heading tracking error (handle angle wrapping)
         heading_error = ca.sin(xk[2] - goal_state[2])**2 + (1 - ca.cos(xk[2] - goal_state[2]))**2
         cost_val += self.Q_heading * heading_error
-        
+
+        # Surge error
+        surge_error = (xk[3] - goal_state[3]) ** 2
+        cost_val += self.R_u + surge_error
+
+        # Yaw rate error
+        yaw_error = (xk[4] - goal_state[4]) ** 2
+        cost_val += self.R_r + yaw_error
+                
         # Control effort penalties
         if k < self.N:
-            cost_val += self.R_u * xk[3]**2  # surge penalty
-            cost_val += self.R_r * xk[4]**2  # yaw penalty
-            cost_val += self.R_tx * uk[0]**2  # tx penalty
-            cost_val += self.R_tz * uk[1]**2  # tz penalty
+            # cost_val += self.R_u * xk[3]**2  # surge penalty
+            # cost_val += self.R_r * xk[4]**2  # yaw penalty
+            cost_val += self.R_tp * uk[0]**2  # tp penalty
+            cost_val += self.R_ts * uk[1]**2  # ts penalty
         
+        # Terminal weight
+        if k == self.K - 1:
+            terminal_weight = 1000.0  # 100x heavier
+            cost_val += terminal_weight * self.Q_pos * pos_error
+            cost_val += terminal_weight * self.Q_heading * heading_error
+            cost_val += terminal_weight * self.R_u * surge_error
+            cost_val += terminal_weight * self.R_r * yaw_error
+
         return cost_val
     
     def path_constraints(self, uk, xk, k, start_state, goal_state, obstacles=None):
@@ -113,13 +148,13 @@ class AsvOpt:
             cc.append(ca.sin(xk[2] - start_state[2])**2 + (1 - ca.cos(xk[2] - start_state[2]))**2 == 0.)
             cc.append(xk[3] - start_state[3] == 0.)
             cc.append(xk[4] - start_state[4] == 0.)
-        elif k == self.K - 1:
+        # elif k == self.K - 1:
             # Terminal condition
-            cc.append(xk[0] - goal_state[0] == 0.)
-            cc.append(xk[1] - goal_state[1] == 0.)
-            cc.append(ca.sin(xk[2] - goal_state[2])**2 + (1 - ca.cos(xk[2] - goal_state[2]))**2 == 0.)
-            cc.append(xk[3] - goal_state[3] == 0.)
-            cc.append(xk[4] - goal_state[4] == 0.)
+            # cc.append(xk[0] - goal_state[0] == 0.)
+            # cc.append(xk[1] - goal_state[1] == 0.)
+            # cc.append(ca.sin(xk[2] - goal_state[2])**2 + (1 - ca.cos(xk[2] - goal_state[2]))**2 == 0.)
+            # cc.append(xk[3] - goal_state[3] == 0.)
+            # cc.append(xk[4] - goal_state[4] == 0.)
         
         # Inequality constraints
         # State bounds
@@ -129,8 +164,8 @@ class AsvOpt:
         
         # Control bounds (only if controls exist)
         if k < self.N:
-            cc.append(self.tx_lims[0] <= (uk[0] <= self.tx_lims[1]))  # Tx bounds
-            cc.append(self.tz_lims[0] <= (uk[1] <= self.tz_lims[1]))  # Tz bounds
+            cc.append(self.tp_lims[0] <= (uk[0] <= self.tp_lims[1]))  # tp bounds
+            cc.append(self.ts_lims[0] <= (uk[1] <= self.ts_lims[1]))  # ts bounds
         
         # Obstacle avoidance constraints
         # if obstacles is not None:
@@ -220,7 +255,7 @@ class AsvOpt:
         """
         
         print("Setting up optimization problem...")
-        goal_state = np.array([1.0, 0.0, 0.0, 0.0, 0.0])
+        goal_state = np.array([wp_x,wp_y,wp_psi, 0.0, 0.0])
         opti, x, u = self.setup_optimization_problem(start_state, goal_state)
         
         # Apply warm start if provided
@@ -316,7 +351,7 @@ def main():
         print(f"Final velocity: {X_opt[3, -1]:.2f} m/s")
         
         # Plot results
-        # animate_results(optimizer, X_opt, U_opt, obstacles, success)        
+        animate_results(optimizer, X_opt, U_opt, obstacles, success)        
 
 if __name__ == "__main__":
     main()

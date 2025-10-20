@@ -1,0 +1,1 @@
+This directory will be erased once the MPC update is complete.

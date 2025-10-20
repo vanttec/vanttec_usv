@@ -8,6 +8,7 @@ src/usv_description/models/vtec_s4/meshes/vtec_s4.dae
 src/usv_control/config/code_gen/*
 src/usv_control/scripts/mpc/*.so
 src/usv_control/scripts/mpc/*.c
+src/usv_control/scripts/mpc/*.h
 src/usv_control/scripts/mpc/__pycache__
 *.engine
 *.onnx

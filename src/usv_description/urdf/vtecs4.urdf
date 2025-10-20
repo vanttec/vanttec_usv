@@ -4,9 +4,10 @@
   <link name="usv">
     <visual>
       <!-- <origin rpy="0 0 0" xyz="-0.5 0 0.15"/> -->
-      <origin rpy="0 0 0" xyz="0 0 0.15"/>
+      <!-- <origin rpy="0 0 0" xyz="0 0 0.15"/> -->
+      <origin rpy="0 0 0" xyz="-0.25 0 0.15"/>
       <geometry>
-        <mesh filename="package://usv_description/models/vtec_s4/meshes/vtec_s4.dae" scale="1 1 1"/>
+        <mesh filename="package://usv_description/models/vtec_s4/meshes/usv.dae" scale="1 1 1"/>
       </geometry>
     </visual>
   </link>
@@ -17,4 +18,3 @@
   </gazebo>
 
 </robot>
-
