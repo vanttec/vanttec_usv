@@ -9,9 +9,9 @@ import math
 
 from mpc import *
 
-wp_x = 1.0
-wp_y = 0.0
-wp_psi = 0.5
+wp_x = 3.0
+wp_y = 2.0
+wp_psi = 1.5
 
 class AsvOpt:
     def __init__(self):
@@ -22,16 +22,16 @@ class AsvOpt:
         self.ts_lims = [-30.0, 36.5] # min/max stbd thrust
         
         # Optimization parameters
-        self.T = 5.0  # time horizon [s]
+        self.T = 10.0  # time horizon [s] (now a parameter)
         self.N = 100  # number of control intervals (K-1 in fatrop notation)
         self.K = self.N + 1  # number of time steps (K in fatrop notation)
-        self.dt = self.T / self.N  # time step
+        self.dt = self.T / self.N
         
         # Goal tracking weights
         self.Q_pos = 100.0  # position tracking weight
         self.Q_heading = 10.0  # heading tracking weight
         self.R_u = 0.1  # surge penalty weight
-        self.R_r = 0.1  # yaw penalty weight
+        self.R_r = 0.01  # yaw penalty weight
         self.R_tp = 0.001  # tp penalty weight
         self.R_ts = 0.001  # ts penalty weight
         
@@ -42,94 +42,111 @@ class AsvOpt:
         self.wp_x = wp_x
         self.wp_y = wp_y
         self.wp_psi = wp_psi
+
+        self.l_dist = 0.0
+
+    def dynamic_model(self, x, u):
+        X_u_dot = -2.25
+        Y_v_dot = -23.13
+        Y_r_dot = -1.31
+        N_v_dot = -16.41
+        N_r_dot = -2.79
+        Yvv = -99.99
+        Yvr = -5.49
+        Yrv = -5.49
+        Yrr = -8.8
+        Nvv = -5.49
+        Nvr = -8.8
+        Nrv = -8.8
+        Nrr = -3.49
+        m = 30
+        Iz = 4.1
+        B = 0.41
+    
+        x_pos, y_pos, psi, surge, yaw = x[0], x[1], x[2], x[3], x[4]
+        t_port, t_stbd = u[0], u[1]
+        
+        Xu = 64.55
+        Xuu = -70.92
+        Nr = (-0.52)*ca.fabs(surge)
+
+        x_dot = surge * ca.cos(psi)
+        y_dot = surge * ca.sin(psi)
+        psi_dot = yaw
+
+        surge_dot = ((t_port +  t_stbd
+            - (Y_r_dot + N_v_dot)*yaw*yaw
+            - (-Xu*surge - Xuu*ca.fabs(surge)*surge))
+            / (m - X_u_dot))
+        yaw_dot = (( (t_port - t_stbd) * B / 2 + 
+            Nrr*ca.fabs(yaw)*yaw + Nr*yaw) / (Iz - N_r_dot))
+        
+        return ca.vertcat(x_dot, y_dot, psi_dot, surge_dot, yaw_dot)
+
                      
-    def discrete_dynamics(self, uk, xk, k):
+    def discrete_dynamics(self, uk, xk, k, dt_):
         """
         Discrete dynamics using RK4 integration
         Following fatrop structure: returns x_{k+1}
         """
-        # RK4 integration of bicycle model
-        def bicycle_model_continuous(x, u):
-            X_u_dot = -2.25
-            Y_v_dot = -23.13
-            Y_r_dot = -1.31
-            N_v_dot = -16.41
-            N_r_dot = -2.79
-            Yvv = -99.99
-            Yvr = -5.49
-            Yrv = -5.49
-            Yrr = -8.8
-            Nvv = -5.49
-            Nvr = -8.8
-            Nrv = -8.8
-            Nrr = -3.49
-            m = 30
-            Iz = 4.1
-            B = 0.41
-        
-            x_pos, y_pos, psi, surge, yaw = x[0], x[1], x[2], x[3], x[4]
-            t_port, t_stbd = u[0], u[1]
-            
-            Xu = 64.55
-            Xuu = -70.92
-            Nr = (-0.52)*ca.fabs(surge)
+        # # RK4 integration of dynamic model (more expensive but also more accurate)
+        # k1 = self.dynamic_model(xk, uk)
+        # k2 = self.dynamic_model(xk + dt_/2 * k1, uk)
+        # k3 = self.dynamic_model(xk + dt_/2 * k2, uk)
+        # k4 = self.dynamic_model(xk + dt_ * k3, uk)
+        # return xk + dt_/6 * (k1 + 2*k2 + 2*k3 + k4)
 
-            x_dot = surge * ca.cos(psi)
-            y_dot = surge * ca.sin(psi)
-            psi_dot = yaw
-
-            surge_dot = ((t_port +  t_stbd
-                - (Y_r_dot + N_v_dot)*yaw*yaw
-                - (-Xu*surge - Xuu*ca.fabs(surge)*surge))
-                / (m - X_u_dot))
-            yaw_dot = (( (t_port - t_stbd) * B / 2 + 
-              Nrr*ca.fabs(yaw)*yaw + Nr*yaw) / (Iz - N_r_dot))
-            
-            return ca.vertcat(x_dot, y_dot, psi_dot, surge_dot, yaw_dot)
-        
-        k1 = bicycle_model_continuous(xk, uk)
-        k2 = bicycle_model_continuous(xk + self.dt/2 * k1, uk)
-        k3 = bicycle_model_continuous(xk + self.dt/2 * k2, uk)
-        k4 = bicycle_model_continuous(xk + self.dt * k3, uk)
-        
-        return xk + self.dt/6 * (k1 + 2*k2 + 2*k3 + k4)
+        # Euler integration of dynamic model
+        return xk + dt_ * self.dynamic_model(xk, uk)
     
-    def cost(self, uk, xk, k, goal_state):
+    def cost(self, uk, xk, k, goal_state, weights):
         """
         Stage cost function for reference tracking
         """
+        Q_pos = weights[0]
+        Q_heading = weights[1]
+        R_u = weights[2]
+        R_r = weights[3]
+        R_tp = weights[4]
+        R_ts = weights[5]
+
         cost_val = 0
 
         # Goal position tracking error
-        pos_error = (xk[0] - goal_state[0])**2 + (xk[1] - goal_state[1])**2
-        cost_val += self.Q_pos * pos_error
+        x_ref = xk[0] + self.l_dist * ca.cos(xk[2])
+        y_ref = xk[1] + self.l_dist * ca.sin(xk[2])
+        pos_error = (x_ref - goal_state[0])**2 + (y_ref - goal_state[1])**2
+        cost_val += Q_pos * pos_error
 
         # Goal heading tracking error (handle angle wrapping)
         heading_error = ca.sin(xk[2] - goal_state[2])**2 + (1 - ca.cos(xk[2] - goal_state[2]))**2
-        cost_val += self.Q_heading * heading_error
+        # cost_val += ca.if_else(pos_error < 10.0,
+        #     Q_heading * heading_error,
+        #     0.0
+        # )
 
         # Surge error
         surge_error = (xk[3] - goal_state[3]) ** 2
-        cost_val += self.R_u + surge_error
+        cost_val += R_u * surge_error
 
         # Yaw rate error
         yaw_error = (xk[4] - goal_state[4]) ** 2
-        cost_val += self.R_r + yaw_error
+        cost_val += R_r * yaw_error
                 
         # Control effort penalties
         if k < self.N:
-            # cost_val += self.R_u * xk[3]**2  # surge penalty
-            # cost_val += self.R_r * xk[4]**2  # yaw penalty
-            cost_val += self.R_tp * uk[0]**2  # tp penalty
-            cost_val += self.R_ts * uk[1]**2  # ts penalty
+            # cost_val += R_u * xk[3]**2  # surge penalty
+            # cost_val += R_r * xk[4]**2  # yaw penalty
+            cost_val += R_tp * uk[0]**2  # tp penalty
+            cost_val += R_ts * uk[1]**2  # ts penalty
         
         # Terminal weight
         if k == self.K - 1:
             terminal_weight = 1000.0  # 100x heavier
-            cost_val += terminal_weight * self.Q_pos * pos_error
-            cost_val += terminal_weight * self.Q_heading * heading_error
-            cost_val += terminal_weight * self.R_u * surge_error
-            cost_val += terminal_weight * self.R_r * yaw_error
+            cost_val += terminal_weight * Q_pos * pos_error
+            cost_val += terminal_weight * Q_heading * heading_error
+            cost_val += terminal_weight * R_u * surge_error
+            cost_val += terminal_weight * R_r * yaw_error
 
         return cost_val
     
@@ -145,16 +162,16 @@ class AsvOpt:
             # Initial condition
             cc.append(xk[0] - start_state[0] == 0.)
             cc.append(xk[1] - start_state[1] == 0.)
-            cc.append(ca.sin(xk[2] - start_state[2])**2 + (1 - ca.cos(xk[2] - start_state[2]))**2 == 0.)
+            cc.append(xk[2] - start_state[2] == 0.)
             cc.append(xk[3] - start_state[3] == 0.)
             cc.append(xk[4] - start_state[4] == 0.)
         # elif k == self.K - 1:
-            # Terminal condition
-            # cc.append(xk[0] - goal_state[0] == 0.)
-            # cc.append(xk[1] - goal_state[1] == 0.)
-            # cc.append(ca.sin(xk[2] - goal_state[2])**2 + (1 - ca.cos(xk[2] - goal_state[2]))**2 == 0.)
-            # cc.append(xk[3] - goal_state[3] == 0.)
-            # cc.append(xk[4] - goal_state[4] == 0.)
+        #     # Terminal condition
+        #     cc.append(xk[0] - goal_state[0] == 0.)
+        #     cc.append(xk[1] - goal_state[1] == 0.)
+        #     cc.append(ca.sin(xk[2] - goal_state[2])**2 + (1 - ca.cos(xk[2] - goal_state[2]))**2 == 0.)
+        #     cc.append(xk[3] - goal_state[3] == 0.)
+        #     cc.append(xk[4] - goal_state[4] == 0.)
         
         # Inequality constraints
         # State bounds
@@ -190,6 +207,10 @@ class AsvOpt:
 
         p_start = opti.parameter(5)  # start state parameter
         p_goal = opti.parameter(5)   # goal state parameter
+        p_T = opti.parameter(1)       # time horizon as a parameter
+        p_weights = opti.parameter(6)   # weights as a parameter
+
+        dt_param = p_T[0] / self.N
 
         for k in range(self.K):
             x.append(opti.variable(self.nx[k]))
@@ -199,7 +220,7 @@ class AsvOpt:
         for k in range(self.K):
             # Dynamics constraints
             if k < self.K - 1:
-                opti.subject_to(x[k+1] == self.discrete_dynamics(u[k], x[k], k))
+                opti.subject_to(x[k+1] == self.discrete_dynamics(u[k], x[k], k, dt_param))
             
             # Path constraints
             path_constr = self.path_constraints(u[k], x[k], k, p_start, p_goal, obstacles)
@@ -210,7 +231,7 @@ class AsvOpt:
         # Set the objective - following fatrop structure
         J = 0
         for k in range(self.K):
-            J += self.cost(u[k], x[k], k, p_goal)
+            J += self.cost(u[k], x[k], k, p_goal, p_weights)
         
         opti.minimize(J)
         
@@ -227,6 +248,9 @@ class AsvOpt:
         # Set parameter values for code generation
         opti.set_value(p_start, start_state)
         opti.set_value(p_goal, goal_state)
+        opti.set_value(p_T, self.T)
+        opti.set_value(p_weights, np.array([self.Q_pos, 
+            self.Q_heading, self.R_u, self.R_r, self.R_tp, self.R_ts]))
         
         # Solver options - try fatrop first, fallback to ipopt
         opti.solver('fatrop', {
@@ -236,12 +260,13 @@ class AsvOpt:
             'ng': ng, 
             'N': self.N, 
             "expand": True, 
-            "fatrop.tol": 1e-6,
+            "fatrop.tol": 1e-4,
+            "fatrop.max_iter": 50,
             "jit": False,
             "fatrop.print_level": 0  # 0 = silent, 5 = verbose
         })
 
-        opti.to_function("opti_func", [p_start, p_goal], [opti.x]).generate('asv.c', {"with_header": True})
+        opti.to_function("opti_func", [p_start, p_goal, p_T, p_weights], [opti.x]).generate('asv.c', {"with_header": True})
 
         # ipopt with lbfgs and a large memory size
         # opti.solver("ipopt", {"ipopt.hessian_approximation": "limited-memory", "ipopt.tol": 1e-6})

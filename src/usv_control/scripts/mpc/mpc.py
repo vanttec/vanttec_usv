@@ -157,7 +157,7 @@ def animate_results(self, X_opt, U_opt, obstacles=None, success=True, save_as=No
     
     # ========== Error Plot ==========
     pos_error = np.sqrt((X_opt[0, :] - self.wp_x)**2 + 
-                    (X_opt[1, :] - self.wp_y)**2)
+                    (X_opt[1, :] - self.wp_y)**2) - self.l_dist
     heading_error = np.abs(X_opt[2, :] - self.wp_psi)
     # Handle angle wrapping
     heading_error = np.minimum(heading_error, 2*np.pi - heading_error)
@@ -236,8 +236,8 @@ def animate_results(self, X_opt, U_opt, obstacles=None, success=True, save_as=No
             stbd_point.set_data([time_control[ctrl_idx]], [U_opt[1, ctrl_idx]])
         
         # Update error plot
-        pos_error_frame = np.sqrt((X_opt[0, :frame+1] - self.wp_x)**2 + 
-                                  (X_opt[1, :frame+1] - self.wp_y)**2)
+        pos_error_frame = np.abs(np.sqrt((X_opt[0, :frame+1] - self.wp_x)**2 + 
+                                  (X_opt[1, :frame+1] - self.wp_y)**2) - self.l_dist)
         heading_error_frame = np.abs(X_opt[2, :frame+1] - self.wp_psi)
         heading_error_frame = np.minimum(heading_error_frame, 2*np.pi - heading_error_frame)
 
