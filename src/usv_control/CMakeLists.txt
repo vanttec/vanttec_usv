@@ -130,6 +130,9 @@ ament_target_dependencies(waypoint_handler_node ${DEPENDENCIES})
 add_executable(path_publisher_node src/path_publisher_node.cpp)
 ament_target_dependencies(path_publisher_node ${DEPENDENCIES})
 
+add_executable(spline_publisher_node src/spline_publisher_node.cpp)
+ament_target_dependencies(spline_publisher_node ${DEPENDENCIES})
+
 install(TARGETS
   asmc_node
   pid_node
@@ -143,6 +146,7 @@ install(TARGETS
   path_publisher_node
   aitsmc_node
   aitsmc_new_node
+  spline_publisher_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
