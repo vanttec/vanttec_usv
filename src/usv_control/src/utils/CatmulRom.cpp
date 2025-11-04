@@ -53,8 +53,6 @@ double CatmulRom::closest_t(Eigen::Vector2d p){
     // = 3a^2t^5+2abt^4+act^3+3abt^4+2b^2t^3+bct^2+3act^3+2bct^2+c^2t+3a(d-p)t^2+2b(d-p)t+c(d-p)
     // = (3a^2)t^5+(2ab+3ab)t^4+(ac+2b^2+3ac)t^3+(bc+2bc+3a(d-p))t^2+(c^2+2b(d-p))t+c(d-p)
     // = (3a^2)t^5+(5ab)t^4+(4ac+2b^2)t^3+(3bc+3a(d-p))t^2+(c^2+2b(d-p))t+c(d-p) = 0
-
-    Eigen::Vector2d dp = s_.d - p;
     
     // Formulate 5th degree polynomial (coefficients from lowest to highest degree)
     Eigen::VectorXd coefficients(6);
