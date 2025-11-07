@@ -351,7 +351,7 @@ def main(algorithm='RTI'):
     # Plot results
     print("\nGenerating plots...")
     plot_results(simX, simU, spline_params, dt, algorithm)
-    
+
 
 if __name__ == '__main__':
     main(algorithm='RTI')

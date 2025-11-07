@@ -1,358 +1,329 @@
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <cassert>
+/*
+ * ASV Spline Tracking - Closed-Loop Simulation in C
+ * Replicates the Python closed-loop MPC simulation using generated ACADOS solvers
+ */
+
 #include <stdio.h>
-#include <string>
-#include <vector>
-#include <cmath>
-#include <type_traits>
-#include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/pose2_d.hpp"
-#include "geometry_msgs/msg/twist.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav_msgs/msg/odometry.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "std_msgs/msg/float64.hpp"
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/utils.h>
-#include <fstream>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
 
-#include "../scripts/mpc/asv.h"
+// ACADOS includes
+#include "acados/utils/print.h"
+#include "acados/utils/math.h"
+#include "acados_c/ocp_nlp_interface.h"
+#include "acados_c/sim_interface.h"
+#include "acados_solver_asv_spline_tracking.h"
+#include "acados_sim_solver_asv_spline_tracking.h"
 
-using namespace std::chrono_literals;
+// BLASFEO
+#include "blasfeo/include/blasfeo_d_aux_ext_dep.h"
 
-class MpcNode : public rclcpp::Node
-{
-public:
-    MpcNode() : Node("mpc_node")
-    {
-        // Get CasADi function dimensions
-        casadi_int n_in = opti_func_n_in();
-        casadi_int n_out = opti_func_n_out();
+#define NX     ASV_SPLINE_TRACKING_NX
+#define NU     ASV_SPLINE_TRACKING_NU
+#define NP     ASV_SPLINE_TRACKING_NP
+#define NBX0   ASV_SPLINE_TRACKING_NBX0
+#define N_HORIZON ASV_SPLINE_TRACKING_N
 
-        casadi_int sz_arg = n_in, sz_res = n_out, sz_iw = 0, sz_w = 0;
-        opti_func_work(&sz_arg, &sz_res, &sz_iw, &sz_w);
+// Simulation parameters
+#define T_SIM 10.0      // Total simulation time [s]
+#define TF 3.0          // MPC prediction horizon [s]
+#define DT (TF / N_HORIZON)  // Time step
 
-        RCLCPP_INFO(this->get_logger(), "CasADi function initialized:");
-        RCLCPP_INFO(this->get_logger(), "  n_in=%lld, n_out=%lld", n_in, n_out);
-        RCLCPP_INFO(this->get_logger(), "  sz_arg=%lld, sz_res=%lld, sz_iw=%lld, sz_w=%lld",
-                    sz_arg, sz_res, sz_iw, sz_w);
+// Helper function to compute distance between points
+double point_distance(double x1, double y1, double x2, double y2) {
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    return sqrt(dx*dx + dy*dy);
+}
 
-        // Allocate work vectors
-        arg_ = new const double *[sz_arg];
-        res_ = new double *[sz_res];
-        iw_ = new casadi_int[sz_iw];
-        w_ = new double[sz_w];
+// Get Catmull-Rom spline coefficients
+void get_catmull_rom_segment(double p0[2], double p1[2], double p2[2], double p3[2], 
+                              double spline_params[8]) {
+    double alpha = 1.0;
+    double tension = 0.2;
+    
+    // Compute segment lengths
+    double t01 = pow(point_distance(p0[0], p0[1], p1[0], p1[1]), alpha);
+    double t12 = pow(point_distance(p1[0], p1[1], p2[0], p2[1]), alpha);
+    double t23 = pow(point_distance(p2[0], p2[1], p3[0], p3[1]), alpha);
+    
+    // Tangent vectors (x and y components)
+    double m1_x = (1.0 - tension) * (p2[0] - p1[0] + t12 * ((p1[0] - p0[0]) / t01 - (p2[0] - p0[0]) / (t01 + t12)));
+    double m1_y = (1.0 - tension) * (p2[1] - p1[1] + t12 * ((p1[1] - p0[1]) / t01 - (p2[1] - p0[1]) / (t01 + t12)));
+    
+    double m2_x = (1.0 - tension) * (p2[0] - p1[0] + t12 * ((p3[0] - p2[0]) / t23 - (p3[0] - p1[0]) / (t12 + t23)));
+    double m2_y = (1.0 - tension) * (p2[1] - p1[1] + t12 * ((p3[1] - p2[1]) / t23 - (p3[1] - p1[1]) / (t12 + t23)));
+    
+    // Hermite basis coefficients
+    double a_x = 2.0 * (p1[0] - p2[0]) + m1_x + m2_x;
+    double b_x = -3.0 * (p1[0] - p2[0]) - m1_x - m1_x - m2_x;
+    double c_x = m1_x;
+    double d_x = p1[0];
+    
+    double a_y = 2.0 * (p1[1] - p2[1]) + m1_y + m2_y;
+    double b_y = -3.0 * (p1[1] - p2[1]) - m1_y - m1_y - m2_y;
+    double c_y = m1_y;
+    double d_y = p1[1];
+    
+    // Pack into array [a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y]
+    spline_params[0] = a_x;
+    spline_params[1] = b_x;
+    spline_params[2] = c_x;
+    spline_params[3] = d_x;
+    spline_params[4] = a_y;
+    spline_params[5] = b_y;
+    spline_params[6] = c_y;
+    spline_params[7] = d_y;
+}
 
-        X_.resize(101, std::vector<double>(5));
-        U_.resize(100, std::vector<double>(2));
+// Evaluate spline at parameter t
+void evaluate_spline(double t, double spline_params[8], double result[2]) {
+    double t2 = t * t;
+    double t3 = t2 * t;
+    
+    result[0] = spline_params[0] * t3 + spline_params[1] * t2 + spline_params[2] * t + spline_params[3];
+    result[1] = spline_params[4] * t3 + spline_params[5] * t2 + spline_params[6] * t + spline_params[7];
+}
 
-        // Allocate result buffer (MUST BE CLASS MEMBER, NOT LOCAL VARIABLE)
-        res_buffer_.resize(opti_func_sparsity_out(0)[0]);
-        res_[0] = res_buffer_.data();
-
-        // Allocate CasADi memory (thread-safe)
-        opti_func_incref();
-        mem_ = opti_func_checkout();
-
-        RCLCPP_INFO(this->get_logger(), "Result buffer size: %zu", res_buffer_.size());
-
-        // Set up initial pointers
-        arg_[0] = start_state_.data();
-        arg_[1] = goal_state_.data();
-        arg_[2] = time_horizon_.data();
-        arg_[3] = weights_.data();
-
-        // Subscribers
-        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-            "/usv/state/odom", 1,
-            [this](const nav_msgs::msg::Odometry::SharedPtr msg)
-            {
-                auto &q = msg->pose.pose.orientation;
-
-                start_state_[0] = msg->pose.pose.position.x;
-                start_state_[1] = msg->pose.pose.position.y;
-                start_state_[2] = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
-                                             1.0 - 2.0 * (q.y * q.y + q.z * q.z));
-                start_state_[3] = msg->twist.twist.linear.x;
-                start_state_[4] = msg->twist.twist.angular.z;
-
-                odom_received_ = true;
-            });
-
-        goal_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-            "/usv/mpc/goal", 1,
-            [this](const geometry_msgs::msg::Pose2D::SharedPtr msg)
-            {
-                goal_state_[0] = msg->x;
-                goal_state_[1] = msg->y;
-                goal_state_[2] = msg->theta;
-                goal_state_[3] = 0.0;
-                goal_state_[4] = 0.0;
-
-                goal_received_ = true;
-                RCLCPP_INFO(this->get_logger(), "Goal received: x=%.2f, y=%.2f, theta=%.2f",
-                            msg->x, msg->y, msg->theta);
-            });
-
-        // Goal as a PoseStamped msg (for RViz)
-        goal_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
-            "/goal_pose", 1,
-            [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
-            {
-                auto &q = msg->pose.orientation;
-
-                goal_state_[0] = msg->pose.position.x;
-                goal_state_[1] = msg->pose.position.y;
-                goal_state_[2] = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
-                                            1.0 - 2.0 * (q.y * q.y + q.z * q.z));
-                goal_state_[3] = 0.0;
-                goal_state_[4] = 0.0;
-
-                goal_received_ = true;
-            });
-
-        time_horizon_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-            "/usv/mpc/time_horizon", 1,
-            [this](const std_msgs::msg::Float64::SharedPtr msg)
-            {
-                time_horizon_[0] = msg->data;
-            });
-
-        heading_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-            "/guidance/desired_heading", 10);
-
-        ang_vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-            "/guidance/desired_angular_velocity", 10);
-
-        vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-            "/guidance/desired_velocity", 10);
-
-        // Publisher for MPC path visualization (NEW)
-        path_pub_ = this->create_publisher<nav_msgs::msg::Path>(
-            "/usv/mpc/trajectory", 10);
-
-        // Timer for MPC update loop
-        timer_ = this->create_wall_timer(20ms, std::bind(&MpcNode::update, this));
-
-        RCLCPP_INFO(this->get_logger(), "MPC Node initialized. Waiting for odometry and goal...");
+// Save trajectory to CSV file
+void save_trajectory_csv(const char* filename, double** simX, double** simU, int nsim) {
+    FILE *fp = fopen(filename, "w");
+    if (fp == NULL) {
+        printf("Error opening file %s\n", filename);
+        return;
     }
-
-    ~MpcNode()
-    {
-        // Clean up CasADi memory
-        if (mem_ >= 0)
-        {
-            opti_func_release(mem_);
-            opti_func_decref();
-        }
-
-        // Clean up work vectors
-        delete[] arg_;
-        delete[] res_;
-        delete[] iw_;
-        delete[] w_;
+    
+    // Header
+    fprintf(fp, "time,x,y,psi,surge,yaw,t_param,tau_port,tau_stbd,dt,slack_u\n");
+    
+    // Data
+    for (int i = 0; i < nsim; i++) {
+        fprintf(fp, "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n",
+                i * DT,
+                simX[i][0], simX[i][1], simX[i][2], simX[i][3], simX[i][4], simX[i][5],
+                simU[i][0], simU[i][1], simU[i][2], simU[i][3]);
     }
+    
+    // Final state
+    fprintf(fp, "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,0,0,0,0\n",
+            nsim * DT,
+            simX[nsim][0], simX[nsim][1], simX[nsim][2], 
+            simX[nsim][3], simX[nsim][4], simX[nsim][5]);
+    
+    fclose(fp);
+    printf("Trajectory saved to %s\n", filename);
+}
 
-private:
-    void update()
-    {
-
-        // ULTRADEBUGGING
-        static size_t peak_rss = 0;
-
-        // Get current RSS (Resident Set Size)
-        std::ifstream stat_stream("/proc/self/status");
-        std::string line;
-        size_t current_rss = 0;
-
-        while (std::getline(stat_stream, line))
-        {
-            if (line.find("VmRSS:") == 0)
-            {
-                std::istringstream iss(line);
-                std::string key;
-                iss >> key >> current_rss;
-                break;
-            }
-        }
-
-        if (current_rss > peak_rss)
-        {
-            peak_rss = current_rss;
-            RCLCPP_WARN(this->get_logger(), "Memory increased to %zu KB", current_rss);
-        }
-
-        // Check if we have required data
-        if (!odom_received_)
-        {
-            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
-                                 "Waiting for odometry...");
-            return;
-        }
-
-        if (!goal_received_)
-        {
-            RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 1000,
-                                 "Waiting for goal...");
-            return;
-        }
-
-        // Solve MPC problem
-
-        static int solve_count = 0;
-        solve_count++;
-
-        // Reset memory every 100 solves (every 2 seconds at 50 Hz)
-        if (solve_count % 100 == 0)
-        {
-            if (mem_ >= 0)
-            {
-                opti_func_release(mem_);
-            }
-            mem_ = opti_func_checkout();
-            RCLCPP_INFO(this->get_logger(), "Reset CasADi memory (solve #%d)", solve_count);
-        }
-
-        auto start_time = std::chrono::high_resolution_clock::now();
-
-        if (opti_func(arg_, res_, iw_, w_, mem_))
-        {
-            RCLCPP_ERROR(this->get_logger(), "MPC optimization failed!");
-            return;
-        }
-
-        auto end_time = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-
-        // Unpack the solution
-        const int N = 100;
-        const int K = N + 1;
-        const int nx = 5;
-        const int nu = 2;
-
-        int idx = 0;
-
-        nav_msgs::msg::Path path_msg;
-        path_msg.header.stamp = this->now();
-        path_msg.header.frame_id = "world";
-
-        for (int k = 0; k < K; k++)
-        {
-            // Unpack state X
-            for (int i = 0; i < nx; i++)
-            {
-                X_[k][i] = res_buffer_[idx++];
-            }
-
-            // Populate the Path message
-            geometry_msgs::msg::PoseStamped pose_stamped;
-            pose_stamped.header = path_msg.header;
-            pose_stamped.pose.position.x = X_[k][0]; // x position
-            pose_stamped.pose.position.y = X_[k][1]; // y position
-            pose_stamped.pose.position.z = 0.0;
-
-            // Optional: Set orientation (from state X_[k][2] - yaw)
-            tf2::Quaternion q;
-            q.setRPY(0, 0, X_[k][2]); // Assuming X_[k][2] is yaw
-            pose_stamped.pose.orientation.x = q.x();
-            pose_stamped.pose.orientation.y = q.y();
-            pose_stamped.pose.orientation.z = q.z();
-            pose_stamped.pose.orientation.w = q.w();
-
-            path_msg.poses.push_back(pose_stamped);
-
-            // Unpack control U
-            if (k < N)
-            {
-                for (int i = 0; i < nu; i++)
-                {
-                    U_[k][i] = res_buffer_[idx++];
-                }
-            }
-        }
-
-        // Publish the Path message (NEW)
-        path_pub_->publish(path_msg);
-
-        // Apply first control (obtained from sol. state) action (MPC receding horizon)
-        u_sol = X_[1][3];
-        last_r_sol = r_sol;
-        r_sol = X_[1][4];
-        last_psi_sol = psi_sol;
-        psi_sol = normalize_angle(integral_step * (r_sol + last_r_sol) / 2. + last_psi_sol);
-
-        vel_setpoint_msg.data = u_sol;
-        heading_setpoint_msg.data = psi_sol;
-
-        heading_setpoint_pub_->publish(heading_setpoint_msg);
-        vel_setpoint_pub_->publish(vel_setpoint_msg);
-        // ang_vel_setpoint_pub_->publish(ang_vel_setpoint_msg);
-
-        // Log info periodically
-        double pos_error = std::sqrt(
-            std::pow(X_[K - 1][0] - goal_state_[0], 2) +
-            std::pow(X_[K - 1][1] - goal_state_[1], 2));
-        RCLCPP_INFO(this->get_logger(), "MPC Solved (%.2f ms). Traj end pos error: %.2f",
-                    (double)duration.count() / 1000.0, pos_error);
+int main() {
+    int status = 0;
+    
+    printf("=== ASV Spline Tracking - Closed-Loop Simulation ===\n\n");
+    
+    // === DEFINE SPLINE ===
+    double p0[2] = {0.0, 0.0};
+    double p1[2] = {2.0, 1.0};
+    double p2[2] = {6.0, -3.0};
+    double p3[2] = {10.0, 2.0};
+    
+    double spline_params[NP];
+    get_catmull_rom_segment(p0, p1, p2, p3, spline_params);
+    
+    printf("Spline parameters:\n");
+    for (int i = 0; i < NP; i++) {
+        printf("  p[%d] = %.6f\n", i, spline_params[i]);
     }
-
-    double normalize_angle(double x)
-    {
-        x = fmod(x + M_PI, M_PI * 2);
-        if (x < 0)
-            x += M_PI * 2;
-        return x - M_PI;
+    printf("\n");
+    
+    // === CREATE OCP SOLVER ===
+    printf("Creating OCP solver...\n");
+    asv_spline_tracking_solver_capsule *ocp_capsule = asv_spline_tracking_acados_create_capsule();
+    status = asv_spline_tracking_acados_create_with_discretization(ocp_capsule, N_HORIZON, NULL);
+    
+    if (status) {
+        printf("OCP solver creation failed with status %d\n", status);
+        return 1;
     }
-
-    // ROS2 components
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr goal_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_sub_;
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr time_horizon_sub_;
-    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr heading_setpoint_pub_;
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr vel_setpoint_pub_;
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_pub_;
-
-    std_msgs::msg::Float64 heading_setpoint_msg, vel_setpoint_msg, ang_vel_setpoint_msg;
-
-    // State variables
-    std::vector<double> start_state_{0.0, 0.0, 0.0, 0.0, 0.0};
-    std::vector<double> goal_state_{1.0, 0.0, 0.0, 0.0, 0.0};
-    std::vector<double> time_horizon_{10.0};
-
-    // Q_pos, Q_heading, R_u, R_r, R_tp, R_ts
-    std::vector<double> weights_{100.0, 10.0, 0.1, 0.1, 0.1, 0.1};
-
-    bool odom_received_ = false;
-    bool goal_received_ = false;
-
-    // CasADi work variables
-    const double **arg_ = nullptr;
-    double **res_ = nullptr;
-    casadi_int *iw_ = nullptr;
-    double *w_ = nullptr;
-    int mem_ = -1;
-    std::vector<double> res_buffer_;
-
-    std::vector<std::vector<double>> X_;
-    std::vector<std::vector<double>> U_;
-
-    double last_r_sol{0.0};
-    double u_sol{0.0};
-    double r_sol{0.0};
-    double last_psi_sol{0.0};
-    double psi_sol{0.0};
-    double integral_step{0.018};
-};
-
-int main(int argc, char *argv[])
-{
-    rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<MpcNode>());
-    rclcpp::shutdown();
+    
+    ocp_nlp_config *nlp_config = asv_spline_tracking_acados_get_nlp_config(ocp_capsule);
+    ocp_nlp_dims *nlp_dims = asv_spline_tracking_acados_get_nlp_dims(ocp_capsule);
+    ocp_nlp_in *nlp_in = asv_spline_tracking_acados_get_nlp_in(ocp_capsule);
+    ocp_nlp_out *nlp_out = asv_spline_tracking_acados_get_nlp_out(ocp_capsule);
+    ocp_nlp_solver *nlp_solver = asv_spline_tracking_acados_get_nlp_solver(ocp_capsule);
+    
+    // === CREATE SIMULATOR ===
+    printf("Creating simulator...\n");
+    asv_spline_tracking_sim_solver_capsule *sim_capsule = asv_spline_tracking_acados_sim_solver_create_capsule();
+    status = asv_spline_tracking_acados_sim_create(sim_capsule);
+    
+    if (status) {
+        printf("Simulator creation failed with status %d\n", status);
+        return 1;
+    }
+    
+    sim_config *sim_config = asv_spline_tracking_acados_get_sim_config(sim_capsule);
+    sim_in *sim_in = asv_spline_tracking_acados_get_sim_in(sim_capsule);
+    sim_out *sim_out = asv_spline_tracking_acados_get_sim_out(sim_capsule);
+    void *sim_dims = asv_spline_tracking_acados_get_sim_dims(sim_capsule);
+    
+    // === INITIAL CONDITIONS ===
+    double x0[NX] = {5.0, 1.0, 0.0, 0.0, 0.0, 0.0};
+    
+    printf("Initial state: [%.2f, %.2f, %.2f, %.2f, %.2f, %.2f]\n\n",
+           x0[0], x0[1], x0[2], x0[3], x0[4], x0[5]);
+    
+    // === SIMULATION SETUP ===
+    int Nsim = (int)(T_SIM / DT);
+    printf("Simulation parameters:\n");
+    printf("  Total time: %.1f s\n", T_SIM);
+    printf("  Time step: %.4f s\n", DT);
+    printf("  Number of steps: %d\n", Nsim);
+    printf("  MPC horizon: %d nodes\n\n", N_HORIZON);
+    
+    // Allocate memory for trajectories
+    double **simX = (double**)malloc((Nsim + 1) * sizeof(double*));
+    double **simU = (double**)malloc(Nsim * sizeof(double*));
+    double *t_prep = (double*)malloc(Nsim * sizeof(double));
+    double *t_feedback = (double*)malloc(Nsim * sizeof(double));
+    
+    for (int i = 0; i <= Nsim; i++) {
+        simX[i] = (double*)malloc(NX * sizeof(double));
+    }
+    for (int i = 0; i < Nsim; i++) {
+        simU[i] = (double*)malloc(NU * sizeof(double));
+    }
+    
+    // Set initial state
+    memcpy(simX[0], x0, NX * sizeof(double));
+    
+    // === SET SPLINE PARAMETERS FOR ALL STAGES ===
+    for (int i = 0; i <= N_HORIZON; i++) {
+        asv_spline_tracking_acados_update_params(ocp_capsule, i, spline_params, NP);
+    }
+    asv_spline_tracking_acados_sim_update_params(sim_capsule, spline_params, NP);
+    
+    // === CLOSED-LOOP SIMULATION ===
+    printf("Running closed-loop simulation...\n\n");
+    
+    clock_t start_total = clock();
+    
+    for (int i = 0; i < Nsim; i++) {
+        // Set initial state constraint
+        ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "lbx", simX[i]);
+        ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "ubx", simX[i]);
+        
+        // === RTI PHASE 1: PREPARATION ===
+        int rti_phase = 1;
+        clock_t prep_start = clock();
+        ocp_nlp_solver_opts_set(nlp_config, ocp_capsule->nlp_opts, "rti_phase", &rti_phase);
+        status = asv_spline_tracking_acados_solve(ocp_capsule);
+        clock_t prep_end = clock();
+        t_prep[i] = ((double)(prep_end - prep_start)) / CLOCKS_PER_SEC;
+        
+        if (status != 0 && status != 2 && status != 5) {
+            printf("Warning: Preparation phase returned status %d at step %d\n", status, i);
+        }
+        
+        // === RTI PHASE 2: FEEDBACK ===
+        rti_phase = 2;
+        clock_t fb_start = clock();
+        ocp_nlp_solver_opts_set(nlp_config, ocp_capsule->nlp_opts, "rti_phase", &rti_phase);
+        status = asv_spline_tracking_acados_solve(ocp_capsule);
+        clock_t fb_end = clock();
+        t_feedback[i] = ((double)(fb_end - fb_start)) / CLOCKS_PER_SEC;
+        
+        if (status != 0 && status != 2 && status != 5) {
+            printf("Warning: Feedback phase returned status %d at step %d\n", status, i);
+        }
+                
+        // Get optimal control
+        ocp_nlp_out_get(nlp_config, nlp_dims, nlp_out, 0, "u", simU[i]);
+        
+        // Simulate system forward
+        sim_in_set(sim_config, sim_dims, sim_in, "x", simX[i]);
+        sim_in_set(sim_config, sim_dims, sim_in, "u", simU[i]);
+        
+        status = asv_spline_tracking_acados_sim_solve(sim_capsule);
+        if (status != 0) {
+            printf("Simulation failed with status %d at step %d\n", status, i);
+            break;
+        }
+        
+        sim_out_get(sim_config, sim_dims, sim_out, "x", simX[i + 1]);
+        
+        // Print progress
+        if ((i + 1) % 50 == 0 || i == 0) {
+            printf("Step %4d/%d: t=%.3f, pos=(%.2f, %.2f), prep=%.2fms, feedback=%.2fms\n",
+                   i + 1, Nsim, simX[i][5], simX[i][0], simX[i][1],
+                   t_prep[i] * 1000.0, t_feedback[i] * 1000.0);
+        }
+    }
+    
+    clock_t end_total = clock();
+    double total_time = ((double)(end_total - start_total)) / CLOCKS_PER_SEC;
+    
+    // === COMPUTE STATISTICS ===
+    printf("\n=== Simulation Complete ===\n\n");
+    
+    // Timing statistics
+    double min_prep = t_prep[0], max_prep = t_prep[0], sum_prep = 0.0;
+    double min_fb = t_feedback[0], max_fb = t_feedback[0], sum_fb = 0.0;
+    
+    for (int i = 0; i < Nsim; i++) {
+        if (t_prep[i] < min_prep) min_prep = t_prep[i];
+        if (t_prep[i] > max_prep) max_prep = t_prep[i];
+        sum_prep += t_prep[i];
+        
+        if (t_feedback[i] < min_fb) min_fb = t_feedback[i];
+        if (t_feedback[i] > max_fb) max_fb = t_feedback[i];
+        sum_fb += t_feedback[i];
+    }
+    
+    printf("Timing Statistics:\n");
+    printf("  Preparation phase [ms]:\n");
+    printf("    min: %.3f, avg: %.3f, max: %.3f\n", 
+           min_prep * 1000, (sum_prep / Nsim) * 1000, max_prep * 1000);
+    printf("  Feedback phase [ms]:\n");
+    printf("    min: %.3f, avg: %.3f, max: %.3f\n",
+           min_fb * 1000, (sum_fb / Nsim) * 1000, max_fb * 1000);
+    printf("  Total per iteration [ms]:\n");
+    printf("    min: %.3f, avg: %.3f, max: %.3f\n",
+           (min_prep + min_fb) * 1000, 
+           ((sum_prep + sum_fb) / Nsim) * 1000,
+           (max_prep + max_fb) * 1000);
+    printf("  Wall-clock time: %.2f s\n\n", total_time);
+    
+    // Final state
+    printf("Final Results:\n");
+    printf("  t parameter: %.3f\n", simX[Nsim][5]);
+    printf("  Position: (%.2f, %.2f)\n", simX[Nsim][0], simX[Nsim][1]);
+    
+    // Compute final tracking error
+    double final_spline_pos[2];
+    evaluate_spline(simX[Nsim][5], spline_params, final_spline_pos);
+    double dx = simX[Nsim][0] - final_spline_pos[0];
+    double dy = simX[Nsim][1] - final_spline_pos[1];
+    double crosstrack_error = sqrt(dx*dx + dy*dy);
+    printf("  Crosstrack error: %.3f m\n\n", crosstrack_error);
+    
+    // Save results
+    save_trajectory_csv("asv_trajectory.csv", simX, simU, Nsim);
+    
+    // === CLEANUP ===
+    asv_spline_tracking_acados_free(ocp_capsule);
+    asv_spline_tracking_acados_free_capsule(ocp_capsule);
+    asv_spline_tracking_acados_sim_free(sim_capsule);
+    asv_spline_tracking_acados_sim_solver_free_capsule(sim_capsule);
+    
+    for (int i = 0; i <= Nsim; i++) free(simX[i]);
+    for (int i = 0; i < Nsim; i++) free(simU[i]);
+    free(simX);
+    free(simU);
+    free(t_prep);
+    free(t_feedback);
+    
+    printf("Done!\n");
+    
     return 0;
 }
