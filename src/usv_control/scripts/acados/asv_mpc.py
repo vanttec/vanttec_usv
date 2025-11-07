@@ -1,48 +1,26 @@
 """
 ASV Spline Tracking MPC using ACADOS
-
-States: [x, y, psi, surge, yaw, t]
-Controls: [tau_port, tau_stbd, dt]
-Parameters: [a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y]
-
-Cost formulation:
-- Alongtrack error: w_along * (1-t)^2
-- Crosstrack error: w_cross * ((x - s_x(t))^2 + (y - s_y(t))^2)
-- Heading error: w_heading * sin^2((psi - psi_ref(t))/2)
-- Input regularization: w_input * (tau_port^2 + tau_stbd^2)
 """
 
 from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver, AcadosSim
-from asv_spline_model import export_asv_spline_model
+from asv_model import export_asv_model
 import numpy as np
 import scipy.linalg
 from casadi import vertcat, sin, SX
-import matplotlib.pyplot as plt
+from utils import plot_results
 
-def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI'):
-    """
-    Setup the OCP for spline tracking.
-    
-    Args:
-        x0: Initial state [x, y, psi, surge, yaw, t]
-        spline_params: [a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y]
-        Tf: Prediction horizon time
-        N_horizon: Number of shooting nodes
-        algorithm: 'RTI'
-    """
-    
-    print(f'Setting up OCP with algorithm: {algorithm}')
-    
+# Setup the OCP
+def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI'):    
     # Create OCP object
     ocp = AcadosOcp()
     
     # Set model
-    model = export_asv_spline_model()
+    model = export_asv_model()
     ocp.model = model
     
-    nx = model.x.rows()  # 6 states
-    nu = model.u.rows()  # 3 controls
-    np_param = model.p.rows()  # 8 parameters
+    nx = model.x.rows()  # No. states
+    nu = model.u.rows()  # No. controls
+    np_param = model.p.rows()  # No. parameters
     
     # Set prediction horizon
     ocp.solver_options.N_horizon = N_horizon
@@ -73,7 +51,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     dt = model.u[2]
     slack_u = model.u[3]
     
-    # Spline evaluation (already defined in model)
+    # Spline evaluation (defined in model)
     s_x = model.s_x
     s_y = model.s_y
     psi_ref = model.psi_ref
@@ -83,12 +61,13 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     crosstrack_error = (x_pos - s_x)**2 + (y_pos - s_y)**2
     heading_error = sin((psi - psi_ref) / 2)**2
     input_cost = tau_port**2 + tau_stbd**2
+    slack_cost = slack_u**2
     
     stage_cost = (w_along * alongtrack_error + 
                   w_cross * crosstrack_error + 
                   w_heading * heading_error + 
                   w_input * input_cost +
-                  w_slack * slack_u**2
+                  w_slack * slack_cost
                   )
     
     ocp.model.cost_expr_ext_cost = stage_cost
@@ -121,15 +100,15 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.constraints.uh = np.array([1e10])
     ocp.model.con_h_expr = model.x[3] + model.u[3]  # surge + slack_u >= 0
     
-    # State bounds (for t parameter)
+    # State bounds
     ocp.constraints.lbx = np.array([0.0,-0.5])
     ocp.constraints.ubx = np.array([1.0,1.5])
     ocp.constraints.idxbx = np.array([5,3])  # Index in state vector (t, surge)
     
     # Apply same bounds at terminal stage
-    ocp.constraints.lbx_e = np.array([0.0])
-    ocp.constraints.ubx_e = np.array([1.0])
-    ocp.constraints.idxbx_e = np.array([5])
+    ocp.constraints.lbx_e = np.array([0.0,-0.5])
+    ocp.constraints.ubx_e = np.array([1.0,1.5])
+    ocp.constraints.idxbx_e = np.array([5,3])
     
     # Set spline parameters
     ocp.parameter_values = spline_params
@@ -144,37 +123,34 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     
     # Configure algorithm type
     ocp.solver_options.nlp_solver_type = 'SQP_RTI'
-        
+
     # Code generation
-    ocp.code_export_directory = f'c_generated_code_spline_{algorithm}'
+    ocp.code_export_directory = f'c_generated_code_asv_ocp'
     
     # Create solver
-    acados_ocp_solver = AcadosOcpSolver(ocp, json_file='acados_ocp_spline.json')
+    acados_ocp_solver = AcadosOcpSolver(ocp, json_file='asv_ocp.json')
     
     return acados_ocp_solver
 
 
-def setup_integrator(dt, spline_params):
-    """Setup simulator for closed-loop testing."""
+# Setup simulator for closed-loop testing
+def setup_integrator(dt, params):
     sim = AcadosSim()
-    sim.model = export_asv_spline_model()
+    sim.model = export_asv_model()
     
     sim.solver_options.T = dt
     sim.solver_options.num_steps = 2
-    sim.code_export_directory = 'c_generated_code_spline_sim'
+    sim.code_export_directory = 'c_generated_code_asv_sim'
     
     # Set spline parameters for simulation
-    sim.parameter_values = spline_params
+    sim.parameter_values = params
     
     acados_integrator = AcadosSimSolver(sim)
     return acados_integrator
 
 
+# Compute Catmull-Rom spline coefficients for segment between p1 and p2.
 def get_catmull_rom_segment(p0, p1, p2, p3, alpha=1.0, tension=0.2):
-    """
-    Compute Catmull-Rom spline coefficients for segment between p1 and p2.
-    Returns [a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y]
-    """
     def distance(a, b):
         return np.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
     
@@ -196,76 +172,18 @@ def get_catmull_rom_segment(p0, p1, p2, p3, alpha=1.0, tension=0.2):
     return np.array([a[0], b[0], c[0], d[0], a[1], b[1], c[1], d[1]])
 
 
+# Evaluate spline at parameter t
 def evaluate_spline(t, params):
-    """Evaluate spline at parameter t."""
     a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y = params
     x = a_x * t**3 + b_x * t**2 + c_x * t + d_x
     y = a_y * t**3 + b_y * t**2 + c_y * t + d_y
     return np.array([x, y])
 
 
-def plot_results(simX, simU, spline_params, dt_sim, algorithm='RTI'):
-    """Plot simulation results."""
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    
-    time = np.arange(simX.shape[0]) * dt_sim
-    
-    # Plot 1: XY trajectory with spline
-    ax = axes[0, 0]
-    # Plot spline
-    t_spline = np.linspace(0, 1, 100)
-    spline_points = np.array([evaluate_spline(t, spline_params) for t in t_spline])
-    ax.plot(spline_points[:, 0], spline_points[:, 1], 'b--', linewidth=2, label='Spline reference')
-    ax.plot(simX[:, 0], simX[:, 1], 'r-', linewidth=1.5, label='ASV trajectory')
-    ax.plot(simX[0, 0], simX[0, 1], 'go', markersize=10, label='Start')
-    ax.plot(simX[-1, 0], simX[-1, 1], 'rs', markersize=10, label='End')
-    ax.set_xlabel('X [m]')
-    ax.set_ylabel('Y [m]')
-    ax.set_title(f'XY Trajectory ({algorithm})')
-    ax.legend()
-    ax.grid(True)
-    ax.axis('equal')
-    
-    # Plot 2: States vs time
-    ax = axes[0, 1]
-    ax.plot(time, simX[:, 2], label='Ïˆ [rad]')
-    ax.plot(time, simX[:, 3], label='surge [m/s]')
-    ax.plot(time, simX[:, 4], label='yaw rate [rad/s]')
-    ax.plot(time, simX[:, 5], label='t (spline param)')
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('State')
-    ax.set_title('States vs Time')
-    ax.legend()
-    ax.grid(True)
-    
-    # Plot 3: Controls vs time
-    ax = axes[1, 0]
-    time_u = np.arange(simU.shape[0]) * dt_sim
-    ax.plot(time_u, simU[:, 0], label='Ï„_port')
-    ax.plot(time_u, simU[:, 1], label='Ï„_stbd')
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('Thrust [N]')
-    ax.set_title('Control Inputs')
-    ax.legend()
-    ax.grid(True)
-    
-    # Plot 4: dt (progress rate) vs time
-    ax = axes[1, 1]
-    ax.plot(time_u, simU[:, 2], 'g-')
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('dt (progress rate)')
-    ax.set_title('Spline Progress Rate')
-    ax.grid(True)
-    
-    plt.tight_layout()
-    plt.savefig(f'asv_spline_tracking_{algorithm}.png', dpi=150)
-    plt.show()
-
-
 def main(algorithm='RTI'):
     # --- Simulation setup ---
-    Tf = 3.0        # MPC prediction horizon [s]
-    N_horizon = 40  # Number of shooting nodes
+    Tf = 2.5        # MPC prediction horizon [s]
+    N_horizon = 50  # Number of shooting nodes
     dt = Tf / N_horizon
     
     T_sim = 20.0    # Total simulation time [s]
@@ -284,10 +202,8 @@ def main(algorithm='RTI'):
     # --- Initial conditions ---
     # Start slightly off the spline to see tracking behavior
     x0 = np.array([
-        # p1[0] - 0.5,  # x_pos
-        # p1[1] - 0.3,  # y_pos
-        5.0,
-        1.0,
+        5.0,          # x_dot
+        1.0,          # y_dot
         0.0,          # psi
         0.0,          # surge
         0.0,          # yaw
@@ -379,8 +295,6 @@ def main(algorithm='RTI'):
     print("\nGenerating plots...")
     plot_results(simX, simU, spline_params, dt, algorithm)
     
-    print("Done!")
-
 
 if __name__ == '__main__':
     main(algorithm='RTI')

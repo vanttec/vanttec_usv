@@ -1,16 +1,16 @@
 from acados_template import AcadosModel
 from casadi import SX, vertcat, sin, cos, fabs, if_else, atan2
 
-def export_asv_spline_model() -> AcadosModel:
+def export_asv_model() -> AcadosModel:
     """
-    ASV model augmented with spline parameter 't' for path tracking.
+    ASV with spline parameter 't' for path tracking.
     
     States: [x_pos, y_pos, psi, surge, yaw, t]
     Controls: [t_port, t_stbd, dt]
     Parameters: [a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y]
     """
     
-    model_name = 'asv_spline_tracking'
+    model_name = 'asv_dynamics'
 
     # ASV constants
     X_u_dot = -2.25
