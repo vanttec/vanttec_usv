@@ -7,8 +7,11 @@
 #include "geometry_msgs/msg/pose_stamped.hpp"
 
 #include "nav_msgs/msg/path.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 #include "std_msgs/msg/color_rgba.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
+#include "std_msgs/msg/float64.hpp"
 
 #include "visualization_msgs/msg/marker.hpp"
 
@@ -23,19 +26,19 @@ public:
     {
         using namespace std::placeholders;
 
-        spline_pub_ = this->create_publisher<nav_msgs::msg::Path>("/usv/path_ref", 10);
+        spline_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("/usv/path_ref", 10);
         s_marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/spline_marker", 10);
         la_marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/lookahead_marker", 10);
+        spline_params_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/mpc/spline_params", 10);
+        spline_t_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_t", 10);
 
-        // PoseStamped msg from RViz
-        pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
-            "/goal_pose", 1,
-            [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/usv/state/odom", 1,
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg)
             {
-                asv.x() = msg->pose.position.x;
-                asv.y() = msg->pose.position.y;
+                asv.x() = msg->pose.pose.position.x;
+                asv.y() = msg->pose.pose.position.y;
             });
-
 
         timer_ = this->create_wall_timer(
             100ms, std::bind(&SplinePublisherNode::update, this));
@@ -59,18 +62,19 @@ public:
         Eigen::Vector3d mother_cps[2]{Eigen::Vector3d(0.0, 0.0, 0.0), Eigen::Vector3d(4.0, 2.0, 0.0)};
         // k+2 control points needed and at least 4 cps for catmul spline.
         std::vector<Eigen::Vector2d> cps;
-        double transforms[]{-dist, 0, dist};
-        for (int i = 0; i < 2; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                cps.push_back(translate(mother_cps[i], transforms[j]));
-            }
-        }
+        cps.push_back(translate(mother_cps[0], -dist));
+        cps.push_back(translate(mother_cps[0], 0.0));
+        cps.push_back(translate(mother_cps[1], 0.0));
+        cps.push_back(translate(mother_cps[1], dist));
 
-        for (int i = 0; i < 3; i++)
-        {
-            s_[i].update(cps[i], cps[i + 1], cps[i + 2], cps[i + 3]);
+        s_.update(cps[0], cps[1], cps[2], cps[3]);
+
+        spline_params_msg.data.resize(8);
+        for(int i = 0 ; i < 2 ; i++){
+            spline_params_msg.data[4*i+0] = s_.s_.a[i];
+            spline_params_msg.data[4*i+1] = s_.s_.b[i];
+            spline_params_msg.data[4*i+2] = s_.s_.c[i];
+            spline_params_msg.data[4*i+3] = s_.s_.d[i];
         }
     }
 
@@ -85,41 +89,27 @@ protected:
         la_marker_msg.header = path_msg.header;
 
         Eigen::Vector2d tmp_v;
-
-        double closest_dist = std::numeric_limits<double>::max();
         Eigen::Vector2d closest_p;
         double closest_t{-1};
-        int closest_i{0};
 
-        for (int i = 0; i < 3; i++)
+        for (double t = 0; t <= 1; t += 1.0 / (n_-1))
         {
-            for (double t = 0; t <= 1; t += 1.0 / (n_-1))
-            {
-                tmp_v = s_[i].get_s(t);
-                tmp_pose.pose.position.x = tmp_v.x();
-                tmp_pose.pose.position.y = tmp_v.y();
-                // tmp_pose.pose.position.z = i + t;
-                path_msg.poses.push_back(tmp_pose);
-            }
-
-            double local_closest_t = s_[i].closest_t(asv);
-            Eigen::Vector2d local_closest_p = s_[i].get_s(local_closest_t);
-            double local_closest_dist = CatmulRom::distance(asv, local_closest_p);
-
-            if(local_closest_dist < closest_dist){
-                closest_p = local_closest_p;
-                closest_dist = local_closest_dist;
-                closest_t = local_closest_t;
-                closest_i = i;
-            }
+            tmp_v = s_.get_s(t);
+            tmp_pose.pose.position.x = tmp_v.x();
+            tmp_pose.pose.position.y = tmp_v.y();
+            // tmp_pose.pose.position.z = i + t;
+            path_msg.poses.push_back(tmp_pose);
         }
+
+        closest_t = s_.closest_t(asv);
+        closest_p = s_.get_s(closest_t);
 
         double lookahead = 0.3;
         // Fix t so that it's in terms of the actual dt used
         // If n = 3, t can only be an element of {0,0.5,1}
         double fit_t = int(round(closest_t*(n_-1))) * 1.0 / (n_-1);
         // Find the index in path_msg that corresponds to the closest point
-        int closest_path_idx = closest_i*n_+int(fit_t * (n_-1));
+        int closest_path_idx = int(fit_t * (n_-1));
         int idx_ = closest_path_idx;
 
         // Find furthest point along the spline (in path_msg) inside lookahead region
@@ -141,22 +131,31 @@ protected:
 
         la_marker_msg.pose.position = path_msg.poses[idx_].pose.position;
 
-        spline_pub_->publish(path_msg);
+        spline_t_msg.data = closest_t;
+
+        spline_path_pub_->publish(path_msg);
         s_marker_pub_->publish(s_marker_msg);
         la_marker_pub_->publish(la_marker_msg);
+        spline_params_pub_->publish(spline_params_msg);
+        spline_t_pub_->publish(spline_t_msg);
     }
 
 private:
-    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr spline_pub_;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr spline_path_pub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr s_marker_pub_, la_marker_pub_;
-    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr spline_t_pub_;
+
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
     nav_msgs::msg::Path path_msg;
     visualization_msgs::msg::Marker s_marker_msg, la_marker_msg;
+    std_msgs::msg::Float64MultiArray spline_params_msg;
+    std_msgs::msg::Float64 spline_t_msg;
 
     rclcpp::TimerBase::SharedPtr timer_;
 
-    CatmulRom s_[3];
+    CatmulRom s_;
     int n_{100};
     double dist{0.1};
 

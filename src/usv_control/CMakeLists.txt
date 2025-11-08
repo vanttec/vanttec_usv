@@ -86,14 +86,32 @@ target_link_libraries(pid_node usv_libs)
 # target_compile_options(mpc_node PRIVATE ${FATROP_CFLAGS_OTHER})
 # ament_target_dependencies(mpc_node ${DEPENDENCIES})
 
-# New MPC node
-add_library(asv_lib SHARED IMPORTED)
-set_target_properties(asv_lib PROPERTIES
-  IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/scripts/mpc/asv.so)
+# ================
+# ||| MPC Node |||
+# ================
 
-add_executable(mpc_node src/mpc_node.cpp)
-target_link_libraries(mpc_node asv_lib fatrop blasfeo)
+# Find ACADOS
+set(ACADOS_INSTALL_DIR "/home/max/acados")
+include_directories(
+  ${ACADOS_INSTALL_DIR}/include
+  ${ACADOS_INSTALL_DIR}/include/acados
+  ${ACADOS_INSTALL_DIR}/include/blasfeo/include
+  ${ACADOS_INSTALL_DIR}/include/hpipm/include
+)
+link_directories(${ACADOS_INSTALL_DIR}/lib)
+
+# Include generated code directory
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp)
+# Add all generated source files
+file(GLOB ACADOS_GENERATED_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/acados_*.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/*/*.c
+)
+
+add_executable(mpc_node src/mpc_node.cpp ${ACADOS_GENERATED_SOURCES})
 ament_target_dependencies(mpc_node ${DEPENDENCIES})
+target_link_libraries(mpc_node acados hpipm blasfeo m)
+
 
 add_executable(a_star_avoidance_node src/a_star_avoidance_node.cpp)
 target_include_directories(a_star_avoidance_node PUBLIC
@@ -157,10 +175,9 @@ install(DIRECTORY
 
 # Install Python executables
 install(PROGRAMS
-  # scripts/path_publisher_node.py
-  scripts/teleop_aitsmc_node.py
-  scripts/teleop_can_node.py
-  scripts/teleop_mpc_node.py
+  scripts/teleop/teleop_aitsmc_node.py
+  scripts/teleop/teleop_can_node.py
+  scripts/teleop/teleop_mpc_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -51,6 +51,6 @@ def generate_launch_description():
      
     return LaunchDescription([
         dynamic_sim_node,
-        mpc_node,
+        # mpc_node,
         aitsmc_node,
     ])
