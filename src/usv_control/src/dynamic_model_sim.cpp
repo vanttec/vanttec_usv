@@ -101,7 +101,9 @@ class DynamicModelSim : public rclcpp::Node {
 
     pose.x = x;
     pose.y = y;
-    pose.theta = normalize_angle(etheta);
+    // pose.theta = normalize_angle(etheta);
+    // TODO: UNCOMMENT
+    pose.theta = etheta;
 
     tf2::Quaternion q;
     q.setRPY(0, 0, pose.theta);

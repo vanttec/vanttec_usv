@@ -41,7 +41,8 @@ Eigen::Vector2d CatmulRom::get_s_dot(double t){
         s_.c;
 }
 
-double CatmulRom::closest_t(Eigen::Vector2d p){
+double CatmulRom::closest_t(Eigen::Vector3d p3){
+    Eigen::Vector2d p{p3.x(),p3.y()};
     // s = at^3+bt^2+ct+d
     // s_dot = 3at^2+2bt+c
 

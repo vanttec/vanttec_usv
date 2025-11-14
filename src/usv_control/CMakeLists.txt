@@ -178,6 +178,9 @@ install(PROGRAMS
   scripts/teleop/teleop_aitsmc_node.py
   scripts/teleop/teleop_can_node.py
   scripts/teleop/teleop_mpc_node.py
+
+  scripts/mpc/weights_gui.py
+
   DESTINATION lib/${PROJECT_NAME}
 )
 

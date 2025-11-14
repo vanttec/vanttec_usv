@@ -17,6 +17,17 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     # Set model
     model = export_asv_model()
     ocp.model = model
+
+    # Cost weights
+    w_along = 200.0      # Alongtrack error weight
+    w_cross = 5000.0     # Crosstrack error weight
+    w_heading = 100.0    # Heading alignment weight
+    w_input = 10.0      # Input regularization weight
+    w_slack = 100.0  # Large weight
+    w_surge = 10.0
+    w_yaw = 10.0
+
+    weight_params = np.array([w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw])
     
     nx = model.x.rows()  # No. states
     nu = model.u.rows()  # No. controls
@@ -31,12 +42,6 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.cost.cost_type = 'EXTERNAL'
     ocp.cost.cost_type_e = 'EXTERNAL'
     
-    # Cost weights
-    w_along = 500.0      # Alongtrack error weight
-    w_cross = 1000.0     # Crosstrack error weight
-    w_heading = 100.0    # Heading alignment weight
-    w_input = 0.01      # Input regularization weight
-    w_slack = 3000.0  # Large weight
     
     # Extract states and controls
     x_pos = model.x[0]
@@ -62,20 +67,27 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     heading_error = sin((psi - psi_ref) / 2)**2
     input_cost = tau_port**2 + tau_stbd**2
     slack_cost = slack_u**2
+    yaw_cost = yaw**2
+    surge_cost = surge**2
     
     stage_cost = (w_along * alongtrack_error + 
                   w_cross * crosstrack_error + 
                   w_heading * heading_error + 
                   w_input * input_cost +
-                  w_slack * slack_cost
+                  w_slack * slack_cost +
+                  w_surge * surge_cost +
+                  w_yaw * yaw_cost                  
                   )
     
     ocp.model.cost_expr_ext_cost = stage_cost
     
     # Terminal cost (same without input term)
-    terminal_cost = (w_along * alongtrack_error + 
-                     w_cross * crosstrack_error + 
-                     w_heading * heading_error)
+    terminal_cost = 100 * (w_along * alongtrack_error + 
+                    w_cross * crosstrack_error + 
+                    w_heading * heading_error +
+                    w_surge * surge_cost +
+                    w_yaw * yaw_cost
+                    )
     
     ocp.model.cost_expr_ext_cost_e = terminal_cost
     
@@ -87,7 +99,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     tau_max = 36.5
     tau_min = -30.5
     dt_max = 0.5  # Maximum progress rate along spline per time step
-    dt_min = 0.0  # Cannot go backwards
+    dt_min = 0.0
     slack_u_max = 10.0
     slack_u_min = 0.0
     
@@ -101,25 +113,46 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.model.con_h_expr = model.x[3] + model.u[3]  # surge + slack_u >= 0
     
     # State bounds
-    ocp.constraints.lbx = np.array([0.0,-0.5])
-    ocp.constraints.ubx = np.array([1.0,1.5])
-    ocp.constraints.idxbx = np.array([5,3])  # Index in state vector (t, surge)
+    ocp.constraints.lbx = np.array([0.0,-0.5,-1.5])
+    ocp.constraints.ubx = np.array([1.0,1.5,1.5])
+    ocp.constraints.idxbx = np.array([5,3,4])  # Index in state vector (t, surge)
     
     # Apply same bounds at terminal stage
-    ocp.constraints.lbx_e = np.array([0.0,-0.5])
-    ocp.constraints.ubx_e = np.array([1.0,1.5])
-    ocp.constraints.idxbx_e = np.array([5,3])
+    ocp.constraints.lbx_e = np.array([0.0,0.0,0.0])
+    ocp.constraints.ubx_e = np.array([1.0,0.0,0.0])
+    ocp.constraints.idxbx_e = np.array([5,3,4])
     
     # Set spline parameters
-    ocp.parameter_values = spline_params
+    ocp.parameter_values = np.concatenate((spline_params,weight_params))
     
     # --- SOLVER OPTIONS ---
     ocp.solver_options.qp_solver = 'PARTIAL_CONDENSING_HPIPM'
     ocp.solver_options.hessian_approx = 'GAUSS_NEWTON'
     ocp.solver_options.integrator_type = 'ERK'
-    ocp.solver_options.qp_solver_iter_max = 50
-    ocp.solver_options.nlp_solver_max_iter = 20
+    ocp.solver_options.qp_solver_iter_max = 200
+    ocp.solver_options.nlp_solver_max_iter = 50
     ocp.solver_options.qp_solver_cond_N = N_horizon
+
+    # Claude SUGGESTION
+    # ============================================
+    # KEY: STRONG REGULARIZATION
+    # ============================================
+    ocp.solver_options.regularize_method = 'PROJECT_REDUC_HESS'  # Better than CONVEXIFY
+    ocp.solver_options.levenberg_marquardt = 1e-2  # Strong regularization
+    
+    # Relax QP tolerances
+    ocp.solver_options.qp_solver_tol_stat = 1e-3
+    ocp.solver_options.qp_solver_tol_eq = 1e-3
+    ocp.solver_options.qp_solver_tol_ineq = 1e-3
+    ocp.solver_options.qp_solver_tol_comp = 1e-3
+    
+    # ============================================
+    # CRITICAL: Enable globalization for robustness
+    # ============================================
+    ocp.solver_options.globalization = 'MERIT_BACKTRACKING'
+    ocp.solver_options.alpha_min = 0.01
+    ocp.solver_options.alpha_reduction = 0.7
+    # Claude SUGGESTION FINISH
     
     # Configure algorithm type
     ocp.solver_options.nlp_solver_type = 'SQP_RTI'
@@ -237,9 +270,9 @@ def plot_results(simX, simU, spline_params, dt_sim, algorithm='RTI'):
     plt.show()
 
 
-def main(algorithm='RTI'):
+def main(algorithm='RTI', simulate=True):
     # --- Simulation setup ---
-    Tf = 2.5        # MPC prediction horizon [s]
+    Tf = 2.50        # MPC prediction horizon [s]
     N_horizon = 50  # Number of shooting nodes
     dt = Tf / N_horizon
     
@@ -270,88 +303,88 @@ def main(algorithm='RTI'):
     # --- Setup solver and integrator ---
     print("Setting up OCP solver...")
     ocp_solver = setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm)
-    
-    print("Setting up integrator...")
-    integrator = setup_integrator(dt, spline_params)
-    
-    # --- Simulation arrays ---
-    nx = 6
-    nu = 4
-    simX = np.zeros((Nsim + 1, nx))
-    simU = np.zeros((Nsim, nu))
-    simX[0, :] = x0
-    
-    # Timing arrays - different structure for RTI vs SQP
-    t_preparation = np.zeros(Nsim)
-    t_feedback = np.zeros(Nsim)
-    
-    print(f"\nRunning closed-loop simulation for {T_sim}s with {algorithm}...")
-    print(f"Number of steps: {Nsim}")
-    
-    # --- Closed-loop simulation ---
-    for i in range(Nsim):
-        # Update spline parameters for all stages
-        for j in range(N_horizon + 1):
-            ocp_solver.set(j, "p", spline_params)
-        
-        # ===== RTI TWO-PHASE APPROACH =====
-        
-        # PREPARATION PHASE
-        ocp_solver.options_set('rti_phase', 1)
-        status = ocp_solver.solve()
-        t_preparation[i] = ocp_solver.get_stats('time_tot')
-        
-        if status not in [0, 2, 5]:
-            print(f"Warning: Preparation phase returned status {status} at step {i}")
-        
-        # Set initial state constraint
-        ocp_solver.set(0, "lbx", simX[i, :])
-        ocp_solver.set(0, "ubx", simX[i, :])
-        
-        # FEEDBACK PHASE
-        ocp_solver.options_set('rti_phase', 2)
-        status = ocp_solver.solve()
-        t_feedback[i] = ocp_solver.get_stats('time_tot')
-        
-        if status not in [0, 2, 5]:
-            print(f"Warning: Feedback phase returned status {status} at step {i}")
-        
-        # Get control input
-        simU[i, :] = ocp_solver.get(0, "u")
-        
-        # Simulate system
-        simX[i + 1, :] = integrator.simulate(x=simX[i, :], u=simU[i, :], p=spline_params)
-        
-        # Print progress
-        if (i + 1) % 50 == 0 or i == 0:
-            print(f"Step {i+1}/{Nsim}: t={simX[i,5]:.3f}, "
-                    f"pos=({simX[i,0]:.2f}, {simX[i,1]:.2f}), "
-                    f"prep={t_preparation[i]*1000:.2f}ms, feedback={t_feedback[i]*1000:.2f}ms")
-    
-    # --- Results ---
-    print(f"\n=== Simulation Complete ({algorithm}) ===")
-    
-    t_preparation *= 1000  # Convert to ms
-    t_feedback *= 1000
-    print(f"Preparation phase [ms]: min={np.min(t_preparation):.3f}, "
-            f"median={np.median(t_preparation):.3f}, max={np.max(t_preparation):.3f}")
-    print(f"Feedback phase [ms]: min={np.min(t_feedback):.3f}, "
-            f"median={np.median(t_feedback):.3f}, max={np.max(t_feedback):.3f}")
-    print(f"Total computation [ms]: min={np.min(t_preparation+t_feedback):.3f}, "
-            f"median={np.median(t_preparation+t_feedback):.3f}, max={np.max(t_preparation+t_feedback):.3f}")
 
-    print(f"Final t parameter: {simX[-1, 5]:.3f}")
-    print(f"Final position: ({simX[-1, 0]:.2f}, {simX[-1, 1]:.2f})")
-    
-    # Calculate final tracking errors
-    final_spline_point = evaluate_spline(simX[-1, 5], spline_params)
-    final_crosstrack = np.linalg.norm(simX[-1, :2] - final_spline_point)
-    print(f"Final crosstrack error: {final_crosstrack:.3f} m")
-    
-    # Plot results
-    print("\nGenerating plots...")
-    plot_results(simX, simU, spline_params, dt, algorithm)
+    if simulate:
+        print("Setting up integrator...")
+        integrator = setup_integrator(dt, spline_params)
+        
+        # --- Simulation arrays ---
+        nx = 6
+        nu = 4
+        simX = np.zeros((Nsim + 1, nx))
+        simU = np.zeros((Nsim, nu))
+        simX[0, :] = x0
+        
+        # Timing arrays - different structure for RTI vs SQP
+        t_preparation = np.zeros(Nsim)
+        t_feedback = np.zeros(Nsim)
+        
+        print(f"\nRunning closed-loop simulation for {T_sim}s with {algorithm}...")
+        print(f"Number of steps: {Nsim}")
+        
+        # --- Closed-loop simulation ---
+        for i in range(Nsim):
+            # Update spline parameters for all stages
+            for j in range(N_horizon + 1):
+                ocp_solver.set(j, "p", spline_params)
+            
+            # ===== RTI TWO-PHASE APPROACH =====
+            
+            # PREPARATION PHASE
+            ocp_solver.options_set('rti_phase', 1)
+            status = ocp_solver.solve()
+            t_preparation[i] = ocp_solver.get_stats('time_tot')
+            
+            if status not in [0, 2, 5]:
+                print(f"Warning: Preparation phase returned status {status} at step {i}")
+            
+            # Set initial state constraint
+            ocp_solver.set(0, "lbx", simX[i, :])
+            ocp_solver.set(0, "ubx", simX[i, :])
+            
+            # FEEDBACK PHASE
+            ocp_solver.options_set('rti_phase', 2)
+            status = ocp_solver.solve()
+            t_feedback[i] = ocp_solver.get_stats('time_tot')
+            
+            if status not in [0, 2, 5]:
+                print(f"Warning: Feedback phase returned status {status} at step {i}")
+            
+            # Get control input
+            simU[i, :] = ocp_solver.get(0, "u")
+            
+            # Simulate system
+            simX[i + 1, :] = integrator.simulate(x=simX[i, :], u=simU[i, :], p=spline_params)
+            
+            # Print progress
+            if (i + 1) % 50 == 0 or i == 0:
+                print(f"Step {i+1}/{Nsim}: t={simX[i,5]:.3f}, "
+                        f"pos=({simX[i,0]:.2f}, {simX[i,1]:.2f}), "
+                        f"prep={t_preparation[i]*1000:.2f}ms, feedback={t_feedback[i]*1000:.2f}ms")
+        
+        # --- Results ---
+        print(f"\n=== Simulation Complete ({algorithm}) ===")
+        
+        t_preparation *= 1000  # Convert to ms
+        t_feedback *= 1000
+        print(f"Preparation phase [ms]: min={np.min(t_preparation):.3f}, "
+                f"median={np.median(t_preparation):.3f}, max={np.max(t_preparation):.3f}")
+        print(f"Feedback phase [ms]: min={np.min(t_feedback):.3f}, "
+                f"median={np.median(t_feedback):.3f}, max={np.max(t_feedback):.3f}")
+        print(f"Total computation [ms]: min={np.min(t_preparation+t_feedback):.3f}, "
+                f"median={np.median(t_preparation+t_feedback):.3f}, max={np.max(t_preparation+t_feedback):.3f}")
 
+        print(f"Final t parameter: {simX[-1, 5]:.3f}")
+        print(f"Final position: ({simX[-1, 0]:.2f}, {simX[-1, 1]:.2f})")
+        
+        # Calculate final tracking errors
+        final_spline_point = evaluate_spline(simX[-1, 5], spline_params)
+        final_crosstrack = np.linalg.norm(simX[-1, :2] - final_spline_point)
+        print(f"Final crosstrack error: {final_crosstrack:.3f} m")
+        
+        # Plot results
+        print("\nGenerating plots...")
+        plot_results(simX, simU, spline_params, dt, algorithm)
 
 if __name__ == '__main__':
-    main(algorithm='RTI')
+    main(algorithm='RTI', simulate=False)

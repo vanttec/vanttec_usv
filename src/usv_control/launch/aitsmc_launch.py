@@ -9,19 +9,6 @@ from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    dynamic_sim_node = Node(
-        package="usv_control",
-        executable="dynamic_model_node",
-        parameters=[
-            {"boatname": "usv"},
-        ],
-    )
-
-    mpc_node = Node(
-        package="usv_control",
-        executable="mpc_node",
-    )
-
     aitsmc_node = Node(
         package="usv_control",
         executable="aitsmc_new_node",
@@ -50,7 +37,5 @@ def generate_launch_description():
     )
      
     return LaunchDescription([
-        dynamic_sim_node,
-        mpc_node,
-        # aitsmc_node,
+        aitsmc_node,
     ])

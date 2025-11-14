@@ -8,6 +8,7 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
+#include <memory>
 
 // ACADOS includes
 #include "acados/utils/print.h"
@@ -31,11 +32,13 @@
 #define NX ASV_DYNAMICS_NX
 #define NU ASV_DYNAMICS_NU
 #define NP ASV_DYNAMICS_NP
-#define NBX0 ASV_DYNAMICS_NBX0
 #define N_HORIZON ASV_DYNAMICS_N
 
 // Simulation parameters
-#define T_SIM 10.0          // Total simulation time [s]
+#define N_SP 8    // Spline params (4 x NDIMS)
+#define N_WP 7    // Weight params
+
+
 #define TF 2.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
 
@@ -47,6 +50,12 @@ public:
     MPCNode() : Node("mpc_node")
     {
         using namespace std::placeholders;
+
+        this->declare_parameter("mpc_weights", mpc_weights);
+        mpc_weights = this->get_parameter("mpc_weights").as_double_array();
+
+        this->declare_parameter("mpc_enabled", mpc_enabled);
+        mpc_enabled = this->get_parameter("mpc_enabled").as_bool();
 
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/usv/state/odom", 1,
@@ -60,6 +69,13 @@ public:
                                    1.0 - 2.0 * (q.y * q.y + q.z * q.z));
                 x0[3] = msg->twist.twist.linear.x;
                 x0[4] = msg->twist.twist.angular.z;
+
+                // Handle odom's angle wrapping discontinuity
+                // if(last_theta - x0[2] > M_PI)
+                //     x0[2] -= 2*M_PI;
+                // else if(last_theta - x0[2] < -M_PI)
+                //     x0[2] += 2*M_PI;
+                // last_theta = x0[2];
             });
 
         spline_t_sub_ = this->create_subscription<std_msgs::msg::Float64>(
@@ -73,16 +89,32 @@ public:
             "/mpc/spline_params", 10,
             [this](const std_msgs::msg::Float64MultiArray &msg)
             {
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < N_SP; i++)
                 {
-                    spline_params[i] = msg.data[i];
+                    ocp_params[i] = msg.data[i];
                 }
                 // Update spline parameteres for all stages
                 for (int i = 0; i <= N_HORIZON; i++)
                 {
-                    asv_dynamics_acados_update_params(ocp_capsule, i, spline_params, NP);
+                    asv_dynamics_acados_update_params(ocp_capsule, i, ocp_params, NP);
                 }
             });
+        
+        weights_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        auto weights_param_cb = [this](const rclcpp::Parameter & p) {
+            mpc_weights = p.as_double_array();
+            for(int i = 0 ; i < N_WP ; i++){
+                ocp_params[N_SP+i] = mpc_weights[i];
+            }
+        };
+        weights_param_handle_ = weights_param_sub_->add_parameter_callback("mpc_weights", weights_param_cb);
+
+        enabled_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        auto enabled_param_cb = [this](const rclcpp::Parameter & p) {
+            mpc_enabled = p.as_bool();
+        };
+        enabled_param_handle_ = enabled_param_sub_->add_parameter_callback("mpc_enabled", enabled_param_cb);
+
 
         sol_time_pub_ =
             this->create_publisher<std_msgs::msg::Float64>("/mpc/sol_time", 10);
@@ -95,6 +127,11 @@ public:
 
         vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
             "/guidance/desired_velocity", 10);
+
+        right_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/usv/right_thruster", 10);
+        left_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/usv/left_thruster", 10);
 
         timer_ =
             this->create_wall_timer(50ms, std::bind(&MPCNode::update, this));
@@ -126,9 +163,12 @@ public:
         memcpy(simX, x0, NX * sizeof(double));
 
         // Set spline parameteres for all stages
-        for (int i = 0; i <= N_HORIZON; i++)
-        {
-            asv_dynamics_acados_update_params(ocp_capsule, i, spline_params, NP);
+        // for (int i = 0; i <= N_HORIZON; i++)
+        // {
+        //     asv_dynamics_acados_update_params(ocp_capsule, i, spline_params, NP);
+        // }
+        for(int i = 0 ; i < N_WP ; i++){
+            ocp_params[N_SP+i] = mpc_weights[i];
         }
     }
 
@@ -143,19 +183,30 @@ private:
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr sol_path_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr
         sol_time_pub_,
-        vel_setpoint_pub_, heading_setpoint_pub_;
+        vel_setpoint_pub_, heading_setpoint_pub_,
+        left_thruster_pub_, right_thruster_pub_;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_;
 
-    std_msgs::msg::Float64 sol_time_msg, vel_setpoint_msg, heading_setpoint_msg;
+    std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_,enabled_param_sub_;
+    std::shared_ptr<rclcpp::ParameterCallbackHandle> weights_param_handle_,enabled_param_handle_;
+    
+    std_msgs::msg::Float64 sol_time_msg, 
+    vel_setpoint_msg, heading_setpoint_msg, 
+    left_thruster_msg, right_thruster_msg;
     nav_msgs::msg::Path sol_path_msg;
 
+    // ROS2 parms global variables
+    // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw
+    std::vector<double> mpc_weights{200.0, 5000.0, 100.0, 10.0, 100.0, 10.0, 10.0};
+    bool mpc_enabled{true};
+    
     rclcpp::TimerBase::SharedPtr timer_;
 
     int status{0};
-    double spline_params[NP];
+    double ocp_params[NP];
     double x0[NX];
 
     asv_dynamics_solver_capsule *ocp_capsule;
@@ -169,6 +220,8 @@ private:
     double simU[NU];
 
     double xtraj[NX * (N_HORIZON + 1)];
+
+    double last_theta{0.0};
 
     void update()
     {
@@ -216,34 +269,38 @@ private:
             tmp_pose.pose.position.y = xtraj[i * NX + 1];
             sol_path_msg.poses[i] = tmp_pose;
         }
-        vel_setpoint_msg.data = xtraj[10 * NX + 3];
-        heading_setpoint_msg.data = xtraj[10 * NX + 2];
+        vel_setpoint_msg.data = xtraj[2 * NX + 3];
+        heading_setpoint_msg.data = xtraj[2 * NX + 2];
+
+        // RCLCPP_INFO(this->get_logger(), "Tp, Ts: %f, %f", simU[0], simU[1]);
+        left_thruster_msg.data = simU[0];
+        right_thruster_msg.data = simU[1];
 
         int sqp_iter;
         ocp_nlp_get(nlp_solver, "sqp_iter", &sqp_iter);
-        RCLCPP_INFO(this->get_logger(), "SQP iters: %d", sqp_iter);
+        // FOR DEBUGGING
+        // RCLCPP_INFO(this->get_logger(), "SQP iters: %d", sqp_iter);
 
         sol_time_pub_->publish(sol_time_msg);
         sol_path_pub_->publish(sol_path_msg);
+        if(!mpc_enabled){
+            vel_setpoint_msg.data = 0.0;
+            heading_setpoint_msg.data = 0.0;
+            left_thruster_msg.data = 0.0;
+            right_thruster_msg.data = 0.0;
+        }
         vel_setpoint_pub_->publish(vel_setpoint_msg);
         heading_setpoint_pub_->publish(heading_setpoint_msg);
+        left_thruster_pub_->publish(left_thruster_msg);
+        right_thruster_pub_->publish(right_thruster_msg);
     }
 
-    double point_distance(double x1, double y1, double x2, double y2)
+    double normalize_angle(double x)
     {
-        double dx = x2 - x1;
-        double dy = y2 - y1;
-        return sqrt(dx * dx + dy * dy);
-    }
-
-    // Evaluate spline at parameter t
-    void evaluate_spline(double t, double spline_params[8], double result[2])
-    {
-        double t2 = t * t;
-        double t3 = t2 * t;
-
-        result[0] = spline_params[0] * t3 + spline_params[1] * t2 + spline_params[2] * t + spline_params[3];
-        result[1] = spline_params[4] * t3 + spline_params[5] * t2 + spline_params[6] * t + spline_params[7];
+        x = fmod(x + M_PI, M_PI * 2);
+        if (x < 0)
+            x += M_PI * 2;
+        return x - M_PI;
     }
 };
 

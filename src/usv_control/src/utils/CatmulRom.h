@@ -21,7 +21,7 @@ public:
     Eigen::Vector2d get_s(double t);
     Eigen::Vector2d get_s_dot(double t);
     Eigen::Vector2d get_S();
-    double closest_t(Eigen::Vector2d p);
+    double closest_t(Eigen::Vector3d p);
     static double distance(Eigen::Vector2d a, Eigen::Vector2d b);
 
     Segment s_;
