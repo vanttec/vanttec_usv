@@ -26,8 +26,9 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     w_slack = 100.0  # Large weight
     w_surge = 10.0
     w_yaw = 10.0
+    w_terminal = 100.0  # Terminal cost multiplier weight
 
-    weight_params = np.array([w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw])
+    weight_params = np.array([w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal])
     
     nx = model.x.rows()  # No. states
     nu = model.u.rows()  # No. controls
@@ -82,7 +83,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.model.cost_expr_ext_cost = stage_cost
     
     # Terminal cost (same without input term)
-    terminal_cost = 100 * (w_along * alongtrack_error + 
+    terminal_cost = w_terminal * (w_along * alongtrack_error + 
                     w_cross * crosstrack_error + 
                     w_heading * heading_error +
                     w_surge * surge_cost +

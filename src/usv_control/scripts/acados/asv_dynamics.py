@@ -63,9 +63,10 @@ def export_asv_model() -> AcadosModel:
     w_slack = SX.sym('w_slack')
     w_surge = SX.sym('w_surge')
     w_yaw = SX.sym('w_yaw')
+    w_terminal = SX.sym('w_terminal')
 
     p = vertcat(a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y, 
-                w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw)
+                w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal)
 
     # state-dependent parameters for ASV
     Xu = if_else(surge > 1.2, 64.55, -25.0)

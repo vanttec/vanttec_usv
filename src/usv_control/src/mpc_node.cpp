@@ -36,7 +36,7 @@
 
 // Simulation parameters
 #define N_SP 8 // Spline params (4 x NDIMS)
-#define N_WP 7 // Weight params
+#define N_WP 8 // Weight params
 
 #define TF 2.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
@@ -232,8 +232,8 @@ private:
     nav_msgs::msg::Path sol_path_msg;
 
     // ROS2 parms global variables
-    // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw
-    std::vector<double> mpc_weights{200.0, 5000.0, 100.0, 10.0, 100.0, 10.0, 10.0};
+    // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
+    std::vector<double> mpc_weights{200.0, 5000.0, 100.0, 10.0, 100.0, 10.0, 10.0, 100.0};
     double mpc_tf{2.5};
     bool mpc_enabled{true};
 

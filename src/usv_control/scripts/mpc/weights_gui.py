@@ -25,6 +25,7 @@ class MPCWeightsTuner(QMainWindow):
             ("w_slack", 100.0, 0.0, 10000.0, 1.0),
             ("w_surge", 10.0, 0.0, 10000.0, 1.0),
             ("w_yaw", 10.0, 0.0, 10000.0, 1.0),
+            ("terminal_w", 10.0, 0.0, 10000.0, 1.0),
         ]
         
         self.weights = [config[1] for config in self.weights_config]
@@ -153,7 +154,7 @@ class MPCWeightsTuner(QMainWindow):
         
         # Set window size
         self.setMinimumSize(300, 600)
-        self.resize(300, 800)
+        self.resize(300, 1000)
         
     def create_weight_slider(self, name, default, min_val, max_val, step, index):
         container = QWidget()
