@@ -35,9 +35,8 @@
 #define N_HORIZON ASV_DYNAMICS_N
 
 // Simulation parameters
-#define N_SP 8    // Spline params (4 x NDIMS)
-#define N_WP 7    // Weight params
-
+#define N_SP 8 // Spline params (4 x NDIMS)
+#define N_WP 7 // Weight params
 
 #define TF 2.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
@@ -51,12 +50,17 @@ public:
     {
         using namespace std::placeholders;
 
+        // === PARAMETERS ===
+        this->declare_parameter("mpc_tf", mpc_tf);
+        mpc_tf = this->get_parameter("mpc_tf").as_double();
+
         this->declare_parameter("mpc_weights", mpc_weights);
         mpc_weights = this->get_parameter("mpc_weights").as_double_array();
 
         this->declare_parameter("mpc_enabled", mpc_enabled);
         mpc_enabled = this->get_parameter("mpc_enabled").as_bool();
 
+        // === SUBSCRIBERS ===
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/usv/state/odom", 1,
             [this](const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -99,23 +103,51 @@ public:
                     asv_dynamics_acados_update_params(ocp_capsule, i, ocp_params, NP);
                 }
             });
-        
+
+        // === PARAMETER EVENT HANDLERS ===
+        // For weight values
         weights_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
-        auto weights_param_cb = [this](const rclcpp::Parameter & p) {
+        auto weights_param_cb = [this](const rclcpp::Parameter &p)
+        {
             mpc_weights = p.as_double_array();
-            for(int i = 0 ; i < N_WP ; i++){
-                ocp_params[N_SP+i] = mpc_weights[i];
+            for (int i = 0; i < N_WP; i++)
+            {
+                ocp_params[N_SP + i] = mpc_weights[i];
             }
         };
         weights_param_handle_ = weights_param_sub_->add_parameter_callback("mpc_weights", weights_param_cb);
 
+        // For MPC toggle
         enabled_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
-        auto enabled_param_cb = [this](const rclcpp::Parameter & p) {
+        auto enabled_param_cb = [this](const rclcpp::Parameter &p)
+        {
             mpc_enabled = p.as_bool();
         };
         enabled_param_handle_ = enabled_param_sub_->add_parameter_callback("mpc_enabled", enabled_param_cb);
 
+        // For TF update
+        tf_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        auto tf_param_cb = [this](const rclcpp::Parameter &p)
+        {
+            mpc_tf = p.as_double();
+            double mpc_dt = mpc_tf / N_HORIZON;
 
+            double new_time_steps[N_HORIZON];
+            for (int i = 0; i < N_HORIZON; i++)
+            {
+                new_time_steps[i] = mpc_dt;
+            }
+
+            int status = asv_dynamics_acados_update_time_steps(ocp_capsule, N_HORIZON, new_time_steps);
+
+            if (status != 0)
+                RCLCPP_ERROR(this->get_logger(), "Failed to update time steps!");
+            else
+                RCLCPP_INFO(this->get_logger(),"Successfully updated MPC horizon: Tf=%.2fs, dt=%.4fs", mpc_tf, mpc_dt);
+        };
+        tf_param_handle_ = tf_param_sub_->add_parameter_callback("mpc_tf", tf_param_cb);
+
+        // === PUBLISHERS ===
         sol_time_pub_ =
             this->create_publisher<std_msgs::msg::Float64>("/mpc/sol_time", 10);
 
@@ -167,8 +199,9 @@ public:
         // {
         //     asv_dynamics_acados_update_params(ocp_capsule, i, spline_params, NP);
         // }
-        for(int i = 0 ; i < N_WP ; i++){
-            ocp_params[N_SP+i] = mpc_weights[i];
+        for (int i = 0; i < N_WP; i++)
+        {
+            ocp_params[N_SP + i] = mpc_weights[i];
         }
     }
 
@@ -190,19 +223,20 @@ private:
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_;
 
-    std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_,enabled_param_sub_;
-    std::shared_ptr<rclcpp::ParameterCallbackHandle> weights_param_handle_,enabled_param_handle_;
-    
-    std_msgs::msg::Float64 sol_time_msg, 
-    vel_setpoint_msg, heading_setpoint_msg, 
-    left_thruster_msg, right_thruster_msg;
+    std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_, enabled_param_sub_, tf_param_sub_;
+    std::shared_ptr<rclcpp::ParameterCallbackHandle> weights_param_handle_, enabled_param_handle_, tf_param_handle_;
+
+    std_msgs::msg::Float64 sol_time_msg,
+        vel_setpoint_msg, heading_setpoint_msg,
+        left_thruster_msg, right_thruster_msg;
     nav_msgs::msg::Path sol_path_msg;
 
     // ROS2 parms global variables
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw
     std::vector<double> mpc_weights{200.0, 5000.0, 100.0, 10.0, 100.0, 10.0, 10.0};
+    double mpc_tf{2.5};
     bool mpc_enabled{true};
-    
+
     rclcpp::TimerBase::SharedPtr timer_;
 
     int status{0};
@@ -283,7 +317,8 @@ private:
 
         sol_time_pub_->publish(sol_time_msg);
         sol_path_pub_->publish(sol_path_msg);
-        if(!mpc_enabled){
+        if (!mpc_enabled)
+        {
             vel_setpoint_msg.data = 0.0;
             heading_setpoint_msg.data = 0.0;
             left_thruster_msg.data = 0.0;

@@ -93,9 +93,24 @@ class MPCWeightsTuner(QMainWindow):
         title.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title)
         
-        # Create sliders for each weight
-        self.sliders = []
-        self.spinboxes = []
+        # MPC Horizon DT
+        tf_layout = QHBoxLayout()
+        tf_label = QLabel("MPC Horizon tf (s)")
+        tf_label.setFont(QFont("Arial", 13, QFont.Medium))
+        tf_layout.addWidget(tf_label)
+        tf_layout.addStretch()
+
+        self.tf_spinbox = QDoubleSpinBox()
+        self.tf_spinbox.setMinimum(0.1)
+        self.tf_spinbox.setMaximum(30.0)
+        self.tf_spinbox.setSingleStep(0.1)
+        self.tf_spinbox.setValue(2.5)
+        self.tf_spinbox.setDecimals(2)
+        self.tf_spinbox.setMinimumWidth(80)
+        self.tf_spinbox.valueChanged.connect(self.on_tf_changed)
+        tf_layout.addWidget(self.tf_spinbox)
+
+        main_layout.addLayout(tf_layout)
 
         # MPC Enable toggle
         toggle_layout = QHBoxLayout()
@@ -127,6 +142,9 @@ class MPCWeightsTuner(QMainWindow):
 
         main_layout.addLayout(toggle_layout)
         
+        # Create sliders for each weight
+        self.sliders = []
+        self.spinboxes = []
         for i, (name, default, min_val, max_val, step) in enumerate(self.weights_config):
             weight_widget = self.create_weight_slider(name, default, min_val, max_val, step, i)
             main_layout.addWidget(weight_widget)
@@ -213,6 +231,19 @@ class MPCWeightsTuner(QMainWindow):
         param.value = ParameterValue()
         param.value.type = ParameterType.PARAMETER_BOOL
         param.value.bool_value = (state == Qt.Checked)
+        
+        request = SetParameters.Request()
+        request.parameters = [param]
+        
+        future = self.node.set_params_client.call_async(request)
+        future.add_done_callback(self.param_response_callback)
+
+    def on_tf_changed(self, value):
+        param = Parameter()
+        param.name = "mpc_tf"
+        param.value = ParameterValue()
+        param.value.type = ParameterType.PARAMETER_DOUBLE
+        param.value.double_value = value
         
         request = SetParameters.Request()
         request.parameters = [param]
