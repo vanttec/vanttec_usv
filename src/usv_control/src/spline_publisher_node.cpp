@@ -31,6 +31,7 @@ public:
         la_marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/lookahead_marker", 10);
         spline_params_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/mpc/spline_params", 10);
         spline_t_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_t", 10);
+        spline_t_la_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_t_la", 10);
 
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/usv/state/odom", 1,
@@ -123,12 +124,14 @@ protected:
         la_marker_msg.pose.position.y = la_p.y();
 
         spline_t_msg.data = closest_t;
+        spline_t_la_msg.data = la_t;
 
         spline_path_pub_->publish(path_msg);
         s_marker_pub_->publish(s_marker_msg);
         la_marker_pub_->publish(la_marker_msg);
         spline_params_pub_->publish(spline_params_msg);
         spline_t_pub_->publish(spline_t_msg);
+        spline_t_la_pub_->publish(spline_t_la_msg);
     }
 
     void update_spline_params()
@@ -155,7 +158,7 @@ private:
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr spline_path_pub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr s_marker_pub_, la_marker_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_pub_;
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr spline_t_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr spline_t_pub_, spline_t_la_pub_;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_sub_;
@@ -164,7 +167,7 @@ private:
     nav_msgs::msg::Path path_msg;
     visualization_msgs::msg::Marker s_marker_msg, la_marker_msg;
     std_msgs::msg::Float64MultiArray spline_params_msg;
-    std_msgs::msg::Float64 spline_t_msg;
+    std_msgs::msg::Float64 spline_t_msg, spline_t_la_msg;
 
     rclcpp::TimerBase::SharedPtr timer_;
 

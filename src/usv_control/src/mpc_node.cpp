@@ -233,7 +233,7 @@ private:
 
     // ROS2 parms global variables
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
-    std::vector<double> mpc_weights{200.0, 5000.0, 100.0, 10.0, 100.0, 10.0, 10.0, 100.0};
+    std::vector<double> mpc_weights{100.0, 500.0, 50.0, 0.10, 1000.0, 0.10, 0.10, 50.0};
     double mpc_tf{2.5};
     bool mpc_enabled{true};
 
@@ -303,8 +303,8 @@ private:
             tmp_pose.pose.position.y = xtraj[i * NX + 1];
             sol_path_msg.poses[i] = tmp_pose;
         }
-        vel_setpoint_msg.data = xtraj[2 * NX + 3];
-        heading_setpoint_msg.data = xtraj[2 * NX + 2];
+        vel_setpoint_msg.data = xtraj[1 * NX + 3];
+        heading_setpoint_msg.data = xtraj[1 * NX + 2];
 
         // RCLCPP_INFO(this->get_logger(), "Tp, Ts: %f, %f", simU[0], simU[1]);
         left_thruster_msg.data = simU[0];

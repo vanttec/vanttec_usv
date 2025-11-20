@@ -178,6 +178,19 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /usv/pose_path
       Value: true
+    - Class: rviz_default_plugins/Marker
+      Enabled: true
+      Name: Marker
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /lookahead_marker
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
