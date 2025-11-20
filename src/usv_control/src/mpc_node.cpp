@@ -73,17 +73,10 @@ public:
                                    1.0 - 2.0 * (q.y * q.y + q.z * q.z));
                 x0[3] = msg->twist.twist.linear.x;
                 x0[4] = msg->twist.twist.angular.z;
-
-                // Handle odom's angle wrapping discontinuity
-                // if(last_theta - x0[2] > M_PI)
-                //     x0[2] -= 2*M_PI;
-                // else if(last_theta - x0[2] < -M_PI)
-                //     x0[2] += 2*M_PI;
-                // last_theta = x0[2];
             });
 
         spline_t_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-            "/mpc/spline_t", 10,
+            "/mpc/spline_t_la", 10,
             [this](const std_msgs::msg::Float64 &msg)
             {
                 x0[5] = msg.data;
@@ -233,7 +226,7 @@ private:
 
     // ROS2 parms global variables
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
-    std::vector<double> mpc_weights{100.0, 500.0, 50.0, 0.10, 1000.0, 0.10, 0.10, 50.0};
+    std::vector<double> mpc_weights{100.0, 500.0, 50.0, 0.10, 1000.0, 0.10, 0.10, 10000.0};
     double mpc_tf{2.5};
     bool mpc_enabled{true};
 

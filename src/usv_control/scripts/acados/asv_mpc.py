@@ -6,7 +6,7 @@ from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver, AcadosS
 from asv_dynamics import export_asv_model
 import numpy as np
 import scipy.linalg
-from casadi import vertcat, sin, SX
+from casadi import vertcat, sin, cos, SX
 import matplotlib.pyplot as plt
 
 # Setup the OCP
@@ -63,8 +63,18 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     psi_ref = model.psi_ref
     
     # Stage cost
+    L = 0.1
+    Ls = [-L,0.0,L]
+    x_la = x_pos + L*cos(psi)
+    y_la = y_pos + L*sin(psi)
+    x_lb = x_pos - L*cos(psi)
+    y_lb = y_pos - L*sin(psi)
+    # crosstrack_error = (x_pos - s_x)**2 + (y_pos - s_y)**2
+    crosstrack_error = 0.0
+    for l in Ls:
+        crosstrack_error += (x_pos + l*cos(psi) - s_x)**2 + (y_pos + l*sin(psi) - s_y)**2
+    crosstrack_error/=len(Ls)
     alongtrack_error = (1 - t_param)**2
-    crosstrack_error = (x_pos - s_x)**2 + (y_pos - s_y)**2
     heading_error = sin((psi - psi_ref) / 2)**2
     input_cost = tau_port**2 + tau_stbd**2
     slack_cost = slack_u**2
@@ -99,9 +109,9 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     # Control bounds
     tau_max = 36.5
     tau_min = -30.5
-    dt_max = 0.5  # Maximum progress rate along spline per time step
+    dt_max = 0.0000001  # Maximum progress rate along spline per time step
     dt_min = 0.0
-    slack_u_max = 10.0
+    slack_u_max = 0.5
     slack_u_min = 0.0
     
     ocp.constraints.lbu = np.array([tau_min, tau_min, dt_min, slack_u_min])
