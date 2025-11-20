@@ -111,34 +111,16 @@ protected:
         closest_p = s_.get_s(closest_t);
 
         double lookahead = 0.3;
-        // Fix t so that it's in terms of the actual dt used
-        // If n = 3, t can only be an element of {0,0.5,1}
-        double fit_t = int(round(closest_t * (n_ - 1))) * 1.0 / (n_ - 1);
-        // Find the index in path_msg that corresponds to the closest point
-        int closest_path_idx = int(fit_t * (n_ - 1));
-        int idx_ = closest_path_idx;
-
-        // Find furthest point along the spline (in path_msg) inside lookahead region
-        bool la_passed{false}; // if lookahead has been surpassed
-        while (idx_ < path_msg.poses.size() - 1 && !la_passed)
-        {
-            double new_dist = distance(
-                path_msg.poses[closest_path_idx].pose.position,
-                path_msg.poses[idx_].pose.position);
-            if (new_dist > lookahead)
-            {
-                la_passed = true;
-            }
-            else
-            {
-                idx_++;
-            }
-        }
+        // For length L, we want to find a t+dt such that s(t+dt) is at [dist] from s(t)
+        // To map L to dist: L is to 1, what dist is to dt -> dt = dist/L
+        double la_t = std::clamp(closest_t+lookahead/L_, 0.0, 1.0);
+        Eigen::Vector2d la_p = s_.get_s(la_t);
 
         s_marker_msg.pose.position.x = closest_p.x();
         s_marker_msg.pose.position.y = closest_p.y();
 
-        la_marker_msg.pose.position = path_msg.poses[idx_].pose.position;
+        la_marker_msg.pose.position.x = la_p.x();
+        la_marker_msg.pose.position.y = la_p.y();
 
         spline_t_msg.data = closest_t;
 
@@ -165,6 +147,8 @@ protected:
             spline_params_msg.data[4 * i + 2] = s_.s_.c[i];
             spline_params_msg.data[4 * i + 3] = s_.s_.d[i];
         }
+
+        L_ = s_.arc_length();
     }
 
 private:
@@ -186,6 +170,7 @@ private:
 
     std::vector<Eigen::Vector2d> cps;
     CatmulRom s_;
+    double L_{0.0};
     int n_{100};
     double dist{0.1};
 

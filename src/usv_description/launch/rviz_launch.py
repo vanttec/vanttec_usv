@@ -32,7 +32,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         tf2,
-        # rviz,
+        rviz,
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='false',

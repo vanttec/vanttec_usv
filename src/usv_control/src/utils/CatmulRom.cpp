@@ -98,10 +98,24 @@ double CatmulRom::closest_t(Eigen::Vector3d p3){
     return closest_t;
 }
 
-// Get spline integral evaluated from t[0,1]
-Eigen::Vector2d CatmulRom::get_S(){
-    // s = at^3+bt^2+ct+d
-    // S = (1/4)at^4+(1/3)bt^3+(1/2)ct^2+dt | [0,1]
-    // S = (1/4)a+(1/3)b+(1/2)c+d - 0
-    return s_.a/4 + s_.b/3 + s_.c/2 + s_.d;
+double CatmulRom::arc_length() {
+    // Numerical integration of ||s'(t)|| from 0 to 1
+    double length = 0.0;
+    int num_samples = 10;
+    double dt = 1.0 / num_samples;
+    
+    for (int i = 0; i < num_samples; i++) {
+        double t0 = i * dt;
+        double t1 = (i + 1) * dt;
+        double tm = (t0 + t1) / 2.0;
+        
+        // Simpson's rule
+        double f0 = get_s_dot(t0).norm();
+        double fm = get_s_dot(tm).norm();
+        double f1 = get_s_dot(t1).norm();
+        
+        length += (dt / 6.0) * (f0 + 4.0 * fm + f1);
+    }
+    
+    return length;
 }
