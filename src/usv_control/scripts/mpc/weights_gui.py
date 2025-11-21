@@ -18,14 +18,14 @@ class MPCWeightsTuner(QMainWindow):
         
         # Weight definitions: (name, default, min, max, step)
         self.weights_config = [
-            ("w_along", 100.0, 0.0, 10000.0, 1.0),
-            ("w_cross", 500.0, 0.0, 10000.0, 1.0),
-            ("w_heading", 50.0, 0.0, 10000.0, 1.0),
-            ("w_input", 0.10, 0.0, 10000.0, 1.0),
-            ("w_slack", 1000.0, 0.0, 10000.0, 1.0),
-            ("w_surge", 0.1, 0.0, 10000.0, 1.0),
-            ("w_yaw", 0.1, 0.0, 10000.0, 1.0),
-            ("terminal_w", 10000.0, 0.0, 100000.0, 1.0),
+            ("w_along", 1.0, 0.0, 10000.0, 1.0),
+            ("w_cross", 5.0, 0.0, 10000.0, 1.0),
+            ("w_heading", 0.5, 0.0, 10000.0, 0.5),
+            ("w_input", 0.01, 0.0, 10000.0, 0.01),
+            ("w_slack", 10.0, 0.0, 10000.0, 1.0),
+            ("w_surge", 0.01, 0.0, 10000.0, 0.01),
+            ("w_yaw", 0.01, 0.0, 10000.0, 0.01),
+            ("terminal_w", 5.0, 0.0, 100000.0, 1.0),
         ]
         
         self.weights = [config[1] for config in self.weights_config]

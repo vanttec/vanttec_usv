@@ -18,18 +18,25 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     model = export_asv_model()
     ocp.model = model
 
-    # Cost weights
-    w_along = 200.0      # Alongtrack error weight
-    w_cross = 5000.0     # Crosstrack error weight
-    w_heading = 100.0    # Heading alignment weight
-    w_input = 10.0      # Input regularization weight
-    w_slack = 100.0  # Large weight
-    w_surge = 10.0
-    w_yaw = 10.0
-    w_terminal = 100.0  # Terminal cost multiplier weight
+    # Default cost weights
+    w_along_ = 200.0      # Alongtrack error weight
+    w_cross_ = 5000.0     # Crosstrack error weight
+    w_heading_ = 100.0    # Heading alignment weight
+    w_input_ = 10.0      # Input regularization weight
+    w_slack_ = 100.0  # Large weight
+    w_surge_ = 10.0
+    w_yaw_ = 10.0
+    w_terminal_ = 100.0  # Terminal cost multiplier weight
 
-    weight_params = np.array([w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal])
-    
+    w_along = model.p[8] 
+    w_cross = model.p[9]
+    w_heading = model.p[10]
+    w_input = model.p[11]
+    w_slack = model.p[12]
+    w_surge = model.p[13]
+    w_yaw = model.p[14]
+    w_terminal = model.p[15]
+
     nx = model.x.rows()  # No. states
     nu = model.u.rows()  # No. controls
     np_param = model.p.rows()  # No. parameters
@@ -109,9 +116,9 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     # Control bounds
     tau_max = 36.5
     tau_min = -30.5
-    dt_max = 0.0000001  # Maximum progress rate along spline per time step
+    dt_max = 0.01
     dt_min = 0.0
-    slack_u_max = 0.5
+    slack_u_max = 1.0
     slack_u_min = 0.0
     
     ocp.constraints.lbu = np.array([tau_min, tau_min, dt_min, slack_u_min])
@@ -134,6 +141,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.constraints.idxbx_e = np.array([5,3,4])
     
     # Set spline parameters
+    weight_params = np.array([w_along_, w_cross_, w_heading_, w_input_, w_slack_, w_surge_, w_yaw_, w_terminal_])
     ocp.parameter_values = np.concatenate((spline_params,weight_params))
     
     # --- SOLVER OPTIONS ---
