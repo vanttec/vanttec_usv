@@ -54,6 +54,9 @@ public:
         this->declare_parameter("mpc_tf", mpc_tf);
         mpc_tf = this->get_parameter("mpc_tf").as_double();
 
+        this->declare_parameter("mpc_s_max_dt", mpc_s_max_dt);
+        mpc_s_max_dt = this->get_parameter("mpc_s_max_dt").as_double();
+
         this->declare_parameter("mpc_weights", mpc_weights);
         mpc_weights = this->get_parameter("mpc_weights").as_double_array();
 
@@ -86,14 +89,18 @@ public:
             "/mpc/spline_params", 10,
             [this](const std_msgs::msg::Float64MultiArray &msg)
             {
+                bool same_spline{true};
                 for (int i = 0; i < N_SP; i++)
                 {
-                    ocp_params[i] = msg.data[i];
+                    if (ocp_params[i] != msg.data[i])
+                    {
+                        ocp_params[i] = msg.data[i];
+                        same_spline = false;
+                    }
                 }
-                // Update spline parameteres for all stages
-                for (int i = 0; i <= N_HORIZON; i++)
+                if (!same_spline)
                 {
-                    asv_dynamics_acados_update_params(ocp_capsule, i, ocp_params, NP);
+                    update_all_params();
                 }
             });
 
@@ -107,6 +114,7 @@ public:
             {
                 ocp_params[N_SP + i] = mpc_weights[i];
             }
+            update_all_params();
         };
         weights_param_handle_ = weights_param_sub_->add_parameter_callback("mpc_weights", weights_param_cb);
 
@@ -136,9 +144,28 @@ public:
             if (status != 0)
                 RCLCPP_ERROR(this->get_logger(), "Failed to update time steps!");
             else
-                RCLCPP_INFO(this->get_logger(),"Successfully updated MPC horizon: Tf=%.2fs, dt=%.4fs", mpc_tf, mpc_dt);
+                RCLCPP_INFO(this->get_logger(), "Successfully updated MPC horizon: Tf=%.2fs, dt=%.4fs", mpc_tf, mpc_dt);
         };
         tf_param_handle_ = tf_param_sub_->add_parameter_callback("mpc_tf", tf_param_cb);
+
+        // For Spline's max_dt control bound
+        s_max_dt_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        auto s_max_dt_param_cb = [this](const rclcpp::Parameter &p)
+        {
+            double dt_max = p.as_double();
+
+            // Update bound for all stages
+            double ubu[NU] = {36.5, 36.5, dt_max, 1.0}; // tau_max, tau_max, dt_max, slack_max
+
+            for (int i = 0; i < N_HORIZON; i++)
+            {
+                ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out,
+                                              i, "ubu", ubu);
+            }
+
+            RCLCPP_INFO(this->get_logger(), "Updated dt_max bound to %.4f", dt_max);
+        };
+        s_max_dt_param_handle_ = s_max_dt_param_sub_->add_parameter_callback("mpc_s_max_dt", s_max_dt_param_cb);
 
         // === PUBLISHERS ===
         sol_time_pub_ =
@@ -196,6 +223,7 @@ public:
         {
             ocp_params[N_SP + i] = mpc_weights[i];
         }
+        update_all_params();
     }
 
     ~MPCNode()
@@ -216,8 +244,10 @@ private:
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_;
 
-    std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_, enabled_param_sub_, tf_param_sub_;
-    std::shared_ptr<rclcpp::ParameterCallbackHandle> weights_param_handle_, enabled_param_handle_, tf_param_handle_;
+    std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_, enabled_param_sub_,
+        tf_param_sub_, s_max_dt_param_sub_;
+    std::shared_ptr<rclcpp::ParameterCallbackHandle> weights_param_handle_, enabled_param_handle_,
+        tf_param_handle_, s_max_dt_param_handle_;
 
     std_msgs::msg::Float64 sol_time_msg,
         vel_setpoint_msg, heading_setpoint_msg,
@@ -226,8 +256,9 @@ private:
 
     // ROS2 parms global variables
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
-    std::vector<double> mpc_weights{100.0, 500.0, 50.0, 0.10, 1000.0, 0.10, 0.10, 10000.0};
-    double mpc_tf{2.5};
+    std::vector<double> mpc_weights{1.0, 5.0, 0.75, 0.01, 10.0, 0.01, 0.01, 5.0};
+    // std::vector<double> mpc_weights{100.0, 500.0, 50.0, 0.10, 1000.0, 0.10, 0.10, 10000.0};
+    double mpc_tf{2.5}, mpc_s_max_dt{0.1};
     bool mpc_enabled{true};
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -249,6 +280,14 @@ private:
     double xtraj[NX * (N_HORIZON + 1)];
 
     double last_theta{0.0};
+
+    void update_all_params()
+    {
+        for (int i = 0; i <= N_HORIZON; i++)
+        {
+            asv_dynamics_acados_update_params(ocp_capsule, i, ocp_params, NP);
+        }
+    }
 
     void update()
     {
@@ -276,9 +315,23 @@ private:
         ocp_nlp_solver_opts_set(nlp_config, ocp_capsule->nlp_opts, "rti_phase", &rti_phase);
         status = asv_dynamics_acados_solve(ocp_capsule);
 
-        if (status != 0 && status != 2 && status != 5)
+        if (status == 4)
         {
-            RCLCPP_ERROR(this->get_logger(), "Warning: Feedback phase returned status %d\n", status);
+            double residuals[4];
+            ocp_nlp_get(nlp_solver, "res_stat", &residuals[0]);
+            ocp_nlp_get(nlp_solver, "res_eq", &residuals[1]);
+            ocp_nlp_get(nlp_solver, "res_ineq", &residuals[2]);
+            ocp_nlp_get(nlp_solver, "res_comp", &residuals[3]);
+
+            double max_res = std::max({std::abs(residuals[0]), std::abs(residuals[1]),
+                                       std::abs(residuals[2]), std::abs(residuals[3])});
+
+            if (max_res > 1e-6)
+            {
+                RCLCPP_WARN(this->get_logger(),
+                            "QP failed: res=[%.2e, %.2e, %.2e, %.2e]",
+                            residuals[0], residuals[1], residuals[2], residuals[3]);
+            }
         }
 
         // Get optimal control
