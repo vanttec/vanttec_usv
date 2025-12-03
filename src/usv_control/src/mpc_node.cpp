@@ -41,6 +41,14 @@
 #define TF 2.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
 
+struct WeightParams{
+    double 
+        min_t,
+        max_t,
+        min_w,
+        max_w;
+};
+
 using namespace std::chrono_literals;
 
 class MPCNode : public rclcpp::Node
@@ -79,10 +87,16 @@ public:
             });
 
         spline_t_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+            // "/mpc/spline_t", 10,
             "/mpc/spline_t_la", 10,
             [this](const std_msgs::msg::Float64 &msg)
             {
+                // Change state's t value
                 x0[5] = msg.data;
+
+                // Change params' terminal_weight
+                ocp_params[15] = var_w_at(terminal_weight_p,msg.data);
+                RCLCPP_INFO(this->get_logger(), "Terminal_weight: {%f}", ocp_params[15]);
             });
 
         spline_params_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
@@ -149,23 +163,23 @@ public:
         tf_param_handle_ = tf_param_sub_->add_parameter_callback("mpc_tf", tf_param_cb);
 
         // For Spline's max_dt control bound
-        s_max_dt_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
-        auto s_max_dt_param_cb = [this](const rclcpp::Parameter &p)
-        {
-            double dt_max = p.as_double();
+        // s_max_dt_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        // auto s_max_dt_param_cb = [this](const rclcpp::Parameter &p)
+        // {
+        //     double dt_max = p.as_double();
 
-            // Update bound for all stages
-            double ubu[NU] = {36.5, 36.5, dt_max, 1.0}; // tau_max, tau_max, dt_max, slack_max
+        //     // Update bound for all stages
+        //     double ubu[NU] = {36.5, 36.5, dt_max, 1.0}; // tau_max, tau_max, dt_max, slack_max
 
-            for (int i = 0; i < N_HORIZON; i++)
-            {
-                ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out,
-                                              i, "ubu", ubu);
-            }
+        //     for (int i = 0; i < N_HORIZON; i++)
+        //     {
+        //         ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out,
+        //                                       i, "ubu", ubu);
+        //     }
 
-            RCLCPP_INFO(this->get_logger(), "Updated dt_max bound to %.4f", dt_max);
-        };
-        s_max_dt_param_handle_ = s_max_dt_param_sub_->add_parameter_callback("mpc_s_max_dt", s_max_dt_param_cb);
+        //     RCLCPP_INFO(this->get_logger(), "Updated dt_max bound to %.4f", dt_max);
+        // };
+        // s_max_dt_param_handle_ = s_max_dt_param_sub_->add_parameter_callback("mpc_s_max_dt", s_max_dt_param_cb);
 
         // === PUBLISHERS ===
         sol_time_pub_ =
@@ -254,10 +268,9 @@ private:
         left_thruster_msg, right_thruster_msg;
     nav_msgs::msg::Path sol_path_msg;
 
-    // ROS2 parms global variables
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
-    std::vector<double> mpc_weights{1.0, 5.0, 0.75, 0.01, 10.0, 0.01, 0.01, 5.0};
-    // std::vector<double> mpc_weights{100.0, 500.0, 50.0, 0.10, 1000.0, 0.10, 0.10, 10000.0};
+    std::vector<double> mpc_weights{15.0, 50.0, 2.0, 0.2, 1000.0, 1.0, 0.5, 100.0};
+
     double mpc_tf{2.5}, mpc_s_max_dt{0.1};
     bool mpc_enabled{true};
 
@@ -280,6 +293,9 @@ private:
     double xtraj[NX * (N_HORIZON + 1)];
 
     double last_theta{0.0};
+
+    // Linear interpolation. At t=0.3,w=100.0, at t=0.7,w=1000.0.
+    WeightParams terminal_weight_p{0.3,0.7,100.0,1000.0};
 
     void update_all_params()
     {
@@ -382,6 +398,13 @@ private:
         if (x < 0)
             x += M_PI * 2;
         return x - M_PI;
+    }
+
+    // Get a linear variable weight depending on t and its restrictions
+    double var_w_at(WeightParams p, double t){
+        double w_m = (p.max_w-p.min_w) / (p.max_t-p.min_t);
+        double w_b = p.min_w - w_m*p.min_t;
+        return std::clamp(w_m*t+w_b,p.min_w,p.max_w);
     }
 };
 
