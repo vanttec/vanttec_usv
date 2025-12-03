@@ -2,6 +2,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <cmath>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
@@ -72,11 +73,20 @@ private:
     // Send the transformation
     tf_broadcaster_->sendTransform(t);
 
+    // Erase previous path when dynamics reboots
+    if(std::sqrt(
+        pose_stamped_tmp_.pose.position.x-msg->x*
+        pose_stamped_tmp_.pose.position.x-msg->x + 
+        pose_stamped_tmp_.pose.position.y-msg->y*
+        pose_stamped_tmp_.pose.position.y-msg->y
+      ) > 0.5){
+        pose_path.poses.clear();
+      }
     pose_stamped_tmp_.pose.position.x = msg->x;
     pose_stamped_tmp_.pose.position.y = msg->y;
     pose_path.poses.push_back(pose_stamped_tmp_);
     
-    // Erase when path is too long
+    // Erase some poses when path is too long
     if(pose_path.poses.size() > 5000){
       pose_path.poses.erase(pose_path.poses.begin(), pose_path.poses.begin()+1);
     }

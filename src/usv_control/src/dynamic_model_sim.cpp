@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <random>
 #include <cstdlib>
+#include <chrono>
 
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
@@ -43,13 +44,15 @@ class DynamicModelSim : public rclcpp::Node {
     leftThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
         "usv/left_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { 
-          this->Tport = msg.data; 
+          Tport = msg.data; 
+          last_tport_msg = this->get_clock()->now();
         });
 
     rightThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
         "usv/right_thruster", 10,
         [this](const std_msgs::msg::Float64 &msg) { 
-          this->Tstbd = msg.data; 
+          Tstbd = msg.data; 
+          last_tstbd_msg = this->get_clock()->now();
           });
 
     pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
@@ -67,6 +70,9 @@ class DynamicModelSim : public rclcpp::Node {
 
     disturbance_msg.data.push_back(5.);
     disturbance_msg.data.push_back(5.);
+
+    last_tport_msg = this->get_clock()->now();
+    last_tstbd_msg = this->get_clock()->now();
   }
 
  protected:
@@ -79,6 +85,13 @@ class DynamicModelSim : public rclcpp::Node {
   }
 
   void update() {
+    // 200 ms of no reception
+    if(this->get_clock()->now() - last_tport_msg > rclcpp::Duration(0, 200 * 1e6)){
+      Tport = 0.0;
+    }
+    if(this->get_clock()->now() - last_tstbd_msg > rclcpp::Duration(0, 200 * 1e6)){
+      Tstbd = 0.0;
+    }
 
     disturbance_msg.data[0] = 0.*distribution(generator);
     disturbance_msg.data[1] = 0.*distribution(generator);
@@ -95,14 +108,11 @@ class DynamicModelSim : public rclcpp::Node {
     double y = out.pose_y;  // position in y
     double etheta = out.pose_psi;
 
-
     geometry_msgs::msg::Pose2D pose;
     nav_msgs::msg::Odometry odom;
 
     pose.x = x;
     pose.y = y;
-    // pose.theta = normalize_angle(etheta);
-    // TODO: UNCOMMENT
     pose.theta = etheta;
 
     tf2::Quaternion q;
@@ -159,6 +169,8 @@ class DynamicModelSim : public rclcpp::Node {
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr disturbancesPub;
   
   rclcpp::TimerBase::SharedPtr updateTimer;
+
+  rclcpp::Time last_tport_msg, last_tstbd_msg;
 
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
     std_msgs::msg::Float64MultiArray disturbance_msg;
