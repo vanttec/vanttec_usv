@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include <memory>
+#include <eigen3/Eigen/Dense>
 
 // ACADOS includes
 #include "acados/utils/print.h"
@@ -37,6 +38,7 @@
 // Simulation parameters
 #define N_SP 8 // Spline params (4 x NDIMS)
 #define N_WP 8 // Weight params
+#define N_AP 1 // Additional params
 
 #define TF 2.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
@@ -67,6 +69,7 @@ public:
 
         this->declare_parameter("mpc_weights", mpc_weights);
         mpc_weights = this->get_parameter("mpc_weights").as_double_array();
+        update_weight_ps();
 
         this->declare_parameter("mpc_enabled", mpc_enabled);
         mpc_enabled = this->get_parameter("mpc_enabled").as_bool();
@@ -86,35 +89,49 @@ public:
                 x0[4] = msg->twist.twist.angular.z;
             });
 
-        spline_t_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-            // "/mpc/spline_t", 10,
+        spline_t_la_sub_ = this->create_subscription<std_msgs::msg::Float64>(
             "/mpc/spline_t_la", 10,
             [this](const std_msgs::msg::Float64 &msg)
             {
-                // Change state's t value
-                x0[5] = msg.data;
+                // Previously t_la would be state[5] (t)
+                // x0[5] = msg.data;
+                ocp_params[N_SP+N_WP] = msg.data;
 
-                // Change params' terminal_weight
-                ocp_params[15] = var_w_at(terminal_weight_p,msg.data);
-                RCLCPP_INFO(this->get_logger(), "Terminal_weight: {%f}", ocp_params[15]);
             });
+
+        spline_t_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+            "/mpc/spline_t", 10,
+            [this](const std_msgs::msg::Float64 &msg)
+            {
+                s_t = msg.data;
+                x0[5] = msg.data;
+                double along_e = (1-msg.data)*s_length;
+                double cross_e = get_crosstrack_e();
+
+                // Variable weights dependant on crosstrack or alongtrack errors.
+                for(int i = 0 ; i < N_WP ; i++){
+                    if(i < 3)
+                        ocp_params[N_SP+i] = var_w_at(weight_ps[i],cross_e);
+                    else
+                        ocp_params[N_SP+i] = var_w_at(weight_ps[i],along_e);
+                }
+            });
+
+        spline_length_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+            "/mpc/spline_l", 10,
+            [this](const std_msgs::msg::Float64 &msg)
+            {
+                s_length = msg.data;
+            });
+
 
         spline_params_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
             "/mpc/spline_params", 10,
             [this](const std_msgs::msg::Float64MultiArray &msg)
             {
-                bool same_spline{true};
                 for (int i = 0; i < N_SP; i++)
                 {
-                    if (ocp_params[i] != msg.data[i])
-                    {
-                        ocp_params[i] = msg.data[i];
-                        same_spline = false;
-                    }
-                }
-                if (!same_spline)
-                {
-                    update_all_params();
+                    ocp_params[i] = msg.data[i];
                 }
             });
 
@@ -124,11 +141,11 @@ public:
         auto weights_param_cb = [this](const rclcpp::Parameter &p)
         {
             mpc_weights = p.as_double_array();
-            for (int i = 0; i < N_WP; i++)
-            {
-                ocp_params[N_SP + i] = mpc_weights[i];
-            }
-            update_all_params();
+            update_weight_ps();
+            // for (int i = 0; i < N_WP; i++)
+            // {
+            //     ocp_params[N_SP + i] = mpc_weights[i];
+            // }
         };
         weights_param_handle_ = weights_param_sub_->add_parameter_callback("mpc_weights", weights_param_cb);
 
@@ -162,25 +179,6 @@ public:
         };
         tf_param_handle_ = tf_param_sub_->add_parameter_callback("mpc_tf", tf_param_cb);
 
-        // For Spline's max_dt control bound
-        // s_max_dt_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
-        // auto s_max_dt_param_cb = [this](const rclcpp::Parameter &p)
-        // {
-        //     double dt_max = p.as_double();
-
-        //     // Update bound for all stages
-        //     double ubu[NU] = {36.5, 36.5, dt_max, 1.0}; // tau_max, tau_max, dt_max, slack_max
-
-        //     for (int i = 0; i < N_HORIZON; i++)
-        //     {
-        //         ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out,
-        //                                       i, "ubu", ubu);
-        //     }
-
-        //     RCLCPP_INFO(this->get_logger(), "Updated dt_max bound to %.4f", dt_max);
-        // };
-        // s_max_dt_param_handle_ = s_max_dt_param_sub_->add_parameter_callback("mpc_s_max_dt", s_max_dt_param_cb);
-
         // === PUBLISHERS ===
         sol_time_pub_ =
             this->create_publisher<std_msgs::msg::Float64>("/mpc/sol_time", 10);
@@ -198,6 +196,10 @@ public:
             "/usv/right_thruster", 10);
         left_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
             "/usv/left_thruster", 10);
+        debug_ce_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/mpc/debug/c_e", 10);
+        debug_weights_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
+            "/mpc/debug/w", 10);
 
         timer_ =
             this->create_wall_timer(50ms, std::bind(&MPCNode::update, this));
@@ -237,7 +239,8 @@ public:
         {
             ocp_params[N_SP + i] = mpc_weights[i];
         }
-        update_all_params();
+
+        debug_weights_msg.data.resize(N_WP);
     }
 
     ~MPCNode()
@@ -252,11 +255,13 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr
         sol_time_pub_,
         vel_setpoint_pub_, heading_setpoint_pub_,
-        left_thruster_pub_, right_thruster_pub_;
+        left_thruster_pub_, right_thruster_pub_,
+        debug_ce_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr debug_weights_pub_;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
-    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_;
+    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_, spline_t_la_sub_, spline_length_sub_;
 
     std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_, enabled_param_sub_,
         tf_param_sub_, s_max_dt_param_sub_;
@@ -265,13 +270,36 @@ private:
 
     std_msgs::msg::Float64 sol_time_msg,
         vel_setpoint_msg, heading_setpoint_msg,
-        left_thruster_msg, right_thruster_msg;
+        left_thruster_msg, right_thruster_msg,
+        debug_ce_msg;
     nav_msgs::msg::Path sol_path_msg;
+    std_msgs::msg::Float64MultiArray debug_weights_msg;
 
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
-    std::vector<double> mpc_weights{15.0, 50.0, 2.0, 0.2, 1000.0, 1.0, 0.5, 100.0};
+    std::vector<double> mpc_weights{5.0, 15.0, 20.0, 0.005, 0.0, 0.001, 0.001, 30.0};
 
-    double mpc_tf{2.5}, mpc_s_max_dt{0.1};
+    // map input [min,max] to output [min,max]
+    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2};
+    double max_err_weights_mult[8]{ 
+        0.1,10.0,0.1, // along,cross,heading
+        0.1,0.1,0.1,0.1,0.1 // input,slack,surge,yaw,terminal
+    };
+    WeightParams weight_ps[8]{
+        // These first weights depend on separation (cross_err)
+        {min_ce, max_ce, mpc_weights[0], mpc_weights[0]*0.1}, // along
+        {min_ce, max_ce, mpc_weights[1], mpc_weights[1]*10.0}, // cross
+        {min_ce, max_ce, mpc_weights[2], mpc_weights[2]*0.1}, // heading
+
+        // These last weights depend on remaining dist. (along_err)
+        {min_ae, max_ae, mpc_weights[3], mpc_weights[3]*0.1}, // input
+        {min_ae, max_ae, mpc_weights[4], mpc_weights[4]*0.1}, // slack
+        {min_ae, max_ae, mpc_weights[5], mpc_weights[5]*0.1}, // surge
+        {min_ae, max_ae, mpc_weights[6], mpc_weights[6]*0.1}, // yaw
+        {min_ae, max_ae, mpc_weights[7], mpc_weights[7]*0.1}, // terminal
+    };
+
+    
+    double mpc_tf{2.5}, mpc_s_max_dt{0.1}, s_length{0.001}, s_t{0.};
     bool mpc_enabled{true};
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -294,9 +322,6 @@ private:
 
     double last_theta{0.0};
 
-    // Linear interpolation. At t=0.3,w=100.0, at t=0.7,w=1000.0.
-    WeightParams terminal_weight_p{0.3,0.7,100.0,1000.0};
-
     void update_all_params()
     {
         for (int i = 0; i <= N_HORIZON; i++)
@@ -305,8 +330,18 @@ private:
         }
     }
 
+    void update_weight_ps(){
+        for(int i = 0 ; i < N_WP ; i++){
+            weight_ps[i].min_w = mpc_weights[i];
+            weight_ps[i].max_w = mpc_weights[i]*max_err_weights_mult[i];
+        }
+    }
+
     void update()
     {
+        // Params may always be changing
+        update_all_params();
+
         // Update initial state
         memcpy(simX, x0, NX * sizeof(double));
 
@@ -365,17 +400,21 @@ private:
             tmp_pose.pose.position.y = xtraj[i * NX + 1];
             sol_path_msg.poses[i] = tmp_pose;
         }
-        vel_setpoint_msg.data = xtraj[1 * NX + 3];
-        heading_setpoint_msg.data = xtraj[1 * NX + 2];
+        int sol_idx = 20;
+        vel_setpoint_msg.data = xtraj[sol_idx * NX + 3];
+        heading_setpoint_msg.data = xtraj[sol_idx * NX + 2];
 
         // RCLCPP_INFO(this->get_logger(), "Tp, Ts: %f, %f", simU[0], simU[1]);
         left_thruster_msg.data = simU[0];
         right_thruster_msg.data = simU[1];
 
+        debug_ce_msg.data = get_crosstrack_e();
+        for(int i = 0 ; i < N_WP ; i++){
+            debug_weights_msg.data[i] = ocp_params[N_SP+i];
+        }
+
         int sqp_iter;
         ocp_nlp_get(nlp_solver, "sqp_iter", &sqp_iter);
-        // FOR DEBUGGING
-        // RCLCPP_INFO(this->get_logger(), "SQP iters: %d", sqp_iter);
 
         sol_time_pub_->publish(sol_time_msg);
         sol_path_pub_->publish(sol_path_msg);
@@ -388,8 +427,10 @@ private:
         }
         vel_setpoint_pub_->publish(vel_setpoint_msg);
         heading_setpoint_pub_->publish(heading_setpoint_msg);
-        left_thruster_pub_->publish(left_thruster_msg);
-        right_thruster_pub_->publish(right_thruster_msg);
+        // left_thruster_pub_->publish(left_thruster_msg);
+        // right_thruster_pub_->publish(right_thruster_msg);
+        debug_ce_pub_->publish(debug_ce_msg);
+        debug_weights_pub_->publish(debug_weights_msg);
     }
 
     double normalize_angle(double x)
@@ -404,7 +445,20 @@ private:
     double var_w_at(WeightParams p, double t){
         double w_m = (p.max_w-p.min_w) / (p.max_t-p.min_t);
         double w_b = p.min_w - w_m*p.min_t;
-        return std::clamp(w_m*t+w_b,p.min_w,p.max_w);
+        if(p.min_w < p.max_w)
+            return std::clamp(w_m*t+w_b,p.min_w,p.max_w);
+        // In some cases, slope is negative, and sol. shouldn't depend on argument order...
+        return std::clamp(w_m*t+w_b,p.max_w,p.min_w);
+    }
+
+    double get_crosstrack_e(){
+        Eigen::Vector2d spline_pos, asv_pos, pos_diff;
+        spline_pos << ocp_params[0]*s_t*s_t*s_t + ocp_params[1]*s_t*s_t + ocp_params[2]*s_t + ocp_params[3],
+            ocp_params[4]*s_t*s_t*s_t + ocp_params[5]*s_t*s_t + ocp_params[6]*s_t + ocp_params[7];
+        asv_pos << x0[0],x0[1];
+        pos_diff = spline_pos - asv_pos;
+
+        return pos_diff.norm();
     }
 };
 

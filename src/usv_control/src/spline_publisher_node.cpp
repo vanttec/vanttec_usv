@@ -5,6 +5,7 @@
 
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 
 #include "nav_msgs/msg/path.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -32,6 +33,7 @@ public:
         spline_params_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/mpc/spline_params", 10);
         spline_t_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_t", 10);
         spline_t_la_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_t_la", 10);
+        spline_length_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_l", 10);
 
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/usv/state/odom", 1,
@@ -51,16 +53,28 @@ public:
             [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
             {
                 auto &q = msg->pose.orientation;
-
-                goal.x() = msg->pose.position.x;
-                goal.y() = msg->pose.position.y;
-                goal.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                ref[1].x() = msg->pose.position.x;
+                ref[1].y() = msg->pose.position.y;
+                ref[1].z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
                 
                 update_spline_params();
             });
 
-        timer_ = this->create_wall_timer(
+        initial_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+            "/initialpose", 1,
+            [this](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
+            {
+                auto &q = msg->pose.pose.orientation;
+                ref[0].x() = msg->pose.pose.position.x;
+                ref[0].y() = msg->pose.pose.position.y;
+                ref[0].z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                    1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+                
+                update_spline_params();
+            });
+
+            timer_ = this->create_wall_timer(
             100ms, std::bind(&SplinePublisherNode::update, this));
 
         path_msg.header.frame_id = "world";
@@ -111,7 +125,7 @@ protected:
         closest_t = s_.closest_t(asv);
         closest_p = s_.get_s(closest_t);
 
-        double lookahead = 0.3;
+        double lookahead = 1.0;
         // For length L, we want to find a t+dt such that s(t+dt) is at [dist] from s(t)
         // To map L to dist: L is to 1, what dist is to dt -> dt = dist/L
         double la_t = std::clamp(closest_t+lookahead/L_, 0.0, 1.0);
@@ -132,15 +146,16 @@ protected:
         spline_params_pub_->publish(spline_params_msg);
         spline_t_pub_->publish(spline_t_msg);
         spline_t_la_pub_->publish(spline_t_la_msg);
+        spline_length_pub_->publish(spline_length_msg);
     }
 
     void update_spline_params()
     {
         s_.update(
-            translate(asv,-dist),
-            translate(asv,0.0),
-            translate(goal,0.0),
-            translate(goal,dist)
+            translate(ref[0],-dist),
+            translate(ref[0],0.0),
+            translate(ref[1],0.0),
+            translate(ref[1],dist)
         );
         
         for (int i = 0; i < 2; i++)
@@ -152,22 +167,23 @@ protected:
         }
 
         L_ = s_.arc_length();
+        spline_length_msg.data = L_;
     }
 
 private:
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr spline_path_pub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr s_marker_pub_, la_marker_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_pub_;
-    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr spline_t_pub_, spline_t_la_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr spline_t_pub_, spline_t_la_pub_, spline_length_pub_;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_sub_;
-
+    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initial_pose_sub_;
 
     nav_msgs::msg::Path path_msg;
     visualization_msgs::msg::Marker s_marker_msg, la_marker_msg;
     std_msgs::msg::Float64MultiArray spline_params_msg;
-    std_msgs::msg::Float64 spline_t_msg, spline_t_la_msg;
+    std_msgs::msg::Float64 spline_t_msg, spline_t_la_msg, spline_length_msg;
 
     rclcpp::TimerBase::SharedPtr timer_;
 
@@ -177,7 +193,8 @@ private:
     int n_{100};
     double dist{0.1};
 
-    Eigen::Vector3d asv{0, 0, 0}, goal{1, 0, 0};
+    Eigen::Vector3d ref[2]{{0,0,0},{1,0,0}};
+    Eigen::Vector3d asv;
 
     Eigen::Vector2d translate(Eigen::Vector3d v, double dist)
     {
