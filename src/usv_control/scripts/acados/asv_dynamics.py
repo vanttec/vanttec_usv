@@ -64,9 +64,11 @@ def export_asv_model() -> AcadosModel:
     w_surge = SX.sym('w_surge')
     w_yaw = SX.sym('w_yaw')
     w_terminal = SX.sym('w_terminal')
+    t_la = SX.sym('t_la')
 
     p = vertcat(a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y, 
-                w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal)
+                w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal,
+                t_la)
 
     # state-dependent parameters for ASV
     Xu = if_else(surge > 1.2, 64.55, -25.0)
@@ -104,6 +106,10 @@ def export_asv_model() -> AcadosModel:
     # s(t) = [s_x(t), s_y(t)]
     s_x = a_x * t**3 + b_x * t**2 + c_x * t + d_x
     s_y = a_y * t**3 + b_y * t**2 + c_y * t + d_y
+
+    # s(la)
+    s_la_x = a_x * t_la**3 + b_x * t_la**2 + c_x * t_la + d_x
+    s_la_y = a_y * t_la**3 + b_y * t_la**2 + c_y * t_la + d_y
     
     # s'(t) = [s_x'(t), s_y'(t)]
     s_x_dot = 3 * a_x * t**2 + 2 * b_x * t + c_x
@@ -125,6 +131,8 @@ def export_asv_model() -> AcadosModel:
     # Store additional expressions for cost function
     model.s_x = s_x
     model.s_y = s_y
+    model.s_la_x = s_la_x
+    model.s_la_y = s_la_y
     model.psi_ref = psi_ref
 
     # Store meta information

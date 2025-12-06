@@ -28,6 +28,8 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     w_yaw_ = 10.0
     w_terminal_ = 100.0  # Terminal cost multiplier weight
 
+    t_la_init = 0.3
+
     w_along = model.p[8] 
     w_cross = model.p[9]
     w_heading = model.p[10]
@@ -58,6 +60,8 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     surge = model.x[3]
     yaw = model.x[4]
     t_param = model.x[5]
+
+    t_la_param = model.p[16]
     
     tau_port = model.u[0]
     tau_stbd = model.u[1]
@@ -67,26 +71,26 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     # Spline evaluation (defined in model)
     s_x = model.s_x
     s_y = model.s_y
+    s_la_x = model.s_la_x
+    s_la_y = model.s_la_y
     psi_ref = model.psi_ref
     
     # Stage cost
     L = 0.1
-    Ls = [-L,0.0,L]
-    x_la = x_pos + L*cos(psi)
-    y_la = y_pos + L*sin(psi)
-    x_lb = x_pos - L*cos(psi)
-    y_lb = y_pos - L*sin(psi)
+    # Ls = [-L,0.0,L]
+    Ls = [0.0]
     # crosstrack_error = (x_pos - s_x)**2 + (y_pos - s_y)**2
     crosstrack_error = 0.0
     for l in Ls:
         crosstrack_error += (x_pos + l*cos(psi) - s_x)**2 + (y_pos + l*sin(psi) - s_y)**2
     crosstrack_error/=len(Ls)
-    alongtrack_error = (1 - t_param)**2
+
+    alongtrack_error = (x_pos - s_la_x)**2 + (y_pos - s_la_y)**2
     heading_error = sin((psi - psi_ref) / 2)**2
     input_cost = tau_port**2 + tau_stbd**2
     slack_cost = slack_u**2
-    yaw_cost = yaw**2
     surge_cost = surge**2
+    yaw_cost = yaw**2
     
     stage_cost = (w_along * alongtrack_error + 
                   w_cross * crosstrack_error + 
@@ -116,8 +120,8 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     # Control bounds
     tau_max = 36.5
     tau_min = -30.5
-    dt_max = 0.01
-    dt_min = 0.0
+    dt_max = 0.1
+    dt_min = -0.01
     slack_u_max = 1.0
     slack_u_min = 0.0
     
@@ -125,24 +129,30 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.constraints.ubu = np.array([tau_max, tau_max, dt_max, slack_u_max])
     ocp.constraints.idxbu = np.array([0, 1, 2, 3])
 
-    # Soft constraints: surge + slack_u >= 0 (from surge>=0-slack)
-    ocp.constraints.lh = np.array([0.0])
-    ocp.constraints.uh = np.array([1e10])
-    ocp.model.con_h_expr = model.x[3] + model.u[3]  # surge + slack_u >= 0
+    # Path constraints: 
+    # First: surge + slack_u >= 0 (from surge>=0-slack)
+    # Second: t <= t_la
+    # ocp.constraints.lh = np.array([0.0,-1e10])
+    # ocp.constraints.uh = np.array([1e10,0.0])
+    # ocp.model.con_h_expr = vertcat(
+    #     model.x[3] + model.u[3],  # surge + slack_u >= 0
+    #     model.x[5] - model.p[16]  # t - t_la <= 0
+    # )
     
     # State bounds
-    ocp.constraints.lbx = np.array([0.0,-0.5,-1.5])
+    ocp.constraints.lbx = np.array([0.0,-0.15,-1.5])
     ocp.constraints.ubx = np.array([1.0,1.5,1.5])
-    ocp.constraints.idxbx = np.array([5,3,4])  # Index in state vector (t, surge)
+    ocp.constraints.idxbx = np.array([5,3,4])  # Index in state vector (t, surge, yaw)
     
-    # Apply same bounds at terminal stage
+    # State bounds at terminal stage
     ocp.constraints.lbx_e = np.array([0.0,0.0,0.0])
     ocp.constraints.ubx_e = np.array([1.0,0.0,0.0])
     ocp.constraints.idxbx_e = np.array([5,3,4])
     
     # Set spline parameters
     weight_params = np.array([w_along_, w_cross_, w_heading_, w_input_, w_slack_, w_surge_, w_yaw_, w_terminal_])
-    ocp.parameter_values = np.concatenate((spline_params,weight_params))
+    additional_params = np.array([t_la_init])
+    ocp.parameter_values = np.concatenate((spline_params,weight_params, additional_params))
     
     # --- SOLVER OPTIONS ---
     ocp.solver_options.qp_solver = 'PARTIAL_CONDENSING_HPIPM'
@@ -154,16 +164,16 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
 
     # Claude SUGGESTION
     # ============================================
-    # KEY: STRONG REGULARIZATION
+    # STRONG REGULARIZATION
     # ============================================
     ocp.solver_options.regularize_method = 'PROJECT_REDUC_HESS'  # Better than CONVEXIFY
     ocp.solver_options.levenberg_marquardt = 1e-2  # Strong regularization
     
     # Relax QP tolerances
-    ocp.solver_options.qp_solver_tol_stat = 1e-3
-    ocp.solver_options.qp_solver_tol_eq = 1e-3
-    ocp.solver_options.qp_solver_tol_ineq = 1e-3
-    ocp.solver_options.qp_solver_tol_comp = 1e-3
+    ocp.solver_options.qp_solver_tol_stat = 1e-6
+    ocp.solver_options.qp_solver_tol_eq = 1e-6
+    ocp.solver_options.qp_solver_tol_ineq = 1e-6
+    ocp.solver_options.qp_solver_tol_comp = 1e-6
     
     # ============================================
     # CRITICAL: Enable globalization for robustness
