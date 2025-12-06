@@ -18,14 +18,14 @@ class MPCWeightsTuner(QMainWindow):
         
         # Weight definitions: (name, default, min, max, step)
         self.weights_config = [
-            ("w_along", 15.0, 0.0, 100.0, 1.0),
-            ("w_cross", 50.0, 0.0, 100.0, 1.0),
-            ("w_heading", 2.0, 0.0, 20.0, 0.5),
-            ("w_input", 0.2, 0.0, 10.0, 0.01),
-            ("w_slack", 1000.0, 0.0, 5000.0, 1.0),
-            ("w_surge", 1.0, 0.0, 100.0, 0.01),
-            ("w_yaw", 0.5, 0.0, 100.0, 0.01),
-            ("terminal_w", 100.0, 100.0, 1000.0, 1.0),
+            ("w_along", 5.0, 0.0, 100.0, 1.0),
+            ("w_cross", 15.0, 0.0, 100.0, 1.0),
+            ("w_heading", 20.0, 0.0, 20.0, 0.5),
+            ("w_input", 0.005, 0.0, 10.0, 0.001),
+            ("w_slack", 1000.0, 0.0, 1000.0, 1.0),
+            ("w_surge", 0.001, 0.0, 10.0, 0.001),
+            ("w_yaw", 0.001, 0.0, 10.0, 0.001),
+            ("terminal_w", 30.0, 0.0, 1000.0, 1.0),
         ]
         
         self.weights = [config[1] for config in self.weights_config]
@@ -175,7 +175,7 @@ class MPCWeightsTuner(QMainWindow):
         spinbox.setMaximum(max_val)
         spinbox.setSingleStep(step)
         spinbox.setValue(default)
-        spinbox.setDecimals(1 if step >= 1.0 else 2)
+        spinbox.setDecimals(1 if step >= 1.0 else 2 if step >= 0.1 else 3)
         spinbox.setMinimumWidth(80)
         spinbox.valueChanged.connect(lambda v: self.on_spinbox_changed(index, v))
         self.spinboxes.append(spinbox)
