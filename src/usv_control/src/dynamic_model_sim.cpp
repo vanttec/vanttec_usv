@@ -61,6 +61,7 @@ class DynamicModelSim : public rclcpp::Node {
     tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     pose_stamped_tmp_.header.frame_id = "world";
     pose_path.header.frame_id = "world";
+    odom.header.frame_id = "world";
     pose_path.header.stamp = DynamicModelSim::now();
 
     updateTimer = this->create_wall_timer(
@@ -109,7 +110,6 @@ class DynamicModelSim : public rclcpp::Node {
     double etheta = out.pose_psi;
 
     geometry_msgs::msg::Pose2D pose;
-    nav_msgs::msg::Odometry odom;
 
     pose.x = x;
     pose.y = y;
@@ -173,8 +173,9 @@ class DynamicModelSim : public rclcpp::Node {
   rclcpp::Time last_tport_msg, last_tstbd_msg;
 
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
-    std_msgs::msg::Float64MultiArray disturbance_msg;
-    nav_msgs::msg::Path pose_path;
+  std_msgs::msg::Float64MultiArray disturbance_msg;
+  nav_msgs::msg::Path pose_path;
+  nav_msgs::msg::Odometry odom;
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr leftThrusterSub,
       rightThrusterSub;
