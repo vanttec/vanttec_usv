@@ -21,14 +21,15 @@ class MPCWeightsTuner(QMainWindow):
             ("w_along", 5.0, 0.0, 100.0, 1.0),
             ("w_cross", 15.0, 0.0, 100.0, 1.0),
             ("w_heading", 20.0, 0.0, 20.0, 0.5),
-            ("w_input", 0.005, 0.0, 10.0, 0.001),
+            ("w_input", 0.05, 0.0, 10.0, 0.001),
             ("w_slack", 1000.0, 0.0, 1000.0, 1.0),
-            ("w_surge", 0.001, 0.0, 10.0, 0.001),
-            ("w_yaw", 0.001, 0.0, 10.0, 0.001),
-            ("terminal_w", 30.0, 0.0, 1000.0, 1.0),
+            ("w_surge", 0.01, 0.0, 10.0, 0.001),
+            ("w_yaw", 0.01, 0.0, 10.0, 0.001),
+            ("terminal_w", 100.0, 0.0, 1000.0, 1.0),
         ]
         
         self.weights = [config[1] for config in self.weights_config]
+        self.original_cross_weight = 0.0
         self.init_ui()
         
     def init_ui(self):
@@ -112,6 +113,30 @@ class MPCWeightsTuner(QMainWindow):
         tf_layout.addWidget(self.tf_spinbox)
 
         main_layout.addLayout(tf_layout)
+
+        # Unblock MPC button
+        unblock_layout = QHBoxLayout()
+        unblock_btn = QPushButton("Unblock MPC")
+        unblock_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ff6b35;
+                border: 1px solid #ff5520;
+                border-radius: 4px;
+                color: #ffffff;
+                font-size: 13px;
+                font-weight: bold;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #ff7b45;
+            }
+            QPushButton:pressed {
+                background-color: #ff5520;
+            }
+        """)
+        unblock_btn.clicked.connect(self.unblock_mpc)
+        unblock_layout.addWidget(unblock_btn)
+        main_layout.addLayout(unblock_layout)
 
         # MPC Enable toggle
         toggle_layout = QHBoxLayout()
@@ -295,7 +320,31 @@ class MPCWeightsTuner(QMainWindow):
                 self.node.get_logger().warn(f"Failed to set parameter: {response.results[0].reason}")
         except Exception as e:
             self.node.get_logger().error(f"Service call failed: {e}")
+    
+    def unblock_mpc(self):
+        import time
+        from PyQt5.QtCore import QTimer
+        
+        # Find index of w_cross (it's index 1 based on weights_config)
+        cross_index = 1
+        
+        # Store original value
+        self.original_cross_weight = self.weights[cross_index]
+        
+        # Set to 0
+        self.weights[cross_index] = 0
+        self.spinboxes[cross_index].setValue(0)
+        self.publish_weights()
+        
+        # Restore after 0.5 seconds
+        QTimer.singleShot(500, lambda: self.restore_cross_weight(cross_index))
 
+    def restore_cross_weight(self, cross_index):
+        if self.original_cross_weight is not None:
+            self.weights[cross_index] = self.original_cross_weight
+            self.spinboxes[cross_index].setValue(self.original_cross_weight)
+            self.publish_weights()
+            self.original_cross_weight = None
 
 class MPCWeightsNode(Node):
     def __init__(self):

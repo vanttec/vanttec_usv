@@ -105,8 +105,15 @@ public:
             {
                 s_t = msg.data;
                 x0[5] = msg.data;
-                double along_e = (1-msg.data)*s_length;
-                double cross_e = get_crosstrack_e();
+                along_e = (1-msg.data)*s_length;
+                cross_e = get_crosstrack_e();
+                // Test relation, might try for some weights
+                double ca = cross_e/std::clamp(along_e, 0.01, 1e10);
+
+                if(s_t <= 0.05 || s_t >= 0.95){
+                    along_e = min_ae;
+                    cross_e = max_ce;
+                }
 
                 // Variable weights dependant on crosstrack or alongtrack errors.
                 for(int i = 0 ; i < N_WP ; i++){
@@ -275,28 +282,32 @@ private:
     nav_msgs::msg::Path sol_path_msg;
     std_msgs::msg::Float64MultiArray debug_weights_msg;
 
+    double along_e, cross_e;
+
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
-    std::vector<double> mpc_weights{5.0, 15.0, 20.0, 0.005, 0.0, 0.001, 0.001, 30.0};
+    std::vector<double> mpc_weights{5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0};
 
     // map input [min,max] to output [min,max]
     double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2};
     double max_err_weights_mult[8]{ 
-        0.1,10.0,0.1, // along,cross,heading
-        0.1,0.1,0.1,0.1,0.1 // input,slack,surge,yaw,terminal
+        0.1,10.0,5.0, // along,cross,heading
+        0.1,0.1,0.1,0.1,0.5 // input,slack,surge,yaw,terminal
     };
     WeightParams weight_ps[8]{
         // These first weights depend on separation (cross_err)
         {min_ce, max_ce, mpc_weights[0], mpc_weights[0]*0.1}, // along
         {min_ce, max_ce, mpc_weights[1], mpc_weights[1]*10.0}, // cross
-        {min_ce, max_ce, mpc_weights[2], mpc_weights[2]*0.1}, // heading
+        {min_ce, max_ce, mpc_weights[2], mpc_weights[2]*5.0}, // heading
 
         // These last weights depend on remaining dist. (along_err)
         {min_ae, max_ae, mpc_weights[3], mpc_weights[3]*0.1}, // input
         {min_ae, max_ae, mpc_weights[4], mpc_weights[4]*0.1}, // slack
         {min_ae, max_ae, mpc_weights[5], mpc_weights[5]*0.1}, // surge
         {min_ae, max_ae, mpc_weights[6], mpc_weights[6]*0.1}, // yaw
-        {min_ae, max_ae, mpc_weights[7], mpc_weights[7]*0.1}, // terminal
+        {min_ae, max_ae, mpc_weights[7], mpc_weights[7]*0.5}, // terminal
     };
+    int sol_idx{20};
+    WeightParams sol_idx_weight{0.1, 0.8, 10.0, 20.0};
 
     
     double mpc_tf{2.5}, mpc_s_max_dt{0.1}, s_length{0.001}, s_t{0.};
@@ -393,14 +404,19 @@ private:
 
         sol_path_msg.header.stamp = this->get_clock()->now();
         geometry_msgs::msg::PoseStamped tmp_pose;
+
+        double sol_length = 0.0;
         for (int i = 0; i <= N_HORIZON; i++)
         {
             ocp_nlp_out_get(nlp_config, nlp_dims, nlp_out, i, "x", &xtraj[i * NX]);
             tmp_pose.pose.position.x = xtraj[i * NX];
             tmp_pose.pose.position.y = xtraj[i * NX + 1];
             sol_path_msg.poses[i] = tmp_pose;
+
+            sol_length += std::fabs(xtraj[i*NX+3])*mpc_tf/N_HORIZON;
         }
-        int sol_idx = 20;
+
+        sol_idx = int(var_w_at(sol_idx_weight, sol_length));
         vel_setpoint_msg.data = xtraj[sol_idx * NX + 3];
         heading_setpoint_msg.data = xtraj[sol_idx * NX + 2];
 
@@ -431,6 +447,16 @@ private:
         // right_thruster_pub_->publish(right_thruster_msg);
         debug_ce_pub_->publish(debug_ce_msg);
         debug_weights_pub_->publish(debug_weights_msg);
+
+        RCLCPP_INFO(this->get_logger(),
+            "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}",
+            ocp_params[0], ocp_params[1], ocp_params[2], ocp_params[3], ocp_params[4], ocp_params[5], ocp_params[6], 
+            ocp_params[7], ocp_params[8], ocp_params[9], ocp_params[10], ocp_params[11], ocp_params[12], ocp_params[13], 
+            ocp_params[14], ocp_params[15], ocp_params[16]
+        );
+        RCLCPP_INFO(this->get_logger(),
+            "SOLUTION IDX: %.2d, Sol. length: %.2f",sol_idx, sol_length);
+        RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
     }
 
     double normalize_angle(double x)
