@@ -52,6 +52,8 @@ public:
             "/goal_pose", 1,
             [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
             {
+                ref[0] = asv;
+
                 auto &q = msg->pose.orientation;
                 ref[1].x() = msg->pose.position.x;
                 ref[1].y() = msg->pose.position.y;
@@ -61,13 +63,26 @@ public:
                 update_spline_params();
             });
 
-        initial_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
-            "/initialpose", 1,
-            [this](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
+        goal_pose_to_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+            "/goal_to", 1,
+            [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
             {
-                auto &q = msg->pose.pose.orientation;
-                ref[0].x() = msg->pose.pose.position.x;
-                ref[0].y() = msg->pose.pose.position.y;
+                auto &q = msg->pose.orientation;
+                ref[1].x() = msg->pose.position.x;
+                ref[1].y() = msg->pose.position.y;
+                ref[1].z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                    1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+                
+                update_spline_params();
+            });
+
+        goal_pose_from_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+            "/goal_from", 1,
+            [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+            {
+                auto &q = msg->pose.orientation;
+                ref[0].x() = msg->pose.position.x;
+                ref[0].y() = msg->pose.position.y;
                 ref[0].z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
                 
@@ -177,8 +192,7 @@ private:
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr spline_t_pub_, spline_t_la_pub_, spline_length_pub_;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initial_pose_sub_;
+    rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_from_sub_, goal_pose_to_sub_, goal_pose_sub_;
 
     nav_msgs::msg::Path path_msg;
     visualization_msgs::msg::Marker s_marker_msg, la_marker_msg;
