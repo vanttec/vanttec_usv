@@ -43,8 +43,9 @@
 #define TF 2.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
 
-struct WeightParams{
-    double 
+struct WeightParams
+{
+    double
         min_t,
         max_t,
         min_w,
@@ -83,8 +84,19 @@ public:
 
                 x0[0] = msg->pose.pose.position.x;
                 x0[1] = msg->pose.pose.position.y;
-                x0[2] = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
-                                   1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+
+                // Feed continuous heading to MPC (remove angle wrapping)
+                double new_psi = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                            1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+                double delta = new_psi - last_theta;
+                if (delta > M_PI)
+                    x0[2] = x0[2] + (new_psi - 2.0 * M_PI) - last_theta;
+                else if (delta < -M_PI)
+                    x0[2] = x0[2] + (new_psi + 2.0 * M_PI) - last_theta;
+                else
+                    x0[2] = x0[2] + delta;
+                last_theta = new_psi;
+
                 x0[3] = msg->twist.twist.linear.x;
                 x0[4] = msg->twist.twist.angular.z;
             });
@@ -95,8 +107,7 @@ public:
             {
                 // Previously t_la would be state[5] (t)
                 // x0[5] = msg.data;
-                ocp_params[N_SP+N_WP] = msg.data;
-
+                ocp_params[N_SP + N_WP] = msg.data;
             });
 
         spline_t_sub_ = this->create_subscription<std_msgs::msg::Float64>(
@@ -105,22 +116,25 @@ public:
             {
                 s_t = msg.data;
                 x0[5] = msg.data;
-                along_e = (1-msg.data)*s_length;
+                along_e = (1 - msg.data) * s_length;
                 cross_e = get_crosstrack_e();
                 // Test relation, might try for some weights
-                double ca = cross_e/std::clamp(along_e, 0.01, 1e10);
+                double ca = cross_e / std::clamp(along_e, 0.01, 1e10);
 
-                if(s_t <= 0.05 || s_t >= 0.95){
+                // if (s_t <= 0.05 || s_t >= 0.95)
+                if (s_t >= 0.95)
+                {
                     along_e = min_ae;
                     cross_e = max_ce;
                 }
 
                 // Variable weights dependant on crosstrack or alongtrack errors.
-                for(int i = 0 ; i < N_WP ; i++){
-                    if(i < 3)
-                        ocp_params[N_SP+i] = var_w_at(weight_ps[i],cross_e);
+                for (int i = 0; i < N_WP; i++)
+                {
+                    if (i < 3)
+                        ocp_params[N_SP + i] = var_w_at(weight_ps[i], cross_e);
                     else
-                        ocp_params[N_SP+i] = var_w_at(weight_ps[i],along_e);
+                        ocp_params[N_SP + i] = var_w_at(weight_ps[i], along_e);
                 }
             });
 
@@ -131,14 +145,24 @@ public:
                 s_length = msg.data;
             });
 
-
         spline_params_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
             "/mpc/spline_params", 10,
             [this](const std_msgs::msg::Float64MultiArray &msg)
             {
+                bool new_spline = false;
+
                 for (int i = 0; i < N_SP; i++)
                 {
-                    ocp_params[i] = msg.data[i];
+                    if (std::abs(ocp_params[i] - msg.data[i]) > 1e-6)
+                    {
+                        ocp_params[i] = msg.data[i];
+                        new_spline = true;
+                    }
+                }
+                if (new_spline)
+                {
+                    RCLCPP_WARN(this->get_logger(), "Resetting trajectory guess");
+                    asv_dynamics_acados_reset(ocp_capsule, 1); // 1 = reset trajectory guess
                 }
             });
 
@@ -205,6 +229,10 @@ public:
             "/usv/left_thruster", 10);
         debug_ce_pub_ = this->create_publisher<std_msgs::msg::Float64>(
             "/mpc/debug/c_e", 10);
+        debug_he_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/mpc/debug/h_e", 10);
+        debug_residuals_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/mpc/debug/res", 10);
         debug_weights_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
             "/mpc/debug/w", 10);
 
@@ -263,7 +291,7 @@ private:
         sol_time_pub_,
         vel_setpoint_pub_, heading_setpoint_pub_,
         left_thruster_pub_, right_thruster_pub_,
-        debug_ce_pub_;
+        debug_ce_pub_, debug_he_pub_, debug_residuals_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr debug_weights_pub_;
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
@@ -278,38 +306,37 @@ private:
     std_msgs::msg::Float64 sol_time_msg,
         vel_setpoint_msg, heading_setpoint_msg,
         left_thruster_msg, right_thruster_msg,
-        debug_ce_msg;
+        debug_ce_msg, debug_he_msg, debug_residuals_msg;
     nav_msgs::msg::Path sol_path_msg;
     std_msgs::msg::Float64MultiArray debug_weights_msg;
 
-    double along_e, cross_e;
+    double along_e, cross_e, ocp_cost;
 
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal
     std::vector<double> mpc_weights{5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0};
 
     // map input [min,max] to output [min,max]
     double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2};
-    double max_err_weights_mult[8]{ 
-        0.1,10.0,5.0, // along,cross,heading
-        0.1,0.1,0.1,0.1,0.5 // input,slack,surge,yaw,terminal
+    double max_err_weights_mult[8]{
+        0.1, 10.0, 5.0,         // along,cross,heading
+        0.1, 0.1, 0.1, 0.1, 0.5 // input,slack,surge,yaw,terminal
     };
     WeightParams weight_ps[8]{
         // These first weights depend on separation (cross_err)
-        {min_ce, max_ce, mpc_weights[0], mpc_weights[0]*0.1}, // along
-        {min_ce, max_ce, mpc_weights[1], mpc_weights[1]*10.0}, // cross
-        {min_ce, max_ce, mpc_weights[2], mpc_weights[2]*5.0}, // heading
+        {min_ce, max_ce, mpc_weights[0], mpc_weights[0] * 0.1},  // along
+        {min_ce, max_ce, mpc_weights[1], mpc_weights[1] * 10.0}, // cross
+        {min_ce, max_ce, mpc_weights[2], mpc_weights[2] * 5.0},  // heading
 
         // These last weights depend on remaining dist. (along_err)
-        {min_ae, max_ae, mpc_weights[3], mpc_weights[3]*0.1}, // input
-        {min_ae, max_ae, mpc_weights[4], mpc_weights[4]*0.1}, // slack
-        {min_ae, max_ae, mpc_weights[5], mpc_weights[5]*0.1}, // surge
-        {min_ae, max_ae, mpc_weights[6], mpc_weights[6]*0.1}, // yaw
-        {min_ae, max_ae, mpc_weights[7], mpc_weights[7]*0.5}, // terminal
+        {min_ae, max_ae, mpc_weights[3], mpc_weights[3] * 0.1}, // input
+        {min_ae, max_ae, mpc_weights[4], mpc_weights[4] * 0.1}, // slack
+        {min_ae, max_ae, mpc_weights[5], mpc_weights[5] * 0.1}, // surge
+        {min_ae, max_ae, mpc_weights[6], mpc_weights[6] * 0.1}, // yaw
+        {min_ae, max_ae, mpc_weights[7], mpc_weights[7] * 0.5}, // terminal
     };
     int sol_idx{20};
     WeightParams sol_idx_weight{0.1, 0.8, 10.0, 20.0};
 
-    
     double mpc_tf{2.5}, mpc_s_max_dt{0.1}, s_length{0.001}, s_t{0.};
     bool mpc_enabled{true};
 
@@ -341,10 +368,12 @@ private:
         }
     }
 
-    void update_weight_ps(){
-        for(int i = 0 ; i < N_WP ; i++){
+    void update_weight_ps()
+    {
+        for (int i = 0; i < N_WP; i++)
+        {
             weight_ps[i].min_w = mpc_weights[i];
-            weight_ps[i].max_w = mpc_weights[i]*max_err_weights_mult[i];
+            weight_ps[i].max_w = mpc_weights[i] * max_err_weights_mult[i];
         }
     }
 
@@ -377,6 +406,14 @@ private:
         ocp_nlp_solver_opts_set(nlp_config, ocp_capsule->nlp_opts, "rti_phase", &rti_phase);
         status = asv_dynamics_acados_solve(ocp_capsule);
 
+        // Store previous cost
+        static double prev_cost = 0.0;
+
+        // Get current cost
+        ocp_nlp_eval_cost(nlp_solver, nlp_in, nlp_out);
+        ocp_nlp_get(nlp_solver, "cost_value", &ocp_cost);
+        debug_residuals_msg.data = ocp_cost;
+
         if (status == 4)
         {
             double residuals[4];
@@ -384,10 +421,12 @@ private:
             ocp_nlp_get(nlp_solver, "res_eq", &residuals[1]);
             ocp_nlp_get(nlp_solver, "res_ineq", &residuals[2]);
             ocp_nlp_get(nlp_solver, "res_comp", &residuals[3]);
-
+            RCLCPP_INFO(this->get_logger(),
+                        "Residuals: [%.2e, %.2e, %.2e, %.2e]",
+                        residuals[0], residuals[1], residuals[2], residuals[3]);
+    
             double max_res = std::max({std::abs(residuals[0]), std::abs(residuals[1]),
                                        std::abs(residuals[2]), std::abs(residuals[3])});
-
             if (max_res > 1e-6)
             {
                 RCLCPP_WARN(this->get_logger(),
@@ -413,7 +452,7 @@ private:
             tmp_pose.pose.position.y = xtraj[i * NX + 1];
             sol_path_msg.poses[i] = tmp_pose;
 
-            sol_length += std::fabs(xtraj[i*NX+3])*mpc_tf/N_HORIZON;
+            sol_length += std::fabs(xtraj[i * NX + 3]) * mpc_tf / N_HORIZON;
         }
 
         sol_idx = int(var_w_at(sol_idx_weight, sol_length));
@@ -425,8 +464,10 @@ private:
         right_thruster_msg.data = simU[1];
 
         debug_ce_msg.data = get_crosstrack_e();
-        for(int i = 0 ; i < N_WP ; i++){
-            debug_weights_msg.data[i] = ocp_params[N_SP+i];
+        debug_he_msg.data = get_heading_e();
+        for (int i = 0; i < N_WP; i++)
+        {
+            debug_weights_msg.data[i] = ocp_params[N_SP + i];
         }
 
         int sqp_iter;
@@ -434,10 +475,11 @@ private:
 
         sol_time_pub_->publish(sol_time_msg);
         sol_path_pub_->publish(sol_path_msg);
-        if (!mpc_enabled)
+        if (!mpc_enabled || ocp_cost > 10000.0 || status == 4)
         {
+            RCLCPP_ERROR(this->get_logger(), "MPC IS DISABLED");
             vel_setpoint_msg.data = 0.0;
-            heading_setpoint_msg.data = 0.0;
+            heading_setpoint_msg.data = x0[2];
             left_thruster_msg.data = 0.0;
             right_thruster_msg.data = 0.0;
         }
@@ -446,17 +488,19 @@ private:
         // left_thruster_pub_->publish(left_thruster_msg);
         // right_thruster_pub_->publish(right_thruster_msg);
         debug_ce_pub_->publish(debug_ce_msg);
+        debug_he_pub_->publish(debug_he_msg);
+        debug_residuals_pub_->publish(debug_residuals_msg);
         debug_weights_pub_->publish(debug_weights_msg);
 
-        RCLCPP_INFO(this->get_logger(),
-            "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}",
-            ocp_params[0], ocp_params[1], ocp_params[2], ocp_params[3], ocp_params[4], ocp_params[5], ocp_params[6], 
-            ocp_params[7], ocp_params[8], ocp_params[9], ocp_params[10], ocp_params[11], ocp_params[12], ocp_params[13], 
-            ocp_params[14], ocp_params[15], ocp_params[16]
-        );
-        RCLCPP_INFO(this->get_logger(),
-            "SOLUTION IDX: %.2d, Sol. length: %.2f",sol_idx, sol_length);
-        RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
+        // MPC Debugging
+        // RCLCPP_INFO(this->get_logger(),
+        //             "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}",
+        //             ocp_params[0], ocp_params[1], ocp_params[2], ocp_params[3], ocp_params[4], ocp_params[5], ocp_params[6],
+        //             ocp_params[7], ocp_params[8], ocp_params[9], ocp_params[10], ocp_params[11], ocp_params[12], ocp_params[13],
+        //             ocp_params[14], ocp_params[15], ocp_params[16]);
+        // RCLCPP_INFO(this->get_logger(),
+        //             "SOLUTION IDX: %.2d, Sol. length: %.2f", sol_idx, sol_length);
+        // RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
     }
 
     double normalize_angle(double x)
@@ -468,23 +512,45 @@ private:
     }
 
     // Get a linear variable weight depending on t and its restrictions
-    double var_w_at(WeightParams p, double t){
-        double w_m = (p.max_w-p.min_w) / (p.max_t-p.min_t);
-        double w_b = p.min_w - w_m*p.min_t;
-        if(p.min_w < p.max_w)
-            return std::clamp(w_m*t+w_b,p.min_w,p.max_w);
+    double var_w_at(WeightParams p, double t)
+    {
+        double w_m = (p.max_w - p.min_w) / (p.max_t - p.min_t);
+        double w_b = p.min_w - w_m * p.min_t;
+        if (p.min_w < p.max_w)
+            return std::clamp(w_m * t + w_b, p.min_w, p.max_w);
         // In some cases, slope is negative, and sol. shouldn't depend on argument order...
-        return std::clamp(w_m*t+w_b,p.max_w,p.min_w);
+        return std::clamp(w_m * t + w_b, p.max_w, p.min_w);
     }
 
-    double get_crosstrack_e(){
+    double get_crosstrack_e()
+    {
         Eigen::Vector2d spline_pos, asv_pos, pos_diff;
-        spline_pos << ocp_params[0]*s_t*s_t*s_t + ocp_params[1]*s_t*s_t + ocp_params[2]*s_t + ocp_params[3],
-            ocp_params[4]*s_t*s_t*s_t + ocp_params[5]*s_t*s_t + ocp_params[6]*s_t + ocp_params[7];
-        asv_pos << x0[0],x0[1];
+        asv_pos << x0[0], x0[1];
+        spline_pos = get_spline(s_t);
         pos_diff = spline_pos - asv_pos;
 
         return pos_diff.norm();
+    }
+
+    double get_heading_e()
+    {
+        Eigen::Vector2d s_dot;
+        s_dot = get_spline_dot(s_t);
+        double psi_ref = std::atan2(s_dot.y(), s_dot.x());
+        double he_sqrt = std::sin((x0[2] - psi_ref) / 2.0);
+        return he_sqrt * he_sqrt;
+    }
+
+    Eigen::Vector2d get_spline(double t)
+    {
+        return Eigen::Vector2d{ocp_params[0] * s_t * s_t * s_t + ocp_params[1] * s_t * s_t + ocp_params[2] * s_t + ocp_params[3],
+                               ocp_params[4] * s_t * s_t * s_t + ocp_params[5] * s_t * s_t + ocp_params[6] * s_t + ocp_params[7]};
+    }
+
+    Eigen::Vector2d get_spline_dot(double t)
+    {
+        return Eigen::Vector2d{3 * ocp_params[0] * s_t * s_t + 2 * ocp_params[1] * s_t + ocp_params[2],
+                               3 * ocp_params[4] * s_t * s_t + 2 * ocp_params[5] * s_t + ocp_params[6]};
     }
 };
 
