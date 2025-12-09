@@ -35,10 +35,13 @@
 #define NP ASV_DYNAMICS_NP
 #define N_HORIZON ASV_DYNAMICS_N
 
+#define n_obs 3
+
 // Simulation parameters
 #define N_SP 8 // Spline params (4 x NDIMS)
-#define N_WP 8 // Weight params
+#define N_WP 9 // Weight params
 #define N_AP 1 // Additional params
+#define N_OP n_obs*2 //Obstacle params (velocities)
 
 #define TF 2.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
@@ -276,6 +279,13 @@ public:
         }
 
         debug_weights_msg.data.resize(N_WP);
+
+        x0[6] = 5.0;
+        x0[7] = 0.0;
+        x0[8] = 10.0;
+        x0[9] = 0.0;
+        x0[10] = 15.0;
+        x0[11] = 0.0;
     }
 
     ~MPCNode()
@@ -317,11 +327,12 @@ private:
 
     // map input [min,max] to output [min,max]
     double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2};
-    double max_err_weights_mult[8]{
+    double max_err_weights_mult[N_WP]{
         0.1, 10.0, 5.0,         // along,cross,heading
-        0.1, 0.1, 0.1, 0.1, 0.5 // input,slack,surge,yaw,terminal
+        0.1, 0.1, 0.1, 0.1, 0.5, // input,slack,surge,yaw,terminal
+        1.0 // avoidance
     };
-    WeightParams weight_ps[8]{
+    WeightParams weight_ps[N_WP]{
         // These first weights depend on separation (cross_err)
         {min_ce, max_ce, mpc_weights[0], mpc_weights[0] * 0.1},  // along
         {min_ce, max_ce, mpc_weights[1], mpc_weights[1] * 10.0}, // cross
@@ -333,6 +344,8 @@ private:
         {min_ae, max_ae, mpc_weights[5], mpc_weights[5] * 0.1}, // surge
         {min_ae, max_ae, mpc_weights[6], mpc_weights[6] * 0.1}, // yaw
         {min_ae, max_ae, mpc_weights[7], mpc_weights[7] * 0.5}, // terminal
+
+        {min_ae, max_ae, mpc_weights[8], mpc_weights[8] * 1.0}, // terminal
     };
     int sol_idx{20};
     WeightParams sol_idx_weight{0.1, 0.8, 10.0, 20.0};

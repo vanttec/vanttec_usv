@@ -26,6 +26,7 @@ class MPCWeightsTuner(QMainWindow):
             ("w_surge", 0.01, 0.0, 10.0, 0.001),
             ("w_yaw", 0.01, 0.0, 10.0, 0.001),
             ("terminal_w", 100.0, 0.0, 1000.0, 1.0),
+            ("avoidance_w", 0.01, 0.0, 100.0, 0.001),
         ]
         
         self.weights = [config[1] for config in self.weights_config]
@@ -85,12 +86,12 @@ class MPCWeightsTuner(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setSpacing(20)
+        main_layout.setSpacing(15)
         main_layout.setContentsMargins(30, 30, 30, 30)
         
         # Title
         title = QLabel("MPC Weights Configuration")
-        title_font = QFont("Arial", 18, QFont.Bold)
+        title_font = QFont("Arial", 15, QFont.Bold)
         title.setFont(title_font)
         title.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title)
@@ -98,7 +99,7 @@ class MPCWeightsTuner(QMainWindow):
         # MPC Horizon DT
         tf_layout = QHBoxLayout()
         tf_label = QLabel("MPC Horizon tf (s)")
-        tf_label.setFont(QFont("Arial", 13, QFont.Medium))
+        tf_label.setFont(QFont("Arial", 12, QFont.Medium))
         tf_layout.addWidget(tf_label)
         tf_layout.addStretch()
 
@@ -141,7 +142,7 @@ class MPCWeightsTuner(QMainWindow):
         # MPC Enable toggle
         toggle_layout = QHBoxLayout()
         toggle_label = QLabel("MPC Enabled")
-        toggle_label.setFont(QFont("Arial", 13, QFont.Medium))
+        toggle_label.setFont(QFont("Arial", 12, QFont.Medium))
         toggle_layout.addWidget(toggle_label)
         toggle_layout.addStretch()
 
@@ -179,7 +180,7 @@ class MPCWeightsTuner(QMainWindow):
         
         # Set window size
         self.setMinimumSize(300, 600)
-        self.resize(300, 1000)
+        self.resize(300, 1100)
         
     def create_weight_slider(self, name, default, min_val, max_val, step, index):
         container = QWidget()

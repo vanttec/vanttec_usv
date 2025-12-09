@@ -27,6 +27,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     w_surge_ = 10.0
     w_yaw_ = 10.0
     w_terminal_ = 100.0  # Terminal cost multiplier weight
+    w_avoidance_ = 10.0
 
     t_la_init = 0.3
 
@@ -38,6 +39,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     w_surge = model.p[13]
     w_yaw = model.p[14]
     w_terminal = model.p[15]
+    w_avoidance = model.p[16]
 
     nx = model.x.rows()  # No. states
     nu = model.u.rows()  # No. controls
@@ -61,7 +63,12 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     yaw = model.x[4]
     t_param = model.x[5]
 
-    t_la_param = model.p[16]
+    obs_n = model.obs_n
+    obs = []
+    for i in range(obs_n):
+        obs.append(model.x[6+2*i])
+        obs.append(model.x[7+2*i])
+    t_la_param = model.p[17]
     
     tau_port = model.u[0]
     tau_stbd = model.u[1]
@@ -82,7 +89,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     # crosstrack_error = (x_pos - s_x)**2 + (y_pos - s_y)**2
     crosstrack_error = 0.0
     for l in Ls:
-        crosstrack_error += (x_pos + l*cos(psi) - s_x)**2 + (y_pos + l*sin(psi) - s_y)**2
+        crosstrack_error += ((x_pos + l*cos(psi)) - s_x)**2 + ((y_pos + l*sin(psi)) - s_y)**2
     crosstrack_error/=len(Ls)
 
     alongtrack_error = (x_pos - s_la_x)**2 + (y_pos - s_la_y)**2
@@ -91,14 +98,27 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     slack_cost = slack_u**2
     surge_cost = surge**2
     yaw_cost = yaw**2
-    
+
+    avoidance_list = [
+        [0.55,0.],
+        [0.55,-0.3], [0.55,0.3],
+        [-0.35,-0.3], [-0.35,0.3],
+    ]
+    avoidance_cost = 0.0
+    for i in range((int)(obs_n)):
+        for avo in avoidance_list:
+            x_virt = x_pos + avo[0]*cos(psi) - avo[1]*sin(psi)
+            y_virt = y_pos + avo[0]*sin(psi) + avo[1]*cos(psi)
+            avoidance_cost += 1.0 / ((np.sqrt((obs[i*2]-x_virt)**2 + (obs[i*2+1]-y_virt)**2) / 3.)**1.5)
+
     stage_cost = (w_along * alongtrack_error + 
                   w_cross * crosstrack_error + 
                   w_heading * heading_error + 
                   w_input * input_cost +
                   w_slack * slack_cost +
                   w_surge * surge_cost +
-                  w_yaw * yaw_cost                  
+                  w_yaw * yaw_cost +
+                  w_avoidance * avoidance_cost
                   )
     
     ocp.model.cost_expr_ext_cost = stage_cost
@@ -108,7 +128,8 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
                     w_cross * crosstrack_error + 
                     w_heading * heading_error +
                     w_surge * surge_cost +
-                    w_yaw * yaw_cost
+                    w_yaw * yaw_cost +
+                    w_avoidance * avoidance_cost
                     )
     
     ocp.model.cost_expr_ext_cost_e = terminal_cost
@@ -150,9 +171,10 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.constraints.idxbx_e = np.array([5,3,4])
     
     # Set spline parameters
-    weight_params = np.array([w_along_, w_cross_, w_heading_, w_input_, w_slack_, w_surge_, w_yaw_, w_terminal_])
+    weight_params = np.array([w_along_, w_cross_, w_heading_, w_input_, w_slack_, w_surge_, w_yaw_, w_terminal_, w_avoidance_])
     additional_params = np.array([t_la_init])
-    ocp.parameter_values = np.concatenate((spline_params,weight_params, additional_params))
+    obs_vel_params = np.zeros(obs_n*2)
+    ocp.parameter_values = np.concatenate((spline_params,weight_params,additional_params,obs_vel_params))
     
     # --- SOLVER OPTIONS ---
     ocp.solver_options.qp_solver = 'PARTIAL_CONDENSING_HPIPM'
@@ -326,7 +348,13 @@ def main(algorithm='RTI', simulate=True):
         0.0,          # psi
         0.0,          # surge
         0.0,          # yaw
-        0.3           # t (start at beginning of spline)
+        0.3,           # t (start at beginning of spline)
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
     ])
     
     # --- Setup solver and integrator ---

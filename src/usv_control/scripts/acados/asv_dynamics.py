@@ -29,6 +29,7 @@ def export_asv_model() -> AcadosModel:
     m = 30
     Iz = 4.1
     B = 0.41
+    obs_n = 3
 
     # set up states & controls
     x_pos = SX.sym('x_pos')
@@ -37,7 +38,11 @@ def export_asv_model() -> AcadosModel:
     surge = SX.sym('surge')
     yaw = SX.sym('yaw')
     t = SX.sym('t')  # Spline parameter
-    x = vertcat(x_pos, y_pos, psi, surge, yaw, t)
+    obs_states = [] # obstacles
+    for i in range(obs_n):
+        obs_states.append(SX.sym(f'obs_x_{i}'))
+        obs_states.append(SX.sym(f'obs_y_{i}'))
+    x = vertcat(x_pos, y_pos, psi, surge, yaw, t, *obs_states)
 
     t_port = SX.sym('t_port')
     t_stbd = SX.sym('t_stbd')
@@ -64,11 +69,17 @@ def export_asv_model() -> AcadosModel:
     w_surge = SX.sym('w_surge')
     w_yaw = SX.sym('w_yaw')
     w_terminal = SX.sym('w_terminal')
+    w_avoidance = SX.sym('w_avoidance')
     t_la = SX.sym('t_la')
-
+    # Obstacle velocities (for dynamic obstacles)
+    obs_velocities = []
+    for i in range(obs_n):
+        obs_velocities.append(SX.sym(f'obs_vx_{i}'))
+        obs_velocities.append(SX.sym(f'obs_vy_{i}'))
+    
     p = vertcat(a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y, 
-                w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal,
-                t_la)
+        w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance,
+        t_la, *obs_velocities)
 
     # state-dependent parameters for ASV
     Xu = if_else(surge > 1.2, 64.55, -25.0)
@@ -82,12 +93,22 @@ def export_asv_model() -> AcadosModel:
     surge_dot = SX.sym('surge_dot')
     yaw_dot = SX.sym('yaw_dot')
     t_dot = SX.sym('t_dot')
+    # Obstacle derivatives
+    obs_dots = []
+    for i in range(obs_n):
+        obs_dots.append(SX.sym(f'obs_x_dot_{i}'))
+        obs_dots.append(SX.sym(f'obs_y_dot_{i}'))
 
-    xdot = vertcat(x_dot, y_dot, psi_dot, surge_dot, yaw_dot, t_dot)
+    xdot = vertcat(x_dot, y_dot, psi_dot, surge_dot, yaw_dot, t_dot, *obs_dots)
     
     # ASV dynamics
     cos_psi = cos(psi)
     sin_psi = sin(psi)
+    # Obstacle dynamics (controlled by parameters)
+    obs_dynamics = []
+    for i in range(obs_n):
+        obs_dynamics.append(obs_velocities[2*i])      # dx/dt = vx
+        obs_dynamics.append(obs_velocities[2*i + 1])  # dy/dt = vy
 
     f_expl = vertcat(
         surge * cos_psi,
@@ -98,6 +119,7 @@ def export_asv_model() -> AcadosModel:
         (((t_port - t_stbd) * B / 2 + 
         Nrr*fabs(yaw)*yaw + Nr*yaw) / (Iz - N_r_dot)),
         dt, # Progress along spline
+        *obs_dynamics
     )
 
     f_impl = xdot - f_expl
@@ -134,6 +156,7 @@ def export_asv_model() -> AcadosModel:
     model.s_la_x = s_la_x
     model.s_la_y = s_la_y
     model.psi_ref = psi_ref
+    model.obs_n = obs_n
 
     # Store meta information
     model.x_labels = ['$x$ [m]', '$y$ [m]', '$\\psi$ [rad]', '$u$ [m/s]', '$r$ [rad/s]', '$t$']
