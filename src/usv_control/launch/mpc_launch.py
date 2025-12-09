@@ -1,5 +1,5 @@
 '''
-This script launches the mpc node with its parameters
+This script launches the mpc node with its parameters, and auxiliary nodes
 '''
 
 import os
@@ -9,18 +9,30 @@ from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    weights_config = os.path.join(
-        get_package_share_directory('usv_control'),
-        'config',
-        'weights.yaml'
-    )
+    # weights_config = os.path.join(
+    #     get_package_share_directory('usv_control'),
+    #     'config',
+    #     'weights.yaml'
+    # )
 
     mpc_node = Node(
         package="usv_control",
         executable="mpc_node",
-        parameters=[weights_config],
+        # parameters=[weights_config],
     )
-     
+
+    spline_publisher_node = Node(
+        package="usv_control",
+        executable="spline_publisher_node",
+    )
+    
+    mpc_gui = Node(
+        package="usv_control",
+        executable="mpc_gui.py",
+    )
+
     return LaunchDescription([
-        mpc_node      
+        mpc_node,
+        spline_publisher_node,
+        mpc_gui,
     ])
