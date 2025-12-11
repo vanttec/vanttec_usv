@@ -6,8 +6,8 @@ obstacle_publisher_node:
       obj_names: ["b0"]
       obj_info:
         b0:
-          x: 10000.0
-          y: 10000.0
+          x: 3000.0
+          y: 0.0
           color: 0
           type: "marker"
     m1_t1:

@@ -161,7 +161,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     # )
     
     # State bounds
-    ocp.constraints.lbx = np.array([0.0,-0.15,-1.5])
+    ocp.constraints.lbx = np.array([0.0,-1.5,-1.5])
     ocp.constraints.ubx = np.array([1.0,1.5,1.5])
     ocp.constraints.idxbx = np.array([5,3,4])  # Index in state vector (t, surge, yaw)
     

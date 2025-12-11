@@ -137,7 +137,7 @@ public:
                 // Variable weights dependant on crosstrack or alongtrack errors.
                 nearest_obs = get_nearest_obs();
                 obs_d = distance(asv, nearest_obs);
-                double alpha = interpol_at(min_avoidance-0.1, max_avoidance+0.1, 1.0, 0.0, obs_d);
+                double alpha = interpol_at(min_avoidance, max_avoidance, 1.0, 0.0, obs_d);
                 // Path-tracking weights
                 for (int i = 0; i < N_WP; i++)
                 {
@@ -344,10 +344,10 @@ private:
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance
     std::vector<double> mpc_weights      {5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0, 0.0};
     std::vector<double> tracking_to_avoid{2.0, 0.004, 0.01, 0.2, 1.0, 1.0, 1.0, 0.10, 1.0};
-    std::vector<double> avoidance_weights{10.0, 0.06, 0.2, 0.01, 1000.0, 0.01, 0.01, 10.0, 2.0};
+    std::vector<double> avoidance_weights{10.0, 0.06, 0.2, 0.01, 1000.0, 0.01, 0.01, 10.0, 5.0};
 
     // map input [min,max] to output [min,max]
-    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{2.0}, max_avoidance{1.5};
+    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{5.0}, max_avoidance{2.0};
     double tracking_weights_dynamics[N_WP]{
         0.1, 10.0, 5.0,         // along,cross,heading
         0.1, 0.1, 0.1, 0.1, 0.5, // input,slack,surge,yaw,terminal
@@ -552,11 +552,6 @@ private:
         RCLCPP_INFO(this->get_logger(),
                     "SOLUTION IDX: %.2d, Sol. length: %.2f", sol_idx, sol_length);
         RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
-        if(obs_d > 2.0){
-            RCLCPP_INFO(this->get_logger(), "TRACKING");
-        } else {
-            RCLCPP_INFO(this->get_logger(), "AVOIDING");
-        }
     }
 
     double normalize_angle(double x)
