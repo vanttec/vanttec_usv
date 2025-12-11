@@ -101,7 +101,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
 
     avoidance_list = [
         [0.55,0.],
-        [0.55,-0.3], [0.55,0.3],
+        [0.35,-0.25], [0.35,0.25],
         [-0.35,-0.3], [-0.35,0.3],
     ]
     avoidance_cost = 0.0

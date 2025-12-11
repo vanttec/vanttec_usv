@@ -207,7 +207,7 @@ private:
     int n_{100};
     double dist{0.1};
 
-    Eigen::Vector3d ref[2]{{0,0,0},{1,0,0}};
+    Eigen::Vector3d ref[2]{{0,0,0},{5,0,0}};
     Eigen::Vector3d asv;
 
     Eigen::Vector2d translate(Eigen::Vector3d v, double dist)
