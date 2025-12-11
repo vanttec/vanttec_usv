@@ -136,21 +136,30 @@ public:
                 // Variable weights dependant on crosstrack or alongtrack errors.
                 nearest_obs = get_nearest_obs();
                 obs_d = distance(asv, nearest_obs);
-                if(obs_d > 2.0){
-                    // Path-tracking weights
-                    for (int i = 0; i < N_WP; i++)
-                    {
-                        if (i < 3)
-                            ocp_params[N_SP + i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], cross_e);
-                        else
-                            ocp_params[N_SP + i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], along_e);
-                    }
-                } else {
-                    // Avoidance weights
-                    for (int i = 0; i < N_WP; i++)
-                    {
-                        ocp_params[N_SP + i] = var_w_at(avoidance_weights[i], avoidance_weights_inputs[i], avoidance_weights_dynamics[i], obs_d);
-                    }
+                double alpha = interpol_at(min_avoidance-0.1, max_avoidance+0.1, 1.0, 0.0, obs_d);
+                // Path-tracking weights
+                for (int i = 0; i < N_WP; i++)
+                {
+                    // Get path-tracking weight
+                    if (i < 3)
+                        pt_weights[i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], cross_e);
+                    else
+                        pt_weights[i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], along_e);
+                    // Get avoidance weight
+                    avo_weights[i] = var_w_at(avoidance_weights[i], avoidance_weights_inputs[i], avoidance_weights_dynamics[i], obs_d);
+
+                    // Interpolate weights
+                    ocp_params[N_SP+i] = pt_weights[i]*alpha + avo_weights[i]*(1-alpha);
+                }
+
+                RCLCPP_INFO(this->get_logger(), 
+                            "obs_d=%.2f, alpha=%.3f, nearest_obs=(%.2f,%.2f)", 
+                            obs_d, alpha, nearest_obs.x(), nearest_obs.y());
+
+                for (int i = 0; i < 3; i++) {  // Just log first 3 weights
+                    RCLCPP_INFO(this->get_logger(),
+                                "Weight[%d]: pt=%.2f, avo=%.2f, alpha=%.3f, final=%.2f",
+                                i, pt_weights[i], avo_weights[i], alpha, ocp_params[N_SP+i]);
                 }
             });
 
@@ -337,10 +346,10 @@ private:
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance
     std::vector<double> mpc_weights      {5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0, 0.0};
     std::vector<double> tracking_to_avoid{2.0, 0.004, 0.01, 0.2, 1.0, 1.0, 1.0, 0.10, 1.0};
-    std::vector<double> avoidance_weights{10.0, 0.06, 0.2, 0.01, 1000.0, 0.01, 0.01, 10.0, 0.3};
+    std::vector<double> avoidance_weights{10.0, 0.06, 0.2, 0.01, 1000.0, 0.01, 0.01, 10.0, 2.0};
 
     // map input [min,max] to output [min,max]
-    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{2.0}, max_avoidance{1.0};
+    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{2.0}, max_avoidance{1.5};
     double tracking_weights_dynamics[N_WP]{
         0.1, 10.0, 5.0,         // along,cross,heading
         0.1, 0.1, 0.1, 0.1, 0.5, // input,slack,surge,yaw,terminal
@@ -393,6 +402,8 @@ private:
 
     int status{0};
     double ocp_params[NP];
+    double pt_weights[N_WP];
+    double avo_weights[N_WP]; 
     double x0[NX];
 
     asv_dynamics_solver_capsule *ocp_capsule;
@@ -559,6 +570,7 @@ private:
     }
 
     // Get a linear variable weight depending on t and its restrictions
+    // y(t0), {t0, t1}, y(t0)*k, t[t0->t1]
     double var_w_at(double weight, WeightParams p, double dynamics, double t)
     {
         double w_m = (dynamics*weight - weight) / (p.max_t - p.min_t);
@@ -567,6 +579,16 @@ private:
             return std::clamp(w_m * t + w_b, weight, dynamics*weight);
         // In some cases, slope is negative, and sol. shouldn't depend on argument order...
         return std::clamp(w_m * t + w_b, dynamics*weight, weight);
+    }
+
+    double interpol_at(double min_t, double max_t, double min_y, double max_y, double t)
+    {
+        double w_m = (max_y - min_y) / (max_t - min_t);
+        double w_b = min_y - w_m * min_t;
+        if (min_y < max_y)
+            return std::clamp(w_m * t + w_b, min_y, max_y);
+        // In some cases, slope is negative, and sol. shouldn't depend on argument order...
+        return std::clamp(w_m * t + w_b, max_y, min_y);
     }
 
     double get_crosstrack_e()
