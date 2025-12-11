@@ -80,7 +80,7 @@ Visualization Manager:
       Enabled: true
       Name: Spline t [0,1]
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -93,7 +93,7 @@ Visualization Manager:
       Enabled: true
       Name: Spline l.a. [0,1]
       Namespaces:
-        "": true
+        {}
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -223,6 +223,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /usv/state/odom
       Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        "": true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /marker_array
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -272,7 +284,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 124.58537292480469
+      Scale: 41.2504768371582
       Target Frame: world
       Value: TopDownOrtho (rviz_default_plugins)
       X: 2.3518004417419434

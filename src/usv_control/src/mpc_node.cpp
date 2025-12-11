@@ -30,6 +30,7 @@
 #include "nav_msgs/msg/odometry.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "usv_interfaces/msg/object_list.hpp"
 
 #define NX ASV_DYNAMICS_NX
 #define NU ASV_DYNAMICS_NU
@@ -151,16 +152,6 @@ public:
                     // Interpolate weights
                     ocp_params[N_SP+i] = pt_weights[i]*alpha + avo_weights[i]*(1-alpha);
                 }
-
-                RCLCPP_INFO(this->get_logger(), 
-                            "obs_d=%.2f, alpha=%.3f, nearest_obs=(%.2f,%.2f)", 
-                            obs_d, alpha, nearest_obs.x(), nearest_obs.y());
-
-                for (int i = 0; i < 3; i++) {  // Just log first 3 weights
-                    RCLCPP_INFO(this->get_logger(),
-                                "Weight[%d]: pt=%.2f, avo=%.2f, alpha=%.3f, final=%.2f",
-                                i, pt_weights[i], avo_weights[i], alpha, ocp_params[N_SP+i]);
-                }
             });
 
         spline_length_sub_ = this->create_subscription<std_msgs::msg::Float64>(
@@ -188,6 +179,19 @@ public:
                 {
                     RCLCPP_WARN(this->get_logger(), "Resetting trajectory guess");
                     asv_dynamics_acados_reset(ocp_capsule, 1); // 1 = reset trajectory guess
+                }
+            });
+        
+        obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
+            "/obj_n_nearest_list", 10,
+            [this](const usv_interfaces::msg::ObjectList &msg){
+                for(int i = 0 ; i < n_obs; i++){
+                    x0[6 + i*2] = msg.obj_list[i].x;
+                    x0[6+1+i*2] = msg.obj_list[i].y;
+
+                    int param_idx = N_SP + N_WP + N_AP;
+                    ocp_params[param_idx + i*2] = msg.obj_list[i].v_x;
+                    ocp_params[param_idx+1+i*2] = msg.obj_list[i].v_y;
                 }
             });
 
@@ -300,13 +304,6 @@ public:
         }
 
         debug_weights_msg.data.resize(N_WP);
-
-        x0[6] = 3.0;
-        x0[7] = 0.0;
-        x0[8] = 100.0;
-        x0[9] = 0.0;
-        x0[10] = 105.0;
-        x0[11] = 0.0;
     }
 
     ~MPCNode()
@@ -328,6 +325,7 @@ private:
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_, spline_t_la_sub_, spline_length_sub_;
+    rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
 
     std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_, enabled_param_sub_,
         tf_param_sub_, s_max_dt_param_sub_;
@@ -356,7 +354,7 @@ private:
         1.0 // avoidance
     };
 
-    // Logic: Same behavior of tracking_to_avoid
+    // Logic: Same behavior of tracking_to_avoid (so this just squares it at most)
     double avoidance_weights_dynamics[N_WP]{2.0, 0.004, 0.01, 0.2, 1.0, 1.0, 1.0, 0.10, 1.0};
     WeightParams tracking_weights_inputs[N_WP]{
         // These first weights depend on separation (cross_err)
