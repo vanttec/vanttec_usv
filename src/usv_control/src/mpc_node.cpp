@@ -146,8 +146,8 @@ public:
                         pt_weights[i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], cross_e);
                     else
                         pt_weights[i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], along_e);
-                    // Get avoidance weight
-                    avo_weights[i] = var_w_at(avoidance_weights[i], avoidance_weights_inputs[i], avoidance_weights_dynamics[i], obs_d);
+                    // Get avoidance weight (uses tracking_to_avoid because it wants to square the already translation)
+                    avo_weights[i] = var_w_at(avoidance_weights[i], avoidance_weights_inputs[i], tracking_to_avoid[i], obs_d);
 
                     // Interpolate weights
                     ocp_params[N_SP+i] = pt_weights[i]*alpha + avo_weights[i]*(1-alpha);
@@ -291,6 +291,9 @@ public:
         nlp_solver = asv_dynamics_acados_get_nlp_solver(ocp_capsule);
 
         // Set initial state
+        for(int i = 0 ; i < n_obs * 2 ; i++){
+            x0[6+i] = 100.0;
+        }
         memcpy(simX, x0, NX * sizeof(double));
 
         // Set spline parameteres for all stages
@@ -343,19 +346,17 @@ private:
 
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance
     std::vector<double> mpc_weights      {5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0, 0.0};
-    std::vector<double> tracking_to_avoid{2.0, 0.004, 0.01, 0.2, 1.0, 1.0, 1.0, 0.10, 1.0};
-    std::vector<double> avoidance_weights{10.0, 0.06, 0.2, 0.01, 1000.0, 0.01, 0.01, 10.0, 5.0};
+    std::vector<double> tracking_to_avoid{2.0, 0.004, 0.01, 0.2, 1.0, 1.0, 1.0, 0.05, 1.0};
+    std::vector<double> avoidance_weights{10.0, 0.06, 0.2, 0.01, 1000.0, 0.01, 0.01, 5.0, 2.0};
 
     // map input [min,max] to output [min,max]
-    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{5.0}, max_avoidance{2.0};
+    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{4.0}, max_avoidance{2.0};
     double tracking_weights_dynamics[N_WP]{
         0.1, 10.0, 5.0,         // along,cross,heading
         0.1, 0.1, 0.1, 0.1, 0.5, // input,slack,surge,yaw,terminal
         1.0 // avoidance
     };
 
-    // Logic: Same behavior of tracking_to_avoid (so this just squares it at most)
-    double avoidance_weights_dynamics[N_WP]{2.0, 0.004, 0.01, 0.2, 1.0, 1.0, 1.0, 0.10, 1.0};
     WeightParams tracking_weights_inputs[N_WP]{
         // These first weights depend on separation (cross_err)
         {min_ce, max_ce},  // along
@@ -552,6 +553,7 @@ private:
         RCLCPP_INFO(this->get_logger(),
                     "SOLUTION IDX: %.2d, Sol. length: %.2f", sol_idx, sol_length);
         RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
+        RCLCPP_INFO(this->get_logger(), "Dist nearest obs: %.2f", obs_d);
     }
 
     double normalize_angle(double x)

@@ -20,7 +20,7 @@ class MPCWeightsTuner(QMainWindow):
         self.weights_config = [
             ("w_along", 5.0, 0.0, 100.0, 0.1),
             ("w_cross", 15.0, 0.0, 100.0, 0.1),
-            ("w_heading", 20.0, 0.0, 20.0, 0.5),
+            ("w_heading", 20.0, 0.0, 100.0, 0.1),
             ("w_input", 0.05, 0.0, 10.0, 0.001),
             ("w_slack", 1000.0, 0.0, 1000.0, 1.0),
             ("w_surge", 0.01, 0.0, 10.0, 0.001),

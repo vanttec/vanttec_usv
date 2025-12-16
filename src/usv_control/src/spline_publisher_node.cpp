@@ -140,7 +140,7 @@ protected:
         closest_t = s_.closest_t(asv);
         closest_p = s_.get_s(closest_t);
 
-        double lookahead = 1.0;
+        double lookahead = 2.0;
         // For length L, we want to find a t+dt such that s(t+dt) is at [dist] from s(t)
         // To map L to dist: L is to 1, what dist is to dt -> dt = dist/L
         double la_t = std::clamp(closest_t+lookahead/L_, 0.0, 1.0);
@@ -207,7 +207,7 @@ private:
     int n_{100};
     double dist{0.1};
 
-    Eigen::Vector3d ref[2]{{0,0,0},{5,0,0}};
+    Eigen::Vector3d ref[2]{{0,0,0},{6,0,0}};
     Eigen::Vector3d asv;
 
     Eigen::Vector2d translate(Eigen::Vector3d v, double dist)
