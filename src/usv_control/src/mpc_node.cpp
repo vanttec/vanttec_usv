@@ -346,8 +346,8 @@ private:
 
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance
     std::vector<double> mpc_weights      {5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0, 0.0};
-    std::vector<double> tracking_to_avoid{2.0, 0.004, 0.01, 0.2, 1.0, 1.0, 1.0, 0.05, 1.0};
-    std::vector<double> avoidance_weights{10.0, 0.06, 0.2, 0.01, 1000.0, 0.01, 0.01, 5.0, 2.0};
+    std::vector<double> tracking_to_avoid{2.0, 0.004, 0.50, 0.2, 1.0, 1.0, 1.0, 0.05, 1.0};
+    std::vector<double> avoidance_weights{10.0, 0.06, 10.0, 0.01, 1000.0, 0.01, 0.01, 5.0, 2.0};
 
     // map input [min,max] to output [min,max]
     double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{4.0}, max_avoidance{2.0};
