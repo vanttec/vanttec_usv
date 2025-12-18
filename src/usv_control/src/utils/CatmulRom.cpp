@@ -22,6 +22,8 @@ void CatmulRom::update(Eigen::Vector2d p0, Eigen::Vector2d p1, Eigen::Vector2d p
     s_.b = -3.0 * (p1 - p2) - m1 - m1 - m2;
     s_.c = m1;
     s_.d = p1;
+
+    calc_arc_length();
 }
 
 double CatmulRom::distance(Eigen::Vector2d a, Eigen::Vector2d b){
@@ -98,7 +100,7 @@ double CatmulRom::closest_t(Eigen::Vector3d p3){
     return closest_t;
 }
 
-double CatmulRom::arc_length() {
+void CatmulRom::calc_arc_length() {
     // Numerical integration of ||s'(t)|| from 0 to 1
     double length = 0.0;
     int num_samples = 10;
@@ -117,5 +119,5 @@ double CatmulRom::arc_length() {
         length += (dt / 6.0) * (f0 + 4.0 * fm + f1);
     }
     
-    return length;
+    L_ = length;
 }

@@ -20,11 +20,12 @@ public:
     void update(Eigen::Vector2d p0, Eigen::Vector2d p1, Eigen::Vector2d p2, Eigen::Vector2d p3);
     Eigen::Vector2d get_s(double t);
     Eigen::Vector2d get_s_dot(double t);
-    double arc_length();
+    void calc_arc_length();
     double closest_t(Eigen::Vector3d p);
     static double distance(Eigen::Vector2d a, Eigen::Vector2d b);
 
     Segment s_;
+    double L_;
 
 private:
     double alpha_;

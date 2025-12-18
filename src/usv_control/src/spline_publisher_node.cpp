@@ -1,6 +1,6 @@
 #include <eigen3/Eigen/Dense>
 #include <vector>
-
+#include <limits>
 #include "rclcpp/rclcpp.hpp"
 
 #include "geometry_msgs/msg/vector3.hpp"
@@ -52,14 +52,18 @@ public:
             "/goal_pose", 1,
             [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
             {
-                ref[0] = asv;
+                ref.clear();
+                ref.push_back(trans(asv, -dist));
+                ref.push_back(trans(asv, 0.0));
 
                 auto &q = msg->pose.orientation;
-                ref[1].x() = msg->pose.position.x;
-                ref[1].y() = msg->pose.position.y;
-                ref[1].z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                tmp.x() = msg->pose.position.x;
+                tmp.y() = msg->pose.position.y;
+                tmp.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
-                
+                ref.push_back(trans(tmp, 0.0));
+                ref.push_back(trans(tmp, dist));
+
                 update_spline_params();
             });
 
@@ -68,10 +72,12 @@ public:
             [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
             {
                 auto &q = msg->pose.orientation;
-                ref[1].x() = msg->pose.position.x;
-                ref[1].y() = msg->pose.position.y;
-                ref[1].z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                tmp.x() = msg->pose.position.x;
+                tmp.y() = msg->pose.position.y;
+                tmp.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+                ref[ref.size()-1] = trans(tmp, 0.0);
+                ref.push_back(trans(tmp, dist));
                 
                 update_spline_params();
             });
@@ -80,11 +86,15 @@ public:
             "/goal_from", 1,
             [this](const geometry_msgs::msg::PoseStamped::SharedPtr msg)
             {
+                ref.clear();
                 auto &q = msg->pose.orientation;
-                ref[0].x() = msg->pose.position.x;
-                ref[0].y() = msg->pose.position.y;
-                ref[0].z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                tmp.x() = msg->pose.position.x;
+                tmp.y() = msg->pose.position.y;
+                tmp.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+                ref.push_back(trans(tmp, -dist));
+                ref.push_back(trans(tmp, 0.0));
+                ref.push_back(trans(tmp, dist));
                 
                 update_spline_params();
             });
@@ -108,8 +118,6 @@ public:
         la_marker_msg.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0.1).z(0.1);
         la_marker_msg.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(1).g(0).b(0).a(1);
 
-        // k+2 control points needed and at least 4 cps for catmul spline.
-        cps.resize(4);
         spline_params_msg.data.resize(8);
         update_spline_params();
     }
@@ -124,36 +132,67 @@ protected:
         s_marker_msg.header = path_msg.header;
         la_marker_msg.header = path_msg.header;
 
-        Eigen::Vector2d tmp_v;
-        Eigen::Vector2d closest_p;
-        double closest_t{-1};
+        if(s_.size() > 0){
+            Eigen::Vector2d tmp_v;
+            Eigen::Vector2d closest_p_tmp, closest_p;
+            double closest_t, closest_t_tmp;
+            double closest_dist = std::numeric_limits<double>::max();
+            int closest_idx = -1;
 
-        for (double t = 0; t <= 1; t += 1.0 / (n_ - 1))
-        {
-            tmp_v = s_.get_s(t);
-            tmp_pose.pose.position.x = tmp_v.x();
-            tmp_pose.pose.position.y = tmp_v.y();
-            // tmp_pose.pose.position.z = i + t;
-            path_msg.poses.push_back(tmp_pose);
+            for(int i = 0 ; i < s_.size() ; i++){
+
+                for (double t = 0; t <= 1; t += 1.0 / (n_ - 1))
+                {
+                    tmp_v = s_[i].get_s(t);
+                    tmp_pose.pose.position.x = tmp_v.x();
+                    tmp_pose.pose.position.y = tmp_v.y();
+                    // tmp_pose.pose.position.z = i + t;
+                    path_msg.poses.push_back(tmp_pose);
+                }
+                
+                closest_t_tmp = s_[i].closest_t(asv);
+                closest_p_tmp = s_[i].get_s(closest_t_tmp);
+
+                if(distance(asv, closest_p_tmp) < closest_dist){
+                    closest_t = closest_t_tmp;
+                    closest_dist = distance(asv, closest_p_tmp);
+                    closest_idx = i;
+                }
+            }
+
+            // If the closest sub-spline is almost ending, move to the next one
+            if((1-closest_t)*s_[closest_idx].L_ < 0.3 && closest_idx < s_.size() - 1){
+                closest_idx++;
+                closest_t = 0.0;
+            }
+            closest_p = s_[closest_idx].get_s(closest_t);
+
+            double lookahead = 2.0;
+            // For length L, we want to find a t+dt such that s(t+dt) is at [dist] from s(t)
+            // To map L to dist: L is to 1, what dist is to dt -> dt = dist/L
+            L_ = s_[closest_idx].L_;
+            double la_t = std::clamp(closest_t+lookahead/L_, 0.0, 1.0);
+            Eigen::Vector2d la_p = s_[closest_idx].get_s(la_t);
+
+            s_marker_msg.pose.position.x = closest_p.x();
+            s_marker_msg.pose.position.y = closest_p.y();
+
+            la_marker_msg.pose.position.x = la_p.x();
+            la_marker_msg.pose.position.y = la_p.y();
+
+            spline_t_msg.data = closest_t;
+            spline_t_la_msg.data = la_t;
+
+            for (int i = 0; i < 2; i++)
+            {
+                spline_params_msg.data[4 * i + 0] = s_[closest_idx].s_.a[i];
+                spline_params_msg.data[4 * i + 1] = s_[closest_idx].s_.b[i];
+                spline_params_msg.data[4 * i + 2] = s_[closest_idx].s_.c[i];
+                spline_params_msg.data[4 * i + 3] = s_[closest_idx].s_.d[i];
+            }
+
+            spline_length_msg.data = L_;
         }
-
-        closest_t = s_.closest_t(asv);
-        closest_p = s_.get_s(closest_t);
-
-        double lookahead = 2.0;
-        // For length L, we want to find a t+dt such that s(t+dt) is at [dist] from s(t)
-        // To map L to dist: L is to 1, what dist is to dt -> dt = dist/L
-        double la_t = std::clamp(closest_t+lookahead/L_, 0.0, 1.0);
-        Eigen::Vector2d la_p = s_.get_s(la_t);
-
-        s_marker_msg.pose.position.x = closest_p.x();
-        s_marker_msg.pose.position.y = closest_p.y();
-
-        la_marker_msg.pose.position.x = la_p.x();
-        la_marker_msg.pose.position.y = la_p.y();
-
-        spline_t_msg.data = closest_t;
-        spline_t_la_msg.data = la_t;
 
         spline_path_pub_->publish(path_msg);
         s_marker_pub_->publish(s_marker_msg);
@@ -166,23 +205,18 @@ protected:
 
     void update_spline_params()
     {
-        s_.update(
-            translate(ref[0],-dist),
-            translate(ref[0],0.0),
-            translate(ref[1],0.0),
-            translate(ref[1],dist)
-        );
-        
-        for (int i = 0; i < 2; i++)
-        {
-            spline_params_msg.data[4 * i + 0] = s_.s_.a[i];
-            spline_params_msg.data[4 * i + 1] = s_.s_.b[i];
-            spline_params_msg.data[4 * i + 2] = s_.s_.c[i];
-            spline_params_msg.data[4 * i + 3] = s_.s_.d[i];
+        s_.clear();
+        if(ref.size() < 4)
+            return;
+        s_.resize(ref.size() - 3);
+        for(int i = 0 ; i < s_.size() ; i++){
+            s_[i].update(
+                ref[i  ],
+                ref[i+1],
+                ref[i+2],
+                ref[i+3]
+            );
         }
-
-        L_ = s_.arc_length();
-        spline_length_msg.data = L_;
     }
 
 private:
@@ -201,16 +235,15 @@ private:
 
     rclcpp::TimerBase::SharedPtr timer_;
 
-    std::vector<Eigen::Vector2d> cps;
-    CatmulRom s_;
+    std::vector<CatmulRom> s_;
     double L_{0.0};
     int n_{100};
     double dist{0.1};
 
-    Eigen::Vector3d ref[2]{{0,0,0},{6,0,0}};
-    Eigen::Vector3d asv;
+    std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{1,-3}};
+    Eigen::Vector3d asv, tmp;
 
-    Eigen::Vector2d translate(Eigen::Vector3d v, double dist)
+    Eigen::Vector2d trans(Eigen::Vector3d v, double dist)
     {
         Eigen::Vector2d w, p;
         w << v(0), v(1);
@@ -218,9 +251,10 @@ private:
         return w + dist * p;
     }
 
-    double distance(geometry_msgs::msg::Point a, geometry_msgs::msg::Point b)
+    double distance(Eigen::Vector3d a, Eigen::Vector2d b)
     {
-        return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+        Eigen::Vector2d c{a.x(), a.y()};
+        return (b-c).norm();
     }
 };
 
