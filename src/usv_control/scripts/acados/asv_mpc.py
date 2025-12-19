@@ -10,26 +10,13 @@ from casadi import vertcat, sin, cos, SX
 import matplotlib.pyplot as plt
 
 # Setup the OCP
-def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI'):    
+def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):    
     # Create OCP object
     ocp = AcadosOcp()
     
     # Set model
     model = export_asv_model()
     ocp.model = model
-
-    # Default cost weights
-    w_along_ = 200.0      # Alongtrack error weight
-    w_cross_ = 5000.0     # Crosstrack error weight
-    w_heading_ = 100.0    # Heading alignment weight
-    w_input_ = 10.0      # Input regularization weight
-    w_slack_ = 100.0  # Large weight
-    w_surge_ = 10.0
-    w_yaw_ = 10.0
-    w_terminal_ = 100.0  # Terminal cost multiplier weight
-    w_avoidance_ = 10.0
-
-    t_la_init = 0.3
 
     w_along = model.p[8] 
     w_cross = model.p[9]
@@ -171,10 +158,7 @@ def setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm='RTI')
     ocp.constraints.idxbx_e = np.array([5,3,4])
     
     # Set spline parameters
-    weight_params = np.array([w_along_, w_cross_, w_heading_, w_input_, w_slack_, w_surge_, w_yaw_, w_terminal_, w_avoidance_])
-    additional_params = np.array([t_la_init])
-    obs_vel_params = np.zeros(obs_n*2)
-    ocp.parameter_values = np.concatenate((spline_params,weight_params,additional_params,obs_vel_params))
+    ocp.parameter_values = params
     
     # --- SOLVER OPTIONS ---
     ocp.solver_options.qp_solver = 'PARTIAL_CONDENSING_HPIPM'
@@ -263,118 +247,124 @@ def evaluate_spline(t, params):
     y = a_y * t**3 + b_y * t**2 + c_y * t + d_y
     return np.array([x, y])
 
-
-# Plot simulation results
-def plot_results(simX, simU, spline_params, dt_sim, algorithm='RTI'):
-    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-    
-    time = np.arange(simX.shape[0]) * dt_sim
-    
-    # Plot 1: XY trajectory with spline
-    ax = axes[0, 0]
-    # Plot spline
-    t_spline = np.linspace(0, 1, 100)
-    spline_points = np.array([evaluate_spline(t, spline_params) for t in t_spline])
-    ax.plot(spline_points[:, 0], spline_points[:, 1], 'b--', linewidth=2, label='Spline reference')
-    ax.plot(simX[:, 0], simX[:, 1], 'r-', linewidth=1.5, label='ASV trajectory')
-    ax.plot(simX[0, 0], simX[0, 1], 'go', markersize=10, label='Start')
-    ax.plot(simX[-1, 0], simX[-1, 1], 'rs', markersize=10, label='End')
-    ax.set_xlabel('X [m]')
-    ax.set_ylabel('Y [m]')
-    ax.set_title(f'XY Trajectory ({algorithm})')
-    ax.legend()
-    ax.grid(True)
-    ax.axis('equal')
-    
-    # Plot 2: States vs time
-    ax = axes[0, 1]
-    ax.plot(time, simX[:, 2], label='Ïˆ [rad]')
-    ax.plot(time, simX[:, 3], label='surge [m/s]')
-    ax.plot(time, simX[:, 4], label='yaw rate [rad/s]')
-    ax.plot(time, simX[:, 5], label='t (spline param)')
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('State')
-    ax.set_title('States vs Time')
-    ax.legend()
-    ax.grid(True)
-    
-    # Plot 3: Controls vs time
-    ax = axes[1, 0]
-    time_u = np.arange(simU.shape[0]) * dt_sim
-    ax.plot(time_u, simU[:, 0], label='Ï„_port')
-    ax.plot(time_u, simU[:, 1], label='Ï„_stbd')
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('Thrust [N]')
-    ax.set_title('Control Inputs')
-    ax.legend()
-    ax.grid(True)
-    
-    # Plot 4: dt (progress rate) vs time
-    ax = axes[1, 1]
-    ax.plot(time_u, simU[:, 2], 'g-')
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('dt (progress rate)')
-    ax.set_title('Spline Progress Rate')
-    ax.grid(True)
-    
-    plt.tight_layout()
-    plt.show()
-
-
 def main(algorithm='RTI', simulate=True):
     # --- Simulation setup ---
     Tf = 2.50        # MPC prediction horizon [s]
     N_horizon = 50  # Number of shooting nodes
     dt = Tf / N_horizon
+
+    x0 = np.array([
+        2.0,          # x_dot
+        1.0,          # y_dot
+        0.0,          # psi
+        0.0,          # surge
+        0.0,          # yaw
+        0.0,           # t (start at beginning of spline)
+        3.0,
+        0.0,
+        10.0,
+        0.0,
+        20.0,
+        0.0,
+    ])
     
     T_sim = 20.0    # Total simulation time [s]
     Nsim = int(T_sim / dt)
+    nx = 12
+    nu = 4
+    simX = np.zeros((Nsim + 1, nx))
+    simU = np.zeros((Nsim, nu))
+    simX[0, :] = x0
+    t_preparation = np.zeros(Nsim)
+    t_feedback = np.zeros(Nsim)
     
     # --- Define spline ---
     # Control points for Catmull-Rom spline
     p0 = np.array([0.0, 0.0])
     p1 = np.array([2.0, 1.0])
-    p2 = np.array([6.0, -3.0])
-    p3 = np.array([10.0, 2.0])
+    p2 = np.array([12.0, -3.0])
+    p3 = np.array([14.0, 2.0])
     
     spline_params = get_catmull_rom_segment(p0, p1, p2, p3)
     print(f"Spline parameters: {spline_params}")
     
-    # --- Initial conditions ---
-    # Start slightly off the spline to see tracking behavior
-    x0 = np.array([
-        5.0,          # x_dot
-        1.0,          # y_dot
-        0.0,          # psi
-        0.0,          # surge
-        0.0,          # yaw
-        0.3,           # t (start at beginning of spline)
+    w_params = np.array([
+        1.0,
+        0.06,
+        1.0,
+        0.01,
+        1000.0,
         0.0,
         0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
+        5.0,
+        1.0
     ])
-    
+    add_params = np.array([1.0])
+    ov_params = np.zeros(6)
+
+    params = np.concatenate((spline_params,w_params, add_params, ov_params))
+
     # --- Setup solver and integrator ---
     print("Setting up OCP solver...")
-    ocp_solver = setup_spline_tracking_ocp(x0, spline_params, Tf, N_horizon, algorithm)
+    ocp_solver = setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm)
 
     if simulate:
-        print("Setting up integrator...")
-        integrator = setup_integrator(dt, spline_params)
+        integrator = setup_integrator(dt, params)
+
+        fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+        plt.ion()  # Turn on interactive mode
         
-        # --- Simulation arrays ---
-        nx = 6
-        nu = 4
-        simX = np.zeros((Nsim + 1, nx))
-        simU = np.zeros((Nsim, nu))
-        simX[0, :] = x0
+        # Plot spline reference path
+        ax_traj = axes[0, 0]
+        t_spline = np.linspace(0, 1, 100)
+        spline_points = np.array([evaluate_spline(t, spline_params) for t in t_spline])
+        ax_traj.plot(spline_points[:, 0], spline_points[:, 1], 'b--', linewidth=2, label='Spline reference')
+        ax_traj.plot(x0[0], x0[1], 'go', markersize=10, label='Start')
+        ax_traj.set_xlabel('X [m]')
+        ax_traj.set_ylabel('Y [m]')
+        ax_traj.set_title(f'XY Trajectory ({algorithm})')
+        ax_traj.legend()
+        ax_traj.grid(True)
+        ax_traj.axis('equal')
         
-        # Timing arrays - different structure for RTI vs SQP
-        t_preparation = np.zeros(Nsim)
-        t_feedback = np.zeros(Nsim)
+        # Plot obstacles
+        for j in range(3):  # 3 obstacles
+            circle = plt.Circle((x0[6+2*j], x0[7+2*j]), radius=0.30, color='red', alpha=0.2)
+            ax_traj.add_patch(circle)
+        
+        # Initialize empty line objects for updating
+        line_traj, = ax_traj.plot([], [], 'r-', linewidth=1.5, label='ASV trajectory')
+        point_current, = ax_traj.plot([], [], 'ko', markersize=8)
+        
+        # Setup other subplots
+        ax_states = axes[0, 1]
+        ax_states.set_xlabel('Time [s]')
+        ax_states.set_ylabel('State')
+        ax_states.set_title('States vs Time')
+        ax_states.grid(True)
+        line_psi, = ax_states.plot([], [], label='ψ [rad]')
+        line_surge, = ax_states.plot([], [], label='surge [m/s]')
+        line_yaw, = ax_states.plot([], [], label='yaw rate [rad/s]')
+        line_t, = ax_states.plot([], [], label='t (spline param)')
+        ax_states.legend()
+        
+        ax_controls = axes[1, 0]
+        ax_controls.set_xlabel('Time [s]')
+        ax_controls.set_ylabel('Thrust [N]')
+        ax_controls.set_title('Control Inputs')
+        ax_controls.grid(True)
+        line_port, = ax_controls.plot([], [], label='τ_port')
+        line_stbd, = ax_controls.plot([], [], label='τ_stbd')
+        ax_controls.legend()
+        
+        ax_dt = axes[1, 1]
+        ax_dt.set_xlabel('Time [s]')
+        ax_dt.set_ylabel('dt (progress rate)')
+        ax_dt.set_title('Spline Progress Rate')
+        ax_dt.grid(True)
+        line_dt, = ax_dt.plot([], [], 'g-')
+        
+        plt.tight_layout()
         
         print(f"\nRunning closed-loop simulation for {T_sim}s with {algorithm}...")
         print(f"Number of steps: {Nsim}")
@@ -383,7 +373,7 @@ def main(algorithm='RTI', simulate=True):
         for i in range(Nsim):
             # Update spline parameters for all stages
             for j in range(N_horizon + 1):
-                ocp_solver.set(j, "p", spline_params)
+                ocp_solver.set(j, "p", params)
             
             # ===== RTI TWO-PHASE APPROACH =====
             
@@ -411,7 +401,37 @@ def main(algorithm='RTI', simulate=True):
             simU[i, :] = ocp_solver.get(0, "u")
             
             # Simulate system
-            simX[i + 1, :] = integrator.simulate(x=simX[i, :], u=simU[i, :], p=spline_params)
+            simX[i + 1, :] = integrator.simulate(x=simX[i, :], u=simU[i, :], p=params)
+            
+            # ===== UPDATE PLOTS =====
+            time = np.arange(i + 2) * dt
+            time_u = np.arange(i + 1) * dt
+            
+            # Update trajectory
+            line_traj.set_data(simX[:i+2, 0], simX[:i+2, 1])
+            point_current.set_data([simX[i+1, 0]], [simX[i+1, 1]])
+            
+            # Update states
+            line_psi.set_data(time, simX[:i+2, 2])
+            line_surge.set_data(time, simX[:i+2, 3])
+            line_yaw.set_data(time, simX[:i+2, 4])
+            line_t.set_data(time, simX[:i+2, 5])
+            ax_states.relim()
+            ax_states.autoscale_view()
+            
+            # Update controls
+            line_port.set_data(time_u, simU[:i+1, 0])
+            line_stbd.set_data(time_u, simU[:i+1, 1])
+            ax_controls.relim()
+            ax_controls.autoscale_view()
+            
+            # Update dt
+            line_dt.set_data(time_u, simU[:i+1, 2])
+            ax_dt.relim()
+            ax_dt.autoscale_view()
+            
+            # Refresh display
+            plt.pause(0.001)  # Very brief pause for smooth animation
             
             # Print progress
             if (i + 1) % 50 == 0 or i == 0:
@@ -421,7 +441,6 @@ def main(algorithm='RTI', simulate=True):
         
         # --- Results ---
         print(f"\n=== Simulation Complete ({algorithm}) ===")
-        
         t_preparation *= 1000  # Convert to ms
         t_feedback *= 1000
         print(f"Preparation phase [ms]: min={np.min(t_preparation):.3f}, "
@@ -430,18 +449,10 @@ def main(algorithm='RTI', simulate=True):
                 f"median={np.median(t_feedback):.3f}, max={np.max(t_feedback):.3f}")
         print(f"Total computation [ms]: min={np.min(t_preparation+t_feedback):.3f}, "
                 f"median={np.median(t_preparation+t_feedback):.3f}, max={np.max(t_preparation+t_feedback):.3f}")
-
-        print(f"Final t parameter: {simX[-1, 5]:.3f}")
-        print(f"Final position: ({simX[-1, 0]:.2f}, {simX[-1, 1]:.2f})")
         
-        # Calculate final tracking errors
-        final_spline_point = evaluate_spline(simX[-1, 5], spline_params)
-        final_crosstrack = np.linalg.norm(simX[-1, :2] - final_spline_point)
-        print(f"Final crosstrack error: {final_crosstrack:.3f} m")
-        
-        # Plot results
-        print("\nGenerating plots...")
-        plot_results(simX, simU, spline_params, dt, algorithm)
+        # Turn off interactive mode and show final plot
+        plt.ioff()
+        plt.show(block=True)
 
 if __name__ == '__main__':
     main(algorithm='RTI', simulate=False)
