@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QPushButton, QCheckBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
+from std_srvs.srv import Empty
 
 class MPCWeightsTuner(QMainWindow):
     def __init__(self, node):
@@ -323,41 +324,36 @@ class MPCWeightsTuner(QMainWindow):
             self.node.get_logger().error(f"Service call failed: {e}")
     
     def unblock_mpc(self):
-        import time
-        from PyQt5.QtCore import QTimer
+        if not self.node.unblock_client.wait_for_service(timeout_sec=0.5):
+            self.node.get_logger().warn("Unblock service not available!")
+            return
         
-        # Find index of w_cross (it's index 1 based on weights_config)
-        cross_index = 1
-        
-        # Store original value
-        self.original_cross_weight = self.weights[cross_index]
-        
-        # Set to 0
-        self.weights[cross_index] = 0
-        self.spinboxes[cross_index].setValue(0)
-        self.publish_weights()
-        
-        # Restore after 0.5 seconds
-        QTimer.singleShot(500, lambda: self.restore_cross_weight(cross_index))
+        request = Empty.Request()
+        future = self.node.unblock_client.call_async(request)
+        future.add_done_callback(self.unblock_response_callback)
 
-    def restore_cross_weight(self, cross_index):
-        if self.original_cross_weight is not None:
-            self.weights[cross_index] = self.original_cross_weight
-            self.spinboxes[cross_index].setValue(self.original_cross_weight)
-            self.publish_weights()
-            self.original_cross_weight = None
+    def unblock_response_callback(self, future):
+        try:
+            future.result()
+            self.node.get_logger().info("MPC unblocked successfully!")
+        except Exception as e:
+            self.node.get_logger().error(f"Unblock service call failed: {e}")
 
 class MPCWeightsNode(Node):
     def __init__(self):
         super().__init__('mpc_weights_tuner')
         
         
-        # Create service client for setting parameters
         self.set_params_client = self.create_client(
             SetParameters,
             '/mpc_node/set_parameters'
         )
-        
+
+        self.unblock_client = self.create_client(
+            Empty,
+            '/mpc/unblock'
+        )
+
         # Wait for service
         self.get_logger().info(f"Waiting for parameter service on /mpc_node/set_parameters...")
         while not self.set_params_client.wait_for_service(timeout_sec=1.0):

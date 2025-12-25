@@ -31,6 +31,7 @@
 #include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "usv_interfaces/msg/object_list.hpp"
+#include "std_srvs/srv/empty.hpp"
 
 #define NX ASV_DYNAMICS_NX
 #define NU ASV_DYNAMICS_NU
@@ -195,6 +196,28 @@ public:
                 }
             });
 
+        unblock_mpc_srv_ = this->create_service<std_srvs::srv::Empty>("/mpc/unblock",
+            [this](const std::shared_ptr<std_srvs::srv::Empty::Request> request,
+            std::shared_ptr<std_srvs::srv::Empty::Response> response) {
+                
+                RCLCPP_WARN(this->get_logger(), "UNBLOCKING MPC - Resetting solver");
+                
+                // Reset solver state
+                asv_dynamics_acados_reset(ocp_capsule, 1);
+                
+                // Set feasible initial trajectory (hover in place)
+                for(int i = 0; i <= N_HORIZON; i++) {
+                    // Set all stages to current state
+                    ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "x", x0);
+                    
+                    // Set zero controls
+                    double u_zero[NU] = {0.0, 0.0, 0.0, 0.0, 0.0};
+                    ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "u", u_zero);
+                }
+                
+                RCLCPP_INFO(this->get_logger(), "Solver reset complete");
+            });
+
         // === PARAMETER EVENT HANDLERS ===
         // For weight values
         weights_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
@@ -329,6 +352,8 @@ private:
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_, spline_t_la_sub_, spline_length_sub_;
     rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
+
+    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr unblock_mpc_srv_;
 
     std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_, enabled_param_sub_,
         tf_param_sub_, s_max_dt_param_sub_;

@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
@@ -34,6 +35,7 @@ set(DEPENDENCIES
   sensor_msgs
   nav_msgs
   tf2_ros
+  std_srvs
   Eigen3
   tf2_geometry_msgs
   usv_interfaces

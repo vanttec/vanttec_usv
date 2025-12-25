@@ -240,7 +240,8 @@ private:
     int n_{100};
     double dist{0.1};
 
-    std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{1,-3}};
+    // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{1,-3}};
+    std::vector<Eigen::Vector2d> ref{{-1,0},{0,0},{6,0},{7,0}};
     Eigen::Vector3d asv, tmp;
 
     Eigen::Vector2d trans(Eigen::Vector3d v, double dist)
