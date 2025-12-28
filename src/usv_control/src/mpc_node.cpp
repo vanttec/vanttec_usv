@@ -129,11 +129,11 @@ public:
                 double ca = cross_e / std::clamp(along_e, 0.01, 1e10);
 
                 // if (s_t <= 0.05 || s_t >= 0.95)
-                if (s_t >= 0.95)
-                {
-                    along_e = min_ae;
-                    cross_e = max_ce;
-                }
+                // if (s_t >= 0.95)
+                // {
+                //     along_e = min_ae;
+                //     cross_e = max_ce;
+                // }
 
                 // Variable weights dependant on crosstrack or alongtrack errors.
                 nearest_obs = get_nearest_obs();
@@ -211,7 +211,7 @@ public:
                     ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "x", x0);
                     
                     // Set zero controls
-                    double u_zero[NU] = {0.0, 0.0, 0.0, 0.0, 0.0};
+                    double u_zero[NU] = {0.0, 0.0, 0.0, 0.0};
                     ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "u", u_zero);
                 }
                 
@@ -375,7 +375,7 @@ private:
     std::vector<double> avoidance_weights{10.0, 0.06, 10.0, 0.01, 1000.0, 0.01, 0.01, 5.0, 2.0};
 
     // map input [min,max] to output [min,max]
-    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{4.0}, max_avoidance{2.0};
+    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{4.0}, max_avoidance{2.5};
     double tracking_weights_dynamics[N_WP]{
         0.1, 10.0, 5.0,         // along,cross,heading
         0.1, 0.1, 0.1, 0.1, 0.5, // input,slack,surge,yaw,terminal

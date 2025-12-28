@@ -137,7 +137,6 @@ protected:
             Eigen::Vector2d closest_p_tmp, closest_p;
             double closest_t, closest_t_tmp;
             double closest_dist = std::numeric_limits<double>::max();
-            int closest_idx = -1;
 
             for(int i = 0 ; i < s_.size() ; i++){
 
@@ -153,7 +152,8 @@ protected:
                 closest_t_tmp = s_[i].closest_t(asv);
                 closest_p_tmp = s_[i].get_s(closest_t_tmp);
 
-                if(distance(asv, closest_p_tmp) < closest_dist){
+                if(distance(asv, closest_p_tmp) < closest_dist && 
+                    fabs(i-closest_idx) <= 1){
                     closest_t = closest_t_tmp;
                     closest_dist = distance(asv, closest_p_tmp);
                     closest_idx = i;
@@ -239,9 +239,10 @@ private:
     double L_{0.0};
     int n_{100};
     double dist{0.1};
+    int closest_idx{-1};
 
-    // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{1,-3}};
-    std::vector<Eigen::Vector2d> ref{{-1,0},{0,0},{6,0},{7,0}};
+    std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{1,-3}};
+    // std::vector<Eigen::Vector2d> ref{{-1,0},{0,0},{6,0},{7,0}};
     Eigen::Vector3d asv, tmp;
 
     Eigen::Vector2d trans(Eigen::Vector3d v, double dist)
