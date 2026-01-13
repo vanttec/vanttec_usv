@@ -100,13 +100,13 @@ class ObstaclePublisherNode : public rclcpp::Node {
         geometry_msgs::msg::Pose2D pose;
         bool dynamic_obs;
 
-        static const int dyn_obs_n{5};
+        static const int dyn_obs_n{3};
         double dyn_obs[dyn_obs_n][4]{
-            {0., 1., -0.5, 0.5},
-            {-3., 3., -0.35, 1.0},
-            {4., 2., -0.8, 0.1},
-            {4., 0., 0.5, 0.4},
-            {0., -3., 0.35, 0.2},
+            {10., 1., 0.0, 0.0},
+            {10., 3., 0.0, 0.0},
+            {4., 2., -1.0, 1.0},
+            // {4., 0., 0.5, 0.4},
+            // {0., -3., 0.35, 0.2},
             
             // {1., -5., 0, 0.23},
             // {1., -5., 0, 0.3},
