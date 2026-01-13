@@ -1,456 +1,668 @@
-#include <ament_index_cpp/get_package_share_directory.hpp>
-#include <array>
-#include <algorithm>
-#include <cstdio>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/range/adaptor/transformed.hpp>
-#include <chrono>
-#include <stack>
-#include <cmath>
-#include <string> 
-#include <fatrop/fatrop.hpp>
-#include <optional>
-#include "std_msgs/msg/float64.hpp"
-#include "std_msgs/msg/int8.hpp"
-#include "geometry_msgs/msg/pose2_d.hpp"
-#include "tf2/LinearMath/Quaternion.h"
-#include "geometry_msgs/msg/pose.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "geometry_msgs/msg/vector3.hpp"
-#include "std_msgs/msg/color_rgba.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp/time.hpp"
-#include "usv_interfaces/msg/waypoint_list.hpp"
-#include "usv_interfaces/msg/object_list.hpp"
-#include "geometry_msgs/msg/transform_stamped.hpp"
-#include "visualization_msgs/msg/marker.hpp"
-#include "visualization_msgs/msg/marker_array.hpp"
-#include "std_msgs/msg/float64_multi_array.hpp"
+/*
+ * ASV Spline Tracking - Closed-Loop Simulation in C
+ * Replicates the Python closed-loop MPC simulation using generated ACADOS solvers
+ */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <memory>
+#include <eigen3/Eigen/Dense>
+#include <limits>
+
+// ACADOS includes
+#include "acados/utils/print.h"
+#include "acados/utils/math.h"
+#include "acados_c/ocp_nlp_interface.h"
+#include "acados_c/sim_interface.h"
+#include "acados_solver_asv_dynamics.h"
+
+// BLASFEO
+#include "blasfeo/include/blasfeo_d_aux_ext_dep.h"
+
+// ROS deps
+#include "rclcpp/rclcpp.hpp"
+
+#include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
+#include "nav_msgs/msg/odometry.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "usv_interfaces/msg/object_list.hpp"
+#include "std_srvs/srv/empty.hpp"
+
+#define NX ASV_DYNAMICS_NX
+#define NU ASV_DYNAMICS_NU
+#define NP ASV_DYNAMICS_NP
+#define N_HORIZON ASV_DYNAMICS_N
+
+#define n_obs 3
+
+// Simulation parameters
+#define N_SP 8 // Spline params (4 x NDIMS)
+#define N_WP 9 // Weight params
+#define N_AP 1 // Additional params
+#define N_OP n_obs*2 //Obstacle params (velocities)
+
+#define TF 2.5              // MPC prediction horizon [s]
+#define DT (TF / N_HORIZON) // Time step
+
+struct WeightParams
+{
+    double
+        min_t,
+        max_t;
+        // dynamics;
+        // min_w = value
+        // max_w = value * dynamics
+};
 
 using namespace std::chrono_literals;
-using std::placeholders::_1;
 
-struct Wp {
-  double x, y, theta;
-};
-
-struct MPC_State {
-  double x{0.}, y{0.}, yaw{0.};
-  double u{0.1}, r{0.1};
-  double tp{0.}, ts{0.}, ds{0.};
-  std::array<double, 10> obs{0., 0., 
-    0., 0., 0., 0.};
-
-  std::array<double, 15>
-    get_state_vector() const {
-    return {x, y, yaw, 
-            u, r, obs[0], obs[1], obs[2], obs[3], obs[4], obs[5], obs[6], obs[7], obs[8], obs[9]};
-    }
-};
-
-class MPCNode : public rclcpp::Node {
+class MPCNode : public rclcpp::Node
+{
 public:
-  MPCNode() : Node("mpc_node") {
+    MPCNode() : Node("mpc_node")
+    {
+        using namespace std::placeholders;
 
-    this->declare_parameter("path_tracking", rclcpp::PARAMETER_DOUBLE_ARRAY);
-    path_tracking_weights = this->get_parameter("path_tracking").as_double_array();
-    this->declare_parameter("speed", rclcpp::PARAMETER_DOUBLE_ARRAY);
-    speed_weights = this->get_parameter("speed").as_double_array();
-    this->declare_parameter("avoidance", rclcpp::PARAMETER_DOUBLE_ARRAY);
-    avoidance_weights = this->get_parameter("avoidance").as_double_array();
-    this->declare_parameter("dyn_avoidance", rclcpp::PARAMETER_DOUBLE_ARRAY);
-    dyn_avoidance_weights = this->get_parameter("dyn_avoidance").as_double_array();
-    
-    auto package_share_directory = boost::filesystem::path(
-        ament_index_cpp::get_package_share_directory("usv_control"));
-    std::string fatrop_shared_library_path =
-        (package_share_directory / boost::filesystem::path("config/code_gen/casadi_codegen.so"))
-            .string();
+        // === PARAMETERS ===
+        this->declare_parameter("mpc_tf", mpc_tf);
+        mpc_tf = this->get_parameter("mpc_tf").as_double();
 
-    std::string fatrop_json_path =
-        (package_share_directory /
-         boost::filesystem::path("config/code_gen/casadi_codegen.json"))
-            .string();
-    app_ = std::make_unique<fatrop::StageOCPApplication>(
-        fatrop::StageOCPApplicationFactory::from_rockit_interface(
-            fatrop_shared_library_path, fatrop_json_path));
+        this->declare_parameter("mpc_s_max_dt", mpc_s_max_dt);
+        mpc_s_max_dt = this->get_parameter("mpc_s_max_dt").as_double();
 
-    RCLCPP_INFO(this->get_logger(), "Loaded app from %s and %s",
-                fatrop_shared_library_path.c_str(), fatrop_json_path.c_str());
+        this->declare_parameter("mpc_weights", mpc_weights);
+        mpc_weights = this->get_parameter("mpc_weights").as_double_array();
 
-    RCLCPP_INFO(this->get_logger(), "Available parameter names: %s",
-                boost::algorithm::join(app_->parameter_names(), ", ").c_str());
+        this->declare_parameter("mpc_enabled", mpc_enabled);
+        mpc_enabled = this->get_parameter("mpc_enabled").as_bool();
 
-    RCLCPP_INFO(
-        this->get_logger(), "Available expression names: %s",
-        boost::algorithm::join(app_->stage_expression_names(), ", ").c_str());
+        // === SUBSCRIBERS ===
+        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/usv/state/odom", 1,
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg)
+            {
+                auto &q = msg->pose.pose.orientation;
 
-    // app_->optimize();
-    app_->set_option("tol", 1e-3);
-    app_->set_option("mu_init", 1e-3);
-    app_->set_option("bound_push", 1e-7); // all *_bound_push variables
-    app_->set_option("warm_start_mult_bound_push", 1e-7);
-    app_->set_option("accept_every_trial_step", false);
-    app_->set_option("warm_start_init_point", true);
-    app_->set_option("print_level", 0);
-    RCLCPP_INFO(this->get_logger(), "Initialized app");
+                x0[0] = msg->pose.pose.position.x;
+                x0[1] = msg->pose.pose.position.y;
+                asv << x0[0], x0[1];
 
-    state_ = MPC_State();
+                // Feed continuous heading to MPC (remove angle wrapping)
+                double new_psi = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                            1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+                double delta = new_psi - last_theta;
+                if (delta > M_PI)
+                    x0[2] = x0[2] + (new_psi - 2.0 * M_PI) - last_theta;
+                else if (delta < -M_PI)
+                    x0[2] = x0[2] + (new_psi + 2.0 * M_PI) - last_theta;
+                else
+                    x0[2] = x0[2] + delta;
+                last_theta = new_psi;
 
-    velocity_sub_ = this->create_subscription<geometry_msgs::msg::Vector3>(
-        "usv/state/velocity", 10, [this](const geometry_msgs::msg::Vector3 &msg) {
-          if(std::fabs(msg.x < 100)){
-          state_->u = msg.x;
-          // state_->v = msg.y;
-          state_->r = msg.z;
-          }
-        });
+                x0[3] = msg->twist.twist.linear.x;
+                x0[4] = msg->twist.twist.angular.z;
+            });
 
-    pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-        "usv/state/pose", 10,
-        [this](const geometry_msgs::msg::Pose2D &msg) {
-          pose = msg;
-          state_->x = msg.x;
-          state_->y = msg.y;
-          state_->yaw = msg.theta;
-        });
+        spline_t_la_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+            "/mpc/spline_t_la", 10,
+            [this](const std_msgs::msg::Float64 &msg)
+            {
+                // Previously t_la would be state[5] (t)
+                // x0[5] = msg.data;
+                ocp_params[N_SP + N_WP] = msg.data;
+            });
 
-    left_thruster_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-        "usv/left_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { 
-          state_->tp = msg.data; 
-        });
+        spline_t_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+            "/mpc/spline_t", 10,
+            [this](const std_msgs::msg::Float64 &msg)
+            {
+                s_t = msg.data;
+                x0[5] = msg.data;
+                along_e = (1 - msg.data) * s_length;
+                cross_e = get_crosstrack_e();
+                // Test relation, might try for some weights
+                double ca = cross_e / std::clamp(along_e, 0.01, 1e10);
 
-    right_thruster_sub_ = this->create_subscription<std_msgs::msg::Float64>(
-        "usv/right_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { 
-          state_->ts = msg.data; 
-          });
+                // if (s_t <= 0.05 || s_t >= 0.95)
+                // if (s_t >= 0.95)
+                // {
+                //     along_e = min_ae;
+                //     cross_e = max_ce;
+                // }
 
-    ref_path_sub_ = this->create_subscription<nav_msgs::msg::Path>(
-        "/usv/current_path_ref", 10,
-        [this](const nav_msgs::msg::Path &msg) { 
-          base_wp.x = msg.poses[0].pose.position.x;
-          base_wp.y = msg.poses[0].pose.position.y;
-          next_wp.x = msg.poses[1].pose.position.x;
-          next_wp.y = msg.poses[1].pose.position.y;
+                // Variable weights dependant on crosstrack or alongtrack errors.
+                nearest_obs = get_nearest_obs();
+                obs_d = distance(asv, nearest_obs);
+                double alpha = interpol_at(min_avoidance, max_avoidance, 1.0, 0.0, obs_d);
+                // Path-tracking weights
+                for (int i = 0; i < N_WP; i++)
+                {
+                    // Get path-tracking weight
+                    if (i < 3)
+                        pt_weights[i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], cross_e);
+                    else
+                        pt_weights[i] = var_w_at(mpc_weights[i], tracking_weights_inputs[i], tracking_weights_dynamics[i], along_e);
+                    // Get avoidance weight (uses tracking_to_avoid because it wants to square the already translation)
+                    avo_weights[i] = var_w_at(avoidance_weights[i], avoidance_weights_inputs[i], tracking_to_avoid[i], obs_d);
 
-          psi_d = atan2(next_wp.y - base_wp.y, next_wp.x - base_wp.x);
-          });
+                    // Interpolate weights
+                    ocp_params[N_SP+i] = pt_weights[i]*alpha + avo_weights[i]*(1-alpha);
+                }
+            });
 
-    obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-        "/obj_n_nearest_list", 10,
-        [this](const usv_interfaces::msg::ObjectList &msg){
-          int n_size = 3;
-          for(int i = 0 ; i < n_size; i++){
-            obs_arr[i*2] = msg.obj_list[i].x;
-            obs_arr[i*2+1] = msg.obj_list[i].y;
-            dobs_arr[i*2] = msg.obj_list[i].v_x;
-            dobs_arr[i*2+1] = msg.obj_list[i].v_y;
-           }
-           state_->obs = obs_arr;
-         });
+        spline_length_sub_ = this->create_subscription<std_msgs::msg::Float64>(
+            "/mpc/spline_l", 10,
+            [this](const std_msgs::msg::Float64 &msg)
+            {
+                s_length = msg.data;
+            });
 
-    mission_id_sub_ = this->create_subscription<std_msgs::msg::Int8>(
-        "/usv/mission/id", 10,
-        [this](const std_msgs::msg::Int8 &msg){
-          switch(msg.data){
-            case 3:
-              primary_weights = speed_weights;
-              // primary_weights = path_tracking_weights;
-              secondary_weights = path_tracking_weights;
-              break;
-            case 4:
-              primary_weights = speed_weights;
-              secondary_weights = dyn_avoidance_weights;
-              break;
-            default:
-              primary_weights = speed_weights;
-              // primary_weights = path_tracking_weights;
-              // secondary_weights = avoidance_weights;
-              secondary_weights = dyn_avoidance_weights;
-              break;
-          }
-        });
+        spline_params_sub_ = this->create_subscription<std_msgs::msg::Float64MultiArray>(
+            "/mpc/spline_params", 10,
+            [this](const std_msgs::msg::Float64MultiArray &msg)
+            {
+                bool new_spline = false;
 
-    ang_vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/guidance/desired_angular_velocity", 10);
+                for (int i = 0; i < N_SP; i++)
+                {
+                    if (std::abs(ocp_params[i] - msg.data[i]) > 1e-6)
+                    {
+                        ocp_params[i] = msg.data[i];
+                        new_spline = true;
+                    }
+                }
+                if (new_spline)
+                {
+                    RCLCPP_WARN(this->get_logger(), "Resetting trajectory guess");
+                    asv_dynamics_acados_reset(ocp_capsule, 1); // 1 = reset trajectory guess
+                }
+            });
+        
+        obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
+            "/obj_n_nearest_list", 10,
+            [this](const usv_interfaces::msg::ObjectList &msg){
+                for(int i = 0 ; i < n_obs; i++){
+                    x0[6 + i*2] = msg.obj_list[i].x;
+                    x0[6+1+i*2] = msg.obj_list[i].y;
 
-    vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/guidance/desired_velocity", 10);
+                    int param_idx = N_SP + N_WP + N_AP;
+                    ocp_params[param_idx + i*2] = msg.obj_list[i].v_x;
+                    ocp_params[param_idx+1+i*2] = msg.obj_list[i].v_y;
+                }
+            });
 
-    heading_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/guidance/desired_heading", 10);
+        unblock_mpc_srv_ = this->create_service<std_srvs::srv::Empty>("/mpc/unblock",
+            [this](const std::shared_ptr<std_srvs::srv::Empty::Request> request,
+            std::shared_ptr<std_srvs::srv::Empty::Response> response) {
+                
+                RCLCPP_WARN(this->get_logger(), "UNBLOCKING MPC - Resetting solver");
+                
+                // Reset solver state
+                asv_dynamics_acados_reset(ocp_capsule, 1);
+                
+                // Set feasible initial trajectory (hover in place)
+                for(int i = 0; i <= N_HORIZON; i++) {
+                    // Set all stages to current state
+                    ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "x", x0);
+                    
+                    // Set zero controls
+                    double u_zero[NU] = {0.0, 0.0, 0.0, 0.0};
+                    ocp_nlp_out_set(nlp_config, nlp_dims, nlp_out, nlp_in, i, "u", u_zero);
+                }
+                
+                RCLCPP_INFO(this->get_logger(), "Solver reset complete");
+            });
 
-    ang_vel_setpoint_unfiltered_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/guidance/desired_angular_velocity_unfiltered", 10);
+        // === PARAMETER EVENT HANDLERS ===
+        // For weight values
+        weights_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        auto weights_param_cb = [this](const rclcpp::Parameter &p)
+        {
+            mpc_weights = p.as_double_array();
+            for(int i = 0 ; i < mpc_weights.size() ; i++){
+                avoidance_weights[i] = mpc_weights[i] * tracking_to_avoid[i];
+            }
+            mpc_weights[8] = 0.0;
+        };
+        weights_param_handle_ = weights_param_sub_->add_parameter_callback("mpc_weights", weights_param_cb);
 
-    vel_setpoint_unfiltered_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/guidance/desired_velocity_unfiltered", 10);
+        // For MPC toggle
+        enabled_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        auto enabled_param_cb = [this](const rclcpp::Parameter &p)
+        {
+            mpc_enabled = p.as_bool();
+        };
+        enabled_param_handle_ = enabled_param_sub_->add_parameter_callback("mpc_enabled", enabled_param_cb);
 
-    heading_setpoint_unfiltered_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/guidance/desired_heading_unfiltered", 10);
+        // For TF update
+        tf_param_sub_ = std::make_shared<rclcpp::ParameterEventHandler>(this);
+        auto tf_param_cb = [this](const rclcpp::Parameter &p)
+        {
+            mpc_tf = p.as_double();
+            double mpc_dt = mpc_tf / N_HORIZON;
 
-    ye_debug_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/mpc/debug/ye", 10);
+            double new_time_steps[N_HORIZON];
+            for (int i = 0; i < N_HORIZON; i++)
+            {
+                new_time_steps[i] = mpc_dt;
+            }
 
-    psie_debug_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/mpc/debug/psie", 10);
+            int status = asv_dynamics_acados_update_time_steps(ocp_capsule, N_HORIZON, new_time_steps);
 
-    obs_cost_debug_pub_ = this->create_publisher<std_msgs::msg::Float64>(
-        "/mpc/debug/obs_cost", 10);
+            if (status != 0)
+                RCLCPP_ERROR(this->get_logger(), "Failed to update time steps!");
+            else
+                RCLCPP_INFO(this->get_logger(), "Successfully updated MPC horizon: Tf=%.2fs, dt=%.4fs", mpc_tf, mpc_dt);
+        };
+        tf_param_handle_ = tf_param_sub_->add_parameter_callback("mpc_tf", tf_param_cb);
 
-    qs_debug_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
-        "/mpc/debug/qs", 10);
+        // === PUBLISHERS ===
+        sol_time_pub_ =
+            this->create_publisher<std_msgs::msg::Float64>("/mpc/sol_time", 10);
 
-    mpc_projection_path_pub_ = this->create_publisher<nav_msgs::msg::Path>(
-        "/mpc/projection_path", 10);
+        sol_path_pub_ =
+            this->create_publisher<nav_msgs::msg::Path>("/mpc/sol_path", 10);
 
-    timer_ = this->create_wall_timer(10ms, std::bind(&MPCNode::update, this));
+        heading_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/guidance/desired_heading", 10);
 
-    primary_weights = path_tracking_weights;
-    // secondary_weights = path_tracking_weights;
-    secondary_weights = avoidance_weights;
-    
-  }
+        vel_setpoint_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/guidance/desired_velocity", 10);
+
+        right_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/usv/right_thruster", 10);
+        left_thruster_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/usv/left_thruster", 10);
+        debug_ce_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/mpc/debug/c_e", 10);
+        debug_he_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/mpc/debug/h_e", 10);
+        debug_residuals_pub_ = this->create_publisher<std_msgs::msg::Float64>(
+            "/mpc/debug/res", 10);
+        debug_weights_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(
+            "/mpc/debug/w", 10);
+
+        timer_ =
+            this->create_wall_timer(50ms, std::bind(&MPCNode::update, this));
+
+        sol_path_msg.header.frame_id = "world";
+        sol_path_msg.poses.resize(N_HORIZON + 1);
+
+        // === CREATE OCP SOLVER ===
+        RCLCPP_INFO(this->get_logger(), "Creating OCP solver...");
+        ocp_capsule = asv_dynamics_acados_create_capsule();
+        status = asv_dynamics_acados_create_with_discretization(ocp_capsule, N_HORIZON, NULL);
+
+        if (status)
+        {
+            RCLCPP_INFO(this->get_logger(), "OCP solver creation failed with status %d", status);
+        }
+        else
+        {
+            RCLCPP_INFO(this->get_logger(), "OCP solver created successfully");
+        }
+
+        nlp_config = asv_dynamics_acados_get_nlp_config(ocp_capsule);
+        nlp_dims = asv_dynamics_acados_get_nlp_dims(ocp_capsule);
+        nlp_in = asv_dynamics_acados_get_nlp_in(ocp_capsule);
+        nlp_out = asv_dynamics_acados_get_nlp_out(ocp_capsule);
+        nlp_solver = asv_dynamics_acados_get_nlp_solver(ocp_capsule);
+
+        // Set initial state
+        for(int i = 0 ; i < n_obs * 2 ; i++){
+            x0[6+i] = 100.0;
+        }
+        memcpy(simX, x0, NX * sizeof(double));
+
+        // Set spline parameteres for all stages
+        // for (int i = 0; i <= N_HORIZON; i++)
+        // {
+        //     asv_dynamics_acados_update_params(ocp_capsule, i, spline_params, NP);
+        // }
+        for (int i = 0; i < N_WP; i++)
+        {
+            ocp_params[N_SP + i] = mpc_weights[i];
+        }
+
+        debug_weights_msg.data.resize(N_WP);
+    }
+
+    ~MPCNode()
+    {
+        // === CLEANUP ===
+        asv_dynamics_acados_free(ocp_capsule);
+        asv_dynamics_acados_free_capsule(ocp_capsule);
+    }
 
 private:
-  std::unique_ptr<fatrop::StageOCPApplication> app_;
-  rclcpp::TimerBase::SharedPtr timer_{nullptr};
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr sol_path_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr
+        sol_time_pub_,
+        vel_setpoint_pub_, heading_setpoint_pub_,
+        left_thruster_pub_, right_thruster_pub_,
+        debug_ce_pub_, debug_he_pub_, debug_residuals_pub_;
+    rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr debug_weights_pub_;
 
-  rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr velocity_sub_;
-  rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
-  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr left_thruster_sub_, right_thruster_sub_;
-  rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_id_sub_;
-  rclcpp::Subscription<usv_interfaces::msg::WaypointList>::SharedPtr goals_sub_;
-  rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr ref_path_sub_;
-  rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+    rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
+    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr spline_t_sub_, spline_t_la_sub_, spline_length_sub_;
+    rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obstacle_list_sub_;
 
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_pub_,vel_setpoint_pub_, heading_setpoint_pub_;
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ang_vel_setpoint_unfiltered_pub_,vel_setpoint_unfiltered_pub_, heading_setpoint_unfiltered_pub_;
-  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr ye_debug_pub_, psie_debug_pub_, obs_cost_debug_pub_;
-  rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr qs_debug_pub_;
-  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr mpc_projection_path_pub_;
+    rclcpp::Service<std_srvs::srv::Empty>::SharedPtr unblock_mpc_srv_;
 
-  std_msgs::msg::Float64 ang_vel_setpoint_msg, vel_setpoint_msg, heading_setpoint_msg;
-  std_msgs::msg::Float64 ang_vel_setpoint_unfiltered_msg, vel_setpoint_unfiltered_msg, heading_setpoint_unfiltered_msg;
-  geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
+    std::shared_ptr<rclcpp::ParameterEventHandler> weights_param_sub_, enabled_param_sub_,
+        tf_param_sub_, s_max_dt_param_sub_;
+    std::shared_ptr<rclcpp::ParameterCallbackHandle> weights_param_handle_, enabled_param_handle_,
+        tf_param_handle_, s_max_dt_param_handle_;
 
-  std_msgs::msg::Float64 ye_debug_msg, psie_debug_msg, obs_cost_debug_msg;
-  std_msgs::msg::Float64MultiArray qs_debug_msg;
-  nav_msgs::msg::Path mpc_projection_path_msg;
+    std_msgs::msg::Float64 sol_time_msg,
+        vel_setpoint_msg, heading_setpoint_msg,
+        left_thruster_msg, right_thruster_msg,
+        debug_ce_msg, debug_he_msg, debug_residuals_msg;
+    nav_msgs::msg::Path sol_path_msg;
+    std_msgs::msg::Float64MultiArray debug_weights_msg;
 
-  geometry_msgs::msg::Pose2D pose;
+    double along_e, cross_e, ocp_cost, obs_d{std::numeric_limits<double>::max()};
 
-  std::optional<MPC_State> state_;
+    // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance
+    std::vector<double> mpc_weights      {5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0, 0.0};
+    std::vector<double> tracking_to_avoid{2.0, 0.004, 0.50, 0.2, 1.0, 1.0, 1.0, 0.05, 1.0};
+    std::vector<double> avoidance_weights{10.0, 0.06, 10.0, 0.01, 1000.0, 0.01, 0.01, 5.0, 2.0};
 
-  std::vector<Wp> wp_vec;
-  std::array<double, 10> obs_arr{1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000., 1000.};
-  std::array<double, 10> dobs_arr{0., 0., 0., 0., 0., 0., 0., 0., 0., 0.};
+    // map input [min,max] to output [min,max]
+    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{4.0}, max_avoidance{2.5};
+    double tracking_weights_dynamics[N_WP]{
+        0.1, 10.0, 5.0,         // along,cross,heading
+        0.1, 0.1, 0.1, 0.1, 0.5, // input,slack,surge,yaw,terminal
+        1.0 // avoidance
+    };
 
-  // xe, ye, psie, u, r, ds
-  std::vector<double> path_tracking_weights         {100., 300., 100., 1000., 10., 0.};
-  std::vector<double> speed_weights                 {100., 300., 100., 1., 1., 0.};
-  std::vector<double> avoidance_weights             {100., 70., 20., 1000., 10., 1.5};
-  // std::vector<double> dyn_avoidance_weights         {100., 40., 25., 1000., 10., 1.};
-  std::vector<double> dyn_avoidance_weights         {100., 70., 20., 0., 10., 1.};
-  std::vector<double> primary_weights;
-  std::vector<double> secondary_weights;
+    WeightParams tracking_weights_inputs[N_WP]{
+        // These first weights depend on separation (cross_err)
+        {min_ce, max_ce},  // along
+        {min_ce, max_ce}, // cross
+        {min_ce, max_ce},  // heading
 
-  int wp_i{0};
+        // These last weights depend on remaining dist. (along_err)
+        {min_ae, max_ae}, // input
+        {min_ae, max_ae}, // slack
+        {min_ae, max_ae}, // surge
+        {min_ae, max_ae}, // yaw
+        {min_ae, max_ae}, // terminal
 
-  Wp next_wp{0., 0.}, base_wp{0., 0.};
+        {min_ae, max_ae}, // avoidance
+    };
 
-  double last_u{0.}, last_r{0.}, last_last_r{0.}, last_psi{0.};
-  // The closer to 1, the slower it will reach the actual value.
-  double alpha_u{0.9}, alpha_r{0.9}, alpha_psi{0.9};
-  // double alpha_u{0.99}, alpha_r{0.94}, alpha_psi{0.9};
-  // double alpha_u{0.}, alpha_r{0.}, alpha_psi{0.};
+    WeightParams avoidance_weights_inputs[N_WP]{
+        // These first weights depend on distance to nearest_obstacle
+        {min_avoidance, max_avoidance},  // along
+        {min_avoidance, max_avoidance}, // cross
+        {min_avoidance, max_avoidance},  // heading
 
-  double psi_d{0.};
+        // These last weights depend on remaining dist. (along_err)
+        {min_avoidance, max_avoidance}, // input
+        {min_avoidance, max_avoidance}, // slack
+        {min_avoidance, max_avoidance}, // surge
+        {min_avoidance, max_avoidance}, // yaw
+        {min_avoidance, max_avoidance}, // terminal
 
-  double integral_step{0.01};
+        {min_avoidance, max_avoidance}, // avoidance
+    };
 
-  void update() {
-    if (!state_.has_value()) {
-      return;
-    }
-    // RCLCPP_INFO(this->get_logger(), "debug0");
-    // RCLCPP_INFO(this->get_logger(), "state: %f,%f,%f,%f,%f,%f,%f", 
-    //   state_->x,state_->y,state_->yaw,state_->u,state_->r,
-    //   state_->tp,state_->ts);
+    int sol_idx_base{10};
+    double sol_idx_dynamics = 2.0;
+    WeightParams sol_idx_weight_params{0.1, 0.8};
 
-    auto initial_state = app_->get_parameter_setter("X_0");
-    initial_state.set_value(state_->get_state_vector().data());
+    double mpc_tf{2.5}, mpc_s_max_dt{0.1}, s_length{0.001}, s_t{0.};
+    bool mpc_enabled{true};
+    Eigen::Vector2d asv, nearest_obs;
 
-    auto target_setter = app_->get_parameter_setter("target");
-    target_setter.set_value({base_wp.x, base_wp.y, next_wp.x, next_wp.y}); 
+    rclcpp::TimerBase::SharedPtr timer_;
 
-    auto psi_d_setter = app_->get_parameter_setter("psi_d");
-    psi_d_setter.set_value({psi_d});    
+    int status{0};
+    double ocp_params[NP];
+    double pt_weights[N_WP];
+    double avo_weights[N_WP]; 
+    double x0[NX];
 
-    auto dobs_setter = app_->get_parameter_setter("dobs");
-    dobs_setter.set_value(dobs_arr.data());
+    asv_dynamics_solver_capsule *ocp_capsule;
+    ocp_nlp_config *nlp_config;
+    ocp_nlp_dims *nlp_dims;
+    ocp_nlp_in *nlp_in;
+    ocp_nlp_out *nlp_out;
+    ocp_nlp_solver *nlp_solver;
 
-    std::vector<double> desired_weights = weight_calculator(obj_dist(obs_arr[0], obs_arr[1], pose));
+    double simX[NX];
+    double simU[NU];
 
-    qs_debug_msg.data.clear();
-    for(int i = 0 ; i < desired_weights.size() ; i++){
-      qs_debug_msg.data.push_back(desired_weights[i]);
-    }
-    // qs_setter.set_value(avoidance_weights.data());
+    double xtraj[NX * (N_HORIZON + 1)];
 
-    auto qs_setter = app_->get_parameter_setter("qs");
-    qs_setter.set_value(desired_weights.data());
+    double last_theta{0.0};
 
-    app_->optimize();
-
-    auto eval_x = app_->get_expression("state_x1").at_tk(1);
-    std::vector<double> x_result(1);
-    auto eval_y = app_->get_expression("state_x2").at_tk(1);
-    std::vector<double> y_result(1);
-    auto eval_psi = app_->get_expression("state_x3").at_tk(1);
-    std::vector<double> psi_result(1);
-    auto eval_u = app_->get_expression("state_x4").at_tk(1);
-    std::vector<double> u_result(1);
-    auto eval_r = app_->get_expression("state_x5").at_tk(1);
-    std::vector<double> r_result(1);
-
-    auto eval_xe = app_->get_expression("xe").at_tk(1);
-    std::vector<double> xe_result(1);
-    auto eval_ye = app_->get_expression("ye").at_tk(1);
-    std::vector<double> ye_result(1);
-    auto eval_psie = app_->get_expression("psie").at_tk(1);
-    std::vector<double> psie_result(1);
-    auto eval_gamma_p = app_->get_expression("gamma_p").at_tk(1);
-    std::vector<double> gamma_p_result(1);
-    auto eval_obs_cost = app_->get_expression("obs_cost").at_tk(1);
-    std::vector<double> obs_cost_result(1);
-
-    auto eval_nhor = app_->get_expression("n_horizon").at_tk(1);
-    std::vector<double> nhor_result(1);
-
-    app_->last_solution().evaluate(eval_x, x_result);
-    app_->last_solution().evaluate(eval_y, y_result);
-    app_->last_solution().evaluate(eval_psi, psi_result);
-    app_->last_solution().evaluate(eval_u, u_result);
-    app_->last_solution().evaluate(eval_r, r_result);
-    app_->last_solution().evaluate(eval_xe, xe_result);
-    app_->last_solution().evaluate(eval_ye, ye_result);
-    app_->last_solution().evaluate(eval_psie, psie_result);
-    app_->last_solution().evaluate(eval_gamma_p, gamma_p_result);
-    app_->last_solution().evaluate(eval_obs_cost, obs_cost_result);
-    app_->last_solution().evaluate(eval_nhor, nhor_result);
-
-    // Get Projection Path
-    int projection_n = nhor_result[0];
-
-    mpc_projection_path_msg.header.frame_id = "world";
-    mpc_projection_path_msg.header.stamp = MPCNode::get_clock()->now();
-    mpc_projection_path_msg.poses.clear();
-
-    if(projection_n > 0){
-      for(int i = 0 ; i < projection_n ; i++){
-        // Get projected states
-        auto eval_x_path = app_->get_expression("state_x1").at_tk(i+1);
-        std::vector<double> x_result_path(1);
-        auto eval_y_path = app_->get_expression("state_x2").at_tk(i+1);
-        std::vector<double> y_result_path(1);
-        app_->last_solution().evaluate(eval_x_path, x_result_path);
-        app_->last_solution().evaluate(eval_y_path, y_result_path);
-
-        // Fill ros msg
-        geometry_msgs::msg::PoseStamped tmp_pose_stamped;
-        tmp_pose_stamped.pose.position.x = x_result_path[0];
-        tmp_pose_stamped.pose.position.y = y_result_path[0];
-        mpc_projection_path_msg.poses.push_back(tmp_pose_stamped);
-      }
+    void update_all_params()
+    {
+        for (int i = 0; i <= N_HORIZON; i++)
+        {
+            asv_dynamics_acados_update_params(ocp_capsule, i, ocp_params, NP);
+        }
     }
 
-    // app_->last_solution().evaluate(eval_r, r_result);
+    void update()
+    {
+        // Params may always be changing
+        update_all_params();
 
-    // RCLCPP_ERROR(this->get_logger(), "ye: %f, psie: %f, gamma_p: %f", 
-    //   ye_result[0], psie_result[0], gamma_p_result[0]);
-    // RCLCPP_ERROR(this->get_logger(), "qs_e: %f", obj_dist(obs_arr[0], obs_arr[1], pose));
+        // Update initial state
+        memcpy(simX, x0, NX * sizeof(double));
 
-    last_u = alpha_u*last_u + (1-alpha_u)*u_result[0];
-    last_last_r = last_r;
-    last_r = alpha_r*last_r + (1-alpha_r)*r_result[0];
+        auto start_t = std::chrono::high_resolution_clock::now();
 
-    last_psi = integral_step * (last_r + last_last_r) / 2. + last_psi;
-    // last_psi = alpha_psi*last_psi + (1-alpha_psi)*psi_result[0];
-    last_psi = normalize_angle(last_psi);
+        // Set initial state constraint
+        ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "lbx", simX);
+        ocp_nlp_constraints_model_set(nlp_config, nlp_dims, nlp_in, nlp_out, 0, "ubx", simX);
 
-    vel_setpoint_msg.data = last_u;
-    ang_vel_setpoint_msg.data = last_r;
-    heading_setpoint_msg.data = last_psi;
-    vel_setpoint_unfiltered_msg.data = u_result[0];
-    ang_vel_setpoint_unfiltered_msg.data = r_result[0];
-    heading_setpoint_unfiltered_msg.data = psi_result[0];
-    // RCLCPP_INFO(this->get_logger(), "setpoint: %f, %f, %f, %f, %f", 
-    //             x_result[0], y_result[0], psi_result[0], u_result[0], r_result[0]);
+        // === RTI PHASE 1: PREPARATION ===
+        int rti_phase = 1;
+        ocp_nlp_solver_opts_set(nlp_config, ocp_capsule->nlp_opts, "rti_phase", &rti_phase);
+        status = asv_dynamics_acados_solve(ocp_capsule);
 
-    app_->set_initial(app_->last_solution());
+        if (status != 0 && status != 2 && status != 5)
+        {
+            RCLCPP_ERROR(this->get_logger(), "Warning: Preparation phase returned status %d\n", status);
+        }
 
-    ang_vel_setpoint_pub_->publish(ang_vel_setpoint_msg);
-    vel_setpoint_pub_->publish(vel_setpoint_msg);
-    heading_setpoint_pub_->publish(heading_setpoint_msg);
-    ang_vel_setpoint_unfiltered_pub_->publish(ang_vel_setpoint_unfiltered_msg);
-    vel_setpoint_unfiltered_pub_->publish(vel_setpoint_unfiltered_msg);
-    heading_setpoint_unfiltered_pub_->publish(heading_setpoint_unfiltered_msg);
+        // === RTI PHASE 2: FEEDBACK ===
+        rti_phase = 2;
+        ocp_nlp_solver_opts_set(nlp_config, ocp_capsule->nlp_opts, "rti_phase", &rti_phase);
+        status = asv_dynamics_acados_solve(ocp_capsule);
 
-    ye_debug_msg.data = ye_result[0];
-    psie_debug_msg.data = psie_result[0];
-    obs_cost_debug_msg.data = obs_cost_result[0];
+        // Store previous cost
+        static double prev_cost = 0.0;
+
+        // Get current cost
+        ocp_nlp_eval_cost(nlp_solver, nlp_in, nlp_out);
+        ocp_nlp_get(nlp_solver, "cost_value", &ocp_cost);
+        debug_residuals_msg.data = ocp_cost;
+
+        if (status == 4)
+        {
+            double residuals[4];
+            ocp_nlp_get(nlp_solver, "res_stat", &residuals[0]);
+            ocp_nlp_get(nlp_solver, "res_eq", &residuals[1]);
+            ocp_nlp_get(nlp_solver, "res_ineq", &residuals[2]);
+            ocp_nlp_get(nlp_solver, "res_comp", &residuals[3]);
+            RCLCPP_INFO(this->get_logger(),
+                        "Residuals: [%.2e, %.2e, %.2e, %.2e]",
+                        residuals[0], residuals[1], residuals[2], residuals[3]);
     
-    ye_debug_pub_->publish(ye_debug_msg);
-    psie_debug_pub_->publish(psie_debug_msg);
-    qs_debug_pub_->publish(qs_debug_msg);
-    obs_cost_debug_pub_->publish(obs_cost_debug_msg);
-    mpc_projection_path_pub_->publish(mpc_projection_path_msg);
-  }
+            double max_res = std::max({std::abs(residuals[0]), std::abs(residuals[1]),
+                                       std::abs(residuals[2]), std::abs(residuals[3])});
+            if (max_res > 1e-6)
+            {
+                RCLCPP_WARN(this->get_logger(),
+                            "QP failed: res=[%.2e, %.2e, %.2e, %.2e]",
+                            residuals[0], residuals[1], residuals[2], residuals[3]);
+            }
+        }
 
-  double obj_dist(double obj_x, double obj_y, geometry_msgs::msg::Pose2D p){
-    return sqrt((obj_x-p.x)*(obj_x-p.x) + (obj_y-p.y)*(obj_y-p.y));
-  }
+        // Get optimal control
+        ocp_nlp_out_get(nlp_config, nlp_dims, nlp_out, 0, "u", simU);
 
-  // xe, ye, psi, u, r, ds
-  std::vector<double> weight_calculator(double dist){
+        auto end_t = std::chrono::high_resolution_clock::now();
+        sol_time_msg.data = std::chrono::duration<double>(end_t - start_t).count();
 
-    // When dist <= 2.0 -> use policy #1
-    // When dist >= 5.0 -> use policy #2
-    // When in-between  -> use the interpolation of both
-    double dist_p1{2.}, dist_p2{3.};
-    double dist_sat = std::clamp(dist - dist_p1, 0.0, dist_p2-dist_p1) / (dist_p2-dist_p1);
-    std::vector<double> out;
-    for(int i = 0 ; i < 6 ; i++){
-      out.push_back(primary_weights[i]*dist_sat + secondary_weights[i]*(1-dist_sat));
+        sol_path_msg.header.stamp = this->get_clock()->now();
+        geometry_msgs::msg::PoseStamped tmp_pose;
+
+        double sol_length = 0.0;
+        for (int i = 0; i <= N_HORIZON; i++)
+        {
+            ocp_nlp_out_get(nlp_config, nlp_dims, nlp_out, i, "x", &xtraj[i * NX]);
+            tmp_pose.pose.position.x = xtraj[i * NX];
+            tmp_pose.pose.position.y = xtraj[i * NX + 1];
+            sol_path_msg.poses[i] = tmp_pose;
+
+            sol_length += std::fabs(xtraj[i * NX + 3]) * mpc_tf / N_HORIZON;
+        }
+
+        int sol_idx = int(var_w_at(sol_idx_base, sol_idx_weight_params, sol_idx_dynamics, sol_length));
+        vel_setpoint_msg.data = xtraj[sol_idx * NX + 3];
+        heading_setpoint_msg.data = xtraj[sol_idx * NX + 2];
+
+        // RCLCPP_INFO(this->get_logger(), "Tp, Ts: %f, %f", simU[0], simU[1]);
+        left_thruster_msg.data = simU[0];
+        right_thruster_msg.data = simU[1];
+
+        debug_ce_msg.data = get_crosstrack_e();
+        debug_he_msg.data = get_heading_e();
+        for (int i = 0; i < N_WP; i++)
+        {
+            debug_weights_msg.data[i] = ocp_params[N_SP + i];
+        }
+
+        int sqp_iter;
+        ocp_nlp_get(nlp_solver, "sqp_iter", &sqp_iter);
+
+        sol_time_pub_->publish(sol_time_msg);
+        sol_path_pub_->publish(sol_path_msg);
+        if (!mpc_enabled || 
+            // ocp_cost > 10000.0 || 
+            status == 4)
+        {
+            RCLCPP_ERROR(this->get_logger(), "MPC IS DISABLED");
+            vel_setpoint_msg.data = 0.0;
+            heading_setpoint_msg.data = x0[2];
+            left_thruster_msg.data = 0.0;
+            right_thruster_msg.data = 0.0;
+        }
+        vel_setpoint_pub_->publish(vel_setpoint_msg);
+        heading_setpoint_pub_->publish(heading_setpoint_msg);
+        // left_thruster_pub_->publish(left_thruster_msg);
+        // right_thruster_pub_->publish(right_thruster_msg);
+        debug_ce_pub_->publish(debug_ce_msg);
+        debug_he_pub_->publish(debug_he_msg);
+        debug_residuals_pub_->publish(debug_residuals_msg);
+        debug_weights_pub_->publish(debug_weights_msg);
+
+        // MPC Debugging
+        RCLCPP_INFO(this->get_logger(),
+                    "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}",
+                    ocp_params[0], ocp_params[1], ocp_params[2], ocp_params[3], ocp_params[4], ocp_params[5], ocp_params[6],
+                    ocp_params[7], ocp_params[8], ocp_params[9], ocp_params[10], ocp_params[11], ocp_params[12], ocp_params[13],
+                    ocp_params[14], ocp_params[15], ocp_params[16], ocp_params[17]);
+        RCLCPP_INFO(this->get_logger(),
+                    "SOLUTION IDX: %.2d, Sol. length: %.2f", sol_idx, sol_length);
+        RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
+        RCLCPP_INFO(this->get_logger(), "Dist nearest obs: %.2f", obs_d);
     }
 
-    // Prueba para speed challenge
-    double speed_e_sat = std::clamp(sqrt(pow(psie_debug_msg.data,2)+pow(ye_debug_msg.data,2)), 0., 0.5) / 0.5;
-    // double qu_safe = 5000;
-    double qu_safe = out[3]*10;
-    out[3] = out[3]*(1-speed_e_sat) + qu_safe*speed_e_sat;
-    
-    return out;
-  }
-
-  double normalize_angle(double angle_in){
-    double angle_out = std::fmod(angle_in + M_PI, 2 * M_PI);
-    if(angle_out < 0){
-      angle_out += 2*M_PI;
+    double normalize_angle(double x)
+    {
+        x = fmod(x + M_PI, M_PI * 2);
+        if (x < 0)
+            x += M_PI * 2;
+        return x - M_PI;
     }
-    return angle_out - M_PI;
-  }
 
+    // Get a linear variable weight depending on t and its restrictions
+    // y(t0), {t0, t1}, y(t0)*k, t[t0->t1]
+    double var_w_at(double weight, WeightParams p, double dynamics, double t)
+    {
+        double w_m = (dynamics*weight - weight) / (p.max_t - p.min_t);
+        double w_b = weight - w_m * p.min_t;
+        if (weight < dynamics*weight)
+            return std::clamp(w_m * t + w_b, weight, dynamics*weight);
+        // In some cases, slope is negative, and sol. shouldn't depend on argument order...
+        return std::clamp(w_m * t + w_b, dynamics*weight, weight);
+    }
+
+    double interpol_at(double min_t, double max_t, double min_y, double max_y, double t)
+    {
+        double w_m = (max_y - min_y) / (max_t - min_t);
+        double w_b = min_y - w_m * min_t;
+        if (min_y < max_y)
+            return std::clamp(w_m * t + w_b, min_y, max_y);
+        // In some cases, slope is negative, and sol. shouldn't depend on argument order...
+        return std::clamp(w_m * t + w_b, max_y, min_y);
+    }
+
+    double get_crosstrack_e()
+    {
+        Eigen::Vector2d spline_pos;
+        spline_pos = get_spline(s_t);
+        return distance(asv, spline_pos);
+    }
+
+    double get_heading_e()
+    {
+        Eigen::Vector2d s_dot;
+        s_dot = get_spline_dot(s_t);
+        double psi_ref = std::atan2(s_dot.y(), s_dot.x());
+        double he_sqrt = std::sin((x0[2] - psi_ref) / 2.0);
+        return he_sqrt * he_sqrt;
+    }
+
+    Eigen::Vector2d get_spline(double t)
+    {
+        return Eigen::Vector2d{ocp_params[0] * s_t * s_t * s_t + ocp_params[1] * s_t * s_t + ocp_params[2] * s_t + ocp_params[3],
+                               ocp_params[4] * s_t * s_t * s_t + ocp_params[5] * s_t * s_t + ocp_params[6] * s_t + ocp_params[7]};
+    }
+
+    Eigen::Vector2d get_spline_dot(double t)
+    {
+        return Eigen::Vector2d{3 * ocp_params[0] * s_t * s_t + 2 * ocp_params[1] * s_t + ocp_params[2],
+                               3 * ocp_params[4] * s_t * s_t + 2 * ocp_params[5] * s_t + ocp_params[6]};
+    }
+
+    Eigen::Vector2d get_nearest_obs(){
+        double min_dist = std::numeric_limits<double>::max();
+        Eigen::Vector2d out, tmp;
+        for(int i = 0 ; i < n_obs ; i++){
+            tmp << x0[6 + i*2], x0[7 + i*2];
+            // RCLCPP_INFO(this->get_logger(), "OBS #%d: {%.2f, %.2f}", i, tmp.x(), tmp.y());
+            if(distance(asv, tmp) < min_dist){
+                out = tmp;
+                min_dist = distance(asv,tmp);
+            }
+        }
+        // RCLCPP_INFO(this->get_logger(), "NEAREST OBS: {%.2f, %.2f}", out.x(), out.y());
+        return out;
+    }
+
+    double distance(Eigen::Vector2d a, Eigen::Vector2d b){
+        return (a-b).norm();
+    }
 };
 
-int main(int argc, char *argv[]) {
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<MPCNode>());
-  rclcpp::shutdown();
-  return 0;
+int main(int argc, char **argv)
+{
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<MPCNode>());
+    rclcpp::shutdown();
+    return 0;
 }

@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
@@ -34,6 +35,7 @@ set(DEPENDENCIES
   sensor_msgs
   nav_msgs
   tf2_ros
+  std_srvs
   Eigen3
   tf2_geometry_msgs
   usv_interfaces
@@ -86,6 +88,33 @@ target_link_libraries(pid_node usv_libs)
 # target_compile_options(mpc_node PRIVATE ${FATROP_CFLAGS_OTHER})
 # ament_target_dependencies(mpc_node ${DEPENDENCIES})
 
+# ================
+# ||| MPC Node |||
+# ================
+
+# Find ACADOS
+set(ACADOS_INSTALL_DIR "/home/max/acados")
+include_directories(
+  ${ACADOS_INSTALL_DIR}/include
+  ${ACADOS_INSTALL_DIR}/include/acados
+  ${ACADOS_INSTALL_DIR}/include/blasfeo/include
+  ${ACADOS_INSTALL_DIR}/include/hpipm/include
+)
+link_directories(${ACADOS_INSTALL_DIR}/lib)
+
+# Include generated code directory
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp)
+# Add all generated source files
+file(GLOB ACADOS_GENERATED_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/acados_*.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/*/*.c
+)
+
+add_executable(mpc_node src/mpc_node.cpp ${ACADOS_GENERATED_SOURCES})
+ament_target_dependencies(mpc_node ${DEPENDENCIES})
+target_link_libraries(mpc_node acados hpipm blasfeo m)
+
+
 add_executable(a_star_avoidance_node src/a_star_avoidance_node.cpp)
 target_include_directories(a_star_avoidance_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -121,10 +150,13 @@ ament_target_dependencies(waypoint_handler_node ${DEPENDENCIES})
 add_executable(path_publisher_node src/path_publisher_node.cpp)
 ament_target_dependencies(path_publisher_node ${DEPENDENCIES})
 
+add_executable(spline_publisher_node src/spline_publisher_node.cpp)
+ament_target_dependencies(spline_publisher_node ${DEPENDENCIES})
+
 install(TARGETS
   asmc_node
   pid_node
-  # mpc_node
+  mpc_node
   los_node
   usv_tf2_broadcaster_node
   dynamic_model_node
@@ -134,19 +166,23 @@ install(TARGETS
   path_publisher_node
   aitsmc_node
   aitsmc_new_node
+  spline_publisher_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
   config 
   launch
+  scripts
   DESTINATION share/${PROJECT_NAME})
 
 # Install Python executables
 install(PROGRAMS
-  # scripts/path_publisher_node.py
-  scripts/teleop_aitsmc_node.py
-  scripts/teleop_can_node.py
-  scripts/teleop_mpc_node.py
+  scripts/teleop/teleop_aitsmc_node.py
+  scripts/teleop/teleop_can_node.py
+  scripts/teleop/teleop_mpc_node.py
+
+  scripts/mpc/mpc_gui.py
+
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -2,6 +2,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <cmath>
+#include <chrono>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
@@ -39,6 +41,7 @@ public:
     pose_stamped_tmp_.header.frame_id = "world";
     pose_path.header.frame_id = "world";
     pose_path.header.stamp = FramePublisher::now();
+    last_handle_time = FramePublisher::now();
     
   }
 
@@ -72,11 +75,17 @@ private:
     // Send the transformation
     tf_broadcaster_->sendTransform(t);
 
+    // Erase previous path when dynamics reboots
+    if(this->get_clock()->now() - last_handle_time > rclcpp::Duration(0, 200 * 1e6)){
+      pose_path.poses.clear();
+    }
+    last_handle_time = this->get_clock()->now();
+
     pose_stamped_tmp_.pose.position.x = msg->x;
     pose_stamped_tmp_.pose.position.y = msg->y;
     pose_path.poses.push_back(pose_stamped_tmp_);
     
-    // Erase when path is too long
+    // Erase some poses when path is too long
     if(pose_path.poses.size() > 5000){
       pose_path.poses.erase(pose_path.poses.begin(), pose_path.poses.begin()+1);
     }
@@ -91,6 +100,7 @@ private:
   nav_msgs::msg::Path pose_path;
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   std::string usv_name_;
+  rclcpp::Time last_handle_time;
 };
 
 int main(int argc, char * argv[])

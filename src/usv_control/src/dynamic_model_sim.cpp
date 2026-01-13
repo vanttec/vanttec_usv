@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <random>
 #include <cstdlib>
+#include <chrono>
 
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -30,34 +32,49 @@ class DynamicModelSim : public rclcpp::Node {
     // Declare and acquire `boatname` parameter
     boatname_ = this->declare_parameter<std::string>("boatname", "usv");
 
+    initial_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
+      "/initialpose", 1,
+      [this](const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg)
+      {
+        auto &q = msg->pose.pose.orientation;
+        model = DynamicModel{
+          msg->pose.pose.position.x,
+          msg->pose.pose.position.y,
+          std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+              1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+        };
+      });
+
+    leftThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
+        "usv/left_thruster", 10,
+        [this](const std_msgs::msg::Float64 &msg) { 
+          Tport = msg.data; 
+          last_tport_msg = this->get_clock()->now();
+        });
+        
+    rightThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
+      "usv/right_thruster", 10,
+      [this](const std_msgs::msg::Float64 &msg) { 
+        Tstbd = msg.data; 
+        last_tstbd_msg = this->get_clock()->now();
+      });
+      
     posePub =
         this->create_publisher<geometry_msgs::msg::Pose2D>("usv/state/pose", 10);
     localVelPub =
         this->create_publisher<geometry_msgs::msg::Vector3>("usv/state/velocity", 10);
     odomPub =
-        this->create_publisher<nav_msgs::msg::Odometry>("output/odom", 10);
+        this->create_publisher<nav_msgs::msg::Odometry>("/usv/state/odom", 10);
 
     disturbancesPub = 
         this->create_publisher<std_msgs::msg::Float64MultiArray>("/usv/disturbances", 10);
-
-    leftThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
-        "usv/left_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { 
-          this->Tport = msg.data; 
-        });
-
-    rightThrusterSub = this->create_subscription<std_msgs::msg::Float64>(
-        "usv/right_thruster", 10,
-        [this](const std_msgs::msg::Float64 &msg) { 
-          this->Tstbd = msg.data; 
-          });
-
     pose_path_pub = this->create_publisher<nav_msgs::msg::Path>(
-        "usv/pose_path", 10);
-
+      "usv/pose_path", 10);
+          
     tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
     pose_stamped_tmp_.header.frame_id = "world";
     pose_path.header.frame_id = "world";
+    odom.header.frame_id = "world";
     pose_path.header.stamp = DynamicModelSim::now();
 
     updateTimer = this->create_wall_timer(
@@ -67,6 +84,9 @@ class DynamicModelSim : public rclcpp::Node {
 
     disturbance_msg.data.push_back(5.);
     disturbance_msg.data.push_back(5.);
+
+    last_tport_msg = this->get_clock()->now();
+    last_tstbd_msg = this->get_clock()->now();
   }
 
  protected:
@@ -79,6 +99,13 @@ class DynamicModelSim : public rclcpp::Node {
   }
 
   void update() {
+    // 200 ms of no reception
+    if(this->get_clock()->now() - last_tport_msg > rclcpp::Duration(0, 200 * 1e6)){
+      Tport = 0.0;
+    }
+    if(this->get_clock()->now() - last_tstbd_msg > rclcpp::Duration(0, 200 * 1e6)){
+      Tstbd = 0.0;
+    }
 
     disturbance_msg.data[0] = 0.*distribution(generator);
     disturbance_msg.data[1] = 0.*distribution(generator);
@@ -95,13 +122,11 @@ class DynamicModelSim : public rclcpp::Node {
     double y = out.pose_y;  // position in y
     double etheta = out.pose_psi;
 
-
     geometry_msgs::msg::Pose2D pose;
-    nav_msgs::msg::Odometry odom;
 
     pose.x = x;
     pose.y = y;
-    pose.theta = normalize_angle(etheta);
+    pose.theta = etheta;
 
     tf2::Quaternion q;
     q.setRPY(0, 0, pose.theta);
@@ -158,12 +183,17 @@ class DynamicModelSim : public rclcpp::Node {
   
   rclcpp::TimerBase::SharedPtr updateTimer;
 
+  rclcpp::Time last_tport_msg, last_tstbd_msg;
+
   geometry_msgs::msg::PoseStamped pose_stamped_tmp_;
-    std_msgs::msg::Float64MultiArray disturbance_msg;
-    nav_msgs::msg::Path pose_path;
+  std_msgs::msg::Float64MultiArray disturbance_msg;
+  nav_msgs::msg::Path pose_path;
+  nav_msgs::msg::Odometry odom;
 
   rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr leftThrusterSub,
       rightThrusterSub;
+  rclcpp::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr initial_pose_sub_;
+
   double Tport{0}, Tstbd{0};
 
   DynamicModel model{0,0,0};

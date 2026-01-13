@@ -100,22 +100,22 @@ class ObstaclePublisherNode : public rclcpp::Node {
         geometry_msgs::msg::Pose2D pose;
         bool dynamic_obs;
 
-        static const int dyn_obs_n{11};
+        static const int dyn_obs_n{5};
         double dyn_obs[dyn_obs_n][4]{
-            {20., 1., -0.125, 0.1},
-            {0., -3., 0.135, 0.2},
-            {4., 2., -0.125, 0.15},
+            {0., 1., -0.5, 0.5},
+            {-3., 3., -0.35, 1.0},
+            {4., 2., -0.8, 0.1},
+            {4., 0., 0.5, 0.4},
+            {0., -3., 0.35, 0.2},
+            
+            // {1., -5., 0, 0.23},
+            // {1., -5., 0, 0.3},
 
-            {9., 0., 0.15, 0.4},
-            {8., 3., -0.35, 0.},
-            {10., -5., 0, 0.123},
-            {1., -5., 0, 0.23},
-
-            {7., 2., 0, 0.28},
-            {10., 0., 0, -0.28},
-            {14., 0., 0, -0.28},
-            // {17., 3., 0, -0.1323},
-            {20., 0., 0, -0.1},
+            // {5., 2., 0, 0.8},
+            // {5., 0., -.1, -0.28},
+            // {2., 8., 0.3, -0.28},
+            // {-3., -3., 0, -0.323},
+            // {0., -8., 0, -0.1},
         };
         int dyn_obs_id[dyn_obs_n];
 
@@ -131,7 +131,7 @@ class ObstaclePublisherNode : public rclcpp::Node {
         std::map<std::string, MarkerProps> marker_type = {
             {"round", MarkerProps{2, 0.5, 0.5, 0.5, 0}},
             {"boat", MarkerProps{2, 1.0, 1.0, 1.0, 0}},
-            {"marker", MarkerProps{3, 0.5, 0.5, 1, 0.25}},
+            {"marker", MarkerProps{3, 0.2, 0.2, 1, 0.25}},
             {"picture", MarkerProps{1, 0.5, 0.5, 0.5, 0.25}},
         };
                 
@@ -174,9 +174,9 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 dyn_obs[i][0] += dyn_obs[i][2]*dt;
                 dyn_obs[i][1] += dyn_obs[i][3]*dt;
 
-                if(dyn_obs[i][0] < 0){
+                if(dyn_obs[i][0] < -5){
                     dyn_obs[i][2] = fabs(dyn_obs[i][2]);
-                } else if(dyn_obs[i][0] > 25){
+                } else if(dyn_obs[i][0] > 5){
                     dyn_obs[i][2] = -fabs(dyn_obs[i][2]);
                 }
                 if(dyn_obs[i][1] < -5){
