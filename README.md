@@ -1,6 +1,6 @@
 <p align="right">
-  <img src="https://github.com/vanttec/vanttec_usv/blob/develop/docs/VantTec_logo_white.png" width="231" height="131" align="center"/>
-  <img src="https://github.com/vanttec/vanttec_usv/blob/develop/docs/USV_sticker.png" width="131" height="131" align="left"/>
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/missions/docs/VantTec_logo_white.png" width="231" height="131" align="center"/>
+  <img src="https://github.com/vanttec/vanttec_usv/blob/feature/missions/docs/VTEC S-IV.gif" width="131" height="131" align="left"/>
 </p>
 
 # VantTec USV Main Repository
