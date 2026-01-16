@@ -38,8 +38,8 @@
     imuAccBiasN: 6.4356659353532566e-05
     imuGyrBiasN: 3.5640318696367613e-05
 
-    imuGravity: 9.80511
-    imuRPYWeight: 0.01
+    imuGravity: -9.80511
+    imuRPYWeight: 1.0
 
     extrinsicTrans:  [ 0.69,  0.0,  0.23 ]
     # Default config.
