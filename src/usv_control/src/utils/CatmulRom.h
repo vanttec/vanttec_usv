@@ -21,7 +21,9 @@ public:
     Eigen::Vector2d get_s(double t);
     Eigen::Vector2d get_s_dot(double t);
     void calc_arc_length();
+    double get_arc_length(double a, double b);
     double closest_t(Eigen::Vector3d p);
+    double get_la(double t, double D);
     static double distance(Eigen::Vector2d a, Eigen::Vector2d b);
 
     Segment s_;

@@ -171,7 +171,7 @@ protected:
             // For length L, we want to find a t+dt such that s(t+dt) is at [dist] from s(t)
             // To map L to dist: L is to 1, what dist is to dt -> dt = dist/L
             L_ = s_[closest_idx].L_;
-            double la_t = std::clamp(closest_t+lookahead/L_, 0.0, 1.0);
+            double la_t = s_[closest_idx].get_la(closest_t, lookahead);
             Eigen::Vector2d la_p = s_[closest_idx].get_s(la_t);
 
             s_marker_msg.pose.position.x = closest_p.x();

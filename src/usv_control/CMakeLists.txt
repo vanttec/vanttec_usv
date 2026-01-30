@@ -181,7 +181,7 @@ install(PROGRAMS
   scripts/teleop/teleop_can_node.py
   scripts/teleop/teleop_mpc_node.py
 
-  scripts/mpc/mpc_gui.py
+  scripts/gui/mpc_gui.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
