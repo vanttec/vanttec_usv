@@ -160,11 +160,6 @@ protected:
                 }
             }
 
-            // If the closest sub-spline is almost ending, move to the next one
-            if((1-closest_t)*s_[closest_idx].L_ < 0.5 && closest_idx < s_.size() - 1){
-                closest_idx++;
-                closest_t = 0.0;
-            }
             closest_p = s_[closest_idx].get_s(closest_t);
 
             double lookahead = 2.0;
@@ -173,6 +168,12 @@ protected:
             L_ = s_[closest_idx].L_;
             double la_t = s_[closest_idx].get_la(closest_t, lookahead);
             Eigen::Vector2d la_p = s_[closest_idx].get_s(la_t);
+            if(la_t == 1.0 && closest_idx+1 < s_.size()){
+                // la_t is most likely saturated and there still are splines left to cover
+                double rem_dist = lookahead - s_[closest_idx].get_arc_length(closest_t, la_t);
+                la_t = 1 + s_[closest_idx+1].get_la(0.0, rem_dist);
+                la_p = s_[closest_idx+1].get_s(la_t - 1);
+            }
 
             s_marker_msg.pose.position.x = closest_p.x();
             s_marker_msg.pose.position.y = closest_p.y();
