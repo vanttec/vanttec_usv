@@ -7,6 +7,7 @@ from asv_dynamics import export_asv_model
 import numpy as np
 import scipy.linalg
 from casadi import vertcat, sin, cos, SX
+import casadi as ca
 import matplotlib.pyplot as plt
 
 # Setup the OCP
@@ -18,15 +19,15 @@ def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):
     model = export_asv_model()
     ocp.model = model
 
-    w_along = model.p[8] 
-    w_cross = model.p[9]
-    w_heading = model.p[10]
-    w_input = model.p[11]
-    w_slack = model.p[12]
-    w_surge = model.p[13]
-    w_yaw = model.p[14]
-    w_terminal = model.p[15]
-    w_avoidance = model.p[16]
+    w_along = model.p[16] 
+    w_cross = model.p[17]
+    w_heading = model.p[18]
+    w_input = model.p[19]
+    w_slack = model.p[20]
+    w_surge = model.p[21]
+    w_yaw = model.p[22]
+    w_terminal = model.p[23]
+    w_avoidance = model.p[24]
 
     nx = model.x.rows()  # No. states
     nu = model.u.rows()  # No. controls
@@ -55,7 +56,8 @@ def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):
     for i in range(obs_n):
         obs.append(model.x[6+2*i])
         obs.append(model.x[7+2*i])
-    t_la_param = model.p[17]
+    t_la_param = model.p[25]
+    last_s_param = model.p[26]
     
     tau_port = model.u[0]
     tau_stbd = model.u[1]
@@ -63,11 +65,14 @@ def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):
     slack_u = model.u[3]
     
     # Spline evaluation (defined in model)
-    s_x = model.s_x
-    s_y = model.s_y
-    s_la_x = model.s_la_x
-    s_la_y = model.s_la_y
-    psi_ref = model.psi_ref
+    condition_t = ca.logic_and(t_param > 1.0, last_s_param == 0)
+    condition_t_la = ca.logic_and(t_la_param > 1.0, last_s_param == 0)
+    s_x = ca.if_else(condition_t, model.s2_x, model.s_x)
+    s_y = ca.if_else(condition_t, model.s2_y, model.s_y)
+    psi_ref = ca.if_else(condition_t, model.psi2_ref, model.psi_ref)
+
+    s_la_x = ca.if_else(condition_t_la, model.s2_la_x, model.s_la_x)
+    s_la_y = ca.if_else(condition_t_la, model.s2_la_y, model.s_la_y)
     
     # Stage cost
     L = 0.1
@@ -146,17 +151,17 @@ def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):
     # ocp.constraints.uh = np.array([1e10,0.0])
     # ocp.model.con_h_expr = vertcat(
     #     model.x[3] + model.u[3],  # surge + slack_u >= 0
-    #     model.x[5] - model.p[16]  # t - t_la <= 0
+    #     model.x[5] - model.p[25]  # t - t_la <= 0
     # )
     
     # State bounds
     ocp.constraints.lbx = np.array([0.0,-1.5,-1.5])
-    ocp.constraints.ubx = np.array([1.0,1.5,1.5])
+    ocp.constraints.ubx = np.array([2.0,1.5,1.5])
     ocp.constraints.idxbx = np.array([5,3,4])  # Index in state vector (t, surge, yaw)
     
     # State bounds at terminal stage
     ocp.constraints.lbx_e = np.array([0.0,0.0,0.0])
-    ocp.constraints.ubx_e = np.array([1.0,0.0,0.0])
+    ocp.constraints.ubx_e = np.array([2.0,0.0,0.0])
     ocp.constraints.idxbx_e = np.array([5,3,4])
     
     # Set spline parameters
@@ -301,10 +306,10 @@ def main(algorithm='RTI', simulate=True):
         5.0,
         1.0
     ])
-    add_params = np.array([1.0])
+    add_params = np.array([1.0, 0.0])
     ov_params = np.zeros(6)
 
-    params = np.concatenate((spline_params,w_params, add_params, ov_params))
+    params = np.concatenate((spline_params,spline_params,w_params, add_params, ov_params))
 
     # --- Setup solver and integrator ---
     print("Setting up OCP solver...")
