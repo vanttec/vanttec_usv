@@ -118,7 +118,8 @@ public:
         la_marker_msg.scale = geometry_msgs::build<geometry_msgs::msg::Vector3>().x(0.1).y(0.1).z(0.1);
         la_marker_msg.color = std_msgs::build<std_msgs::msg::ColorRGBA>().r(1).g(0).b(0).a(1);
 
-        spline_params_msg.data.resize(8);
+        // Current and next spline's params
+        spline_params_msg.data.resize(16);
         update_spline_params();
     }
 
@@ -184,13 +185,28 @@ protected:
             spline_t_msg.data = closest_t;
             spline_t_la_msg.data = la_t;
 
-            for (int i = 0; i < 2; i++)
-            {
-                spline_params_msg.data[4 * i + 0] = s_[closest_idx].s_.a[i];
-                spline_params_msg.data[4 * i + 1] = s_[closest_idx].s_.b[i];
-                spline_params_msg.data[4 * i + 2] = s_[closest_idx].s_.c[i];
-                spline_params_msg.data[4 * i + 3] = s_[closest_idx].s_.d[i];
+            if(last_idx != closest_idx){
+                for (int i = 0; i < 2; i++)
+                {
+                    spline_params_msg.data[4 * i + 0] = s_[closest_idx].s_.a[i];
+                    spline_params_msg.data[4 * i + 1] = s_[closest_idx].s_.b[i];
+                    spline_params_msg.data[4 * i + 2] = s_[closest_idx].s_.c[i];
+                    spline_params_msg.data[4 * i + 3] = s_[closest_idx].s_.d[i];
+                }
+
+                // If there is a 'next spline', update it!
+                if(closest_idx+1 < s_.size()){
+                    for (int i = 0; i < 2; i++)
+                    {
+                        spline_params_msg.data[4 * i + 8]  = s_[closest_idx+1].s_.a[i];
+                        spline_params_msg.data[4 * i + 9]  = s_[closest_idx+1].s_.b[i];
+                        spline_params_msg.data[4 * i + 10] = s_[closest_idx+1].s_.c[i];
+                        spline_params_msg.data[4 * i + 11] = s_[closest_idx+1].s_.d[i];
+                    }
+                }
             }
+
+            last_idx = closest_idx;
 
             spline_length_msg.data = L_;
         }
@@ -241,6 +257,7 @@ private:
     int n_{100};
     double dist{0.1};
     int closest_idx{-1};
+    int last_idx{-1};
 
     std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{7,3},{13,-3},{19,3},{25,-3}};
     // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{1,-3}};
