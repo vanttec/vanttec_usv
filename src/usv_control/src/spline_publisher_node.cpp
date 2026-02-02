@@ -163,7 +163,7 @@ protected:
 
             closest_p = s_[closest_idx].get_s(closest_t);
 
-            double lookahead = 2.0;
+            double lookahead = 1.5;
             // For length L, we want to find a t+dt such that s(t+dt) is at [dist] from s(t)
             // To map L to dist: L is to 1, what dist is to dt -> dt = dist/L
             L_ = s_[closest_idx].L_;
@@ -182,8 +182,8 @@ protected:
             la_marker_msg.pose.position.x = la_p.x();
             la_marker_msg.pose.position.y = la_p.y();
 
-            spline_t_msg.data = closest_t;
-            spline_t_la_msg.data = la_t;
+            spline_t_msg.data = closest_idx + closest_t;
+            spline_t_la_msg.data = closest_idx + la_t;
 
             if(last_idx != closest_idx){
                 for (int i = 0; i < 2; i++)
@@ -259,8 +259,8 @@ private:
     int closest_idx{-1};
     int last_idx{-1};
 
-    std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{7,3},{13,-3},{19,3},{25,-3}};
-    // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{1,-3}};
+    // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{7,3},{13,-3},{19,3},{25,-3}};
+    std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{6,-5},{7,-8},{0,-10}};
     Eigen::Vector3d asv, tmp;
 
     Eigen::Vector2d trans(Eigen::Vector3d v, double dist)
