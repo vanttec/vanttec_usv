@@ -41,9 +41,9 @@
 #define n_obs 3
 
 // Simulation parameters
-#define N_SP 8 // Spline params (4 x NDIMS)
+#define N_SP 16 // Spline params (4 x 2 NDIMS x 2 splines)
 #define N_WP 9 // Weight params
-#define N_AP 1 // Additional params
+#define N_AP 3 // Additional params
 #define N_OP n_obs*2 //Obstacle params (velocities)
 
 #define TF 2.5              // MPC prediction horizon [s]
@@ -112,8 +112,6 @@ public:
             "/mpc/spline_t_la", 10,
             [this](const std_msgs::msg::Float64 &msg)
             {
-                // Previously t_la would be state[5] (t)
-                // x0[5] = msg.data;
                 ocp_params[N_SP + N_WP] = msg.data;
             });
 
@@ -121,12 +119,11 @@ public:
             "/mpc/spline_t", 10,
             [this](const std_msgs::msg::Float64 &msg)
             {
-                s_t = msg.data;
+                s_t = fmod(msg.data, 1.0);
                 x0[5] = msg.data;
-                along_e = (1 - msg.data) * s_length;
+                ocp_params[N_SP + N_WP + 2] = ceil(msg.data);
+                along_e = (1 - s_t) * s_length;
                 cross_e = get_crosstrack_e();
-                // Test relation, might try for some weights
-                double ca = cross_e / std::clamp(along_e, 0.01, 1e10);
 
                 // if (s_t <= 0.05 || s_t >= 0.95)
                 // if (s_t >= 0.95)
@@ -168,18 +165,20 @@ public:
             {
                 bool new_spline = false;
 
+                bool in_last_spline = true;
+                for(int i = 0 ; i < 8 ; i++){
+                    if(std::fabs(msg.data[i] - msg.data[8+i]) > 1e-4)
+                        in_last_spline = false;
+                }
+                ocp_params[N_SP + N_WP + 1] = (int)in_last_spline;
+
                 for (int i = 0; i < N_SP; i++)
                 {
-                    if (std::abs(ocp_params[i] - msg.data[i]) > 1e-6)
+                    if (std::fabs(ocp_params[i] - msg.data[i]) > 1e-6)
                     {
                         ocp_params[i] = msg.data[i];
                         new_spline = true;
                     }
-                }
-                if (new_spline)
-                {
-                    RCLCPP_WARN(this->get_logger(), "Resetting trajectory guess");
-                    asv_dynamics_acados_reset(ocp_capsule, 1); // 1 = reset trajectory guess
                 }
             });
         
@@ -571,10 +570,10 @@ private:
 
         // MPC Debugging
         RCLCPP_INFO(this->get_logger(),
-                    "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}",
+                    "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}, LAST S {%.2f}",
                     ocp_params[0], ocp_params[1], ocp_params[2], ocp_params[3], ocp_params[4], ocp_params[5], ocp_params[6],
-                    ocp_params[7], ocp_params[8], ocp_params[9], ocp_params[10], ocp_params[11], ocp_params[12], ocp_params[13],
-                    ocp_params[14], ocp_params[15], ocp_params[16], ocp_params[17]);
+                    ocp_params[7], ocp_params[16], ocp_params[17], ocp_params[18], ocp_params[19], ocp_params[20], ocp_params[21],
+                    ocp_params[22], ocp_params[23], ocp_params[24], ocp_params[25], ocp_params[26]);
         RCLCPP_INFO(this->get_logger(),
                     "SOLUTION IDX: %.2d, Sol. length: %.2f", sol_idx, sol_length);
         RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
