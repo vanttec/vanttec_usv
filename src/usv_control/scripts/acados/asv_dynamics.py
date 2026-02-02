@@ -1,5 +1,6 @@
 from acados_template import AcadosModel
 from casadi import SX, vertcat, sin, cos, fabs, if_else, atan2
+import casadi as ca
 
 def export_asv_model() -> AcadosModel:
     """
@@ -82,7 +83,9 @@ def export_asv_model() -> AcadosModel:
     w_terminal = SX.sym('w_terminal')
     w_avoidance = SX.sym('w_avoidance')
     t_la = SX.sym('t_la')
-    last_s = SX.sym('last_s')
+    in_last_s = SX.sym('in_last_s')
+    spline_ceil = SX.sym('spline_ceil')
+    
     # Obstacle velocities (for dynamic obstacles)
     obs_velocities = []
     for i in range(obs_n):
@@ -93,7 +96,7 @@ def export_asv_model() -> AcadosModel:
             a_x, b_x, c_x, d_x, a_y, b_y, c_y, d_y, # 0 - 7
             a2_x, b2_x, c2_x, d2_x, a2_y, b2_y, c2_y, d2_y, # 8 - 15 
             w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance, # 16 - 24
-            t_la, last_s, *obs_velocities) # 25 - 26+obs_n*2
+            t_la, in_last_s, spline_ceil, *obs_velocities) # 25 - 27+obs_n*2
 
     # state-dependent parameters for ASV
     Xu = if_else(surge > 1.2, 64.55, -25.0)
@@ -140,32 +143,39 @@ def export_asv_model() -> AcadosModel:
 
     # Spline evaluation expressions (for cost function)
     # s(t) = [s_x(t), s_y(t)]
-    s_x = a_x * t**3 + b_x * t**2 + c_x * t + d_x
-    s_y = a_y * t**3 + b_y * t**2 + c_y * t + d_y
+    t_mod = ca.fmod(t, 1.0)
+    t_mod = ca.if_else(ca.logic_and(t_mod < 1e-6, t > 0.1), 1.0, t_mod)
+    t_mod = ca.if_else(ca.logic_and(t > spline_ceil, in_last_s), 1.0, t_mod)
+    t_la_mod = ca.fmod(t_la, 1.0)
+    t_la_mod = ca.if_else(ca.logic_and(t_la_mod < 1e-6, t_la > 0.1), 1.0, t_la_mod)
+    t_la_mod = ca.if_else(ca.logic_and(t_la > spline_ceil, in_last_s), 1.0, t_la_mod)
+
+    s_x = a_x * t_mod**3 + b_x * t_mod**2 + c_x * t_mod + d_x
+    s_y = a_y * t_mod**3 + b_y * t_mod**2 + c_y * t_mod + d_y
 
     # s(la)
-    s_la_x = a_x * t_la**3 + b_x * t_la**2 + c_x * t_la + d_x
-    s_la_y = a_y * t_la**3 + b_y * t_la**2 + c_y * t_la + d_y
+    s_la_x = a_x * t_la_mod**3 + b_x * t_la_mod**2 + c_x * t_la_mod + d_x
+    s_la_y = a_y * t_la_mod**3 + b_y * t_la_mod**2 + c_y * t_la_mod + d_y
     
     # s'(t) = [s_x'(t), s_y'(t)]
-    s_x_dot = 3 * a_x * t**2 + 2 * b_x * t + c_x
-    s_y_dot = 3 * a_y * t**2 + 2 * b_y * t + c_y
+    s_x_dot = 3 * a_x * t_mod**2 + 2 * b_x * t_mod + c_x
+    s_y_dot = 3 * a_y * t_mod**2 + 2 * b_y * t_mod + c_y
     
     # Reference heading from spline tangent
     psi_ref = atan2(s_y_dot, s_x_dot)
 
     # Next Spline evaluation expressions (for cost function)
     # s(t) = [s_x(t), s_y(t)]
-    s2_x = a2_x * (t-1.)**3 + b2_x * (t-1.)**2 + c2_x * (t-1.) + d2_x
-    s2_y = a2_y * (t-1.)**3 + b2_y * (t-1.)**2 + c2_y * (t-1.) + d2_y
+    s2_x = a2_x * t_mod**3 + b2_x * t_mod**2 + c2_x * t_mod + d2_x
+    s2_y = a2_y * t_mod**3 + b2_y * t_mod**2 + c2_y * t_mod + d2_y
 
     # s(la)
-    s2_la_x = a2_x * (t_la-1.)**3 + b2_x * (t_la-1.)**2 + c2_x * (t_la-1.) + d2_x
-    s2_la_y = a2_y * (t_la-1.)**3 + b2_y * (t_la-1.)**2 + c2_y * (t_la-1.) + d2_y
+    s2_la_x = a2_x * t_la_mod**3 + b2_x * t_la_mod**2 + c2_x * t_la_mod + d2_x
+    s2_la_y = a2_y * t_la_mod**3 + b2_y * t_la_mod**2 + c2_y * t_la_mod + d2_y
     
     # s'(t) = [s2_x'(t), s2_y'(t)]
-    s2_x_dot = 3 * a2_x * (t-1.)**2 + 2 * b2_x * (t-1.) + c2_x
-    s2_y_dot = 3 * a2_y * (t-1.)**2 + 2 * b2_y * (t-1.) + c2_y
+    s2_x_dot = 3 * a2_x * t_mod**2 + 2 * b2_x * t_mod + c2_x
+    s2_y_dot = 3 * a2_y * t_mod**2 + 2 * b2_y * t_mod + c2_y
     
     # Reference heading from spline tangent
     psi2_ref = atan2(s2_y_dot, s2_x_dot)

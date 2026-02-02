@@ -58,6 +58,7 @@ def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):
         obs.append(model.x[7+2*i])
     t_la_param = model.p[25]
     last_s_param = model.p[26]
+    spline_ceil_param = model.p[27]
     
     tau_port = model.u[0]
     tau_stbd = model.u[1]
@@ -65,8 +66,8 @@ def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):
     slack_u = model.u[3]
     
     # Spline evaluation (defined in model)
-    condition_t = ca.logic_and(t_param > 1.0, last_s_param == 0)
-    condition_t_la = ca.logic_and(t_la_param > 1.0, last_s_param == 0)
+    condition_t = ca.logic_and(t_param > spline_ceil_param, last_s_param == 0)
+    condition_t_la = ca.logic_and(t_la_param > spline_ceil_param, last_s_param == 0)
     s_x = ca.if_else(condition_t, model.s2_x, model.s_x)
     s_y = ca.if_else(condition_t, model.s2_y, model.s_y)
     psi_ref = ca.if_else(condition_t, model.psi2_ref, model.psi_ref)
@@ -155,14 +156,14 @@ def setup_spline_tracking_ocp(x0, params, Tf, N_horizon, algorithm='RTI'):
     # )
     
     # State bounds
-    ocp.constraints.lbx = np.array([0.0,-1.5,-1.5])
-    ocp.constraints.ubx = np.array([2.0,1.5,1.5])
-    ocp.constraints.idxbx = np.array([5,3,4])  # Index in state vector (t, surge, yaw)
+    ocp.constraints.lbx = np.array([-1.5,-1.5])
+    ocp.constraints.ubx = np.array([1.5,1.5])
+    ocp.constraints.idxbx = np.array([3,4])  # Index in state vector (t, surge, yaw)
     
     # State bounds at terminal stage
-    ocp.constraints.lbx_e = np.array([0.0,0.0,0.0])
-    ocp.constraints.ubx_e = np.array([2.0,0.0,0.0])
-    ocp.constraints.idxbx_e = np.array([5,3,4])
+    ocp.constraints.lbx_e = np.array([0.0,0.0])
+    ocp.constraints.ubx_e = np.array([0.0,0.0])
+    ocp.constraints.idxbx_e = np.array([3,4])
     
     # Set spline parameters
     ocp.parameter_values = params
@@ -306,7 +307,7 @@ def main(algorithm='RTI', simulate=True):
         5.0,
         1.0
     ])
-    add_params = np.array([1.0, 0.0])
+    add_params = np.array([1.0, 0.0, 1.0])
     ov_params = np.zeros(6)
 
     params = np.concatenate((spline_params,spline_params,w_params, add_params, ov_params))
