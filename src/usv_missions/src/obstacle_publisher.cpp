@@ -100,22 +100,22 @@ class ObstaclePublisherNode : public rclcpp::Node {
         geometry_msgs::msg::Pose2D pose;
         bool dynamic_obs;
 
-        static const int dyn_obs_n{3};
+        static const int dyn_obs_n{8};
         double dyn_obs[dyn_obs_n][4]{
-            {10., 1., 0.0, 0.0},
-            {10., 3., 0.0, 0.0},
-            {4., 2., -1.0, 1.0},
-            // {4., 0., 0.5, 0.4},
-            // {0., -3., 0.35, 0.2},
+            // {10., 1., 0.0, 0.0},
+            // {10., 3., 0.0, 0.0},
+            {4., 2., -0.20, 0.10},
+            {4., 0., 0.3, 0.4},
+            {0., -3., 0.35, 0.2},
             
-            // {1., -5., 0, 0.23},
-            // {1., -5., 0, 0.3},
+            // {1., -5., 0.1, 0.23},
+            // {1., -5., -0.09, 0.3},
 
-            // {5., 2., 0, 0.8},
-            // {5., 0., -.1, -0.28},
-            // {2., 8., 0.3, -0.28},
-            // {-3., -3., 0, -0.323},
-            // {0., -8., 0, -0.1},
+            {5., 2., 0.02, 0.28},
+            {5., 0., -.1, -0.28},
+            {2., 8., 0.3, -0.28},
+            {-3., -3., 0.5, -0.123},
+            {0., -8., 0.2, -0.1},
         };
         int dyn_obs_id[dyn_obs_n];
 
@@ -174,14 +174,14 @@ class ObstaclePublisherNode : public rclcpp::Node {
                 dyn_obs[i][0] += dyn_obs[i][2]*dt;
                 dyn_obs[i][1] += dyn_obs[i][3]*dt;
 
-                if(dyn_obs[i][0] < -5){
+                if(dyn_obs[i][0] < -2){
                     dyn_obs[i][2] = fabs(dyn_obs[i][2]);
-                } else if(dyn_obs[i][0] > 5){
+                } else if(dyn_obs[i][0] > 10){
                     dyn_obs[i][2] = -fabs(dyn_obs[i][2]);
                 }
-                if(dyn_obs[i][1] < -5){
+                if(dyn_obs[i][1] < -10){
                     dyn_obs[i][3] = fabs(dyn_obs[i][3]);
-                } else if(dyn_obs[i][1] > 5){
+                } else if(dyn_obs[i][1] > 10){
                     dyn_obs[i][3] = -fabs(dyn_obs[i][3]);
                 }
 

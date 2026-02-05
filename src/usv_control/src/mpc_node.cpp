@@ -46,7 +46,7 @@
 #define N_AP 3 // Additional params
 #define N_OP n_obs*2 //Obstacle params (velocities)
 
-#define TF 2.5              // MPC prediction horizon [s]
+#define TF 3.5              // MPC prediction horizon [s]
 #define DT (TF / N_HORIZON) // Time step
 
 struct WeightParams
@@ -287,7 +287,7 @@ public:
             "/mpc/debug/w", 10);
 
         timer_ =
-            this->create_wall_timer(50ms, std::bind(&MPCNode::update, this));
+            this->create_wall_timer(100ms, std::bind(&MPCNode::update, this));
 
         sol_path_msg.header.frame_id = "world";
         sol_path_msg.poses.resize(N_HORIZON + 1);
@@ -369,12 +369,12 @@ private:
     double along_e, cross_e, ocp_cost, obs_d{std::numeric_limits<double>::max()};
 
     // w_along, w_cross, w_heading, w_input, w_slack, w_surge, w_yaw, w_terminal, w_avoidance
-    std::vector<double> mpc_weights      {5.0, 15.0, 20.0, 0.05, 1000.0, 0.01, 0.01, 100.0, 0.0};
+    std::vector<double> mpc_weights      {2.0, 70.0, 60.0, 0.05, 1000.0, 0.01, 0.01, 100.0, 0.0};
     std::vector<double> tracking_to_avoid{2.0, 0.004, 0.50, 0.2, 1.0, 1.0, 1.0, 0.05, 1.0};
-    std::vector<double> avoidance_weights{10.0, 0.06, 10.0, 0.01, 1000.0, 0.01, 0.01, 5.0, 2.0};
+    std::vector<double> avoidance_weights{4.0, 0.28, 30.0, 0.01, 1000.0, 0.01, 0.01, 5.0, 0.7};
 
     // map input [min,max] to output [min,max]
-    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{4.0}, max_avoidance{2.5};
+    double min_ae{0.1}, max_ae{0.80}, min_ce{0.05}, max_ce{0.2}, min_avoidance{4.0}, max_avoidance{2.0};
     double tracking_weights_dynamics[N_WP]{
         0.1, 10.0, 5.0,         // along,cross,heading
         0.1, 0.1, 0.1, 0.1, 0.5, // input,slack,surge,yaw,terminal
@@ -413,12 +413,12 @@ private:
         {min_avoidance, max_avoidance}, // avoidance
     };
 
-    int sol_idx_base{10};
+    int sol_idx_base{5};
     double sol_idx_dynamics = 2.0;
     WeightParams sol_idx_weight_params{0.1, 0.8};
 
-    double mpc_tf{2.5}, mpc_s_max_dt{0.1}, s_length{0.001}, s_t{0.};
-    bool mpc_enabled{true};
+    double mpc_tf{3.5}, mpc_s_max_dt{0.1}, s_length{0.001}, s_t{0.};
+    bool mpc_enabled{false};
     Eigen::Vector2d asv, nearest_obs;
 
     rclcpp::TimerBase::SharedPtr timer_;
@@ -481,33 +481,33 @@ private:
         status = asv_dynamics_acados_solve(ocp_capsule);
 
         // Store previous cost
-        static double prev_cost = 0.0;
+        // static double prev_cost = 0.0;
 
-        // Get current cost
-        ocp_nlp_eval_cost(nlp_solver, nlp_in, nlp_out);
-        ocp_nlp_get(nlp_solver, "cost_value", &ocp_cost);
-        debug_residuals_msg.data = ocp_cost;
+        // // Get current cost
+        // ocp_nlp_eval_cost(nlp_solver, nlp_in, nlp_out);
+        // ocp_nlp_get(nlp_solver, "cost_value", &ocp_cost);
+        // debug_residuals_msg.data = ocp_cost;
 
-        if (status == 4)
-        {
-            double residuals[4];
-            ocp_nlp_get(nlp_solver, "res_stat", &residuals[0]);
-            ocp_nlp_get(nlp_solver, "res_eq", &residuals[1]);
-            ocp_nlp_get(nlp_solver, "res_ineq", &residuals[2]);
-            ocp_nlp_get(nlp_solver, "res_comp", &residuals[3]);
-            RCLCPP_INFO(this->get_logger(),
-                        "Residuals: [%.2e, %.2e, %.2e, %.2e]",
-                        residuals[0], residuals[1], residuals[2], residuals[3]);
+        // if (status == 4)
+        // {
+        //     double residuals[4];
+        //     ocp_nlp_get(nlp_solver, "res_stat", &residuals[0]);
+        //     ocp_nlp_get(nlp_solver, "res_eq", &residuals[1]);
+        //     ocp_nlp_get(nlp_solver, "res_ineq", &residuals[2]);
+        //     ocp_nlp_get(nlp_solver, "res_comp", &residuals[3]);
+        //     RCLCPP_INFO(this->get_logger(),
+        //                 "Residuals: [%.2e, %.2e, %.2e, %.2e]",
+        //                 residuals[0], residuals[1], residuals[2], residuals[3]);
     
-            double max_res = std::max({std::abs(residuals[0]), std::abs(residuals[1]),
-                                       std::abs(residuals[2]), std::abs(residuals[3])});
-            if (max_res > 1e-6)
-            {
-                RCLCPP_WARN(this->get_logger(),
-                            "QP failed: res=[%.2e, %.2e, %.2e, %.2e]",
-                            residuals[0], residuals[1], residuals[2], residuals[3]);
-            }
-        }
+        //     double max_res = std::max({std::abs(residuals[0]), std::abs(residuals[1]),
+        //                                std::abs(residuals[2]), std::abs(residuals[3])});
+        //     if (max_res > 1e-6)
+        //     {
+        //         RCLCPP_WARN(this->get_logger(),
+        //                     "QP failed: res=[%.2e, %.2e, %.2e, %.2e]",
+        //                     residuals[0], residuals[1], residuals[2], residuals[3]);
+        //     }
+        // }
 
         // Get optimal control
         ocp_nlp_out_get(nlp_config, nlp_dims, nlp_out, 0, "u", simU);
@@ -569,15 +569,15 @@ private:
         debug_weights_pub_->publish(debug_weights_msg);
 
         // MPC Debugging
-        RCLCPP_INFO(this->get_logger(),
-                    "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}, LAST S {%.2f}",
-                    ocp_params[0], ocp_params[1], ocp_params[2], ocp_params[3], ocp_params[4], ocp_params[5], ocp_params[6],
-                    ocp_params[7], ocp_params[16], ocp_params[17], ocp_params[18], ocp_params[19], ocp_params[20], ocp_params[21],
-                    ocp_params[22], ocp_params[23], ocp_params[24], ocp_params[25], ocp_params[26]);
-        RCLCPP_INFO(this->get_logger(),
-                    "SOLUTION IDX: %.2d, Sol. length: %.2f", sol_idx, sol_length);
-        RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
-        RCLCPP_INFO(this->get_logger(), "Dist nearest obs: %.2f", obs_d);
+        // RCLCPP_INFO(this->get_logger(),
+        //             "OCP PARAMS\nSpline {%.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f, %.2f}\nWeights {%.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f, %.3f}\nT LA {%.2f}, LAST S {%.2f}",
+        //             ocp_params[0], ocp_params[1], ocp_params[2], ocp_params[3], ocp_params[4], ocp_params[5], ocp_params[6],
+        //             ocp_params[7], ocp_params[16], ocp_params[17], ocp_params[18], ocp_params[19], ocp_params[20], ocp_params[21],
+        //             ocp_params[22], ocp_params[23], ocp_params[24], ocp_params[25], ocp_params[26]);
+        // RCLCPP_INFO(this->get_logger(),
+        //             "SOLUTION IDX: %.2d, Sol. length: %.2f", sol_idx, sol_length);
+        // RCLCPP_INFO(this->get_logger(), "ERRORS {a_e: %.2f, c_e: %.2f}", along_e, cross_e);
+        // RCLCPP_INFO(this->get_logger(), "Dist nearest obs: %.2f", obs_d);
     }
 
     double normalize_angle(double x)

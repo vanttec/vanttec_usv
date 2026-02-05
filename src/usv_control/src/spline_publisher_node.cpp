@@ -254,13 +254,13 @@ private:
 
     std::vector<CatmulRom> s_;
     double L_{0.0};
-    int n_{100};
+    int n_{20};
     double dist{0.1};
     int closest_idx{-1};
     int last_idx{-1};
 
     // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{7,3},{13,-3},{19,3},{25,-3}};
-    std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{3,5},{7,0},{5,-3},{6,-5},{7,-8},{0,-10}};
+    std::vector<Eigen::Vector2d> ref{{0,0},{0.3,0},{3,5},{7,0},{6,-5},{7,-8},{1,-5},{0.5,-1},{0,0}};
     Eigen::Vector3d asv, tmp;
 
     Eigen::Vector2d trans(Eigen::Vector3d v, double dist)

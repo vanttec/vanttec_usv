@@ -257,8 +257,8 @@ def evaluate_spline(t, params):
 
 def main(algorithm='RTI', simulate=True):
     # --- Simulation setup ---
-    Tf = 2.50        # MPC prediction horizon [s]
-    N_horizon = 50  # Number of shooting nodes
+    Tf = 3.50        # MPC prediction horizon [s]
+    N_horizon = 30  # Number of shooting nodes
     dt = Tf / N_horizon
 
     x0 = np.array([
