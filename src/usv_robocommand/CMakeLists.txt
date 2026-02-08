@@ -10,6 +10,15 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sbg_driver REQUIRED)
 
+
+add_executable(heartbeat_node src/heartbeat.cpp)
+ament_target_dependencies(heartbeat_node rclcpp sbg_driver)
+
+install(TARGETS
+  heartbeat_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

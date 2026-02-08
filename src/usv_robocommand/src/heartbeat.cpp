@@ -1,17 +1,13 @@
 #include <cmath>
 #include <cstdlib>
+#include <functional>
 #include <memory>
 
+#include <rclcpp/subscription.hpp>
 #include <rclcpp/time.hpp>
 #include <string>
 #include "rclcpp/rclcpp.hpp"
-
-#include "sbg_ros2_driver/msg/SbgGpsPos.msg"
-
-
-
-using namespace std;
-
+#include "sbg_driver/msg/sbg_gps_pos.hpp"
 
 
 
@@ -19,13 +15,13 @@ class Heartbeat : public rclcpp::Node
 {
   public:
     Heartbeat()
-    : Node("minimal_publisher")
+    : Node("robocommand_heartbeat")
     {
-       
-      subscription_ =
-      this->create_subscription<sensor_msgs::msg::PointCloud2>(
-      "/velodyne_points", 10, std::bind(&Heartbeat::timer_callback, this, std::placeholders::_1));
-      
+       subscription_ = this->create_subscription<sbg_driver::msg::SbgGpsPos>(
+            "/sbg/gps_pos", 
+            10, 
+            std::bind(&Heartbeat::sbgGps_callback, this, std::placeholders::_1)
+        );
 
       
 
@@ -34,12 +30,19 @@ class Heartbeat : public rclcpp::Node
 
   private:
 
-    
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
 
-    void timer_callback(const sensor_msgs::msg::PointCloud2::SharedPtr input_cloud)
-      {
-      }
+    void sbgGps_callback(const sbg_driver::msg::SbgGpsPos::SharedPtr msg) const
+    {
+        // Accessing latitude, longitude, and altitude
+        RCLCPP_INFO(this->get_logger(), "Received GPS Pos -> Lat: %.6f, Lon: %.6f, Alt: %.2f", 
+                    msg->latitude, 
+                    msg->longitude, 
+                    msg->altitude);
+        
+    }
+
+
+    rclcpp::Subscription<sbg_driver::msg::SbgGpsPos>::SharedPtr subscription_;
 
 };
 
