@@ -16,7 +16,7 @@
   <depend>rviz_default_plugins</depend>
   <depend>rviz_rendering</depend>
   <depend>pluginlib</depend>
-  <depend>qt5</depend>
+  <depend>qtbase5-dev</depend>
   <depend>geometry_msgs</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
