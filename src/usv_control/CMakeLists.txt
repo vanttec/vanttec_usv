@@ -93,7 +93,7 @@ target_link_libraries(pid_node usv_libs)
 # ================
 
 # Find ACADOS
-set(ACADOS_INSTALL_DIR "/home/max/acados")
+set(ACADOS_INSTALL_DIR "$ENV{HOME}/acados")
 include_directories(
   ${ACADOS_INSTALL_DIR}/include
   ${ACADOS_INSTALL_DIR}/include/acados
