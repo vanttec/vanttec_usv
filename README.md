@@ -18,8 +18,8 @@ Official documentation [here][vanttec-documentation].
 6. Install the following dependencies:
 
 ```Shell
-sudo add-apt-repository ppa:borglab/gtsam-release-5.1
-sudo apt install libgtsam-dev libgtsam-unstable-dev ros-humble-xacro libpcap-dev ros-humble-robot-localization ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-tf-transformations ros-humble-foxglove-bridge ros-humble-nmea-msgs ros-humble-joy-teleop libgz-sim8 libgz-sim8-dev ros-humble-ros-gz ros-humble-ros-gzharmonic
+sudo apt install libgtsam-dev libgtsam-unstable-dev 
+sudo apt install ros-humble-xacro libpcap-dev ros-humble-robot-localization ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-tf-transformations ros-humble-foxglove-bridge ros-humble-nmea-msgs ros-humble-joy-teleop libgz-sim8 libgz-sim8-dev ros-humble-ros-gz ros-humble-ros-gzharmonic
 
 # Install other missing dependencies automatically if needed:
 rosdep install --from-paths src -y --ignore-src
