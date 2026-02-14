@@ -18,6 +18,8 @@
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>usv_interfaces</depend>
+  <build_depend>libprotobuf-dev</build_depend>
+  <build_depend>protobuf-compiler</build_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
