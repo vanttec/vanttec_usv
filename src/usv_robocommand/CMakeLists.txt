@@ -9,10 +9,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sbg_driver REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 
 add_executable(heartbeat_node src/heartbeat.cpp)
-ament_target_dependencies(heartbeat_node rclcpp sbg_driver)
+ament_target_dependencies(heartbeat_node rclcpp sbg_driver geometry_msgs sensor_msgs std_msgs)
 
 install(TARGETS
   heartbeat_node
