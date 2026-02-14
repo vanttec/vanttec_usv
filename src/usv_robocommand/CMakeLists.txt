@@ -12,10 +12,11 @@ find_package(sbg_driver REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(usv_interfaces REQUIRED)
 
 
 add_executable(heartbeat_node src/heartbeat.cpp)
-ament_target_dependencies(heartbeat_node rclcpp sbg_driver geometry_msgs sensor_msgs std_msgs)
+ament_target_dependencies(heartbeat_node rclcpp sbg_driver geometry_msgs sensor_msgs std_msgs usv_interfaces)
 
 install(TARGETS
   heartbeat_node

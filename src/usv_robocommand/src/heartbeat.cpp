@@ -8,11 +8,13 @@
 #include <sensor_msgs/msg/detail/imu__struct.hpp>
 #include <std_msgs/msg/detail/int8__struct.hpp>
 #include <string>
+#include <usv_interfaces/msg/detail/system_status__struct.hpp>
 #include "rclcpp/rclcpp.hpp"
 #include "sbg_driver/msg/sbg_gps_pos.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "std_msgs/msg/int8.hpp"
+#include "usv_interfaces/msg/system_status.hpp"
 
 class Heartbeat : public rclcpp::Node
 {
@@ -42,6 +44,12 @@ class Heartbeat : public rclcpp::Node
         "/usv/mission/id", 
         10, 
         std::bind(&Heartbeat::missionId_callback,this,std::placeholders::_1)  
+      );
+
+      subscription_system_status = this->create_subscription<usv_interfaces::msg::SystemStatus>(
+        "/usv/status", 
+        10, 
+        std::bind(&Heartbeat::systemStatus_callback,this,std::placeholders::_1)  
       );
 
       
@@ -94,11 +102,37 @@ class Heartbeat : public rclcpp::Node
       currentData.current_task = msg.data;
     }
 
+    void systemStatus_callback(const usv_interfaces::msg::SystemStatus msg)
+    {
+      // op_mode != robot_state
+      // op_mode:
+      // auto, tele, inactivo es 0,1 y 2 respectivamente
+
+      // robot_state:
+      //    STATE_UNKNOWN = 0; 
+      //  STATE_KILLED = 1; 
+      //  STATE_MANUAL = 2; 
+      //  STATE_AUTO = 3; 
+
+      int op_mode = msg.op_mode;
+
+      if(op_mode == 0){ // robot is in auto
+        currentData.robot_state = 3;
+      } else if(op_mode == 1){ // robot is in tele
+        currentData.robot_state = 2; // (manual)
+      } else if (op_mode == 2){ // robot is inactive
+        currentData.robot_state = 1; // (killed)
+      } else {
+        currentData.robot_state = 0; // unformated message recieved, taken as unknown state
+      }
+
+    }
 
     rclcpp::Subscription<sbg_driver::msg::SbgGpsPos>::SharedPtr subscription_gps;
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr subscription_vel;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subscription_heading;
     rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr subscription_mission_id;
+    rclcpp::Subscription<usv_interfaces::msg::SystemStatus>::SharedPtr subscription_system_status;
     
 
 };
