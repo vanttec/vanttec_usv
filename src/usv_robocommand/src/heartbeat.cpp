@@ -86,12 +86,13 @@ class Heartbeat : public rclcpp::Node
   private:
 
     struct heartbeatInfo{
-      double latitude = 0;
-      double longitude = 0;
-      float spd_mps = 0;
-      float heading_deg = 0;
-      int robot_state = 0;
-      int current_task = 0;
+      // Non-zero placeholder values for proper testing
+      double latitude = 10; // 0;
+      double longitude = 7; // 0;
+      float spd_mps = 5;    // 0;
+      float heading_deg = 2; //0;
+      int robot_state = 1;   //0;
+      int current_task = 1; //0;
     };
 
     heartbeatInfo currentData;
