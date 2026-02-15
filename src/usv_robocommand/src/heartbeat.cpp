@@ -164,8 +164,8 @@ class Heartbeat : public rclcpp::Node
     // building report
     robocommand::roboboat::v1::Report report;
 
-    report.set_team_id("VTEC");                           // Team id fill
-    report.set_vehicle_id("s4");                          // Vehicle id fill
+    report.set_team_id("TDMY");                           // Team id fill (Given by team handbook)
+    report.set_vehicle_id("S1");                          // Vehicle id fill
     report.set_seq(sequence_counter_++);                            //
 
     // time stamp
