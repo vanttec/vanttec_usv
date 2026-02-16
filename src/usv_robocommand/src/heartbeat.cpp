@@ -1,9 +1,11 @@
 #include <cmath>
 #include <cstdlib>
+#include <exception>
 #include <functional>
 #include <memory>
 #include <netinet/in.h>
 #include <rclcpp/timer.hpp>
+#include <sensor_msgs/msg/detail/nav_sat_fix__struct.hpp>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <chrono>
@@ -20,6 +22,7 @@
 #include "sensor_msgs/msg/imu.hpp"
 #include "std_msgs/msg/int8.hpp"
 #include "usv_interfaces/msg/system_status.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "report.pb.h"
 
 using namespace std::chrono;
@@ -31,8 +34,10 @@ class Heartbeat : public rclcpp::Node
     Heartbeat()
     : Node("robocommand_heartbeat")
     {
-       subscription_gps = this->create_subscription<sbg_driver::msg::SbgGpsPos>(
-            "/sbg/gps_pos", 
+      connectionActive = false;
+
+       subscription_gps = this->create_subscription<sensor_msgs::msg::NavSatFix>(
+            "/imu/nav_sat_fix", 
             10, 
             std::bind(&Heartbeat::sbgGps_callback, this, std::placeholders::_1)
         );
@@ -74,7 +79,9 @@ class Heartbeat : public rclcpp::Node
       if(connect(clientSocket, (struct sockaddr*)&serverAddress,
               sizeof(serverAddress)) < 0){
 
-                RCLCPP_ERROR(this->get_logger(), "RoboCommand Connection Failed!");
+                RCLCPP_WARN(this->get_logger(), "RoboCommand Connection Failed!");
+      } else{
+        connectionActive = true;
       }
 
       timer_ = this->create_wall_timer(900ms, 
@@ -97,14 +104,9 @@ class Heartbeat : public rclcpp::Node
 
     heartbeatInfo currentData;
 
-    void sbgGps_callback(const sbg_driver::msg::SbgGpsPos::SharedPtr msg)
+    void sbgGps_callback(const sensor_msgs::msg::NavSatFix::SharedPtr msg)
     {
-        // Accessing latitude, longitude, and altitude
-        RCLCPP_INFO(this->get_logger(), "Received GPS Pos -> Lat: %.6f, Lon: %.6f, Alt: %.2f", 
-                    msg->latitude, 
-                    msg->longitude, 
-                    msg->altitude);
-
+        // Accessing latitude, longitude
         currentData.latitude = msg->latitude;
         currentData.longitude = msg->longitude;
     }
@@ -158,103 +160,147 @@ class Heartbeat : public rclcpp::Node
     }
 
     void timer_callback(){
-      RCLCPP_INFO(this->get_logger(), "Timer triggered - Sending heartbeat...");
+
+        
+      if(!connectionActive){
+        // creating socket
+        clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+        // specifying address
+        sockaddr_in serverAddress;
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_port = htons(50000);
+        serverAddress.sin_addr.s_addr = INADDR_ANY;
+
+        // sending connection request
+        if(connect(clientSocket, (struct sockaddr*)&serverAddress,
+                sizeof(serverAddress)) < 0){
+
+                  RCLCPP_WARN(this->get_logger(), "RoboCommand Connection Failed!");
+                  return;
+        } else{
+          connectionActive = true;
+        }
+      }
+
+      try{
+        RCLCPP_INFO(this->get_logger(), "Timer triggered - Sending heartbeat...");
     
 
-    // building report
-    robocommand::roboboat::v1::Report report;
+        // building report
+        robocommand::roboboat::v1::Report report;
 
-    report.set_team_id("TDMY");                           // Team id fill (Given by team handbook)
-    report.set_vehicle_id("S1");                          // Vehicle id fill
-    report.set_seq(sequence_counter_++);                            //
+        report.set_team_id("TDMY");                           // Team id fill (Given by team handbook)
+        report.set_vehicle_id("S1");                          // Vehicle id fill
+        report.set_seq(sequence_counter_++);                            //
 
-    // time stamp
-    time_point now = system_clock::now();
-    auto time_since_epoch = now.time_since_epoch();
-    auto duration_s = duration_cast<seconds>(time_since_epoch);
-    auto duration_ns = duration_cast<nanoseconds>(time_since_epoch-duration_s);
-    google::protobuf::Timestamp* ts = report.mutable_sent_at();
-    ts->set_seconds(duration_s.count());
-    ts->set_nanos(duration_ns.count());
+        // time stamp
+        time_point now = system_clock::now();
+        auto time_since_epoch = now.time_since_epoch();
+        auto duration_s = duration_cast<seconds>(time_since_epoch);
+        auto duration_ns = duration_cast<nanoseconds>(time_since_epoch-duration_s);
+        google::protobuf::Timestamp* ts = report.mutable_sent_at();
+        ts->set_seconds(duration_s.count());
+        ts->set_nanos(duration_ns.count());
 
-    // building heartbeat
-    auto* heartbeat = report.mutable_heartbeat();
-    heartbeat->set_spd_mps(currentData.spd_mps);
-    heartbeat->set_heading_deg(currentData.heading_deg);
-    robocommand::roboboat::v1::LatLng* latlng = heartbeat->mutable_position();
-    latlng->set_latitude(currentData.latitude);
-    latlng->set_longitude(currentData.longitude);
+        // building heartbeat
+        auto* heartbeat = report.mutable_heartbeat();
+        heartbeat->set_spd_mps(currentData.spd_mps);
+        heartbeat->set_heading_deg(currentData.heading_deg);
+        robocommand::roboboat::v1::LatLng* latlng = heartbeat->mutable_position();
+        latlng->set_latitude(currentData.latitude);
+        latlng->set_longitude(currentData.longitude);
 
-    robocommand::roboboat::v1::RobotState state = robocommand::roboboat::v1::STATE_UNKNOWN;
-    switch (currentData.robot_state) {
-      case 0:
-        state = robocommand::roboboat::v1::STATE_UNKNOWN;
-        break;
-      case 1:
-        state = robocommand::roboboat::v1::STATE_KILLED;
-        break;
-      case 2:
-        state = robocommand::roboboat::v1::STATE_MANUAL;
-        break;
-      case 3:
-        state = robocommand::roboboat::v1::STATE_AUTO;
-        break;
+        robocommand::roboboat::v1::RobotState state = robocommand::roboboat::v1::STATE_UNKNOWN;
+        switch (currentData.robot_state) {
+          case 0:
+            state = robocommand::roboboat::v1::STATE_UNKNOWN;
+            break;
+          case 1:
+            state = robocommand::roboboat::v1::STATE_KILLED;
+            break;
+          case 2:
+            state = robocommand::roboboat::v1::STATE_MANUAL;
+            break;
+          case 3:
+            state = robocommand::roboboat::v1::STATE_AUTO;
+            break;
+        }
+        heartbeat->set_state(state);
+
+        robocommand::roboboat::v1::TaskType task = robocommand::roboboat::v1::TASK_UNKNOWN;
+        switch (currentData.current_task){
+          case 0:
+            task = robocommand::roboboat::v1::TASK_UNKNOWN;
+            break;
+          case 1:
+            task = robocommand::roboboat::v1::TASK_NONE;
+            break;
+          case 2:
+            task = robocommand::roboboat::v1::TASK_ENTRY_EXIT;
+            break;
+          case 3:
+            task = robocommand::roboboat::v1::TASK_NAV_CHANNEL;
+            break;
+          case 4:
+            task = robocommand::roboboat::v1::TASK_SPEED_CHALLENGE;
+            break;
+          case 5:
+            task = robocommand::roboboat::v1::TASK_OBJECT_DELIVERY;
+            break;
+          case 6:
+            task = robocommand::roboboat::v1::TASK_DOCKING;
+            break;
+          case 7:
+            task = robocommand::roboboat::v1::TASK_SOUND_SIGNAL;
+            break;
+        }
+        heartbeat->set_current_task(task);
+
+        // formatting message
+        std::string msg = report.SerializeAsString();
+        uint8_t msg_len = uint8_t(report.ByteSizeLong());
+
+        // sending 2-byte header
+        auto s1 = send(clientSocket, "$R", 2, MSG_NOSIGNAL);
+
+        // sending 1-byte length
+        auto s2 = send(clientSocket, &msg_len, sizeof(msg_len), MSG_NOSIGNAL);
+
+        // sending serialized report message
+        auto s3 = send(clientSocket, msg.c_str(), msg_len, MSG_NOSIGNAL);
+
+        // sending 2-byte footer
+        auto s4 = send(clientSocket, "!!", 2, MSG_NOSIGNAL);
+
+        if (s1 < 0 || s2 < 0 || s3 < 0 || s4 < 0) {
+          int err = errno;
+          RCLCPP_ERROR(this->get_logger(), "Socket send failed: %s (errno: %d)", strerror(err), err);
+          
+          connectionActive = false;
+          // Handle reconnection logic here if needed
+          // close(clientSocket);
+          // clientSocket = -1;
+        }
+
+      }catch (const std::exception& e){
+
+        RCLCPP_ERROR(this->get_logger(), "Unexpected exception in heartbeat: %s", e.what());
+        connectionActive = false;
+      }
+
+      
+
     }
-    heartbeat->set_state(state);
 
-    robocommand::roboboat::v1::TaskType task = robocommand::roboboat::v1::TASK_UNKNOWN;
-    switch (currentData.current_task){
-      case 0:
-        task = robocommand::roboboat::v1::TASK_UNKNOWN;
-        break;
-      case 1:
-        task = robocommand::roboboat::v1::TASK_NONE;
-        break;
-      case 2:
-        task = robocommand::roboboat::v1::TASK_ENTRY_EXIT;
-        break;
-      case 3:
-        task = robocommand::roboboat::v1::TASK_NAV_CHANNEL;
-        break;
-      case 4:
-        task = robocommand::roboboat::v1::TASK_SPEED_CHALLENGE;
-        break;
-      case 5:
-        task = robocommand::roboboat::v1::TASK_OBJECT_DELIVERY;
-        break;
-      case 6:
-        task = robocommand::roboboat::v1::TASK_DOCKING;
-        break;
-      case 7:
-        task = robocommand::roboboat::v1::TASK_SOUND_SIGNAL;
-        break;
-    }
-    heartbeat->set_current_task(task);
-
-    // formatting message
-    std::string msg = report.SerializeAsString();
-    uint8_t msg_len = uint8_t(report.ByteSizeLong());
-
-    // sending 2-byte header
-    send(clientSocket, "$R", 2, 0);
-
-    // sending 1-byte length
-    send(clientSocket, &msg_len, sizeof(msg_len), 0);
-
-    // sending serialized report message
-    send(clientSocket, msg.c_str(), msg_len, 0);
-
-    // sending 2-byte footer
-    send(clientSocket, "!!", 2, 0);
-
-    }
-
-    rclcpp::Subscription<sbg_driver::msg::SbgGpsPos>::SharedPtr subscription_gps;
+    rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr subscription_gps;
     rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr subscription_vel;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subscription_heading;
     rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr subscription_mission_id;
     rclcpp::Subscription<usv_interfaces::msg::SystemStatus>::SharedPtr subscription_system_status;
     rclcpp::TimerBase::SharedPtr timer_;
+
+    bool connectionActive;
     
     int sequence_counter_ = 0;
     int clientSocket;
