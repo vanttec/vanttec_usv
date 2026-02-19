@@ -437,11 +437,6 @@
 
       <enable>vtec_s4::base_link</enable>
 
-      <!-- <enable>wam-v::left_engine_link</enable>
-        <enable>wam-v::left_propeller_link</enable>
-        <enable>wam-v::right_engine_link</enable>
-        <enable>wam-v::right_propeller_link</enable> -->
-
       <hydrodynamics>
         <damping_on>1</damping_on>
         <viscous_drag_on>1</viscous_drag_on>
@@ -468,7 +463,7 @@
         <update_rate>10</update_rate>
         <water_patch>0</water_patch>
         <waterline>0</waterline>
-        <underwater_surface>1</underwater_surface>
+        <underwater_surface>0</underwater_surface>
       </markers>
     </plugin>
 
