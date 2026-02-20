@@ -6,6 +6,8 @@
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
+#include "geometry_msgs/msg/pose.hpp"
 
 #include "nav_msgs/msg/path.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -34,8 +36,49 @@ public:
         spline_t_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_t", 10);
         spline_t_la_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_t_la", 10);
         spline_length_pub_ = this->create_publisher<std_msgs::msg::Float64>("/mpc/spline_l", 10);
+        
+        // Goal from mission_handler node
+        mission_goal_sub_ = this->create_subscription<geometry_msgs::msg::PoseArray>(
+            "/usv/goals/pose_array", 1,
+            [this](const geometry_msgs::msg::PoseArray::SharedPtr msg)
+            {
+                if (msg->poses.empty()) return;
 
-        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+                // Only replan if the final destination actually changed
+                auto & last = msg->poses.back();
+                if (!ref.empty()) {
+                    double dx = last.position.x - last_goal_x_;
+                    double dy = last.position.y - last_goal_y_;
+                    if (std::sqrt(dx*dx + dy*dy) < 0.1) {
+                        // same destination — just append new intermediate points
+                        // without resetting closest_idx
+                        ref.clear();
+                        ref.push_back(trans(asv, -dist));
+                        ref.push_back(trans(asv,  0.0));
+                        for (int i = 0; i < msg->poses.size(); i++)
+                            ref.push_back(trans(p_to_v(msg->poses[i]), 0.0));
+                        ref.push_back(trans(p_to_v(msg->poses.back()), dist));
+                        // don't reset closest_idx here
+                        update_spline_params();
+                        return;
+                    }
+                }
+
+                // Final destination changed — full replan
+                last_goal_x_ = last.position.x;
+                last_goal_y_ = last.position.y;
+                ref.clear();
+                ref.push_back(trans(asv, -dist));
+                ref.push_back(trans(asv,  0.0));
+                for (int i = 0; i < msg->poses.size(); i++)
+                    ref.push_back(trans(p_to_v(msg->poses[i]), 0.0));
+                ref.push_back(trans(p_to_v(msg->poses.back()), dist));
+                closest_idx = 0;
+                last_idx    = -1;
+                update_spline_params();
+            });
+
+            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/usv/state/odom", 1,
             [this](const nav_msgs::msg::Odometry::SharedPtr msg)
             {
@@ -134,6 +177,7 @@ protected:
         la_marker_msg.header = path_msg.header;
 
         if(s_.size() > 0){
+            if (closest_idx < 0) closest_idx = 0;
             Eigen::Vector2d tmp_v;
             Eigen::Vector2d closest_p_tmp, closest_p;
             double closest_t, closest_t_tmp;
@@ -244,6 +288,7 @@ private:
 
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_pose_from_sub_, goal_pose_to_sub_, goal_pose_sub_;
+    rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr mission_goal_sub_;
 
     nav_msgs::msg::Path path_msg;
     visualization_msgs::msg::Marker s_marker_msg, la_marker_msg;
@@ -260,8 +305,22 @@ private:
     int last_idx{-1};
 
     // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{7,3},{13,-3},{19,3},{25,-3}};
-    std::vector<Eigen::Vector2d> ref{{0,0},{0.3,0},{3,5},{7,0},{6,-5},{7,-8},{1,-5},{0.5,-1},{0,0}};
+    // std::vector<Eigen::Vector2d> ref{{0,0},{0.3,0},{3,5},{7,0},{6,-5},{7,-8},{1,-5},{0.5,-1},{0,0}};
+    std::vector<Eigen::Vector2d> ref{};
     Eigen::Vector3d asv, tmp;
+
+    double last_goal_x_{std::numeric_limits<double>::quiet_NaN()};
+    double last_goal_y_{std::numeric_limits<double>::quiet_NaN()};
+
+    Eigen::Vector3d p_to_v(geometry_msgs::msg::Pose p){
+        Eigen::Vector3d v;
+        auto &q = p.orientation;
+        v.x() = p.position.x;
+        v.y() = p.position.y;
+        v.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+            1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+        return v;
+    }
 
     Eigen::Vector2d trans(Eigen::Vector3d v, double dist)
     {

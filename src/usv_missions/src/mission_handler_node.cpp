@@ -19,6 +19,8 @@
 #include "usv_interfaces/msg/object_list.hpp"
 #include "usv_interfaces/msg/waypoint.hpp"
 #include "usv_interfaces/msg/waypoint_list.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
+#include "geometry_msgs/msg/pose.hpp"
 #include "std_msgs/msg/bool.hpp"
 
 #include "mission_classes/mission.cpp"
@@ -82,6 +84,9 @@ class MissionHandlerNode : public rclcpp::Node {
             mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/state", 10);
             mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/status", 10);
             wp_pub_ = this->create_publisher<usv_interfaces::msg::WaypointList>("/usv/goals", 10);
+            pose_array_pub_ = this->create_publisher<geometry_msgs::msg::PoseArray>("/usv/goals/pose_array", 10);
+
+            pose_array.header.frame_id = "world";
 
             timer_ = this->create_wall_timer(100ms, std::bind(&MissionHandlerNode::timer_callback, this));
         }
@@ -97,10 +102,14 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
         rclcpp::Publisher<usv_interfaces::msg::WaypointList>::SharedPtr wp_pub_;
+        rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
 
         usv_interfaces::msg::Object obj;
         usv_interfaces::msg::WaypointList wp_list;
         usv_interfaces::msg::Waypoint latest_wp;
+
+        geometry_msgs::msg::PoseArray pose_array;
+
         std_msgs::msg::Int8 id, state, status;
         std_msgs::msg::Bool pivot, arrived;
         std_msgs::msg::UInt16 auto_mode;
@@ -235,21 +244,34 @@ class MissionHandlerNode : public rclcpp::Node {
             update_params.obs_list = obs_v;
         }
 
-        void set_goals(std::vector<Eigen::Vector3f> vec){
-            wp_list.waypoint_list.clear();
+    void set_goals(std::vector<Eigen::Vector3f> vec){
+        wp_list.waypoint_list.clear();
 
-            usv_interfaces::msg::Waypoint wp;
-            for(int i = 0 ; i < vec.size() ; i++) { 
-                wp.x = vec[i](0);
-                wp.y = vec[i](1);
-                wp.theta = vec[i](2);
-                wp_list.waypoint_list.push_back(wp);
-            }
+        usv_interfaces::msg::Waypoint wp;
+        pose_array.header.stamp = this->now();
 
-                if(wp_list.waypoint_list.size() > 0){
-                    latest_wp = wp_list.waypoint_list[wp_list.waypoint_list.size() - 1];
-                }
+        for(int i = 0 ; i < vec.size() ; i++) { 
+            wp.x = vec[i](0);
+            wp.y = vec[i](1);
+            wp.theta = vec[i](2);
+            wp_list.waypoint_list.push_back(wp);
+
+            // convert yaw to quaternion
+            geometry_msgs::msg::Pose pose;
+            pose.position.x = vec[i](0);
+            pose.position.y = vec[i](1);
+            pose.position.z = pose_array.poses.size();
+            pose.orientation.z = std::sin(vec[i](2) / 2.0);
+            pose.orientation.w = std::cos(vec[i](2) / 2.0);
+            pose_array.poses.push_back(pose);
         }
+
+        if(wp_list.waypoint_list.size() > 0){
+            latest_wp = wp_list.waypoint_list[wp_list.waypoint_list.size() - 1];
+        }
+
+        pose_array_pub_->publish(pose_array);
+    }
 };
 
 int main(int argc, char * argv[]) {
