@@ -26,3 +26,9 @@
 [submodule "src/visionsystemx"]
 	path = src/visionsystemx
 	url = https://github.com/vanttec/visionsystemx.git
+[submodule "src/deps/rosshow"]
+	path = src/deps/rosshow
+	url = https://github.com/dheera/rosshow.git
+[submodule "src/deps/robocommand"]
+	path = src/deps/robocommand
+	url = https://github.com/vanttec/robocommand.git
