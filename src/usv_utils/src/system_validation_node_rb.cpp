@@ -9,6 +9,7 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/u_int16.hpp"
+#include "std_msgs/msg/int8.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "usv_interfaces/msg/object_list.hpp"
@@ -17,7 +18,7 @@
 #include "sbg_driver/msg/sbg_gps_pos.hpp"
 #include "sbg_driver/msg/sbg_gps_hdt.hpp"
 
-#include "usv_interfaces/msg/system_status.hpp"
+#include "usv_interfaces/msg/system_st  atus.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
@@ -45,7 +46,7 @@ class SystemStatusNode : public rclcpp::Node {
                 [this](const sbg_driver::msg::SbgGpsHdt &msg){
                     out.gps_hdt_status = msg.status;
                 });
-            
+
             can_op_mode_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
                 "/usv/op_mode", 10,
                 [this](const std_msgs::msg::UInt16 &msg){
@@ -71,6 +72,24 @@ class SystemStatusNode : public rclcpp::Node {
                     out.obj_list = msg.obj_list;
                 });
 
+            mission_id_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+                "/usv/mission/id", 10,
+                [this](const std_msgs::msg::Int8 &msg){
+                    out.mission_id = msg.data;
+                });
+
+            mission_state_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+                "/usv/mission/state", 10,
+                [this](const std_msgs::msg::Int8 &msg){
+                    out.mission_state = msg.data;
+                });
+
+            mission_status_sub_ = this->create_subscription<std_msgs::msg::Int8>(
+                "/usv/mission/status", 10,
+                [this](const std_msgs::msg::Int8 &msg){
+                    out.mission_status = msg.data;
+                });
+
             last_recev = this->now();
             last_lidar_recev = this->now();
             last_camera_recev = this->now();
@@ -82,7 +101,7 @@ class SystemStatusNode : public rclcpp::Node {
     private:
         rclcpp::TimerBase::SharedPtr timer_;
         rclcpp::Publisher<usv_interfaces::msg::SystemStatus>::SharedPtr system_status_pub_;
-        
+
         rclcpp::Subscription<sbg_driver::msg::SbgEkfNav>::SharedPtr sbg_ekf_nav_sub_;
         rclcpp::Subscription<sbg_driver::msg::SbgGpsPos>::SharedPtr sbg_gps_pos_sub_;
         rclcpp::Subscription<sbg_driver::msg::SbgGpsHdt>::SharedPtr sbg_gps_hdt_sub_;
@@ -90,13 +109,16 @@ class SystemStatusNode : public rclcpp::Node {
         rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr lidar_sub_;
         rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr camera_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr obj_list_sub_;
+        rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_id_sub_;
+        rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_state_sub_;
+        rclcpp::Subscription<std_msgs::msg::Int8>::SharedPtr mission_status_sub_;
 
         usv_interfaces::msg::SystemStatus out;
 
         rclcpp::Time last_recev;
         rclcpp::Time last_lidar_recev;
         rclcpp::Time last_camera_recev;
-              
+
         void timer_callback() {
 
             auto elapsed_ms = [this](rclcpp::Time t) {
@@ -117,4 +139,3 @@ int main(int argc, char * argv[]) {
   rclcpp::shutdown();
   return 0;
 }
-

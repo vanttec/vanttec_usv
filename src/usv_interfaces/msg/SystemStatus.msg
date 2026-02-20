@@ -35,4 +35,22 @@ uint16 gps_hdt_status
 # CAN STM PING
 bool can_stm_status
 
+# Camera status (true = receiving frames)
+bool camera_status
+
+# Lidar status (true = receiving pointcloud)
+bool lidar_status
+
+# Operation mode status
+# 0 AUTO
+# 1 TELEOP
+# 2 INACTIVE
 uint16 op_mode
+
+# Mission status
+int8 mission_id
+int8 mission_state
+int8 mission_status
+
+# Detected objects (x, y in world frame, color, type, uuid)
+Object[] obj_list

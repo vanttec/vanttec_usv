@@ -63,6 +63,9 @@ ament_target_dependencies(obstacle_nearest_publisher ${DEPENDENCIES})
 add_executable(system_validation_node src/system_validation_node.cpp)
 ament_target_dependencies(system_validation_node ${DEPENDENCIES})
 
+add_executable(system_validation_node_rb src/system_validation_node_rb.cpp)
+ament_target_dependencies(system_validation_node_rb ${DEPENDENCIES})
+
 install(TARGETS 
   imu_converter_node
   bag2image_node
@@ -71,6 +74,7 @@ install(TARGETS
   obstacle_viewer_node
   obstacle_nearest_publisher
   system_validation_node
+  system_validation_node_rb
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
