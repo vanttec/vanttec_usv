@@ -100,15 +100,54 @@ double CatmulRom::closest_t(Eigen::Vector3d p3){
     return closest_t;
 }
 
+double CatmulRom::get_la(double t, double dist) {
+    // We want to find u such that: ArcLength(t, t+u) = dist
+    // Function to minimize: f(u) = ArcLength(t, t+u) - dist
+    // Derivative: f'(u) = ||s_dot(t+u)|| (This is just speed!)
+
+    double u = dist / L_; // Initial guess: Linear approximation
+    double u_max = 1.0 - t; // Don't go past the end of the spline
+
+    // Newton-Raphson iterations
+    for(int i = 0; i < 5; i++) { // 5 iterations
+        // Clamp u to valid range [0, 1-t]
+        if (u < 0) u = 0;
+        if (u > u_max) u = u_max;
+
+        double current_len = get_arc_length(t, t + u);
+        double error = current_len - dist;
+
+        // If error is small enough, break
+        if (std::abs(error) < 0.01) break;
+
+        // f'(u) = speed at the current guess
+        double speed = get_s_dot(t + u).norm();
+
+        // Avoid division by zero if stopped
+        if (speed < 1e-4) break; 
+
+        // Newton step: u_new = u - f(u)/f'(u)
+        u = u - (error / speed);
+    }
+    
+    // Final clamp to ensure we stay inside the spline segment
+    return std::clamp(t + u, 0.0, 1.0);
+}
+
+// Numerical integration of ||s'(t)|| from 0 to 1
 void CatmulRom::calc_arc_length() {
-    // Numerical integration of ||s'(t)|| from 0 to 1
+    L_= get_arc_length(0.0, 1.0);
+}
+
+// Numerical integration of ||s'(t)|| from a to b
+double CatmulRom::get_arc_length(double a, double b) {
     double length = 0.0;
     int num_samples = 10;
-    double dt = 1.0 / num_samples;
+    double dt = (b-a) / num_samples;
     
     for (int i = 0; i < num_samples; i++) {
-        double t0 = i * dt;
-        double t1 = (i + 1) * dt;
+        double t0 = a + i * dt;
+        double t1 = a + (i + 1) * dt;
         double tm = (t0 + t1) / 2.0;
         
         // Simpson's rule
@@ -119,5 +158,5 @@ void CatmulRom::calc_arc_length() {
         length += (dt / 6.0) * (f0 + 4.0 * fm + f1);
     }
     
-    L_ = length;
+    return length;
 }

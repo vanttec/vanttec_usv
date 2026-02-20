@@ -87,6 +87,12 @@ std::vector<Eigen::Vector3f> Mission::pack_goal(Eigen::Vector3f wp_base, Eigen::
   return goal_list;
 }
 
+std::vector<Eigen::Vector3f> Mission::pack_goal(Eigen::Vector3f wp_goal, double dist){
+  std::vector<Eigen::Vector3f> goal_list;
+  goal_list.push_back(forward(wp_goal, dist));
+  return goal_list;
+}
+
 Eigen::Vector3f Mission::rotate_goal(const Eigen::Vector3f &goal, double ang){
   return Eigen::Vector3f{goal(0), goal(1), angle_correct(goal(2)+ang)};
 }

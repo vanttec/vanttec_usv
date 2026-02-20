@@ -1,13 +1,13 @@
 obstacle_publisher_node:
   ros__parameters:
-    dynamic_obstacles: false
+    dynamic_obstacles: true
     mission_choice: "m0"
     m0:
       # obj_names: ["b0", "b1", "b2", "b3", "b4"]
       obj_names: ["b0", "b1", "b2"]
       obj_info:
         b0:
-          x: 3.0
+          x: 7.0
           y: 0.0
           color: 0
           type: "marker"
