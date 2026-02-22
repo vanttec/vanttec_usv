@@ -4,7 +4,7 @@
     <!-- Gate G1 -->
     <include>
       <name>marker_buoy_port_G1</name>
-      <pose>3 2 0 0 0 0</pose>
+      <pose>3 2.5 0 0 0 0</pose>
       <uri>marker_buoy_port</uri>
     </include>
     <include>
@@ -16,7 +16,7 @@
     <!-- Gate G2 -->
     <include>
       <name>marker_buoy_port_G2</name>
-      <pose>15 3 0 0 0 0</pose>
+      <pose>14 3 0 0 0 0</pose>
       <uri>marker_buoy_port</uri>
     </include>
     <include>

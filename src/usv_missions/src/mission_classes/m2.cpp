@@ -20,7 +20,9 @@ USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 
       if(goal.norm() > 0.01){
         outMsg.state = 1;
-        outMsg.goals = pack_goal(pose, goal, 1.);
+        outMsg.goals.push_back(pose);
+        outMsg.goals.push_back(forward(goal, -0.5));
+        outMsg.goals.push_back(forward(goal, 1.5));
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
@@ -28,9 +30,9 @@ USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       goal = get_goal(params.obs_list);
 
       if(goal.norm() > 0.0001){ // If a goal was actually found
-        outMsg.goals = pack_goal(last_goal, goal, 1.);
+        outMsg.goals = pack_goal(goal, 1.5);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
-      } else if (dist(pose, last_goal) < 0.5) {
+      } else if (dist(pose, last_goal) < 0.3) {
         outMsg.state = 2;
         outMsg.status = 1;
       }

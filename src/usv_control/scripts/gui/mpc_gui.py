@@ -19,15 +19,15 @@ class MPCWeightsTuner(QMainWindow):
         
         # Weight definitions: (name, default, min, max, step)
         self.weights_config = [
-            ("w_along", 5.0, 0.0, 100.0, 0.1),
-            ("w_cross", 15.0, 0.0, 100.0, 0.1),
-            ("w_heading", 20.0, 0.0, 100.0, 0.1),
+            ("w_along", 2.0, 0.0, 100.0, 0.1),
+            ("w_cross", 70.0, 0.0, 100.0, 0.1),
+            ("w_heading", 60.0, 0.0, 100.0, 0.1),
             ("w_input", 0.05, 0.0, 10.0, 0.001),
             ("w_slack", 1000.0, 0.0, 1000.0, 1.0),
             ("w_surge", 0.01, 0.0, 10.0, 0.001),
             ("w_yaw", 0.01, 0.0, 10.0, 0.001),
             ("terminal_w", 100.0, 0.0, 1000.0, 1.0),
-            ("avoidance_w", 2.0, 0.0, 10.0, 0.01),
+            ("avoidance_w", 0.7, 0.0, 10.0, 0.01),
         ]
         
         self.weights = [config[1] for config in self.weights_config]
@@ -108,7 +108,7 @@ class MPCWeightsTuner(QMainWindow):
         self.tf_spinbox.setMinimum(0.1)
         self.tf_spinbox.setMaximum(30.0)
         self.tf_spinbox.setSingleStep(0.1)
-        self.tf_spinbox.setValue(2.5)
+        self.tf_spinbox.setValue(3.5)
         self.tf_spinbox.setDecimals(2)
         self.tf_spinbox.setMinimumWidth(80)
         self.tf_spinbox.valueChanged.connect(self.on_tf_changed)

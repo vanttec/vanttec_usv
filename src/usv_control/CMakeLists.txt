@@ -24,7 +24,6 @@ find_path(FATROP_INCLUDE_DIR fatrop/fatrop.hpp PATHS /usr/local/include)
 find_library(FATROP_LIBRARY fatrop PATHS /usr/local/lib)
 
 add_subdirectory(libs/usv_libs)
-add_subdirectory(libs/a-star)
 
 set(DEPENDENCIES
   ament_cmake
@@ -95,7 +94,7 @@ target_link_libraries(pid_node usv_libs)
 # To enable, install acados and update ACADOS_INSTALL_DIR path
 
 # # Find ACADOS
-# set(ACADOS_INSTALL_DIR "/home/max/acados")
+# set(ACADOS_INSTALL_DIR "$ENV{HOME}/acados")
 # include_directories(
 #   ${ACADOS_INSTALL_DIR}/include
 #   ${ACADOS_INSTALL_DIR}/include/acados
@@ -116,14 +115,6 @@ target_link_libraries(pid_node usv_libs)
 # ament_target_dependencies(mpc_node ${DEPENDENCIES})
 # target_link_libraries(mpc_node acados hpipm blasfeo m)
 
-
-add_executable(a_star_avoidance_node src/a_star_avoidance_node.cpp)
-target_include_directories(a_star_avoidance_node PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include> libs/a-star/source)
-target_compile_features(a_star_avoidance_node PUBLIC c_std_99 cxx_std_17)
-ament_target_dependencies(a_star_avoidance_node ${DEPENDENCIES})
-target_link_libraries(a_star_avoidance_node a-star)
 
 # Dynamic / kinematic models
 add_executable(dynamic_model_node src/dynamic_model_sim.cpp)
@@ -162,7 +153,6 @@ install(TARGETS
   los_node
   usv_tf2_broadcaster_node
   dynamic_model_node
-  a_star_avoidance_node
   kinematic_model_node
   waypoint_handler_node
   path_publisher_node
@@ -183,7 +173,7 @@ install(PROGRAMS
   scripts/teleop/teleop_can_node.py
   scripts/teleop/teleop_mpc_node.py
 
-  scripts/mpc/mpc_gui.py
+  scripts/gui/mpc_gui.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

@@ -19,8 +19,11 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       goal = get_goal(params.obs_list);
 
       if(goal.norm() > 0.01){
-        outMsg.state = 1; // change to next state in task state machine
-        outMsg.goals = pack_goal(pose, goal, 1.);
+        outMsg.state = 1;
+        outMsg.goals.push_back(pose);
+        outMsg.goals.push_back(forward(goal, -0.5));
+        outMsg.goals.push_back(forward(goal, 0.5));
+     
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
@@ -28,13 +31,14 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       goal = get_goal(params.obs_list);
 
       if(goal(0) != 0 || goal(1) != 0){
-        outMsg.goals = pack_goal(last_goal, goal, 1.);
+        outMsg.goals.push_back(forward(goal, -0.5));
+        outMsg.goals.push_back(forward(goal, 1.5));
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
         outMsg.state = 2;
         outMsg.status = 1; // Mark task as complete
       }
       else if(dist(last_goal, pose) < 1) {
-        outMsg.goals = pack_goal(last_goal, forward(last_goal, 0.15), 0.35);
+        outMsg.goals = pack_goal(last_goal, 0.85);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;

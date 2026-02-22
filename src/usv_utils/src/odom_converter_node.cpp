@@ -31,7 +31,7 @@ public:
     using namespace std::placeholders;
 
     convertedOdomPub = 
-      this->create_publisher<nav_msgs::msg::Odometry>("/out/converted_odometry", 10);
+      this->create_publisher<nav_msgs::msg::Odometry>("/usv/state/odom", 10);
 
     odomSub = this->create_subscription<nav_msgs::msg::Odometry>("/gz_sim/odometry", 10,
       std::bind(&OdomConverterNode::odom_cb, this, _1));
@@ -48,7 +48,6 @@ public:
 
 protected:
   void odom_cb(const nav_msgs::msg::Odometry::SharedPtr msg){
-    // TODO process imu, and publish new rotated and zero imu
     nav_msgs::msg::Odometry newOdom = *msg;
     tf2::Quaternion q(newOdom.pose.pose.orientation.x, newOdom.pose.pose.orientation.y,
                       newOdom.pose.pose.orientation.z, newOdom.pose.pose.orientation.w);
@@ -61,11 +60,11 @@ protected:
     newOdom.header.frame_id = "world";
     newOdom.child_frame_id = "usv";
 
-    newOdom.pose.pose.position.x = msg->pose.pose.position.y - zero_x;
-    newOdom.pose.pose.position.y = msg->pose.pose.position.x - zero_y;
+    newOdom.pose.pose.position.x = msg->pose.pose.position.x - zero_x;
+    newOdom.pose.pose.position.y = msg->pose.pose.position.y - zero_y;
 
     double u_orig = msg->twist.twist.linear.x;
-    double v_orig = -msg->twist.twist.linear.y;
+    double v_orig = msg->twist.twist.linear.y;
 
     newOdom.twist.twist.linear.x = u_orig;
     newOdom.twist.twist.linear.y = v_orig;
@@ -79,8 +78,8 @@ protected:
       hasZeroInit = true;
     } else {
       geometry_msgs::msg::Pose2D pose;
-      pose.x = newOdom.pose.pose.position.y;
-      pose.y = newOdom.pose.pose.position.x;
+      pose.x = newOdom.pose.pose.position.x;
+      pose.y = newOdom.pose.pose.position.y;
       pose.theta = psi;
       posePub->publish(pose);
       tf_broadcast(pose);

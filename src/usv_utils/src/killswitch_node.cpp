@@ -26,8 +26,8 @@ public:
       "/usv/waypoint/arrived", 10,
         [this](const std_msgs::msg::Bool &msg) { this->arrived.data = msg.data; });
 
-    leftPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s3/joint/left_engine_propeller_joint/cmd_thrust", 10);
-    rightPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s3/joint/right_engine_propeller_joint/cmd_thrust", 10);
+    leftPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s4/joint/left_engine_propeller_joint/cmd_thrust", 10);
+    rightPub = this->create_publisher<std_msgs::msg::Float64>("/model/vtec_s4/joint/right_engine_propeller_joint/cmd_thrust", 10);
 
     service = this->create_service<std_srvs::srv::Empty>("auto", std::bind(&KillSwitchSimNode::autonomous, this, _1, _2));
 

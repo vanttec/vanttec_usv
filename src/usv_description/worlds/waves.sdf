@@ -38,61 +38,24 @@
       <uri>waves</uri>
     </include>
 
-    <!-- ENU axes -->
-    <model name="axes">
-      <static>1</static>
-      <link name="link">
-        <visual name="r">
-          <cast_shadows>0</cast_shadows>
-          <pose>5 0 0.1 0 0 0</pose>
-          <geometry>
-            <box>
-              <size>10 0.01 0.01</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>1 0 0 1</ambient>
-            <diffuse>1 0 0 1</diffuse>
-            <emissive>1 0 0 1</emissive>
-            <specular>0.5 0.5 0.5 1</specular>
-          </material>
-        </visual>
-        <visual name="g">
-          <cast_shadows>0</cast_shadows>
-          <pose>0 5 0.1 0 0 0</pose>
-          <geometry>
-            <box>
-              <size>0.01 10 0.01</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0 1 0 1</ambient>
-            <diffuse>0 1 0 1</diffuse>
-            <emissive>0 1 0 1</emissive>
-            <specular>0.5 0.5 0.5 1</specular>
-          </material>
-        </visual>
-        <visual name="b">
-          <cast_shadows>0</cast_shadows>
-          <pose>0 0 5.1 0 0 0</pose>
-          <geometry>
-            <box>
-              <size>0.01 0.01 10</size>
-            </box>
-          </geometry>
-          <material>
-            <ambient>0 0 1 1</ambient>
-            <diffuse>0 0 1 1</diffuse>
-            <emissive>0 0 1 1</emissive>
-            <specular>0.5 0.5 0.5 1</specular>
-          </material>
-        </visual>
-      </link>
-    </model>
-
     <include>
-      <pose>1 3 1 0 0 0</pose>
+      <pose>-3 0 0.1 0 0 0</pose>
       <uri>model://vtec_s4</uri>
     </include>
+
+    <!-- Task 1 - Mandatory Challenge -->
+    <!-- <include>
+      <name>mandatory_challenge</name>
+      <pose>0 0 -0.04 0 0 0</pose>
+      <uri>mandatory_challenge</uri>
+    </include> -->
+
+    <!-- Taks 2 -Follow the Path Challenge -->
+    <include>
+      <name>follow_the_path_challenge</name>
+      <pose>4 -1 0.04 0 0 1.5708</pose>
+      <uri>follow_the_path_challenge</uri>
+    </include>
+
   </world>
 </sdf>

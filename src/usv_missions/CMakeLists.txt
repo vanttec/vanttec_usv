@@ -10,22 +10,43 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+
+set(DEPENDENCIES
+  ament_cmake
+  geometry_msgs
+  visualization_msgs
+  std_msgs
+  rclcpp
+  rclpy
+  sensor_msgs
+  nav_msgs
+  tf2_ros
+  std_srvs
+  Eigen3
+  tf2_geometry_msgs
+  usv_interfaces
+)
+
 
 add_executable(mission_handler_node src/mission_handler_node.cpp)
-ament_target_dependencies(mission_handler_node rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
+ament_target_dependencies(mission_handler_node ${DEPENDENCIES})
 target_compile_features(mission_handler_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 add_executable(obstacle_publisher_node src/obstacle_publisher.cpp)
-ament_target_dependencies(obstacle_publisher_node rclcpp std_msgs std_srvs geometry_msgs visualization_msgs usv_interfaces Eigen3)
+ament_target_dependencies(obstacle_publisher_node ${DEPENDENCIES})
 target_compile_features(obstacle_publisher_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 add_executable(global_obstacle_register_node src/global_obstacle_register_node.cpp)
-ament_target_dependencies(global_obstacle_register_node rclcpp std_msgs std_srvs geometry_msgs visualization_msgs usv_interfaces Eigen3)
+ament_target_dependencies(global_obstacle_register_node ${DEPENDENCIES})
 target_compile_features(global_obstacle_register_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 install(TARGETS

@@ -19,7 +19,10 @@
 #include "usv_interfaces/msg/object_list.hpp"
 #include "usv_interfaces/msg/waypoint.hpp"
 #include "usv_interfaces/msg/waypoint_list.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
+#include "geometry_msgs/msg/pose.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 #include "mission_classes/mission.cpp"
 #include "mission_classes/m0.cpp"
@@ -46,20 +49,25 @@ class MissionHandlerNode : public rclcpp::Node {
                     task_schedule.push_back(int(task_schedule_og[i]));
                 }
             }
-            
-            pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-                "/usv/state/pose", 10, 
-                [this](const geometry_msgs::msg::Pose2D &msg) { 
-                    pose << msg.x, msg.y, msg.theta;
-            });
 
+            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/usv/state/odom", 1,
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg)
+            {
+                auto &q = msg->pose.pose.orientation;
+                pose.x() = msg->pose.pose.position.x;
+                pose.y() = msg->pose.pose.position.y;
+                pose.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+            });
+            
             auto_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
                 "/usv/op_mode", 1,
-                [this](const std_msgs::msg::UInt16 &msg) { auto_mode.data = msg.data; });
+                [this](const std_msgs::msg::UInt16 &msg) { auto_mode = msg.data; });
 
                 // TODO: revise validity of object list topic
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-                "/bebblebrox/objects/yolo", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
+                "/obj_list", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
             );
 
             wp_arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
@@ -83,13 +91,16 @@ class MissionHandlerNode : public rclcpp::Node {
             mission_state_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/state", 10);
             mission_status_pub_ = this->create_publisher<std_msgs::msg::Int8>("/usv/mission/status", 10);
             wp_pub_ = this->create_publisher<usv_interfaces::msg::WaypointList>("/usv/goals", 10);
+            pose_array_pub_ = this->create_publisher<geometry_msgs::msg::PoseArray>("/usv/goals/pose_array", 10);
+
+            pose_array.header.frame_id = "world";
 
             timer_ = this->create_wall_timer(100ms, std::bind(&MissionHandlerNode::timer_callback, this));
         }
 
     private:
         rclcpp::TimerBase::SharedPtr timer_;
-        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
+        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
         rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr auto_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
@@ -98,13 +109,17 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
         rclcpp::Publisher<usv_interfaces::msg::WaypointList>::SharedPtr wp_pub_;
+        rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_array_pub_;
 
         usv_interfaces::msg::Object obj;
         usv_interfaces::msg::WaypointList wp_list;
         usv_interfaces::msg::Waypoint latest_wp;
+
+        geometry_msgs::msg::PoseArray pose_array;
+
         std_msgs::msg::Int8 id, state, status;
         std_msgs::msg::Bool pivot, arrived;
-        std_msgs::msg::UInt16 auto_mode;
+        uint16_t auto_mode{1};
         std::vector<Obstacle> obs_v;
 
 
@@ -201,6 +216,10 @@ class MissionHandlerNode : public rclcpp::Node {
         }
 
         void timer_callback() {
+            if(auto_mode == 1){
+                return;
+            }
+
             check_mission_jump();
 
             feedback = vtec->update(pose, update_params);
@@ -236,21 +255,34 @@ class MissionHandlerNode : public rclcpp::Node {
             update_params.obs_list = obs_v;
         }
 
-        void set_goals(std::vector<Eigen::Vector3f> vec){
-            wp_list.waypoint_list.clear();
+    void set_goals(std::vector<Eigen::Vector3f> vec){
+        wp_list.waypoint_list.clear();
 
-            usv_interfaces::msg::Waypoint wp;
-            for(int i = 0 ; i < vec.size() ; i++) { 
-                wp.x = vec[i](0);
-                wp.y = vec[i](1);
-                wp.theta = vec[i](2);
-                wp_list.waypoint_list.push_back(wp);
-            }
+        usv_interfaces::msg::Waypoint wp;
+        pose_array.header.stamp = this->now();
 
-                if(wp_list.waypoint_list.size() > 0){
-                    latest_wp = wp_list.waypoint_list[wp_list.waypoint_list.size() - 1];
-                }
+        for(int i = 0 ; i < vec.size() ; i++) { 
+            wp.x = vec[i](0);
+            wp.y = vec[i](1);
+            wp.theta = vec[i](2);
+            wp_list.waypoint_list.push_back(wp);
+
+            // convert yaw to quaternion
+            geometry_msgs::msg::Pose pose;
+            pose.position.x = vec[i](0);
+            pose.position.y = vec[i](1);
+            pose.position.z = pose_array.poses.size();
+            pose.orientation.z = std::sin(vec[i](2) / 2.0);
+            pose.orientation.w = std::cos(vec[i](2) / 2.0);
+            pose_array.poses.push_back(pose);
         }
+
+        if(wp_list.waypoint_list.size() > 0){
+            latest_wp = wp_list.waypoint_list[wp_list.waypoint_list.size() - 1];
+        }
+
+        pose_array_pub_->publish(pose_array);
+    }
 };
 
 int main(int argc, char * argv[]) {
