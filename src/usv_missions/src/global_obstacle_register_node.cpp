@@ -15,6 +15,7 @@
 #include "std_msgs/msg/color_rgba.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 using namespace std::chrono_literals;
 using namespace std::placeholders;
@@ -28,9 +29,9 @@ class GlobalObstacleRegisterNode : public rclcpp::Node {
 public:
     GlobalObstacleRegisterNode() : Node("global_obstacle_register_node") {
         // Parameters
-        this->declare_parameter("min_obstacle_separation", 0.5);  // Minimum distance between obstacles
+        this->declare_parameter("min_obstacle_separation", 1.5);  // Minimum distance between obstacles
         this->declare_parameter("max_tracking_distance", 10.0);   // Maximum distance to track obstacles
-        this->declare_parameter("tracking_lifetime", 30.0);       // Seconds to keep tracking an obstacle without updates
+        this->declare_parameter("tracking_lifetime", 600.0);       // Seconds to keep tracking an obstacle without updates
         
         min_obstacle_separation_ = this->get_parameter("min_obstacle_separation").as_double();
         max_tracking_distance_ = this->get_parameter("max_tracking_distance").as_double();
@@ -43,18 +44,29 @@ public:
         on_watch_marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/on_watch", 10);
 
         // Subscribers
-        pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-            "/usv/state/pose", 10, 
-            std::bind(&GlobalObstacleRegisterNode::pose_callback, this, _1));
-        
+        odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/usv/state/odom", 1,
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg)
+            {
+                last_odom_msg = this->get_clock()->now();
+                auto &q = msg->pose.pose.orientation;
+                pose_.x = msg->pose.pose.position.x;
+                pose_.y = msg->pose.pose.position.y;
+                pose_.theta = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+                ang_vel_ = msg->twist.twist.angular.z;
+            });
+
         inferences_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-            "/inferences", 10, 
+            "/bebblebrox/objects/yolo", 10, 
             std::bind(&GlobalObstacleRegisterNode::inferences_callback, this, _1));
         
         // Timer for periodic publishing and cleanup
         timer_ = this->create_wall_timer(
             50ms, std::bind(&GlobalObstacleRegisterNode::timer_callback, this));
-        
+
+        // To avoid the first registry before any odom at all
+        last_odom_msg = this->get_clock()->now() - rclcpp::Duration(0, 1000 * 1e6);        
         RCLCPP_INFO(this->get_logger(), "Dynamic Obstacle Tracker Node initialized");
     }
 
@@ -63,7 +75,7 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<usv_interfaces::msg::ObjectList>::SharedPtr object_list_local_pub_, object_list_global_pub_;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_, on_watch_marker_pub_;
-    rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr inferences_sub_;
     
     // Configuration parameters
@@ -73,6 +85,7 @@ private:
     
     // Vehicle state
     geometry_msgs::msg::Pose2D pose_;
+    double ang_vel_;
     
     // Global storage
     usv_interfaces::msg::ObjectList global_obstacles_;
@@ -81,6 +94,7 @@ private:
     visualization_msgs::msg::MarkerArray watch_markers_;
     
     // Obstacle tracking - stores last update time for each obstacle
+    rclcpp::Time last_odom_msg;
     std::vector<rclcpp::Time> obstacle_last_seen_;
     int next_obstacle_id_ = 0;
     
@@ -101,12 +115,13 @@ private:
         {"marker", MarkerProps{3, 0.5, 0.5, 1, 0.25}},
         {"picture", MarkerProps{1, 0.5, 0.5, 0.5, 0.25}},
     };
-    
-    void pose_callback(const geometry_msgs::msg::Pose2D::SharedPtr msg) {
-        pose_ = *msg;
-    }
-    
+        
     void inferences_callback(const usv_interfaces::msg::ObjectList::SharedPtr msg) {
+        // Dont update new inferences if 200 ms of no reception
+        if(this->get_clock()->now() - last_odom_msg > rclcpp::Duration(0, 200 * 1e6)){
+            return;
+        }
+
         RCLCPP_INFO(this->get_logger(), "Received %zu inferences", msg->obj_list.size());
         
         for (const auto& inference : msg->obj_list) {
@@ -117,6 +132,15 @@ private:
     void process_inference(const usv_interfaces::msg::Object& inference) {
         // Convert local coordinates to global
         auto global_pos = local_to_global(inference.x, inference.y);
+
+        double inference_dist = std::hypot(inference.x,inference.y);
+        if(
+            inference_dist > max_tracking_distance_ || 
+            inference.type == "ignore" ||
+            std::fabs(ang_vel_) > 0.3
+        ){
+            return;
+        }
         
         // Check if this inference is close to any existing obstacle
         bool is_new_obstacle = true;

@@ -22,6 +22,7 @@
 #include "geometry_msgs/msg/pose_array.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 #include "std_msgs/msg/bool.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
 #include "mission_classes/mission.cpp"
 #include "mission_classes/m0.cpp"
@@ -48,19 +49,24 @@ class MissionHandlerNode : public rclcpp::Node {
                     task_schedule.push_back(int(task_schedule_og[i]));
                 }
             }
-            
-            pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
-                "/usv/state/pose", 10, 
-                [this](const geometry_msgs::msg::Pose2D &msg) { 
-                    pose << msg.x, msg.y, msg.theta;
-            });
 
+            odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
+            "/usv/state/odom", 1,
+            [this](const nav_msgs::msg::Odometry::SharedPtr msg)
+            {
+                auto &q = msg->pose.pose.orientation;
+                pose.x() = msg->pose.pose.position.x;
+                pose.y() = msg->pose.pose.position.y;
+                pose.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+            });
+            
             auto_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
                 "/usv/op_mode", 1,
                 [this](const std_msgs::msg::UInt16 &msg) { auto_mode.data = msg.data; });
 
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-                "/bebblebrox/objects/yolo", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
+                "/obj_list", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
             );
 
             wp_arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
@@ -93,7 +99,7 @@ class MissionHandlerNode : public rclcpp::Node {
 
     private:
         rclcpp::TimerBase::SharedPtr timer_;
-        rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
+        rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
         rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr auto_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
