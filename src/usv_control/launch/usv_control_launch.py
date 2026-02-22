@@ -236,7 +236,7 @@ def generate_launch_description():
         # asmc_node,
         # aitsmc_node,
         aitsmc_new_node,        
-        # los_node,
+        los_node,
         # sbg_launch,
         # imu_converter_node,
         # foxglove_bridge,
@@ -244,6 +244,6 @@ def generate_launch_description():
         # can_node,
         # teleop_launch,
         # obstacle_launch,
-        # waypoint_handler_node,
+        waypoint_handler_node,
         # mpc_node,
     ])

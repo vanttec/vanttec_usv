@@ -19,7 +19,7 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       goal = get_goal(params.obs_list);
 
       if(goal.norm() > 0.01){
-        outMsg.state = 1;
+        outMsg.state = 1; // change to next state in task state machine
         outMsg.goals = pack_goal(pose, goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
@@ -31,7 +31,7 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.goals = pack_goal(last_goal, goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
         outMsg.state = 2;
-        outMsg.status = 1;
+        outMsg.status = 1; // Mark task as complete
       }
       else if(dist(last_goal, pose) < 1) {
         outMsg.goals = pack_goal(last_goal, forward(last_goal, 0.15), 0.35);
@@ -108,8 +108,8 @@ Eigen::Vector3f M1::get_goal(std::vector<Obstacle> obs_list){
   // std::cout << "RED FROM NED : " << poseRB(0)+pose(0) << "," << poseRB(1)+pose(1) << std::endl;
   // std::cout << "GREEN FROM BODY: " << green_buoy(0) << "," << green_buoy(1) << std::endl;
   // std::cout << "GREEN FROM NED: " << poseGB(0)+pose(0) << "," << poseGB(1)+pose(1) << std::endl;
-  // std::cout << "GATE FROM BODY: " << po(0) << "," << po(1) << std::endl;
-  // std::cout << "GOAL: " << goal(0) << "," << goal(1) << ", " << goal(2) << std::endl;
+  std::cout << "GATE FROM BODY: " << po(0) << "," << po(1) << std::endl;
+  std::cout << "GOAL: " << goal(0) << "," << goal(1) << ", " << goal(2) << std::endl;
 
   return goal;
 }

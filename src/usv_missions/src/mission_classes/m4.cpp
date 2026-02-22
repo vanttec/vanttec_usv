@@ -29,7 +29,7 @@ USVOutput M4::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       if(params.green_light){
       goal = get_goal(params.obs_list);
 
-      if(goal.norm() > 0.0001){ // If a goal was actually found
+      if(true){ // If a goal was actually found
         outMsg.state = 2;
         outMsg.goals = pack_goal(last_goal, goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
@@ -146,7 +146,7 @@ Eigen::Vector3f M4::get_blue_buoy_goal(std::vector<Obstacle> obs_list){
     if(obs_list[i].type == "round"){
       tmp << obs_list[i].x, obs_list[i].y, 0.0;
       switch(obs_list[i].color){
-        case 2: //blue
+        case 3: //yellow
           b_dist = tmp.norm();
           if((b_dist < min_b_dist) && unreg(pose + rotM*tmp)){
             b_buoy = tmp;

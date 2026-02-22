@@ -1,10 +1,10 @@
 /**:
   ros__parameters:
     global_tasks: [
-      # "m1", 
-      # "m2", 
+      "m1", 
+      "m2", 
       # "m3",
-      # "m4",
+      "m4",
       "m0",
     ] 
     m0:
