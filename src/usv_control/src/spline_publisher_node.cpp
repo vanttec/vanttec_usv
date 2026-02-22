@@ -30,6 +30,7 @@ public:
         using namespace std::placeholders;
 
         spline_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("/usv/path_ref", 10);
+        dummy_path_pub_ = this->create_publisher<nav_msgs::msg::Path>("/usv/dummy_path_ref", 10);
         s_marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/spline_marker", 10);
         la_marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/lookahead_marker", 10);
         spline_params_pub_ = this->create_publisher<std_msgs::msg::Float64MultiArray>("/mpc/spline_params", 10);
@@ -53,11 +54,10 @@ public:
                         // same destination — just append new intermediate points
                         // without resetting closest_idx
                         ref.clear();
-                        ref.push_back(trans(asv, -dist));
-                        ref.push_back(trans(asv,  0.0));
                         for (int i = 0; i < msg->poses.size(); i++)
                             ref.push_back(trans(p_to_v(msg->poses[i]), 0.0));
                         ref.push_back(trans(p_to_v(msg->poses.back()), dist));
+                        dummy_ref_ = trans(p_to_v(msg->poses.back()), 2*dist);
                         // don't reset closest_idx here
                         update_spline_params();
                         return;
@@ -68,11 +68,11 @@ public:
                 last_goal_x_ = last.position.x;
                 last_goal_y_ = last.position.y;
                 ref.clear();
-                ref.push_back(trans(asv, -dist));
-                ref.push_back(trans(asv,  0.0));
+                ref.push_back(trans(p_to_v(msg->poses[0]), -dist));
                 for (int i = 0; i < msg->poses.size(); i++)
                     ref.push_back(trans(p_to_v(msg->poses[i]), 0.0));
                 ref.push_back(trans(p_to_v(msg->poses.back()), dist));
+                dummy_ref_ = trans(p_to_v(msg->poses.back()), 2*dist);
                 closest_idx = 0;
                 last_idx    = -1;
                 update_spline_params();
@@ -106,6 +106,7 @@ public:
                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
                 ref.push_back(trans(tmp, 0.0));
                 ref.push_back(trans(tmp, dist));
+                dummy_ref_ = trans(tmp, 2*dist);
 
                 update_spline_params();
             });
@@ -121,6 +122,7 @@ public:
                     1.0 - 2.0 * (q.y * q.y + q.z * q.z));
                 ref[ref.size()-1] = trans(tmp, 0.0);
                 ref.push_back(trans(tmp, dist));
+                dummy_ref_ = trans(tmp, 2*dist);
                 
                 update_spline_params();
             });
@@ -169,15 +171,20 @@ public:
 protected:
     void update()
     {
+        RCLCPP_INFO(this->get_logger(), "Reference size: %d\nSpines size: %d\nClosest idx: %d", 
+            ref.size(), s_.size(), closest_idx
+        );
+
         path_msg.poses.clear();
         path_msg.header.stamp = this->get_clock()->now();
+        dummy_path_msg.header = path_msg.header;
         geometry_msgs::msg::PoseStamped tmp_pose;
         tmp_pose.header = path_msg.header;
         s_marker_msg.header = path_msg.header;
         la_marker_msg.header = path_msg.header;
 
         if(s_.size() > 0){
-            if (closest_idx < 0) closest_idx = 0;
+            // if (closest_idx < 0) closest_idx = 0;
             Eigen::Vector2d tmp_v;
             Eigen::Vector2d closest_p_tmp, closest_p;
             double closest_t, closest_t_tmp;
@@ -190,7 +197,7 @@ protected:
                     tmp_v = s_[i].get_s(t);
                     tmp_pose.pose.position.x = tmp_v.x();
                     tmp_pose.pose.position.y = tmp_v.y();
-                    // tmp_pose.pose.position.z = i + t;
+                    tmp_pose.pose.position.z = i + t;
                     path_msg.poses.push_back(tmp_pose);
                 }
                 
@@ -247,6 +254,14 @@ protected:
                         spline_params_msg.data[4 * i + 10] = s_[closest_idx+1].s_.c[i];
                         spline_params_msg.data[4 * i + 11] = s_[closest_idx+1].s_.d[i];
                     }
+                } else {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        spline_params_msg.data[4 * i + 8]  = dummy_s_.s_.a[i];
+                        spline_params_msg.data[4 * i + 9]  = dummy_s_.s_.b[i];
+                        spline_params_msg.data[4 * i + 10] = dummy_s_.s_.c[i];
+                        spline_params_msg.data[4 * i + 11] = dummy_s_.s_.d[i];
+                    }
                 }
             }
 
@@ -255,7 +270,15 @@ protected:
             spline_length_msg.data = L_;
         }
 
+        if(spline_t_la_msg.data == s_.size()){
+            spline_t_la_msg.data -= 0.001;
+        }
+        if(spline_t_msg.data == s_.size()){
+            spline_t_msg.data -= 0.001;
+        }
+
         spline_path_pub_->publish(path_msg);
+        dummy_path_pub_->publish(dummy_path_msg);
         s_marker_pub_->publish(s_marker_msg);
         la_marker_pub_->publish(la_marker_msg);
         spline_params_pub_->publish(spline_params_msg);
@@ -278,10 +301,48 @@ protected:
                 ref[i+3]
             );
         }
+
+        RCLCPP_INFO(this->get_logger(), "Ref params");
+        for(int j = 0 ; j < ref.size() ; j++){
+            RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>",
+            j+1, ref[j].x(), ref[j].y());
+        }
+        
+        int i = ref.size()-3;
+        RCLCPP_INFO(this->get_logger(), "Dummy params");
+        for(int j = 0 ; j < 3 ; j++){
+            RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>",
+            j+1, ref[i+j].x(), ref[i+j].y());
+        }
+        RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>\n",
+            4, dummy_ref_.x(), dummy_ref_.y());
+
+        dummy_s_.update(
+            ref[i  ],
+            ref[i+1],
+            ref[i+2],
+            dummy_ref_
+        );
+
+        update_dummy_msg();
+    }
+
+    void update_dummy_msg() {
+        dummy_path_msg.poses.clear();
+        Eigen::Vector2d tmp_v;
+        geometry_msgs::msg::PoseStamped tmp_pose;
+        for (double t = 0; t <= 1; t += 1.0 / (n_ - 1))
+            {
+                tmp_v = dummy_s_.get_s(t);
+                tmp_pose.pose.position.x = tmp_v.x();
+                tmp_pose.pose.position.y = tmp_v.y();
+                dummy_path_msg.poses.push_back(tmp_pose);
+            }
     }
 
 private:
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr spline_path_pub_;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr dummy_path_pub_;
     rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr s_marker_pub_, la_marker_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr spline_t_pub_, spline_t_la_pub_, spline_length_pub_;
@@ -291,6 +352,7 @@ private:
     rclcpp::Subscription<geometry_msgs::msg::PoseArray>::SharedPtr mission_goal_sub_;
 
     nav_msgs::msg::Path path_msg;
+    nav_msgs::msg::Path dummy_path_msg;
     visualization_msgs::msg::Marker s_marker_msg, la_marker_msg;
     std_msgs::msg::Float64MultiArray spline_params_msg;
     std_msgs::msg::Float64 spline_t_msg, spline_t_la_msg, spline_length_msg;
@@ -298,6 +360,8 @@ private:
     rclcpp::TimerBase::SharedPtr timer_;
 
     std::vector<CatmulRom> s_;
+    CatmulRom dummy_s_;
+    Eigen::Vector2d dummy_ref_{-0.5,-1};
     double L_{0.0};
     int n_{20};
     double dist{0.1};
@@ -305,7 +369,7 @@ private:
     int last_idx{-1};
 
     // std::vector<Eigen::Vector2d> ref{{0,0},{1,0},{7,3},{13,-3},{19,3},{25,-3}};
-    // std::vector<Eigen::Vector2d> ref{{0,0},{0.3,0},{3,5},{7,0},{6,-5},{7,-8},{1,-5},{0.5,-1},{0,0}};
+    // std::vector<Eigen::Vector2d> ref{{0,0},{0.3,0},{3,5},{7,0},{6,-5},{7,-8},{1,-5},{0.5,-1},{0,-1}};
     std::vector<Eigen::Vector2d> ref{};
     Eigen::Vector3d asv, tmp;
 

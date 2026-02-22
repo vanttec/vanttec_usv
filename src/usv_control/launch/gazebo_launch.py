@@ -64,8 +64,8 @@ def generate_launch_description():
         ks,
         odom,
 
-        rviz,
-        foxglove_bridge,
+        # rviz,
+        # foxglove_bridge,
 
         # aitsmc_new_node,
 

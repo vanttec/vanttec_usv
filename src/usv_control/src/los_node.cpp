@@ -23,6 +23,14 @@ static std::pair<double,double> eval_spline(const double* c, double t)
     };
 }
 
+static std::pair<double,double> eval_spline_dot(const double* c, double t)
+{
+    return {
+        3*c[0]*t*t + 2*c[1]*t + c[2],
+        3*c[4]*t*t + 2*c[5]*t + c[6]
+    };
+}
+
 class LOSNode : public rclcpp::Node {
 public:
     LOSNode() : Node("los_node")
@@ -81,11 +89,7 @@ private:
         }
 
         // ── local t values relative to current spline ─────────────────────────
-        double t    = spline_t_    - std::floor(spline_t_);  // [0,1] on current spline
         double t_la = spline_t_la_ - std::floor(spline_t_);  // relative, up to 2.0
-
-        // ── current point on spline ───────────────────────────────────────────
-        auto [cx, cy] = eval_spline(spline_params_.data(), t);
 
         // ── lookahead point: next spline coeffs if t_la > 1.0 ────────────────
         double        t_la_local = t_la;
@@ -99,40 +103,24 @@ private:
 
         auto [lax, lay] = eval_spline(la_coeffs, t_la_local);
 
-        // ── crosstrack error (signed, perpendicular to path segment) ─────────
-        double path_dx  = lax - cx;
-        double path_dy  = lay - cy;
-        double path_len = std::sqrt(path_dx*path_dx + path_dy*path_dy);
-
-        double cte = 0.0;
-        if (path_len > 1e-3)
-            cte = ((y_ - cy) * path_dx - (x_ - cx) * path_dy) / path_len;
+        // ── alongtrack error (signed, perpendicular to path segment) ─────────
+        double a_e = std::sqrt((lax-x_)*(lax-x_) + (lay-y_)*(lay-y_));
 
         // ── ILOS heading: LOS angle corrected by crosstrack ──────────────────
-        double psi_los = std::atan2(lay - cy, lax - cx);
-        double psi_d   = psi_los - std::atan(k_cte_ * cte);
-
-        // ── stop condition ────────────────────────────────────────────────────
-        // current == next coeffs means no more splines ahead
-        bool in_last = true;
-        for (int i = 0; i < 8; i++) {
-            if (std::fabs(spline_params_[i] - spline_params_[8+i]) > 1e-4) {
-                in_last = false;
-                break;
-            }
+        double psi_los = std::atan2(lay - y_, lax - x_);
+        if(a_e < 0.6){
+            auto [lax_dot, lay_dot] = eval_spline_dot(la_coeffs, t_la_local);
+            psi_los = std::atan2(lay_dot, lax_dot);
         }
-
-        bool done = in_last && (t_la >= 1.0) && (t >= 0.8);
+        double psi_d   = psi_los;
 
         // ── velocity ──────────────────────────────────────────────────────────
-        double vel = max_vel_;
-
-        if (done) {
-            vel   = 0.0;
-            psi_d = psi_;   // freeze heading, avoid spinning in place
-        } else if (in_last && t > 0.9) {
-            vel = std::clamp((1.0 - t_la) / 0.1 * max_vel_, 0.0, max_vel_);
-        }
+        // Map along-track error to vel. (0.1 -> 0, 0.8 -> 1.0)
+        double ang_err = normalize_angle(psi_d - psi_);
+        double ang_e_multiplier = map(0.0, 0.8, 1.0, 0., std::fabs(ang_err));
+        double vel = ang_e_multiplier*map(0.6, 1.0, 0.0, max_vel_, a_e);
+        // RCLCPP_INFO(get_logger(), "ang_err: %.2f, multiplier: %.2f,\na_e: %.2f, vel: %.2f", ang_err, ang_e_multiplier, a_e, vel);
+        // RCLCPP_INFO(get_logger(), "psi: d: %.2f", psi_d);
 
         // ── publish ───────────────────────────────────────────────────────────
         std_msgs::msg::Float64 h_msg, v_msg;
@@ -143,11 +131,29 @@ private:
 
         // debug: LOS segment from current spline point to lookahead
         current_ref_.header.stamp = this->now();
-        current_ref_.poses[0].pose.position.x = cx;
-        current_ref_.poses[0].pose.position.y = cy;
+        current_ref_.poses[0].pose.position.x = x_;
+        current_ref_.poses[0].pose.position.y = y_;
         current_ref_.poses[1].pose.position.x = lax;
         current_ref_.poses[1].pose.position.y = lay;
         current_ref_pub_->publish(current_ref_);
+    }
+
+    double normalize_angle(double x)
+    {
+        x = fmod(x + M_PI, M_PI * 2);
+        if (x < 0)
+            x += M_PI * 2;
+        return x - M_PI;
+    }
+
+    double map(double min_x, double max_x, double min_y, double max_y, double t)
+    {
+        double w_m = (max_y - min_y) / (max_x - min_x);
+        double w_b = min_y - w_m * min_x;
+        if (min_y < max_y)
+            return std::clamp(w_m * t + w_b, min_y, max_y);
+        // In some cases, slope is negative, and sol. shouldn't depend on argument order...
+        return std::clamp(w_m * t + w_b, max_y, min_y);
     }
 
     // ── members ───────────────────────────────────────────────────────────────
@@ -169,7 +175,7 @@ private:
 
     double x_{0.0}, y_{0.0}, psi_{0.0};
 
-    const double max_vel_{0.5};
+    const double max_vel_{1.0};
     const double k_cte_{0.5};  // crosstrack gain: 0.3 gentle, 1.0 aggressive
 
     bool ready_{false};
