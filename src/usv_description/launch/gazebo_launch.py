@@ -28,9 +28,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-
     pkg_usv_description = get_package_share_directory('usv_description')
-    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
     # Launch Gazebo with command
     #  Useful if user has different versions of Gazebo
@@ -44,57 +42,25 @@ def generate_launch_description():
         }
     )
 
-    # Custom Bridge
-    # custom_bridge = Node(
-    #    package='usv_description',
-    #    executable='custom_bridge',
-    #    additional_env={
-    #            'GZ_IP': '127.0.0.1',
-    #        }
-    # )
-
-    usv_launchfile = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                         'usv_joy_teleop_launch.py')
-        ])
-    )
-
-    # RViz
-    rviz = Node(
-        package='rviz2',
-        executable='rviz2',
-        arguments=['-d', os.path.join(pkg_usv_description, 'rviz', 'gz.rviz')],
-        condition=IfCondition(LaunchConfiguration('rviz'))
-    )
-
-    # # Launch Gazebo with ros_gz_sim
-    # #  Uncomment package in package.xml
-    # pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
-    # gz_args = ['sim', '-v 4 -r']
-    # gz_args.append('../worlds/nbpark_custom.sdf')
-
-    # gz_sim = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
-    #     launch_arguments={'gz_args': ' '.join(gz_args)}.items(),
-    # )
-
     # Bridge
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         arguments=[
-                   '/model/vtec_s4/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
-                   '/model/vtec_s4/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
-                   '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
-                #    '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
-                #    '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
-                #    '/zed_rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
-                #    '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
-                # #    '/world/nbpark/model/vtec_s4/link/base_link/sensor/imu/imu@sensor_msgs/msg/Imu@gz.msgs.IMU',
-                # #    '/zed_rgbd/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/model/vtec_s4/joint/left_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
+            '/model/vtec_s4/joint/right_engine_propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double',
+            '/gz_sim/odometry@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance',
+            # '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
+            # '/lidar/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
+            '/zed_rgbd/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
+            '/zed_rgbd/image@sensor_msgs/msg/Image@gz.msgs.Image',
+            # '/zed_rgbd/depth_image@sensor_msgs/msg/Image@gz.msgs.Image',
         ],
+        remappings=[
+            ("/zed_rgbd/image", "/bebblebrox/video"),
+            ("/zed_rgbd/points", "/velodyne_points"),
+        ],
+
         output='screen',
         additional_env={
             'GZ_IP': '127.0.0.1',
@@ -104,7 +70,9 @@ def generate_launch_description():
     cam_world_tf = Node(package="tf2_ros",
                         executable="static_transform_publisher",
                         arguments=["0", "0", "0", "0", "0", "0",
-                                   "usv", "vtec_s4/base_link/rgbd_camera"],
+                                   "usv",
+                                   "vtec_s4/base_link/rgbd_camera"
+                        ],
                         )
 
     return LaunchDescription([

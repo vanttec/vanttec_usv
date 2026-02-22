@@ -15,6 +15,8 @@ find_package(sensor_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
 find_package(sbg_driver REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(vision_msgs REQUIRED)
+find_package(message_filters REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(nav_msgs REQUIRED)
@@ -30,6 +32,8 @@ set(DEPENDENCIES
   std_msgs
   rclcpp
   sensor_msgs
+  message_filters
+  vision_msgs
   tf2
   nav_msgs
   std_srvs
@@ -43,6 +47,9 @@ set(DEPENDENCIES
 
 add_executable(imu_converter_node src/imu_converter_node.cpp)
 ament_target_dependencies(imu_converter_node ${DEPENDENCIES})
+
+add_executable(gz_sim_zed_node src/gz_sim_zed_node.cpp)
+ament_target_dependencies(gz_sim_zed_node ${DEPENDENCIES})
 
 add_executable(bag2image_node src/bag2image_node.cpp)
 ament_target_dependencies(bag2image_node ${DEPENDENCIES})
@@ -71,6 +78,7 @@ install(TARGETS
   bag2image_node
   odom_converter_node
   killswitch_node
+  gz_sim_zed_node
   obstacle_viewer_node
   obstacle_nearest_publisher
   system_validation_node

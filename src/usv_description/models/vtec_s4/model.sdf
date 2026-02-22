@@ -39,7 +39,7 @@
         <update_rate>100</update_rate>
       </sensor>
 
-      <sensor name='gpu_lidar' type='gpu_lidar'>
+      <!-- <sensor name='gpu_lidar' type='gpu_lidar'>
         <pose>0.2 0.0 0.55 0 0 0</pose>
         <topic>lidar</topic>
         <update_rate>10</update_rate>
@@ -73,19 +73,19 @@
           <topic>pc2</topic>
           <frame_id>custom_params/link</frame_id>
         </plugin>
-      </sensor>
+      </sensor> -->
 
       <sensor name="rgbd_camera" type="rgbd_camera">
-        <pose>0.55 0 0.25 0 0 0</pose>
+        <pose>0.5 0 0.25 0 0 0</pose>
         <camera>
           <horizontal_fov>1.047</horizontal_fov>
           <image>
-            <width>320</width>
-            <height>240</height>
+            <width>1280</width>
+            <height>720</height>
           </image>
           <clip>
-            <near>0.1</near>
-            <far>100</far>
+            <near>0.001</near>
+            <far>50</far>
           </clip>
         </camera>
         <always_on>1</always_on>

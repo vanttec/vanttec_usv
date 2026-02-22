@@ -39,8 +39,23 @@
     </include>
 
     <include>
-      <pose>1 3 1 0 0 0</pose>
+      <pose>-3 0 0.1 0 0 0</pose>
       <uri>model://vtec_s4</uri>
     </include>
+
+    <!-- Task 1 - Mandatory Challenge -->
+    <!-- <include>
+      <name>mandatory_challenge</name>
+      <pose>0 0 -0.04 0 0 0</pose>
+      <uri>mandatory_challenge</uri>
+    </include> -->
+
+    <!-- Taks 2 -Follow the Path Challenge -->
+    <include>
+      <name>follow_the_path_challenge</name>
+      <pose>3 0 0.04 0 0 1.5708</pose>
+      <uri>follow_the_path_challenge</uri>
+    </include>
+
   </world>
 </sdf>
