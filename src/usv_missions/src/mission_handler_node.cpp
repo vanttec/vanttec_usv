@@ -63,7 +63,7 @@ class MissionHandlerNode : public rclcpp::Node {
             
             auto_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
                 "/usv/op_mode", 1,
-                [this](const std_msgs::msg::UInt16 &msg) { auto_mode.data = msg.data; });
+                [this](const std_msgs::msg::UInt16 &msg) { auto_mode = msg.data; });
 
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
                 "/obj_list", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
@@ -118,7 +118,7 @@ class MissionHandlerNode : public rclcpp::Node {
 
         std_msgs::msg::Int8 id, state, status;
         std_msgs::msg::Bool pivot, arrived;
-        std_msgs::msg::UInt16 auto_mode;
+        uint16_t auto_mode{1};
         std::vector<Obstacle> obs_v;
 
 
@@ -215,6 +215,10 @@ class MissionHandlerNode : public rclcpp::Node {
         }
 
         void timer_callback() {
+            if(auto_mode == 1){
+                return;
+            }
+
             check_mission_jump();
 
             feedback = vtec->update(pose, update_params);

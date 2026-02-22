@@ -13,6 +13,7 @@
 #include "usv_interfaces/msg/object.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "std_msgs/msg/color_rgba.hpp"
+#include "std_msgs/msg/u_int16.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -29,9 +30,9 @@ class GlobalObstacleRegisterNode : public rclcpp::Node {
 public:
     GlobalObstacleRegisterNode() : Node("global_obstacle_register_node") {
         // Parameters
-        this->declare_parameter("min_obstacle_separation", 1.5);  // Minimum distance between obstacles
-        this->declare_parameter("max_tracking_distance", 10.0);   // Maximum distance to track obstacles
-        this->declare_parameter("tracking_lifetime", 600.0);       // Seconds to keep tracking an obstacle without updates
+        this->declare_parameter("min_obstacle_separation", 2.5);  // Minimum distance between obstacles
+        this->declare_parameter("max_tracking_distance", 8.0);   // Maximum distance to track obstacles
+        this->declare_parameter("tracking_lifetime", 300.0);       // Seconds to keep tracking an obstacle without updates
         
         min_obstacle_separation_ = this->get_parameter("min_obstacle_separation").as_double();
         max_tracking_distance_ = this->get_parameter("max_tracking_distance").as_double();
@@ -44,6 +45,11 @@ public:
         on_watch_marker_pub_ = this->create_publisher<visualization_msgs::msg::MarkerArray>("/on_watch", 10);
 
         // Subscribers
+        auto_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
+            "/usv/op_mode", 1, [this](const std_msgs::msg::UInt16 &msg) { 
+                auto_mode = msg.data; 
+        });
+        
         odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
             "/usv/state/odom", 1,
             [this](const nav_msgs::msg::Odometry::SharedPtr msg)
@@ -66,7 +72,7 @@ public:
             50ms, std::bind(&GlobalObstacleRegisterNode::timer_callback, this));
 
         // To avoid the first registry before any odom at all
-        last_odom_msg = this->get_clock()->now() - rclcpp::Duration(0, 1000 * 1e6);        
+        last_odom_msg = this->get_clock()->now() - rclcpp::Duration(0, 1000 * 1e6);   
         RCLCPP_INFO(this->get_logger(), "Dynamic Obstacle Tracker Node initialized");
     }
 
@@ -77,6 +83,7 @@ private:
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_, on_watch_marker_pub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
     rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr inferences_sub_;
+    rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr auto_sub_;
     
     // Configuration parameters
     double min_obstacle_separation_;
@@ -86,6 +93,7 @@ private:
     // Vehicle state
     geometry_msgs::msg::Pose2D pose_;
     double ang_vel_;
+    uint16_t auto_mode{1};
     
     // Global storage
     usv_interfaces::msg::ObjectList global_obstacles_;
@@ -118,7 +126,9 @@ private:
         
     void inferences_callback(const usv_interfaces::msg::ObjectList::SharedPtr msg) {
         // Dont update new inferences if 200 ms of no reception
-        if(this->get_clock()->now() - last_odom_msg > rclcpp::Duration(0, 200 * 1e6)){
+        if(this->get_clock()->now() - last_odom_msg > rclcpp::Duration(0, 200 * 1e6) ||
+        (auto_mode == 1)
+        ){
             return;
         }
 
@@ -137,7 +147,7 @@ private:
         if(
             inference_dist > max_tracking_distance_ || 
             inference.type == "ignore" ||
-            std::fabs(ang_vel_) > 0.3
+            std::fabs(ang_vel_) > 0.2
         ){
             return;
         }
@@ -159,10 +169,13 @@ private:
                 closest_idx = i;
             }
             
-            if (distance < min_obstacle_separation_) {
-                is_new_obstacle = false;
-                break;
-            }
+        }
+
+        if (closest_distance < min_obstacle_separation_ &&
+            global_obstacles_.obj_list[closest_idx].type == inference.type && 
+            global_obstacles_.obj_list[closest_idx].color == inference.color
+        ) {
+            is_new_obstacle = false;
         }
         
         if (is_new_obstacle) {
@@ -212,15 +225,12 @@ private:
             
             // Update velocity estimate
             double dt = (this->now() - obstacle_last_seen_[closest_idx]).seconds();
-            if (dt > 0.0) {
-                obs.v_x = (global_pos.first - obs.x) / dt;
-                obs.v_y = (global_pos.second - obs.y) / dt;
-            }
             
             // Update position
-            obs.x = global_pos.first;
-            obs.y = global_pos.second;
-            
+            const double alpha = 0.3; // tune this, lower = more stable, higher = faster to update
+            obs.x = alpha * global_pos.first + (1.0 - alpha) * obs.x;
+            obs.y = alpha * global_pos.second + (1.0 - alpha) * obs.y;
+
             // Update marker
             marker.pose.position.x = obs.x;
             marker.pose.position.y = obs.y;
@@ -235,7 +245,7 @@ private:
     
     void timer_callback() {
         // Clean up expired obstacles
-        // cleanup_old_obstacles();
+        cleanup_old_obstacles();
         
         // Update local obstacles list from global list
         update_local_obstacles();
@@ -310,8 +320,7 @@ private:
             
             // Check if in tracking range and field of view
             bool in_range = distance < max_tracking_distance_;
-            bool in_fov = local_x > 0 && std::fabs(std::atan2(local_y, local_x)) < 1.0; // ~60 degree FOV
-            
+            bool in_fov = local_x > 0 && std::fabs(std::atan2(local_y, local_x)) < 0.96; // ~110 degree FOV (half = 55 deg)            
             // Create watch marker
             visualization_msgs::msg::Marker watch_marker;
             watch_marker.header.frame_id = "world";

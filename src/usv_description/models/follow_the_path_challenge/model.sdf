@@ -469,7 +469,7 @@
       </plugin>
     </include>
 
-    <include>
+    <!-- <include>
       <static>true</static>
       <name>round_buoy_yellow_1</name>
       <pose> 3 -2 0 0 0 0 </pose>
@@ -493,7 +493,7 @@
           <topic>/vrx/wavefield/parameters</topic>
         </wavefield>
       </plugin>
-    </include>
+    </include> -->
 
     <include>
       <static>true</static>
@@ -524,7 +524,7 @@
     <include>
       <static>true</static>
       <name>round_buoy_yellow_3</name>
-      <pose> 0 -38 0 0 0 0 </pose>
+      <pose> -3 -38 0 0 0 0 </pose>
       <uri>round_buoy_yellow</uri>
       <plugin name="vrx::PolyhedraBuoyancyDrag"
               filename="libPolyhedraBuoyancyDrag.so">
@@ -576,7 +576,7 @@
     <include>
       <static>true</static>
       <name>round_buoy_black_2</name>
-      <pose> 2 -32 0 0 0 0 </pose>
+      <pose> 0 -30 0 0 0 0 </pose>
       <uri>round_buoy_black</uri>
       <plugin name="vrx::PolyhedraBuoyancyDrag"
               filename="libPolyhedraBuoyancyDrag.so">

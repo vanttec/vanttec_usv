@@ -54,27 +54,14 @@ def generate_launch_description():
         ]),
     )
     
-    foxglove_bridge = Node(
-        name="foxglove_bridge",
-        package="foxglove_bridge",
-        executable="foxglove_bridge")
+    gz_sim_zed_node = Node(
+        package="usv_utils",
+        executable="gz_sim_zed_node")
 
     return LaunchDescription([
         gz,
         ks,
         odom,
-
         # rviz,
-        # foxglove_bridge,
-
-        # aitsmc_new_node,
-
-        # # teleop_launch,
-        
-        # mpc_node,
-        # waypoint_handler_node,
-        
-        # obstacle_launch,
-        # mission_handler_node,
-        # obstacle_nearest_publisher,
+        gz_sim_zed_node,
     ])

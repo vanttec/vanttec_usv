@@ -9,6 +9,7 @@
 #include "std_msgs/msg/float64.hpp"
 #include "std_msgs/msg/float64_multi_array.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "std_msgs/msg/u_int16.hpp"
 
 using namespace std::chrono_literals;
 
@@ -35,6 +36,11 @@ class LOSNode : public rclcpp::Node {
 public:
     LOSNode() : Node("los_node")
     {
+        auto_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
+            "/usv/op_mode", 1, [this](const std_msgs::msg::UInt16 &msg) { 
+                auto_mode = msg.data; 
+        });
+
         odom_sub_ = create_subscription<nav_msgs::msg::Odometry>(
             "/usv/state/odom", 1,
             [this](const nav_msgs::msg::Odometry::SharedPtr msg) {
@@ -85,6 +91,15 @@ private:
             std_msgs::msg::Float64 zero;
             zero.data = 0.0;
             velocity_pub_->publish(zero);
+            return;
+        }
+
+        if(auto_mode == 1){
+            std_msgs::msg::Float64 zero_vel, zero_head;
+            zero_vel.data = 0.0;
+            zero_head.data = psi_;
+            velocity_pub_->publish(zero_vel);
+            heading_pub_->publish(zero_head);
             return;
         }
 
@@ -158,6 +173,7 @@ private:
 
     // ── members ───────────────────────────────────────────────────────────────
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr          odom_sub_;
+    rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr            auto_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64MultiArray>::SharedPtr spline_params_sub_;
     rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr           spline_t_sub_, spline_t_la_sub_;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr              heading_pub_, velocity_pub_;
@@ -175,7 +191,9 @@ private:
 
     double x_{0.0}, y_{0.0}, psi_{0.0};
 
-    const double max_vel_{1.0};
+    uint16_t auto_mode{1};
+
+    const double max_vel_{0.8};
     const double k_cte_{0.5};  // crosstrack gain: 0.3 gentle, 1.0 aggressive
 
     bool ready_{false};
