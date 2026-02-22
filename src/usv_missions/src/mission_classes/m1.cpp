@@ -23,6 +23,7 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.goals.push_back(pose);
         outMsg.goals.push_back(forward(goal, -0.5));
         outMsg.goals.push_back(forward(goal, 0.5));
+     
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
@@ -34,7 +35,7 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.goals.push_back(forward(goal, 1.5));
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
         outMsg.state = 2;
-        outMsg.status = 1;
+        outMsg.status = 1; // Mark task as complete
       }
       else if(dist(last_goal, pose) < 1) {
         outMsg.goals = pack_goal(last_goal, 0.85);
@@ -111,8 +112,8 @@ Eigen::Vector3f M1::get_goal(std::vector<Obstacle> obs_list){
   // std::cout << "RED FROM NED : " << poseRB(0)+pose(0) << "," << poseRB(1)+pose(1) << std::endl;
   // std::cout << "GREEN FROM BODY: " << green_buoy(0) << "," << green_buoy(1) << std::endl;
   // std::cout << "GREEN FROM NED: " << poseGB(0)+pose(0) << "," << poseGB(1)+pose(1) << std::endl;
-  // std::cout << "GATE FROM BODY: " << po(0) << "," << po(1) << std::endl;
-  // std::cout << "GOAL: " << goal(0) << "," << goal(1) << ", " << goal(2) << std::endl;
+  std::cout << "GATE FROM BODY: " << po(0) << "," << po(1) << std::endl;
+  std::cout << "GOAL: " << goal(0) << "," << goal(1) << ", " << goal(2) << std::endl;
 
   return goal;
 }

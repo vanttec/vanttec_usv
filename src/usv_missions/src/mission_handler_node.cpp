@@ -65,6 +65,7 @@ class MissionHandlerNode : public rclcpp::Node {
                 "/usv/op_mode", 1,
                 [this](const std_msgs::msg::UInt16 &msg) { auto_mode = msg.data; });
 
+                // TODO: revise validity of object list topic
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
                 "/obj_list", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
             );
@@ -131,13 +132,13 @@ class MissionHandlerNode : public rclcpp::Node {
         bool wp_arrived{false}, moving{false};
         double goal_dist{0.0};
         double x_diff{0.0}, y_diff{0.0};
-        int yellow_found{0}, black_found{0}, pivots_to_do{-1}, pivots_done{0};
+        int yellow_found{0}, black_found{0}, pivots_to_do{-1}, pivots_done{0};  // yellow found and black found are probably legacy roboboat variables, probably removable
         double pivot_goal{-4};
         double h_acum{0.0}, last_h{0.0};
         int mission_command{0};
         
         std::vector<usv_interfaces::msg::Waypoint> goals;
-        std::vector<int> task_schedule{2,1,3};
+        std::vector<int> task_schedule{1,2,3};
 
         // Check for all tasks if their starting point has been found, get first in schedule
         int get_next_known_id(){

@@ -19,7 +19,7 @@ def generate_launch_description():
     can_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
-                FindPackageShare('usv_control'),
+                FindPackageShare('usv_can'),
                 'launch',
                 'can_launch.py'
             ])
@@ -36,20 +36,72 @@ def generate_launch_description():
         ]),
     )
 
+    # Using general launch file in usv_control package.
+    # As of RB 2026, this only calls new aitsmc node and line of sight node
+    control_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_control'),
+                'launch',
+                'usv_control_launch.py'
+            ])
+        ])
+    )
+
+    # For launching components related to zed camera, velodyne lidar and their fusion
+    # Also launches yolo models
+    vision_lidar_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('visionsystemx'),
+                'launch',
+                # Temporary array of launch files for diverse use, parameters to be implemented
+                # 'vision.launch_2.py' # <--- for launching both yolo models with all components
+                # 'vision.launch.py' # <--- for launching only main yolo with all components
+                # 'yolo.launch_2.py' # <--- for launching both yolos only (no camera or lidar, for rosbag use)
+                # 'yolo.launch.py' # <---- for launching only main yolo
+                # 'yolo.launch_3.py' # <----- for launching only secondary (indicator) yolo
+                # 'cam_lidar.launch.py' # <---- for launching only camera and lidar, with fusion
+                # 'cam.launch.py' # <---- for launching only camera
+                # 'lidar.launch.py' # <---- for launching only lidar
+		'vision.launch_noLiDAR.py'
+            ])
+        ])
+    )
+
     system_validation_node = Node(
         package="usv_utils",
         executable="system_validation_node",
     )
 
-    sik_boat_node = Node(
-        package="usv_comms",
-        executable="sik_boat_node.py",
+    # Using general launch file in usv_missions package.
+    # This mission_launch.py file takes parameters from conf files in the package, contents in this package are expected to be changing
+    mission_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_missions'),
+                'launch',
+                'mission_launch.py'
+            ])
+        ])
     )
+
+    # Legacy launch argument
+    # sik_boat_node = Node(
+    #     package="usv_comms",
+    #     executable="sik_boat_node.py",
+    # )
 
     return LaunchDescription([
         can_launch,
-        sik_boat_node,
         sbg_launch,
         system_validation_node,
+        control_launch,
+        vision_lidar_launch,
+        mission_launch,
     ])
 
+# SMC , AITSMC, ASMC cualquiera es valido, son lo mismo USV_CONTROL
+# Lo de vision, con el lidar y el pnp (fusion de sensores) 
+# CAN ya sabbe 
+# Mission handler

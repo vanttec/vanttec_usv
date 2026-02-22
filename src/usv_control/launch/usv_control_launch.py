@@ -73,4 +73,22 @@ def generate_launch_description():
         vision_launch,
         aitsmc_launch,
         mission_launch,
+        # is_sim,
+
+       # rviz,
+        # dynamic_sim_node,
+        # asmc_node,
+        # aitsmc_node,
+        # aitsmc_new_node,        
+       #  los_node,
+        # sbg_launch,
+        # imu_converter_node,
+        # foxglove_bridge,
+        # tf2,
+        # can_node,
+        # teleop_launch,
+        # obstacle_launch,
+         # waypoint_handler_node,
+        # mpc_node,
+
     ])
