@@ -30,8 +30,8 @@ class GlobalObstacleRegisterNode : public rclcpp::Node {
 public:
     GlobalObstacleRegisterNode() : Node("global_obstacle_register_node") {
         // Parameters
-        this->declare_parameter("min_obstacle_separation", 2.5);  // Minimum distance between obstacles
-        this->declare_parameter("max_tracking_distance", 8.0);   // Maximum distance to track obstacles
+        this->declare_parameter("min_obstacle_separation", 3.);  // Minimum distance between obstacles
+        this->declare_parameter("max_tracking_distance", 7.0);   // Maximum distance to track obstacles
         this->declare_parameter("tracking_lifetime", 300.0);       // Seconds to keep tracking an obstacle without updates
         
         min_obstacle_separation_ = this->get_parameter("min_obstacle_separation").as_double();
@@ -125,9 +125,9 @@ private:
     };
         
     void inferences_callback(const usv_interfaces::msg::ObjectList::SharedPtr msg) {
-        // Dont update new inferences if 200 ms of no reception
-        if(this->get_clock()->now() - last_odom_msg > rclcpp::Duration(0, 200 * 1e6) ||
-        (auto_mode == 1)
+        // Dont update new inferences if 200 ms of no reception. Hold on this, it might be useful to register while not in auto...
+        if(this->get_clock()->now() - last_odom_msg > rclcpp::Duration(0, 200 * 1e6)
+            // || (auto_mode == 1)
         ){
             return;
         }
@@ -169,13 +169,12 @@ private:
                 closest_idx = i;
             }
             
-        }
-
-        if (closest_distance < min_obstacle_separation_ &&
-            global_obstacles_.obj_list[closest_idx].type == inference.type && 
-            global_obstacles_.obj_list[closest_idx].color == inference.color
-        ) {
-            is_new_obstacle = false;
+            if (distance < min_obstacle_separation_ &&
+                obs.type == inference.type && 
+                obs.color == inference.color
+            ) {
+                is_new_obstacle = false;
+            }
         }
         
         if (is_new_obstacle) {

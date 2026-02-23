@@ -172,6 +172,7 @@ install(PROGRAMS
   scripts/teleop/teleop_aitsmc_node.py
   scripts/teleop/teleop_can_node.py
   scripts/teleop/teleop_mpc_node.py
+  scripts/teleop/teleop_xbox_node.py
 
   scripts/gui/mpc_gui.py
 

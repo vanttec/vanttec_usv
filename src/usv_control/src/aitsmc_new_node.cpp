@@ -124,7 +124,7 @@ private:
   rclcpp::TimerBase::SharedPtr updateTimer;
 
   rclcpp::Subscription<std_msgs::msg::UInt16>::SharedPtr mode_sub_;
-  uint16_t lastMode;
+  uint16_t lastMode{0};
 
   AITSMCNEWParams initialize_params(bool declare_parameters = true) {
     if (declare_parameters) {
@@ -169,6 +169,10 @@ private:
   }
 
   void update() {
+    if(lastMode != 0){
+      return;
+    }
+    
     rdot_d = (1.5 * r_d - 2 * r_d_last + 0.5 * r_d_last_last) / 0.01;
 
     vanttec::ControllerState state;

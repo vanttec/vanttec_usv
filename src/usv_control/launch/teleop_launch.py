@@ -27,10 +27,10 @@ def generate_launch_description():
 
     teleop_node = Node(
         package="usv_control",
-        executable="teleop_can_node.py",
+        executable="teleop_xbox_node.py",
     )
 
     return LaunchDescription([
-        # joy_node,
+        joy_node,
         teleop_node,
     ])
