@@ -25,7 +25,7 @@
       <background>0.8 0.8 0.8</background>
       <sky></sky>
     </scene>
-
+<!--
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -33,7 +33,7 @@
       <specular>0.6 0.6 0.6 1</specular>
       <direction>-0.5 0.1 -0.9</direction>
     </light>
-
+-->
     <!-- Waves Plugin -->
     <include>
       <pose>0 0 0 0 0 0</pose>

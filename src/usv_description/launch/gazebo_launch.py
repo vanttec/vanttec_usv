@@ -35,7 +35,7 @@ def generate_launch_description():
     # Launch Gazebo with command
     #  Useful if user has different versions of Gazebo
     world_path = PathJoinSubstitution(
-        [pkg_usv_description, 'worlds', 'waves.sdf'])
+        [pkg_usv_description, 'worlds', 'rb25.sdf'])
     gz_sim = ExecuteProcess(
         cmd=['gz', 'sim', '-v', '4', world_path],
         output='screen',
