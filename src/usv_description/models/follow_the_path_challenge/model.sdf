@@ -112,7 +112,7 @@
     <include>
       <static>true</static>
       <name>obs_19</name>
-      <pose> 6.0 -2.0 0.0 0.0 0.0 0.0 </pose>
+      <pose> 4.0 -2.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_yellow</uri>
     </include>
     <include>

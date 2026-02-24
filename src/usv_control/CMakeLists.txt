@@ -80,7 +80,7 @@ target_compile_features(pid_node PUBLIC c_std_99 cxx_std_17)
 ament_target_dependencies(pid_node ${DEPENDENCIES})
 target_link_libraries(pid_node usv_libs)
 
-# High-level controller nodes
+# High-level controller nodes (deprecated fatrop method, might jump back in the future)
 # add_executable(mpc_node src/mpc_node.cpp)
 # target_link_libraries(mpc_node ${FATROP_LIBRARY} ${Boost_LIBRARIES})
 # target_include_directories(mpc_node PRIVATE ${FATROP_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
@@ -90,30 +90,28 @@ target_link_libraries(pid_node usv_libs)
 # ================
 # ||| MPC Node |||
 # ================
-# NOTE: MPC node disabled - requires acados installation
-# To enable, install acados and update ACADOS_INSTALL_DIR path
 
-# # Find ACADOS
-# set(ACADOS_INSTALL_DIR "$ENV{HOME}/acados")
-# include_directories(
-#   ${ACADOS_INSTALL_DIR}/include
-#   ${ACADOS_INSTALL_DIR}/include/acados
-#   ${ACADOS_INSTALL_DIR}/include/blasfeo/include
-#   ${ACADOS_INSTALL_DIR}/include/hpipm/include
-# )
-# link_directories(${ACADOS_INSTALL_DIR}/lib)
+# Find ACADOS
+set(ACADOS_INSTALL_DIR "$ENV{HOME}/acados")
+include_directories(
+  ${ACADOS_INSTALL_DIR}/include
+  ${ACADOS_INSTALL_DIR}/include/acados
+  ${ACADOS_INSTALL_DIR}/include/blasfeo/include
+  ${ACADOS_INSTALL_DIR}/include/hpipm/include
+)
+link_directories(${ACADOS_INSTALL_DIR}/lib)
 
-# # Include generated code directory
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp)
-# # Add all generated source files
-# file(GLOB ACADOS_GENERATED_SOURCES
-#   ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/acados_*.c
-#   ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/*/*.c
-# )
+# Include generated code directory
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp)
+# Add all generated source files
+file(GLOB ACADOS_GENERATED_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/acados_*.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/scripts/acados/c_generated_code_asv_ocp/*/*.c
+)
 
-# add_executable(mpc_node src/mpc_node.cpp ${ACADOS_GENERATED_SOURCES})
-# ament_target_dependencies(mpc_node ${DEPENDENCIES})
-# target_link_libraries(mpc_node acados hpipm blasfeo m)
+add_executable(mpc_node src/mpc_node.cpp ${ACADOS_GENERATED_SOURCES})
+ament_target_dependencies(mpc_node ${DEPENDENCIES})
+target_link_libraries(mpc_node acados hpipm blasfeo m)
 
 
 # Dynamic / kinematic models
@@ -149,7 +147,7 @@ ament_target_dependencies(spline_publisher_node ${DEPENDENCIES})
 install(TARGETS
   asmc_node
   pid_node
-  # mpc_node  # Disabled - requires acados
+  mpc_node
   los_node
   usv_tf2_broadcaster_node
   dynamic_model_node

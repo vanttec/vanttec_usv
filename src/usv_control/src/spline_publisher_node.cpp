@@ -171,9 +171,9 @@ public:
 protected:
     void update()
     {
-        RCLCPP_INFO(this->get_logger(), "Reference size: %d\nSpines size: %d\nClosest idx: %d", 
-            ref.size(), s_.size(), closest_idx
-        );
+        // RCLCPP_INFO(this->get_logger(), "Reference size: %d\nSpines size: %d\nClosest idx: %d", 
+        //     ref.size(), s_.size(), closest_idx
+        // );
 
         path_msg.poses.clear();
         path_msg.header.stamp = this->get_clock()->now();
@@ -302,20 +302,20 @@ protected:
             );
         }
 
-        RCLCPP_INFO(this->get_logger(), "Ref params");
-        for(int j = 0 ; j < ref.size() ; j++){
-            RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>",
-            j+1, ref[j].x(), ref[j].y());
-        }
+        // RCLCPP_INFO(this->get_logger(), "Ref params");
+        // for(int j = 0 ; j < ref.size() ; j++){
+        //     RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>",
+        //     j+1, ref[j].x(), ref[j].y());
+        // }
         
         int i = ref.size()-3;
-        RCLCPP_INFO(this->get_logger(), "Dummy params");
-        for(int j = 0 ; j < 3 ; j++){
-            RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>",
-            j+1, ref[i+j].x(), ref[i+j].y());
-        }
-        RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>\n",
-            4, dummy_ref_.x(), dummy_ref_.y());
+        // RCLCPP_INFO(this->get_logger(), "Dummy params");
+        // for(int j = 0 ; j < 3 ; j++){
+        //     RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>",
+        //     j+1, ref[i+j].x(), ref[i+j].y());
+        // }
+        // RCLCPP_INFO(this->get_logger(), "\n%d: <%.2f, %.2f>\n",
+        //     4, dummy_ref_.x(), dummy_ref_.y());
 
         dummy_s_.update(
             ref[i  ],

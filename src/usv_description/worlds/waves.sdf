@@ -57,5 +57,11 @@
       <uri>follow_the_path_challenge</uri>
     </include>
 
+    <!-- Task 3 - Speed Challenge -->
+    <!-- <include>
+      <name>speed_challenge</name>
+      <pose>0 0 -0.04 0 0 0</pose>
+      <uri>speed_challenge</uri>
+    </include> -->
   </world>
 </sdf>

@@ -21,7 +21,7 @@ using std::placeholders::_1;
 
 class ObstacleNearestPublisherNode : public rclcpp::Node {
     public:
-        ObstacleNearestPublisherNode(): Node("obstacle_publisher_node") {
+        ObstacleNearestPublisherNode(): Node("obstacle_nearest_publisher") {
 
             object_n_nearest_list_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_n_nearest_list", 10);
             object_n_nearest_dist_pub_ = this->create_publisher<std_msgs::msg::Float64>("/obj_nearest_dist", 10);
@@ -29,6 +29,8 @@ class ObstacleNearestPublisherNode : public rclcpp::Node {
             obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
                 "/obj_list_global", 10,
                 [this](const usv_interfaces::msg::ObjectList &msg){
+                    if(msg.obj_list.empty()) return;
+                    
                     std::vector<std::pair<double, int>> obj_dist_v;
                     for(int i = 0 ; i < msg.obj_list.size() ; i++){
                         obj_dist_v.push_back(

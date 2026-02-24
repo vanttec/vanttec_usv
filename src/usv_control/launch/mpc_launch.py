@@ -19,11 +19,17 @@ def generate_launch_description():
         package="usv_control",
         executable="mpc_node",
         # parameters=[weights_config],
+        ros_arguments=['--log-level', 'FATAL'],
     )
 
     spline_publisher_node = Node(
         package="usv_control",
         executable="spline_publisher_node",
+    )
+
+    obstacle_nearest_publisher = Node(
+        package="usv_utils",
+        executable="obstacle_nearest_publisher",
     )
     
     mpc_gui = Node(
@@ -33,6 +39,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         mpc_node,
-        spline_publisher_node,
+        # spline_publisher_node,
+        obstacle_nearest_publisher,
         mpc_gui,
     ])

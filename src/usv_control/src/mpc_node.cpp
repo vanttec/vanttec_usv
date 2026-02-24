@@ -185,6 +185,7 @@ public:
         obstacle_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
             "/obj_n_nearest_list", 10,
             [this](const usv_interfaces::msg::ObjectList &msg){
+                if ((int)msg.obj_list.size() < n_obs) return;
                 for(int i = 0 ; i < n_obs; i++){
                     x0[6 + i*2] = msg.obj_list[i].x;
                     x0[6+1+i*2] = msg.obj_list[i].y;
@@ -254,7 +255,7 @@ public:
             int status = asv_dynamics_acados_update_time_steps(ocp_capsule, N_HORIZON, new_time_steps);
 
             if (status != 0)
-                RCLCPP_ERROR(this->get_logger(), "Failed to update time steps!");
+                RCLCPP_WARN(this->get_logger(), "Failed to update time steps!");
             else
                 RCLCPP_INFO(this->get_logger(), "Successfully updated MPC horizon: Tf=%.2fs, dt=%.4fs", mpc_tf, mpc_dt);
         };
@@ -472,7 +473,7 @@ private:
 
         if (status != 0 && status != 2 && status != 5)
         {
-            RCLCPP_ERROR(this->get_logger(), "Warning: Preparation phase returned status %d\n", status);
+            RCLCPP_WARN(this->get_logger(), "Warning: Preparation phase returned status %d\n", status);
         }
 
         // === RTI PHASE 2: FEEDBACK ===
@@ -553,7 +554,7 @@ private:
             // ocp_cost > 10000.0 || 
             status == 4)
         {
-            RCLCPP_ERROR(this->get_logger(), "MPC IS DISABLED");
+            RCLCPP_WARN(this->get_logger(), "MPC IS DISABLED");
             vel_setpoint_msg.data = 0.0;
             heading_setpoint_msg.data = x0[2];
             left_thruster_msg.data = 0.0;

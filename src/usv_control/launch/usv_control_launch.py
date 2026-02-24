@@ -22,17 +22,18 @@ from launch.actions import ExecuteProcess
 def generate_launch_description():
     spline_publisher_node = Node(
         package="usv_control",
-        executable="spline_publisher_node"
+        executable="spline_publisher_node",
     )
 
     los_node = Node(
         package="usv_control",
-        executable="los_node"
+        executable="los_node",
     )
 
     global_obstacle_register_node = Node(
         package="usv_missions",
-        executable="global_obstacle_register_node"
+        executable="global_obstacle_register_node",
+        ros_arguments=['--log-level', 'FATAL'],
     )
 
     cluster_node = Node(
@@ -50,7 +51,7 @@ def generate_launch_description():
 
     lidar_mission_finder_node = Node(
         package="usv_utils",
-        executable="lidar_mission_finder_node"
+        executable="lidar_mission_finder_node",
     )
 
     vision_launch = IncludeLaunchDescription(
@@ -83,9 +84,18 @@ def generate_launch_description():
         ]),
     )
 
+    mpc_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            PathJoinSubstitution([
+                FindPackageShare('usv_control'),
+                'launch',
+                'mpc_launch.py'
+            ])
+        ]),
+    )
+
     return LaunchDescription([
         spline_publisher_node,
-        los_node,
         global_obstacle_register_node,
         lidar_mission_finder_node,
         cluster_node,
@@ -93,4 +103,8 @@ def generate_launch_description():
         vision_launch,
         aitsmc_launch,
         mission_launch,
+
+        # Either LOS or MPC
+        # los_node,
+        mpc_launch,
     ])
