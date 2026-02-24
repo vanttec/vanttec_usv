@@ -1,0 +1,148 @@
+# --- Gate 1 ---
+g1_green:
+  x: -1.0
+  y: 0.0
+  color: green
+  type: round
+
+g1_red:
+  x: 3.0
+  y: 3.0
+  color: red
+  type: round
+
+# --- Gate 2 ---
+g2_green:
+  x: 2.0
+  y: -4.0
+  color: green
+  type: round
+
+g2_red:
+  x: 6.0
+  y: -3.0
+  color: red
+  type: round
+
+# --- Gate 3 ---
+g3_green:
+  x: 2.0
+  y: -9.0
+  color: green
+  type: round
+
+g3_red:
+  x: 8.0
+  y: -10.0
+  color: red
+  type: round
+
+# --- Gate 4 ---
+g4_green:
+  x: 0.0
+  y: -16.0
+  color: green
+  type: round
+
+g4_red:
+  x: 5.0
+  y: -15.0
+  color: red
+  type: round
+
+# --- Gate 5 ---
+g5_green:
+  x: 0.0
+  y: -21.0
+  color: green
+  type: round
+
+g5_red:
+  x: 5.0
+  y: -22.0
+  color: red
+  type: round
+
+# --- Gate 6 ---
+g6_green:
+  x: 0.0
+  y: -28.0
+  color: green
+  type: round
+
+g6_red:
+  x: 4.0
+  y: -28.0
+  color: red
+  type: round
+
+# --- Gate 7 ---
+g7_green:
+  x: -1.0
+  y: -32.0
+  color: green
+  type: round
+
+g7_red:
+  x: 3.0
+  y: -34.0
+  color: red
+  type: round
+
+# --- Gate 8 ---
+g8_green:
+  x: -3.0
+  y: -36.0
+  color: green
+  type: round
+
+g8_red:
+  x: 0.0
+  y: -40.0
+  color: red
+  type: round
+
+# --- Gate 9 ---
+g9_green:
+  x: -6.0
+  y: -40.0
+  color: green
+  type: round
+
+g9_red:
+  x: -3.0
+  y: -42.0
+  color: red
+  type: round
+
+# --- Yellow markers ---
+yellow_1:
+  x: 3.0
+  y: -2.0
+  color: yellow
+  type: round
+
+yellow_2:
+  x: 1.0
+  y: -20.0
+  color: yellow
+  type: round
+
+yellow_3:
+  x: -3.0
+  y: -38.0
+  color: yellow
+  type: round
+
+# --- Black markers ---
+black_1:
+  x: 3.0
+  y: -11.0
+  color: black
+  type: round
+
+black_2:
+  x: 0.0
+  y: -30.0
+  color: black
+  type: round

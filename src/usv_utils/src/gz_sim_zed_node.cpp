@@ -90,7 +90,7 @@ public:
       tf_buffer_(this->get_clock()),
       tf_listener_(tf_buffer_)
     {
-        target_frame_  = declare_parameter<std::string>("target_frame",  "vtec_s4/base_link/rgbd_camera");
+        target_frame_  = declare_parameter<std::string>("target_frame",  "usv");
         sample_radius_ = declare_parameter<int>("sample_radius", 3);
         cloud_topic_   = declare_parameter<std::string>("cloud_topic",   "/velodyne_points");
         det_topic_     = declare_parameter<std::string>("det_topic",     "/yolo/detections");
@@ -259,26 +259,25 @@ private:
             }
 
             PointStamped pt_cam;
-            pt_cam.header  = latest_cloud_->header;
-            pt_cam.point.x = median(xs);
-            pt_cam.point.y = median(ys);
-            pt_cam.point.z = median(zs);
+            pt_cam.header       = latest_cloud_->header;
+            pt_cam.point.x      = median(xs);
+            pt_cam.point.y      = median(ys);
+            pt_cam.point.z      = median(zs);
 
             try {
-                pt_cam.header.stamp = rclcpp::Time(0);  // zero stamp = latest transform
+                PointStamped pt_base = tf_buffer_.transform(pt_cam, target_frame_);
 
                 map_yolo_label(box.label, obj);
-                obj.x    = pt_cam.point.x;
-                obj.y    = pt_cam.point.y;
-                obj.v_x  = 0.0;
-                obj.v_y  = 0.0;
+                obj.x   = pt_base.point.x;  // ← pt_base, not pt_cam
+                obj.y   = pt_base.point.y;  // ← pt_base, not pt_cam
+                obj.v_x = 0.0;
+                obj.v_y = 0.0;
                 obj.uuid = box.uuid;
 
-                // markers use the target frame for correct RViz positioning
                 std_msgs::msg::Header marker_header;
-                marker_header.stamp = latest_cloud_->header.stamp;
-                marker_header.frame_id = "usv";
-                make_markers(marker_id++, obj, pt_cam.point, marker_header, marker_array);
+                marker_header.stamp    = latest_cloud_->header.stamp;
+                marker_header.frame_id = target_frame_;
+                make_markers(marker_id++, obj, pt_base.point, marker_header, marker_array);
 
                 RCLCPP_INFO(get_logger(),
                     "[%s %s | prob=%.2f] → x=%.3f  y=%.3f  dist=%.3f m",

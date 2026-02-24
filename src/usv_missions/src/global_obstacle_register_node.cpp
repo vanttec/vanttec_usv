@@ -31,7 +31,7 @@ public:
     GlobalObstacleRegisterNode() : Node("global_obstacle_register_node") {
         // Parameters
         this->declare_parameter("min_obstacle_separation", 3.);  // Minimum distance between obstacles
-        this->declare_parameter("max_tracking_distance", 7.0);   // Maximum distance to track obstacles
+        this->declare_parameter("max_tracking_distance", 10.0);   // Maximum distance to track obstacles
         this->declare_parameter("tracking_lifetime", 300.0);       // Seconds to keep tracking an obstacle without updates
         
         min_obstacle_separation_ = this->get_parameter("min_obstacle_separation").as_double();
@@ -140,43 +140,40 @@ private:
     }
     
     void process_inference(const usv_interfaces::msg::Object& inference) {
-        // Convert local coordinates to global
         auto global_pos = local_to_global(inference.x, inference.y);
 
-        double inference_dist = std::hypot(inference.x,inference.y);
-        if(
-            inference_dist > max_tracking_distance_ || 
+        double inference_dist = std::hypot(inference.x, inference.y);
+        if (inference_dist > max_tracking_distance_ ||
             inference.type == "ignore" ||
-            std::fabs(ang_vel_) > 0.2
-        ){
+            std::fabs(ang_vel_) > 0.2) {
             return;
         }
-        
-        // Check if this inference is close to any existing obstacle
+
         bool is_new_obstacle = true;
         std::size_t closest_idx = 0;
         double closest_distance = std::numeric_limits<double>::max();
-        
+
         for (std::size_t i = 0; i < global_obstacles_.obj_list.size(); ++i) {
             const auto& obs = global_obstacles_.obj_list[i];
+
+            // only consider same type AND color as a candidate match
+            if (obs.type != inference.type || obs.color != inference.color) continue;
+
             double distance = std::hypot(
-                global_pos.first - obs.x,
+                global_pos.first  - obs.x,
                 global_pos.second - obs.y
             );
-            
+
             if (distance < closest_distance) {
                 closest_distance = distance;
                 closest_idx = i;
             }
-            
-            if (distance < min_obstacle_separation_ &&
-                obs.type == inference.type && 
-                obs.color == inference.color
-            ) {
+
+            if (distance < min_obstacle_separation_) {
                 is_new_obstacle = false;
             }
         }
-        
+
         if (is_new_obstacle) {
             // Add as new obstacle
             usv_interfaces::msg::Object new_obj;
@@ -226,7 +223,8 @@ private:
             double dt = (this->now() - obstacle_last_seen_[closest_idx]).seconds();
             
             // Update position
-            const double alpha = 0.3; // tune this, lower = more stable, higher = faster to update
+            double tau = 2.0; // tune this
+            double alpha = 1.0 - std::exp(-dt / tau);
             obs.x = alpha * global_pos.first + (1.0 - alpha) * obs.x;
             obs.y = alpha * global_pos.second + (1.0 - alpha) * obs.y;
 
@@ -319,7 +317,7 @@ private:
             
             // Check if in tracking range and field of view
             bool in_range = distance < max_tracking_distance_;
-            bool in_fov = local_x > 0 && std::fabs(std::atan2(local_y, local_x)) < 0.96; // ~110 degree FOV (half = 55 deg)            
+            bool in_fov = local_x > 0 && std::fabs(std::atan2(local_y, local_x)) < 0.9; // ~100 degree FOV            
             // Create watch marker
             visualization_msgs::msg::Marker watch_marker;
             watch_marker.header.frame_id = "world";

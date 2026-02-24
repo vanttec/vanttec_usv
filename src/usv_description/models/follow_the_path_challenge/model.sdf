@@ -3,600 +3,141 @@
   <model name="follow_the_path_challenge">
     <include>
       <static>true</static>
-      <name>round_buoy_green_G1</name>
-      <pose> -1 0 0 0 0 0 </pose>
+      <name>obs_1</name>
+      <pose> -1.0 0.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G1</name>
-      <pose> 3 3 0 0 0 0 </pose>
+      <name>obs_2</name>
+      <pose> 3.0 3.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G2</name>
-      <pose> 2 -4 0 0 0 0 </pose>
+      <name>obs_3</name>
+      <pose> 2.0 -4.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G2</name>
-      <pose> 6 -3 0 0 0 0 </pose>
+      <name>obs_4</name>
+      <pose> 6.0 -3.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G3</name>
-      <pose> 2 -9 0 0 0 0 </pose>
+      <name>obs_5</name>
+      <pose> 2.0 -9.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G3</name>
-      <pose> 8 -10 0 0 0 0 </pose>
+      <name>obs_6</name>
+      <pose> 8.0 -10.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G4</name>
-      <pose> 0 -16 0 0 0 0 </pose>
+      <name>obs_7</name>
+      <pose> 0.0 -16.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G4</name>
-      <pose> 5 -15 0 0 0 0 </pose>
+      <name>obs_8</name>
+      <pose> 5.0 -15.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G5</name>
-      <pose> 0 -21 0 0 0 0 </pose>
+      <name>obs_9</name>
+      <pose> 0.0 -21.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G5</name>
-      <pose> 5 -22 0 0 0 0 </pose>
+      <name>obs_10</name>
+      <pose> 5.0 -22.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G6</name>
-      <pose> 0 -28 0 0 0 0 </pose>
+      <name>obs_11</name>
+      <pose> 0.0 -28.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G6</name>
-      <pose> 4 -28 0 0 0 0 </pose>
+      <name>obs_12</name>
+      <pose> 4.0 -28.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G7</name>
-      <pose> -1 -32 0 0 0 0 </pose>
+      <name>obs_13</name>
+      <pose> -1.0 -32.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G7</name>
-      <pose> 3 -34 0 0 0 0 </pose>
+      <name>obs_14</name>
+      <pose> 3.0 -34.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G8</name>
-      <pose> -3 -36 0 0 0 0 </pose>
+      <name>obs_15</name>
+      <pose> -3.0 -36.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G8</name>
-      <pose> 0 -40 0 0 0 0 </pose>
+      <name>obs_16</name>
+      <pose> 0.0 -40.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_green_G9</name>
-      <pose> -6 -40 0 0 0 0 </pose>
+      <name>obs_17</name>
+      <pose> -6.0 -40.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_red_G9</name>
-      <pose> -3 -42 0 0 0 0 </pose>
+      <name>obs_18</name>
+      <pose> -3.0 -42.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_red</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
-    <!-- <include>
+    <include>
       <static>true</static>
-      <name>round_buoy_yellow_1</name>
-      <pose> 3 -2 0 0 0 0 </pose>
+      <name>obs_19</name>
+      <pose> 3.0 -2.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_yellow</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
-    </include> -->
-
-    <include>
-      <static>true</static>
-      <name>round_buoy_yellow_2</name>
-      <pose> 1 -20 0 0 0 0 </pose>
-      <uri>round_buoy_yellow</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_yellow_3</name>
-      <pose> -3 -38 0 0 0 0 </pose>
+      <name>obs_20</name>
+      <pose> 1.0 -20.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_yellow</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_black_1</name>
-      <pose> 3 -11 0 0 0 0 </pose>
+      <name>obs_21</name>
+      <pose> -3.0 -38.0 0.0 0.0 0.0 0.0 </pose>
+      <uri>round_buoy_yellow</uri>
+    </include>
+    <include>
+      <static>true</static>
+      <name>obs_22</name>
+      <pose> 3.0 -11.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_black</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
-
     <include>
       <static>true</static>
-      <name>round_buoy_black_2</name>
-      <pose> 0 -30 0 0 0 0 </pose>
+      <name>obs_23</name>
+      <pose> 0.0 -30.0 0.0 0.0 0.0 0.0 </pose>
       <uri>round_buoy_black</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
-              filename="libPolyhedraBuoyancyDrag.so">
-        <fluid_density>1000</fluid_density>
-        <fluid_level>0.0</fluid_level>
-        <linear_drag>75.0</linear_drag>
-        <angular_drag>2.0</angular_drag>
-        <buoyancy name="collision_outer">
-          <link_name>link</link_name>
-          <pose>0 0 0 0 0 0</pose>
-          <geometry>
-            <sphere>
-              <radius>0.21</radius>
-          </sphere>
-          </geometry>
-        </buoyancy>
-        <wavefield>
-          <topic>/vrx/wavefield/parameters</topic>
-        </wavefield>
-      </plugin>
     </include>
   </model>
 </sdf>

@@ -67,21 +67,19 @@ def generate_launch_description():
         }
     )
 
-    cam_world_tf = Node(package="tf2_ros",
-                        executable="static_transform_publisher",
-                        arguments=["0", "0", "0", "0", "0", "0",
-                                   "usv",
-                                   "vtec_s4/base_link/rgbd_camera"
-                        ],
-                        )
+    # base_link -> cam tf
+    cam_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        arguments=['0.65', '0', '0.3', '0', '0', '0',
+                'usv',
+                'vtec_s4/base_link/rgbd_camera']
+    )
 
     return LaunchDescription([
         gz_sim,
-        # custom_bridge,
-        # usv_launchfile,
         bridge,
-        # rviz,
-        # cam_world_tf,
+        cam_tf,
     ])
 
 

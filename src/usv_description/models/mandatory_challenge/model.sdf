@@ -1,28 +1,29 @@
 <?xml version="1.0"?>
 <sdf version="1.6">
-  <model name="mandatory_challenge">
-    <!-- Gate G1 -->
+  <model name="follow_the_path_challenge">
     <include>
-      <name>marker_buoy_port_G1</name>
-      <pose>3 2.5 0 0 0 0</pose>
-      <uri>marker_buoy_port</uri>
+      <static>true</static>
+      <n>obs_1</n>
+      <pose> 3.0 2.5 0.0 0.0 0.0 0.0 </pose>
+      <uri>round_buoy_red</uri>
     </include>
     <include>
-      <name>marker_buoy_starboard_G1</name>
-      <pose>3 -2 0 0 0 0</pose>
-      <uri>marker_buoy_starboard</uri>
-    </include>
-
-    <!-- Gate G2 -->
-    <include>
-      <name>marker_buoy_port_G2</name>
-      <pose>14 3 0 0 0 0</pose>
-      <uri>marker_buoy_port</uri>
+      <static>true</static>
+      <n>obs_2</n>
+      <pose> 3.0 -2.0 0.0 0.0 0.0 0.0 </pose>
+      <uri>round_buoy_green</uri>
     </include>
     <include>
-      <name>marker_buoy_starboard_G2</name>
-      <pose>15 -1 0 0 0 0</pose>
-      <uri>marker_buoy_starboard</uri>
+      <static>true</static>
+      <n>obs_3</n>
+      <pose> 14.0 3.0 0.0 0.0 0.0 0.0 </pose>
+      <uri>round_buoy_red</uri>
+    </include>
+    <include>
+      <static>true</static>
+      <n>obs_4</n>
+      <pose> 15.0 -1.0 0.0 0.0 0.0 0.0 </pose>
+      <uri>round_buoy_green</uri>
     </include>
   </model>
 </sdf>
