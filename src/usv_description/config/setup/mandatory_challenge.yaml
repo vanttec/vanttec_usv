@@ -2,20 +2,20 @@ g1_red:
   x: 3.0
   y: 2.5
   color: red
-  type: round
+  type: marker
 g1_green:
   x: 3.0
   y: -2.0
   color: green
-  type: round
+  type: marker
 
 g2_red:
   x: 14.0
   y: 3.0
   color: red
-  type: round
+  type: marker
 g2_green:
   x: 15.0
   y: -1.0
   color: green
-  type: round
+  type: marker

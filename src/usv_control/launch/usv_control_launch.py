@@ -35,6 +35,24 @@ def generate_launch_description():
         executable="global_obstacle_register_node"
     )
 
+    cluster_node = Node(
+            package='lidar_cluster',
+            executable='euclidean_spatial',
+            output='screen',
+            parameters=[
+                {'points_in_topic': 'velodyne_points'},
+                {'points_out_topic': 'clustered_points'},
+                {'marker_out_topic': 'clustered_marker'},
+                {'tolerance': 0.8},
+                {'verbose1': False},
+            ]
+    )
+
+    lidar_mission_finder_node = Node(
+        package="usv_utils",
+        executable="lidar_mission_finder_node"
+    )
+
     vision_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
@@ -69,26 +87,10 @@ def generate_launch_description():
         spline_publisher_node,
         los_node,
         global_obstacle_register_node,
+        lidar_mission_finder_node,
+        cluster_node,
         
         vision_launch,
         aitsmc_launch,
         mission_launch,
-        # is_sim,
-
-       # rviz,
-        # dynamic_sim_node,
-        # asmc_node,
-        # aitsmc_node,
-        # aitsmc_new_node,        
-       #  los_node,
-        # sbg_launch,
-        # imu_converter_node,
-        # foxglove_bridge,
-        # tf2,
-        # can_node,
-        # teleop_launch,
-        # obstacle_launch,
-         # waypoint_handler_node,
-        # mpc_node,
-
     ])

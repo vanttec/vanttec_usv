@@ -15,6 +15,7 @@
 #include "std_msgs/msg/u_int16.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "usv_interfaces/msg/object.hpp"
 #include "usv_interfaces/msg/object_list.hpp"
 #include "usv_interfaces/msg/waypoint.hpp"
@@ -45,7 +46,7 @@ class MissionHandlerNode : public rclcpp::Node {
             if(task_schedule_og.size() > 0){
                 task_schedule.clear();
                 for(int i = 0 ; i < task_schedule_og.size() ; i++){
-                    std::cout << task_schedule_og[i] << std::endl;
+                    RCLCPP_INFO(this->get_logger(), "%d", task_schedule_og[i]);
                     task_schedule.push_back(int(task_schedule_og[i]));
                 }
             }
@@ -75,13 +76,23 @@ class MissionHandlerNode : public rclcpp::Node {
                 [this](const std_msgs::msg::Bool &msg) {
                     update_params.wp_arrived = msg.data;
                     update_params.docking_color_choice = 1;
-                });
+            });
+
+            next_mission_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+                "/next_mission_guess", 1,
+                [this](const geometry_msgs::msg::PoseStamped &msg) {
+                    auto &q = msg.pose.orientation;
+                    next_mission_.x() = msg.pose.position.x;
+                    next_mission_.y() = msg.pose.position.y;
+                    next_mission_.z() = std::atan2(2.0 * (q.w * q.z + q.x * q.y),
+                                         1.0 - 2.0 * (q.y * q.y + q.z * q.z));
+            });
 
             green_light_sub_ = this->create_subscription<std_msgs::msg::Bool>(
                 "/usv/mission/green_light", 1,
                 [this](const std_msgs::msg::Bool &msg) {
                     update_params.green_light = msg.data;
-                });
+            });
 
             id.data = 0;
             vtec = std::make_shared<M0>();
@@ -105,6 +116,7 @@ class MissionHandlerNode : public rclcpp::Node {
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr arrived_sub_;
         rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr object_list_sub_;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr wp_arrived_sub_, green_light_sub_;
+        rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr next_mission_sub_;
 
         rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr mission_state_pub_, mission_status_pub_, mission_id_pub_;
         rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr desired_pivot_pub_;
@@ -116,6 +128,7 @@ class MissionHandlerNode : public rclcpp::Node {
         usv_interfaces::msg::Waypoint latest_wp;
 
         geometry_msgs::msg::PoseArray pose_array;
+        Eigen::Vector3f next_mission_;
 
         std_msgs::msg::Int8 id, state, status;
         std_msgs::msg::Bool pivot, arrived;
@@ -143,6 +156,7 @@ class MissionHandlerNode : public rclcpp::Node {
         // Check for all tasks if their starting point has been found, get first in schedule
         int get_next_known_id(){
             for(int i = 0 ; i < task_schedule.size() ; i++){
+                return task_schedule[0];
                 std::string str_id = "m" + std::to_string(task_schedule[i]);
                 if(!this->has_parameter(str_id + ".pose")){
                     this->declare_parameter(str_id + ".pose", rclcpp::PARAMETER_DOUBLE_ARRAY);
@@ -160,7 +174,7 @@ class MissionHandlerNode : public rclcpp::Node {
             if(task_schedule.size() > 0 && status.data){    // If task is completed
                 int suitable_id = get_next_known_id();  // Find next reachable task from schedule
                 if(!suitable_id){
-                    std::cout << "EXPLORE" << std::endl;
+                    RCLCPP_INFO(this->get_logger(), "EXPLORE");
                     // TODO: No mission init pose found, explore to finish it.
                     // TODO: id.data = 0; // ID 0 means 'travelling' ...
                     return;
@@ -174,10 +188,12 @@ class MissionHandlerNode : public rclcpp::Node {
                     // Travel to the beginning of next task
                     std::vector<double> travel_arr;
                     std::string str_id = "m" + std::to_string(suitable_id);
-                    travel_arr = this->get_parameter(str_id + ".pose").as_double_array();
-                    Eigen::Vector3f travel_wp{travel_arr[0], travel_arr[1], travel_arr[2]};
+                    // travel_arr = this->get_parameter(str_id + ".pose").as_double_array();
+                    // Eigen::Vector3f travel_wp{travel_arr[0], travel_arr[1], travel_arr[2]};
+                    Eigen::Vector3f travel_wp = next_mission_;
+                    update_params.last_goal = travel_wp;
 
-                    travel_wp = {latest_wp.x, latest_wp.y, latest_wp.theta};
+                    // travel_wp = {latest_wp.x, latest_wp.y, latest_wp.theta};
 
                     std::vector<Eigen::Vector3f> travel_wp_vec{travel_wp};
                     set_goals(travel_wp_vec);

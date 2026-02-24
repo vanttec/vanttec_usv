@@ -34,6 +34,7 @@ struct USVUpdate {
   int docking_color_choice{1};
   bool green_light;
   bool wp_arrived;
+  Eigen::Vector3f last_goal;
 };
 
 struct USVOutput {

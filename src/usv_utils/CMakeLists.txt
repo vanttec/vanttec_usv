@@ -73,6 +73,9 @@ ament_target_dependencies(system_validation_node ${DEPENDENCIES})
 add_executable(system_validation_node_rb src/system_validation_node_rb.cpp)
 ament_target_dependencies(system_validation_node_rb ${DEPENDENCIES})
 
+add_executable(lidar_mission_finder_node src/lidar_mission_finder_node.cpp)
+ament_target_dependencies(lidar_mission_finder_node ${DEPENDENCIES})
+
 install(TARGETS 
   imu_converter_node
   bag2image_node
@@ -83,6 +86,7 @@ install(TARGETS
   obstacle_nearest_publisher
   system_validation_node
   system_validation_node_rb
+  lidar_mission_finder_node
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY

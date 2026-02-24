@@ -117,7 +117,7 @@ g9_red:
 
 # --- Yellow markers ---
 yellow_1:
-  x: 3.0
+  x: 6.0
   y: -2.0
   color: yellow
   type: round

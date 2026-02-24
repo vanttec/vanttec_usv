@@ -92,7 +92,7 @@ public:
     {
         target_frame_  = declare_parameter<std::string>("target_frame",  "usv");
         sample_radius_ = declare_parameter<int>("sample_radius", 3);
-        cloud_topic_   = declare_parameter<std::string>("cloud_topic",   "/velodyne_points");
+        cloud_topic_   = declare_parameter<std::string>("cloud_topic",   "/bebblebrox/points");
         det_topic_     = declare_parameter<std::string>("det_topic",     "/yolo/detections");
         output_topic_  = declare_parameter<std::string>("output_topic",  "/bebblebrox/objects/yolo");
 

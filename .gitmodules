@@ -32,3 +32,6 @@
 [submodule "src/deps/robocommand"]
 	path = src/deps/robocommand
 	url = https://github.com/vanttec/robocommand.git
+[submodule "src/deps/lidar_cluster_ros2"]
+	path = src/deps/lidar_cluster_ros2
+	url = https://github.com/jkk-research/lidar_cluster_ros2.git

@@ -20,7 +20,7 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 
       if(goal.norm() > 0.01){
         outMsg.state = 1;
-        outMsg.goals.push_back(pose);
+        // outMsg.goals.push_back(pose);
         outMsg.goals.push_back(forward(goal, -0.5));
         outMsg.goals.push_back(forward(goal, 0.5));
      
@@ -35,13 +35,17 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
         outMsg.goals.push_back(forward(goal, 1.5));
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
         outMsg.state = 2;
-        outMsg.status = 1; // Mark task as complete
       }
       else if(dist(last_goal, pose) < 1) {
         outMsg.goals = pack_goal(last_goal, 0.85);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
+    case 2:
+      if(dist(last_goal, pose) < 0.8) {
+        outMsg.state = 3;
+        outMsg.status = 1; // Mark task as complete
+      }
   }
   
   return outMsg;

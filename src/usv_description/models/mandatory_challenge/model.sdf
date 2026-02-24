@@ -3,27 +3,27 @@
   <model name="follow_the_path_challenge">
     <include>
       <static>true</static>
-      <n>obs_1</n>
+      <name>obs_1</name>
       <pose> 3.0 2.5 0.0 0.0 0.0 0.0 </pose>
-      <uri>round_buoy_red</uri>
+      <uri>marker_buoy_port</uri>
     </include>
     <include>
       <static>true</static>
-      <n>obs_2</n>
+      <name>obs_2</name>
       <pose> 3.0 -2.0 0.0 0.0 0.0 0.0 </pose>
-      <uri>round_buoy_green</uri>
+      <uri>marker_buoy_starboard</uri>
     </include>
     <include>
       <static>true</static>
-      <n>obs_3</n>
+      <name>obs_3</name>
       <pose> 14.0 3.0 0.0 0.0 0.0 0.0 </pose>
-      <uri>round_buoy_red</uri>
+      <uri>marker_buoy_port</uri>
     </include>
     <include>
       <static>true</static>
-      <n>obs_4</n>
+      <name>obs_4</name>
       <pose> 15.0 -1.0 0.0 0.0 0.0 0.0 </pose>
-      <uri>round_buoy_green</uri>
+      <uri>marker_buoy_starboard</uri>
     </include>
   </model>
 </sdf>

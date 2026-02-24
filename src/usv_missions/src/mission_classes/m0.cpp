@@ -8,7 +8,7 @@ M0::M0(){
 
 USVOutput M0::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 {
-  if(params.wp_arrived){
+  if(dist(params.last_goal, pose) < 0.8){
     outMsg.status = 1;
   }
   return outMsg;
