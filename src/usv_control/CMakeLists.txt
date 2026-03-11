@@ -95,7 +95,7 @@ target_link_libraries(pid_node usv_libs)
 # To enable, install acados and update ACADOS_INSTALL_DIR path
 
 # # Find ACADOS
-# set(ACADOS_INSTALL_DIR "/home/max/acados")
+# set(ACADOS_INSTALL_DIR "$ENV{HOME}/acados")
 # include_directories(
 #   ${ACADOS_INSTALL_DIR}/include
 #   ${ACADOS_INSTALL_DIR}/include/acados
@@ -183,7 +183,7 @@ install(PROGRAMS
   scripts/teleop/teleop_can_node.py
   scripts/teleop/teleop_mpc_node.py
 
-  scripts/mpc/mpc_gui.py
+  scripts/gui/mpc_gui.py
 
   DESTINATION lib/${PROJECT_NAME}
 )

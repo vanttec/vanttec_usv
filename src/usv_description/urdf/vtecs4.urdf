@@ -7,7 +7,7 @@
       <!-- <origin rpy="0 0 0" xyz="0 0 0.15"/> -->
       <origin rpy="0 0 0" xyz="-0.25 0 0.15"/>
       <geometry>
-        <mesh filename="package://usv_description/models/vtec_s4/meshes/usv.dae" scale="1 1 1"/>
+        <mesh filename="package://usv_description/models/vtec_s4/meshes/asv.dae" scale="1 1 1"/>
       </geometry>
     </visual>
   </link>

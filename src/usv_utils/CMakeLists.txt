@@ -21,9 +21,8 @@ find_package(nav_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
-find_package(Eigen3 REQUIRED)# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(CURL REQUIRED)
 
 set(DEPENDENCIES
   geometry_msgs
@@ -47,6 +46,7 @@ ament_target_dependencies(imu_converter_node ${DEPENDENCIES})
 
 add_executable(bag2image_node src/bag2image_node.cpp)
 ament_target_dependencies(bag2image_node ${DEPENDENCIES})
+target_link_libraries(bag2image_node ${CURL_LIBRARIES})
 
 add_executable(odom_converter_node src/odom_converter_node.cpp)
 ament_target_dependencies(odom_converter_node ${DEPENDENCIES})
@@ -63,6 +63,9 @@ ament_target_dependencies(obstacle_nearest_publisher ${DEPENDENCIES})
 add_executable(system_validation_node src/system_validation_node.cpp)
 ament_target_dependencies(system_validation_node ${DEPENDENCIES})
 
+add_executable(system_validation_node_rb src/system_validation_node_rb.cpp)
+ament_target_dependencies(system_validation_node_rb ${DEPENDENCIES})
+
 install(TARGETS 
   imu_converter_node
   bag2image_node
@@ -71,6 +74,7 @@ install(TARGETS
   obstacle_viewer_node
   obstacle_nearest_publisher
   system_validation_node
+  system_validation_node_rb
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY

@@ -28,13 +28,13 @@ USVOutput M1::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
       goal = get_goal(params.obs_list);
 
       if(goal(0) != 0 || goal(1) != 0){
-        outMsg.goals = pack_goal(last_goal, goal, 1.);
+        outMsg.goals = pack_goal(goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
         outMsg.state = 2;
         outMsg.status = 1;
       }
       else if(dist(last_goal, pose) < 1) {
-        outMsg.goals = pack_goal(last_goal, forward(last_goal, 0.15), 0.35);
+        outMsg.goals = pack_goal(forward(last_goal, 0.5), 0.35);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;

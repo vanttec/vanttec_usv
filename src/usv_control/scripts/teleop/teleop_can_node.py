@@ -31,11 +31,16 @@ class TeleopControl(Node):
         self.max_pwm = 10.0 # maximum reverse PWM
 
         # Gain for turning (mixing differential)
-        self.turn_gain = 10.0        # adjust this gain so that full steer produces appropriate differential
+        self.timer = self.create_timer(0.01,
+                                       self.timer_callback)
+    
+    def timer_callback(self):
+        self.left_pwm_pub.publish(self.left_pwm_msg)
+        self.right_pwm_pub.publish(self.right_pwm_msg)
         
     def convert_key(self, msg: Twist):
-        surge_command = msg.linear.x * 2.0
-        turn_command = msg.angular.z * 1.0
+        surge_command = msg.linear.x * 0.50
+        turn_command = msg.angular.z * 0.05
 
         left_pwm_norm = surge_command - turn_command
         right_pwm_norm = surge_command + turn_command
@@ -50,8 +55,6 @@ class TeleopControl(Node):
         self.left_pwm_msg.data = interp(left_pwm_norm,[-1.0,1.0],[-self.max_pwm,self.max_pwm])
         self.right_pwm_msg.data = interp(right_pwm_norm,[-1.0,1.0],[-self.max_pwm,self.max_pwm])
 
-        self.left_pwm_pub.publish(self.left_pwm_msg)
-        self.right_pwm_pub.publish(self.right_pwm_msg)
 
 def main(args=None):
     rclpy.init(args=args)

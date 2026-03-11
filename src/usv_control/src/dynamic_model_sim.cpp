@@ -75,7 +75,6 @@ class DynamicModelSim : public rclcpp::Node {
     pose_stamped_tmp_.header.frame_id = "world";
     pose_path.header.frame_id = "world";
     odom.header.frame_id = "world";
-    pose_path.header.stamp = DynamicModelSim::now();
 
     updateTimer = this->create_wall_timer(
         10ms, std::bind(&DynamicModelSim::update, this));
@@ -162,10 +161,11 @@ class DynamicModelSim : public rclcpp::Node {
     pose_stamped_tmp_.pose.position.x = pose.x;
     pose_stamped_tmp_.pose.position.y = pose.y;
     pose_path.poses.push_back(pose_stamped_tmp_);
-    if(pose_path.poses.size() > 5000){
+    if(pose_path.poses.size() > 1000){
       pose_path.poses.erase(pose_path.poses.begin(), pose_path.poses.begin()+1);
     }
 
+    pose_path.header.stamp = this->get_clock()->now();
     odomPub->publish(odom);
     localVelPub->publish(velMsg);
     pose_path_pub->publish(pose_path);
