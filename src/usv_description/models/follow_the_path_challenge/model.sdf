@@ -155,7 +155,7 @@
       <name>round_buoy_green_G4</name>
       <pose> 0 -16 0 0 0 0 </pose>
       <uri>round_buoy_green</uri>
-      <plugin name="vrx::PolyhedraBuoyancyDrag"
+      <!-- <plugin name="vrx::PolyhedraBuoyancyDrag"
               filename="libPolyhedraBuoyancyDrag.so">
         <fluid_density>1000</fluid_density>
         <fluid_level>0.0</fluid_level>
@@ -173,7 +173,7 @@
         <wavefield>
           <topic>/vrx/wavefield/parameters</topic>
         </wavefield>
-      </plugin>
+      </plugin> -->
     </include>
 
      <include>
@@ -575,5 +575,10 @@
         </wavefield>
       </plugin>
     </include>
+<!-- 
+    <include>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>waves</uri>
+    </include> -->
   </model>
 </sdf>

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <sdf version="1.6">
   <model name="marker_buoy_port">
-    <static>true</static>
+    <static>false</static>
     <link name="robot_link">
       <collision name="body_collision">
         <geometry>
@@ -24,6 +24,46 @@
           <specular>1 0 0 1</specular>
         </material>      
       </visual>
+      <inertial>
+        <mass>7</mass>
+      </inertial>
     </link>
+    <!-- Hydrodynamics plugin -->
+      <plugin
+        filename="gz-waves1-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
+
+        <link_name>robot_link</link_name>
+
+
+        <hydrodynamics>
+            <damping_on>1</damping_on>
+            <viscous_drag_on>1</viscous_drag_on>
+            <pressure_drag_on>1</pressure_drag_on>
+
+            <!-- Linear and Angular Damping -->
+            <cDampL1>1.0E-6</cDampL1>
+            <cDampL2>1.0E-6</cDampL2>
+            <cDampR1>1.0E-6</cDampR1>
+            <cDampR2>1.0E-6</cDampR2>
+
+            <!-- 'Pressure' Drag -->
+            <cPDrag1>1.0E+2</cPDrag1>
+            <cPDrag2>1.0E+2</cPDrag2>
+            <fPDrag>0.4</fPDrag>
+            <cSDrag1>1.0E+2</cSDrag1>
+            <cSDrag2>1.0E+2</cSDrag2>
+            <fSDrag>0.4</fSDrag>
+            <vRDrag>1.0</vRDrag>
+        </hydrodynamics>
+
+        <!-- Control visibility of markers -->
+        <markers>
+            <update_rate>10</update_rate>
+            <water_patch>0</water_patch>
+            <waterline>0</waterline>
+            <underwater_surface>0</underwater_surface>
+        </markers>
+        </plugin>
   </model>
 </sdf>
