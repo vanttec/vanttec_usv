@@ -1,26 +1,14 @@
+---
 - ros_topic_name: "/beeblebrox/video"
   gz_topic_name: "/zed_rgbd/image"
   ros_type_name: "sensor_msgs/msg/Image"
   gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS
-- ros_topic_name: "/beeblebrox/depth_colorized"
-  gz_topic_name: "/zed_rgbd/depth_image"
-  ros_type_name: "sensor_msgs/msg/Image"
-  gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS
-- ros_topic_name: "/zed_rgbd/points"
-  gz_topic_name: "/zed_rgbd/points"
-  ros_type_name: "sensor_msgs/msg/PointCloud2"
-  gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
 - ros_topic_name: "/velodyne/points"
   gz_topic_name: "/lidar/points"
   ros_type_name: "sensor_msgs/msg/PointCloud2"
   gz_type_name: "gz.msgs.PointCloudPacked"
   direction: GZ_TO_ROS
-
-
-
 # ------ ros to gz (commands)
 - ros_topic_name: "/usv/left_thruster"
   gz_topic_name: "/model/vtec_s4/joint/left_engine_propeller_joint/cmd_thrust"
@@ -32,4 +20,3 @@
   ros_type_name: "std_msgs/msg/Float64"
   gz_type_name: "gz.msgs.Double"
   direction: ROS_TO_GZ
-
