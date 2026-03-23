@@ -1,17 +1,153 @@
 <?xml version="1.0"?>
 <sdf version="1.6">
   <model name="marker_buoy_port">
-    <static>false</static>
-    <link name="robot_link">
-      <collision name="body_collision">
+    <link name='cylinder'>
+      <inertial>
+        <mass>0.068793</mass>
+        <inertia>
+          <ixx>0.00543853</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00543853</iyy>
+          <iyz>0</iyz>
+          <izz>0.0006256</izz>
+        </inertia>
+        <pose>0 0 0 0 -0 0</pose>
+      </inertial>
+      <pose>0 0 0.496472 0 -0 0</pose>
+      <gravity>1</gravity>
+      <self_collide>0</self_collide>
+      <kinematic>0</kinematic>
+      <enable_wind>0</enable_wind>
+      <!-- <visual name='visual'>
+        <pose>0 0 0 0 -0 0</pose>
         <geometry>
-          <box>
-            <size>1 1 1</size>
-          </box>
+          <cylinder>
+            <radius>0.15</radius>
+            <length>1</length>
+          </cylinder>
         </geometry>
+        <material>
+          <lighting>1</lighting>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Green</name>
+          </script>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0 0.7 0 1</diffuse>
+          <specular>0.01 0.01 0.01 1</specular>
+          <emissive>0 0 0 1</emissive>
+        </material>
+        <transparency>0</transparency>
+        <cast_shadows>1</cast_shadows>
+      </visual>  -->
+      <collision name='collision'>
+        <laser_retro>0</laser_retro>
+        <max_contacts>10</max_contacts>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.3</radius>
+            <length>0.945576</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1</mu>
+              <mu2>1</mu2>
+              <fdir1>0 0 0</fdir1>
+              <slip1>0</slip1>
+              <slip2>0</slip2>
+            </ode>
+            <torsional>
+              <coefficient>1</coefficient>
+              <patch_radius>0</patch_radius>
+              <surface_radius>0</surface_radius>
+              <use_patch_radius>1</use_patch_radius>
+              <ode>
+                <slip>0</slip>
+              </ode>
+            </torsional>
+          </friction>
+          <bounce>
+            <restitution_coefficient>0</restitution_coefficient>
+            <threshold>1e+06</threshold>
+          </bounce>
+          <contact>
+            <collide_without_contact>0</collide_without_contact>
+            <collide_without_contact_bitmask>1</collide_without_contact_bitmask>
+            <collide_bitmask>1</collide_bitmask>
+            <ode>
+              <soft_cfm>0</soft_cfm>
+              <soft_erp>0.2</soft_erp>
+              <kp>1e+13</kp>
+              <kd>1</kd>
+              <max_vel>0.01</max_vel>
+              <min_depth>0</min_depth>
+            </ode>
+            <bullet>
+              <split_impulse>1</split_impulse>
+              <split_impulse_penetration_threshold>-0.01</split_impulse_penetration_threshold>
+              <soft_cfm>0</soft_cfm>
+              <soft_erp>0.2</soft_erp>
+              <kp>1e+13</kp>
+              <kd>1</kd>
+            </bullet>
+          </contact>
+        </surface>
       </collision>
-      <visual name="wheel1_visual">
-        <pose>0 0 -0.1 1.57 0 0</pose>
+    </link>
+
+
+    <link name='base'>
+      <inertial>
+        <mass>0.0961519</mass>
+        <inertia>
+          <ixx>0.00264433</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00264433</iyy>
+          <iyz>0</iyz>
+          <izz>0.00382696</izz>
+        </inertia>
+        <pose>0 0 0 0 -0 0</pose>
+      </inertial>
+      <pose>0 0 0.003528 0 -0 0</pose>
+      <gravity>1</gravity>
+      <self_collide>0</self_collide>
+      <kinematic>0</kinematic>
+      <enable_wind>0</enable_wind>
+      <!-- <visual name='visual'>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.282139</radius>
+            <length>0.302013</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <lighting>1</lighting>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Green</name>
+          </script>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0 0.7 0 1</diffuse>
+          <specular>0.01 0.01 0.01 1</specular>
+          <emissive>0 0 0 1</emissive>
+        </material>
+        <transparency>0</transparency>
+        <cast_shadows>1</cast_shadows>
+      </visual> -->
+      <visual name="visual">
+        <pose>0 0 -0.3 1.57 0 0</pose>
         <geometry>
           <mesh>
             <uri>file://marker_buoy_port/meshes/sur-Mark_marker.stl</uri>
@@ -19,21 +155,80 @@
           </mesh>
         </geometry>
         <material>
-          <ambient>1 0 0 1</ambient>
-          <diffuse>1 0 0 1</diffuse>
-          <specular>1 0 0 1</specular>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0 0 1</diffuse>
+          <specular>0.01 0.01 0.01 1</specular>
         </material>      
       </visual>
-      <inertial>
-        <mass>7</mass>
-      </inertial>
+      <collision name='collision'>
+        <laser_retro>0</laser_retro>
+        <max_contacts>10</max_contacts>
+        <pose>0 0 0 0 -0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.282139</radius>
+            <length>0.302013</length>
+          </cylinder>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>1</mu>
+              <mu2>1</mu2>
+              <fdir1>0 0 0</fdir1>
+              <slip1>0</slip1>
+              <slip2>0</slip2>
+            </ode>
+            <torsional>
+              <coefficient>1</coefficient>
+              <patch_radius>0</patch_radius>
+              <surface_radius>0</surface_radius>
+              <use_patch_radius>1</use_patch_radius>
+              <ode>
+                <slip>0</slip>
+              </ode>
+            </torsional>
+          </friction>
+          <bounce>
+            <restitution_coefficient>0</restitution_coefficient>
+            <threshold>1e+06</threshold>
+          </bounce>
+          <contact>
+            <collide_without_contact>0</collide_without_contact>
+            <collide_without_contact_bitmask>1</collide_without_contact_bitmask>
+            <collide_bitmask>1</collide_bitmask>
+            <ode>
+              <soft_cfm>0</soft_cfm>
+              <soft_erp>0.2</soft_erp>
+              <kp>1e+13</kp>
+              <kd>1</kd>
+              <max_vel>0.01</max_vel>
+              <min_depth>0</min_depth>
+            </ode>
+            <bullet>
+              <split_impulse>1</split_impulse>
+              <split_impulse_penetration_threshold>-0.01</split_impulse_penetration_threshold>
+              <soft_cfm>0</soft_cfm>
+              <soft_erp>0.2</soft_erp>
+              <kp>1e+13</kp>
+              <kd>1</kd>
+            </bullet>
+          </contact>
+        </surface>
+      </collision>
     </link>
+    <joint name = "joint1" type = "fixed">
+      <parent>base</parent>
+      <child>cylinder</child>
+    </joint>
+    <static>0</static>
+    <allow_auto_disable>1</allow_auto_disable>
     <!-- Hydrodynamics plugin -->
       <plugin
         filename="gz-waves1-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
 
-        <link_name>robot_link</link_name>
+        <link_name>cylinder</link_name>
 
 
         <hydrodynamics>
@@ -64,6 +259,6 @@
             <waterline>0</waterline>
             <underwater_surface>0</underwater_surface>
         </markers>
-        </plugin>
+      </plugin>
   </model>
 </sdf>

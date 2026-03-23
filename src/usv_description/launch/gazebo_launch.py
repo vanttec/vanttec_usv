@@ -37,7 +37,7 @@ def generate_launch_description():
     world_path = PathJoinSubstitution(
         [pkg_usv_description, 'worlds', 'waves.sdf'])
     gz_sim = ExecuteProcess(
-        cmd=['gz', 'sim', '-v', '4', world_path],
+        cmd=['gz', 'sim', '-v', '4', '-r', world_path],
         output='screen',
         additional_env={
             'GZ_IP': '127.0.0.1'

@@ -19,7 +19,7 @@
       <self_collide>0</self_collide>
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
-      <visual name='visual'>
+      <!-- <visual name='visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <cylinder>
@@ -37,14 +37,13 @@
             <normal_map>__default__</normal_map>
           </shader>
           <ambient>0.3 0.3 0.3 1</ambient>
-          <!-- Green color -->
           <diffuse>0 0.7 0 1</diffuse>
           <specular>0.01 0.01 0.01 1</specular>
           <emissive>0 0 0 1</emissive>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
-      </visual>
+      </visual>  -->
       <collision name='collision'>
         <laser_retro>0</laser_retro>
         <max_contacts>10</max_contacts>
@@ -102,6 +101,8 @@
         </surface>
       </collision>
     </link>
+
+
     <link name='base'>
       <inertial>
         <mass>0.0961519</mass>
@@ -120,7 +121,7 @@
       <self_collide>0</self_collide>
       <kinematic>0</kinematic>
       <enable_wind>0</enable_wind>
-      <visual name='visual'>
+      <!-- <visual name='visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
           <cylinder>
@@ -144,6 +145,20 @@
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
+      </visual> -->
+      <visual name="visual">
+        <pose>0 0 -0.3 1.57 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>file://marker_buoy_port/meshes/sur-Mark_marker.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0 0.7 0 1</diffuse>
+          <specular>0.01 0.01 0.01 1</specular>
+        </material>      
       </visual>
       <collision name='collision'>
         <laser_retro>0</laser_retro>
@@ -202,6 +217,10 @@
         </surface>
       </collision>
     </link>
+    <joint name = "joint1" type = "fixed">
+      <parent>base</parent>
+      <child>cylinder</child>
+    </joint>
     <static>0</static>
     <allow_auto_disable>1</allow_auto_disable>
     <!-- Hydrodynamics plugin -->
