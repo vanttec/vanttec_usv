@@ -32,3 +32,6 @@
 [submodule "src/deps/robocommand"]
 	path = src/deps/robocommand
 	url = https://github.com/vanttec/robocommand.git
+[submodule "src/deps/sbgECom"]
+	path = src/deps/sbgECom
+	url = https://github.com/SBG-Systems/sbgECom.git
