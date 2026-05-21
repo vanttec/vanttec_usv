@@ -14,13 +14,20 @@ find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(sbg_driver REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+
 
 # add_executable(docking src/docking.cpp)
 # ament_target_dependencies(docking rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
 # target_compile_features(docking PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
+add_executable(orientacion_sbg src/orientacion_sbg.cpp)
+ament_target_dependencies(orientacion_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
+
 install(TARGETS
-  # docking
+  orientacion_sbg
   DESTINATION lib/${PROJECT_NAME})
 
 # Resources
