@@ -23,11 +23,11 @@ find_package(tf2_geometry_msgs REQUIRED)
 # ament_target_dependencies(docking rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
 # target_compile_features(docking PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
-add_executable(orientacion_sbg src/orientacion_sbg.cpp)
-ament_target_dependencies(orientacion_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
+add_executable(mag_orientation_sbg src/mag_orientation_sbg.cpp)
+ament_target_dependencies(mag_orientation_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
 
 install(TARGETS
-  orientacion_sbg
+  mag_orientation_sbg
   DESTINATION lib/${PROJECT_NAME})
 
 # Resources

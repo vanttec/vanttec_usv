@@ -6,15 +6,15 @@
 #include "tf2/utils.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
-class Orientacion : public rclcpp::Node {
+class MagOrientation : public rclcpp::Node {
 public:
-  Orientacion() : Node("orientacion_node") {
+  MagOrientation() : Node("mag_orientation_node") {
     subscription = this->create_subscription<sbg_driver::msg::SbgEkfQuat>(
-      "/sbg/ekf_quat", 10, std::bind(&Orientacion::sbg_callback, this, std::placeholders::_1));
+      "/sbg/ekf_quat", 10, std::bind(&MagOrientation::sbg_callback, this, std::placeholders::_1));
 
     publisher = this->create_publisher<std_msgs::msg::Float64>("/heading", 10);
 
-    RCLCPP_INFO(this->get_logger(), "Nodo de Orientación Vanttec iniciado. Esperando fix de magnetómetro...");
+    RCLCPP_INFO(this->get_logger(), "Nodo de Orientación iniciado.");
   }
 
 private:
@@ -58,7 +58,7 @@ private:
 
 int main(int argc, char * argv[]) {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<Orientacion>());
+  rclcpp::spin(std::make_shared<MagOrientation>());
   rclcpp::shutdown();
   return 0;
 }

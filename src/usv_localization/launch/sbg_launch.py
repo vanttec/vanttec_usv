@@ -4,28 +4,18 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
-	config = os.path.join(
-		get_package_share_directory('orientacion'),
-		'config',
-		'sbg_device_uart.yaml'
-	)
+    config = os.path.join(
+        get_package_share_directory('usv_localization'),
+        'config',
+        'sbg_device_uart.yaml'
+    )
 
-	converter = Node(
-	package='orientacion',
-	executable='orientacion_node',
-	output = 'screen'
-	)
-
-
-
-	return LaunchDescription([
-		Node(
-			package='sbg_driver',
-		#	name='sbg_device_1',
-			executable = 'sbg_device',
-			output = 'screen',
-			parameters = [config]
-		),
-		converter
-	])
+    return LaunchDescription([
+        Node(
+            package='sbg_driver',
+            executable='sbg_device',
+            output='screen',
+            parameters=[config]
+        )
+    ])
 
