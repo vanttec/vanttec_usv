@@ -26,8 +26,12 @@ find_package(tf2_geometry_msgs REQUIRED)
 add_executable(mag_orientation_sbg src/mag_orientation_sbg.cpp)
 ament_target_dependencies(mag_orientation_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
 
+add_executable(pose3_sbg src/pose3_sbg.cpp)
+ament_target_dependencies(pose3_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
+
 install(TARGETS
   mag_orientation_sbg
+  pose3_sbg
   DESTINATION lib/${PROJECT_NAME})
 
 # Resources
