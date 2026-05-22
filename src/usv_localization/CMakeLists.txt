@@ -17,6 +17,7 @@ find_package(Eigen3 REQUIRED)
 find_package(sbg_driver REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(usv_interfaces REQUIRED)
 
 
 # add_executable(docking src/docking.cpp)
