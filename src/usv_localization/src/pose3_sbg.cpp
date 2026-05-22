@@ -1,6 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sbg_driver/msg/sbg_imu_data.hpp>
-#include <usv_interfaces/msg/pose3.hpp>
+#include <usv_interfaces/msg/Pose3.hpp>
 #include <cmath>
 
 class pose3_sbg : public rclcpp::Node
