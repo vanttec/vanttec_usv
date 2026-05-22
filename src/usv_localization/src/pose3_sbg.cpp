@@ -14,7 +14,7 @@ public:
 
         pose_pub_ = this->create_publisher<usv_interfaces::msg::Pose3>("usv/imu/pose3", 10);
 
-        last_time_ = this->now().nanoseconds();
+        last_time_ = this->now().nanoseconds;
         RCLCPP_INFO(this->get_logger(), "IMU Pose3 node iniciado");
     }
 
@@ -22,7 +22,7 @@ private:
     void imu_callback(const sbg_driver::msg::SbgImuData::SharedPtr msg)
     {
         long int current_time = this->now().nanoseconds();
-        long int dt = (current_time - last_time_).nanoseconds();
+        long int dt = (current_time - last_time_) / 1e9;
         last_time_ = current_time;
 
         if (dt <= 0.0 || dt > 1.0) return;
