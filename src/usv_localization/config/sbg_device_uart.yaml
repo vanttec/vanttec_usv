@@ -21,7 +21,7 @@
       initFrameId: "map"
 
     # Configuration of the device with ROS.
-    confWithRos: true
+    confWithRos: false
     
     # Uart configuration
     uartConf:
