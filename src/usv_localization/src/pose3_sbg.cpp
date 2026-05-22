@@ -14,7 +14,7 @@ public:
 
         pose_pub_ = this->create_publisher<usv_interfaces::msg::Pose3>("usv/imu/pose3", 10);
 
-        last_time_ = this->now().nanoseconds;
+        last_time_ = this->now().nanoseconds();
         RCLCPP_INFO(this->get_logger(), "IMU Pose3 node iniciado");
     }
 
