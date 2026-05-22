@@ -1,6 +1,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sbg_driver/msg/sbg_imu_data.hpp>
-#include <usv_interfaces/msg/Pose3.hpp>
+#include <usv_interfaces/msg/pose3.hpp>
 #include <cmath>
 
 class pose3_sbg : public rclcpp::Node
@@ -14,15 +14,15 @@ public:
 
         pose_pub_ = this->create_publisher<usv_interfaces::msg::Pose3>("usv/imu/pose3", 10);
 
-        last_time_ = this->now();
+        last_time_ = this->now().nanoseconds;
         RCLCPP_INFO(this->get_logger(), "IMU Pose3 node iniciado");
     }
 
 private:
     void imu_callback(const sbg_driver::msg::SbgImuData::SharedPtr msg)
     {
-        rclcpp::Time current_time = this->now();
-        double dt = (current_time - last_time_).seconds();
+        rclcpp::Time current_time = this->now().nanoseconds();
+        double dt = (current_time - last_time_).nanoseconds();
         last_time_ = current_time;
 
         if (dt <= 0.0 || dt > 1.0) return;
