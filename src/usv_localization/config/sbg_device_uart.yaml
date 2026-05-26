@@ -297,7 +297,7 @@
       # GPS velocities from primary or secondary GPS receiver
       log_gps1_vel: 10001
       # GPS positions from primary or secondary GPS receiver
-      log_gps1_pos: 10001
+      log_gps1_pos: 200
       # GPS true heading from dual antenna system
       log_gps1_hdt: 10001
       # GPS 1 raw data for post processing.
