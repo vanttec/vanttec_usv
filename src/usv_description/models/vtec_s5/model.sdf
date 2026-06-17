@@ -1,34 +1,34 @@
 <?xml version="1.0"?>
 <sdf version="1.6">
-  <model name="vtec_s4">
+  <model name="vtec_s5">
     <link name="base_link">
       <inertial>
-        <pose>0.2 0 0 0 0 0</pose>
-        <mass>45</mass>
+        <pose>0.6 0.225 0.0 0 0 0</pose>
+        <mass>20</mass>
         <inertia>
-          <ixx>0.5666666666666668</ixx>
+          <ixx>0.25</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>1.0416666666666667</iyy>
+          <iyy>0.5</iyy>
           <iyz>0</iyz>
-          <izz>1.5416666666666667</izz>
+          <izz>0.75</izz>
         </inertia>
       </inertial>
       <visual name="visual">
-        <pose>-0.3 0 0 0 0 0</pose>
+        <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file://vtec_s4/meshes/asv.dae</uri>
+            <uri>file://vtec_s5/meshes/usv.dae</uri>
           </mesh>
         </geometry>
       </visual>
 
       <collision name="Coll">
-        <pose>-0.3 0 0 1.5708 0 0</pose>
+        <pose>0 0 0 0 3.14 -1.578</pose>
         <geometry>
           <mesh>
             <!-- <scale>1.5 1 1</scale> -->
-            <uri>file://vtec_s4/meshes/hull_collision.glb</uri>
+            <uri>file://vtec_s5/meshes/hull_collision.glb</uri>
           </mesh>
         </geometry>
       </collision>
@@ -106,7 +106,7 @@
     <!-- Left thruster housing -->
     <link name="left_housing_link">
       <inertial>
-        <pose>-0.3 0.28 -0.32 0 0 0</pose>
+        <pose>0.0 0.4516 0.068 0 0 0</pose>
         <mass>1</mass>
         <inertia>
           <ixx>0.0020290833333333333</ixx>
@@ -119,10 +119,10 @@
       </inertial>
 
       <visual name="left_housing_visual">
-        <pose>-0.3 0.28 -0.32 0 0 0</pose>
+        <pose>0.0 0.4516 0.068 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file://vtec_s4/meshes/housing.dae</uri>
+            <uri>file://vtec_s5/meshes/housing.dae</uri>
           </mesh>
         </geometry>
         <material>
@@ -130,28 +130,19 @@
           <specular>1.0 1.0 1.0</specular>
           <pbr>
             <metal>
-              <albedo_map>file://vtec_s4/materials/textures/Thruster_Albedo.png</albedo_map>
-              <roughness_map>file://vtec_s4/materials/textures/Thruster_Roughness.png</roughness_map>
+              <albedo_map>file://vtec_s5/materials/textures/Thruster_Albedo.png</albedo_map>
+              <roughness_map>file://vtec_s5/materials/textures/Thruster_Roughness.png</roughness_map>
             </metal>
           </pbr>
         </material>
       </visual>
 
-      <collision name="Cylinder263d">
-        <pose>-0.2833463 0.27986701 -0.32 1.5708 0.0 -1.5708</pose>
-        <geometry>
-          <cylinder>
-            <length>0.14376</length>
-            <radius>0.0243692</radius>
-          </cylinder>
-        </geometry>
-      </collision>
     </link>
 
     <!-- Left propeller -->
     <link name="left_prop_link">
       <inertial>
-        <pose>-0.300872875 0.279867016 -0.32 1.5708 0.0 -1.5708</pose>
+        <pose>0.0 0.4516 0.068 0 0 0</pose>
         <mass>0.1</mass>
         <inertia>
           <ixx>0.00010562499999999999</ixx>
@@ -163,10 +154,10 @@
         </inertia>
       </inertial>
       <visual name="left_prop_visual">
-        <pose>-0.3 0.28 -0.32 0 0 0</pose>
+        <pose>0.0 0.4516 0.068 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file://vtec_s4/meshes/prop.dae</uri>
+            <uri>file://vtec_s5/meshes/prop.dae</uri>
           </mesh>
         </geometry>
         <material>
@@ -174,28 +165,19 @@
           <specular>1.0 1.0 1.0</specular>
           <pbr>
             <metal>
-              <albedo_map>file://vtec_s4/materials/textures/Thruster_Albedo.png</albedo_map>
-              <roughness_map>file://vtec_s4/materials/textures/Thruster_Roughness.png</roughness_map>
+              <albedo_map>file://vtec_s5/materials/textures/Thruster_Albedo.png</albedo_map>
+              <roughness_map>file://vtec_s5/materials/textures/Thruster_Roughness.png</roughness_map>
             </metal>
           </pbr>
         </material>
       </visual>
 
-      <collision name="Cylinder262d">
-        <pose>-0.300872875 0.279867016 -0.32 1.5708 0.0 -1.5708</pose>
-        <geometry>
-          <cylinder>
-            <length>0.0608172</length>
-            <radius>0.0553844</radius>
-          </cylinder>
-        </geometry>
-      </collision>
     </link>
 
     <!-- Right thruster housing -->
     <link name="right_housing_link">
       <inertial>
-        <pose>-0.3 -0.28 -0.32 0 0 0</pose>
+        <pose>0 0 0.068 0 0 0</pose>
         <mass>1</mass>
         <inertia>
           <ixx>0.0020290833333333333</ixx>
@@ -207,10 +189,10 @@
         </inertia>
       </inertial>
       <visual name="right_housing_visual">
-        <pose>-0.3 -0.28 -0.32 0 0 0</pose>
+        <pose>0 0 0.068 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>file://vtec_s4/meshes/housing.dae</uri>
+            <uri>file://vtec_s5/meshes/housing.dae</uri>
           </mesh>
         </geometry>
         <material>
@@ -218,29 +200,20 @@
           <specular>1.0 1.0 1.0</specular>
           <pbr>
             <metal>
-              <albedo_map>file://vtec_s4/materials/textures/Thruster_Albedo.png</albedo_map>
-              <roughness_map>file://vtec_s4/materials/textures/Thruster_Roughness.png</roughness_map>
+              <albedo_map>file://vtec_s5/materials/textures/Thruster_Albedo.png</albedo_map>
+              <roughness_map>file://vtec_s5/materials/textures/Thruster_Roughness.png</roughness_map>
             </metal>
           </pbr>
         </material>
       </visual>
 
       <!-- Thruster collisions -->
-      <collision name="Cylinder263i">
-        <pose>-0.2833463 -0.27986701 -0.32 1.5708 0.0 -1.5708</pose>
-        <geometry>
-          <cylinder>
-            <length>0.14376</length>
-            <radius>0.0243692</radius>
-          </cylinder>
-        </geometry>
-      </collision>
     </link>
 
     <!-- Right propeller -->
     <link name="right_prop_link">
       <inertial>
-        <pose>-0.300872875 -0.279867016 -0.32 1.5708 0.0 -1.5708</pose>
+        <pose>0 0 0.068 0 0 0</pose>
         <mass>0.1</mass>
         <inertia>
           <ixx>0.00010562499999999999</ixx>
@@ -252,7 +225,7 @@
         </inertia>
       </inertial>
       <visual name="right_prop_visual">
-        <pose>-0.3 -0.28 -0.32 0 0 0</pose>
+        <pose>0 0 0.068 0 0 0</pose>
         <geometry>
           <mesh>
             <uri>file://vtec_s4/meshes/prop.dae</uri>
@@ -270,21 +243,12 @@
         </material>
       </visual>
 
-      <collision name="Cylinder262i">
-        <pose>-0.300872875 -0.279867016 -0.32 1.5708 0.0 -1.5708</pose>
-        <geometry>
-          <cylinder>
-            <length>0.0608172</length>
-            <radius>0.0553844</radius>
-          </cylinder>
-        </geometry>
-      </collision>
     </link>
 
     <!-- Chassis-left engine joint -->
     <joint name="left_chasis_engine_joint" type="revolute">
       <axis>
-        <xyz>0 0 1</xyz>
+        <xyz>1 0 0</xyz>
         <limit>
           <lower>0</lower>
           <upper>0</upper>
@@ -298,7 +262,7 @@
 
     <!-- Left joint housing-propeller -->
     <joint name="left_engine_propeller_joint" type="revolute">
-      <pose>-0.300872875 0.279867016 -0.32 1.5708 0.0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <axis>
         <xyz>1 0 0</xyz>
         <limit>
@@ -317,7 +281,7 @@
     <!-- Chassis-right engine joint -->
     <joint name="right_chasis_engine_joint" type="revolute">
       <axis>
-        <xyz>0 0 1</xyz>
+        <xyz>1 0 0</xyz>
         <limit>
           <lower>0</lower>
           <upper>0</upper>
@@ -331,7 +295,7 @@
 
     <!-- Right joint housing-propeller -->
     <joint name="right_engine_propeller_joint" type="revolute">
-      <pose>-0.300872875 -0.279867016 -0.32 1.5708 0.0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <axis>
         <xyz>1 0 0</xyz>
         <limit>
@@ -370,8 +334,8 @@
       name="vrx::Surface">
       <link_name>base_link</link_name>
       <hull_length>1.15</hull_length>
-      <hull_radius>0.12</hull_radius>
-      <fluid_level>0.1</fluid_level>
+      <hull_radius>0.05</hull_radius>
+      <fluid_level>0.19</fluid_level>
       <points>
         <point>0.68 -0.204338 -0.1552701 </point>
         <point>-0.465 -0.204338 -0.1552701 </point>
@@ -407,7 +371,7 @@
       filename="gz-sim-thruster-system"
       name="gz::sim::systems::Thruster">
       <joint_name>left_engine_propeller_joint</joint_name>
-      <thrust_coefficient>0.0002</thrust_coefficient>
+      <thrust_coefficient>0.0001</thrust_coefficient>
       <fluid_density>1000</fluid_density>
       <propeller_diameter>0.1</propeller_diameter>
       <velocity_control>true</velocity_control>
@@ -435,8 +399,7 @@
       filename="gz-waves1-hydrodynamics-system"
       name="gz::sim::systems::Hydrodynamics">
 
-      <enable>vtec_s4::base_link</enable>
-      <enable>vtec_2::base_link</enable>
+      <enable>vtec_s5::base_link</enable>
 
       <hydrodynamics>
         <damping_on>1</damping_on>
