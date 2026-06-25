@@ -12,7 +12,7 @@
 
     odometry:
       # Enable ROS odometry messages.
-      enable: false
+      enable: true
       # Publish odometry transforms.
       publishTf: true
       # Odometry frame IDs.
@@ -257,19 +257,19 @@
 
       # Ros standard output:
       # Note: If true publish ROS standard messages.
-      ros_standard: false
+      ros_standard: true
 
       # Frame convention:
       # Note: If true messages are expressed in the ENU convention.
       #
       # true : ENU convention (X east, Y north, Z up)
       # false (default): NED convention (X north, Y east, Z down)
-      use_enu: false
+      use_enu: true
 
       # Frame ID:
       # Note: If the frame convention is NED so the default frame ID is (imu_link_ned)
       #       else if the convention is ENU so the default frame ID is (imu_link)
-      frame_id: "imu_link_ned"
+      frame_id: "imu_link"
     
       # Status general, clock, com aiding, solution, heave
       log_status: 200
@@ -278,7 +278,7 @@
       # Includes roll, pitch, yaw and their accuracies on each axis
       log_ekf_euler: 8
       # Includes the 4 quaternions values
-      log_ekf_quat: 8
+      log_ekf_quat: 1
       # Position and velocities in NED coordinates with the accuracies on each axis
       log_ekf_nav: 8
       # Velocity expressed in the INS body/vehicle frame
