@@ -1,52 +1,39 @@
 //
 // Created by Abiel on 3/22/23.
+// Updated: motor commands removed (motors are driven directly, not via CAN)
 //
 
 #include "CANTxNode.h"
 #include <thread>
 
 using namespace std::chrono_literals;
-using namespace std::placeholders;
 
 CANTxNode::CANTxNode(const std::shared_ptr<vanttec::CANHandler> &handler)
     : Node("CANTxNode") {
   RCLCPP_INFO(this->get_logger(), "Starting CAN TX Node");
   this->handler = handler;
 
-  motorSub = this->create_subscription<std_msgs::msg::Float32MultiArray>(
-      "motors", 10, std::bind(&CANTxNode::motorCb, this, _1));
-
-  canWriteThread = std::thread([this]{
-    using namespace std::chrono_literals;
-    while(rclcpp::ok()){
+  // Dedicated write thread — drains the write queue at 1 kHz
+  canWriteThread = std::thread([this] {
+    while (rclcpp::ok()) {
       this->handler->update_write();
       std::this_thread::sleep_for(1ms);
     }
   });
 
-  pingTimer = 
-      this->create_wall_timer(100ms, std::bind(&CANTxNode::send_ping_msg, this));
+  // Send a liveness ping onto the CAN bus at 1 Hz (arb ID 0x1E)
+  pingTimer =
+      this->create_wall_timer(1000ms, std::bind(&CANTxNode::send_ping_msg, this));
 }
 
+CANTxNode::~CANTxNode() {
+  if (canWriteThread.joinable()) canWriteThread.join();
+}
 
 void CANTxNode::send_ping_msg() {
   vanttec::CANMessage msg;
-  vanttec::packByte(msg, 0x1E, 0.01);
+  msg.arb_id = 0x1E;      // Jetson liveness ping arbitration ID
+  msg.data[0] = 0x01;     // simple alive flag
+  msg.len = 1;
   handler->write(msg);
-}
-
-void CANTxNode::motorCb(const std_msgs::msg::Float32MultiArray &msg) {
-  if (msg.data.size() != 8) {
-    RCLCPP_ERROR(this->get_logger(), "Invalid motor array size");
-    return;
-  }
-
-  for (size_t i = 0; i < msg.data.size(); i++) {
-    if (msg.data[i] == lastMotorArray[i]) continue;
-    vanttec::CANMessage canMsg;
-    vanttec::packFloat(canMsg, 0x15 + i, msg.data[i]);
-    handler->write(canMsg);
-  }
-
-  lastMotorArray = msg.data;
 }

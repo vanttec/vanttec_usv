@@ -1,0 +1,8 @@
+- [x] CANMessage.h — add arb_id field, extend data[5]→data[8]
+- [ ] CANHandler.h — uint8_t → uint32_t filter key
+- [ ] CANHandler.cpp — fix ID routing (arb ID), fix epoll_wait timeout, fix update_write arb_id
+- [ ] CANRxNode.h — new publisher types, new handler signatures, updated includes
+- [ ] CANRxNode.cpp — new parser registrations (0x010, 0x200, 0x150), new handler implementations
+- [ ] CANTxNode.h — remove motor sub/callback, fix lastMotorArray bug
+- [ ] CANTxNode.cpp — remove motorCb, update send_ping_msg arb_id
+- [ ] can_launch.py — add can_interface param, update topic remappings

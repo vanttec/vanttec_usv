@@ -40,7 +40,7 @@ namespace vanttec {
                 can_frame outFrame;
                 outFrame.can_dlc = elem.len;
                 memcpy(outFrame.data, elem.data, elem.len);
-                outFrame.can_id = 0x123;
+                outFrame.can_id = elem.arb_id & CAN_SFF_MASK; // use per-message arb ID
 
                 int retry_count = 0;
                 while (::write(canfd, &outFrame, sizeof(can_frame)) != sizeof(can_frame) && retry_count < 10){
@@ -55,7 +55,7 @@ namespace vanttec {
         writeQueue.push(msg);
     }
 
-    void CANHandler::register_parser(uint8_t filter, const std::function<void(can_frame)> &parser){
+    void CANHandler::register_parser(uint32_t filter, const std::function<void(can_frame)> &parser){
         filterMsgParsers[filter].emplace_back(parser);
     }
 
@@ -64,7 +64,8 @@ namespace vanttec {
     }
 
     void CANHandler::update_read() {
-        int rdy = epoll_wait(epfd, evlist, MAX_EVENTS, -1);
+        // Non-blocking poll: timeout=0 avoids stalling the ROS wall-timer thread
+        int rdy = epoll_wait(epfd, evlist, MAX_EVENTS, 0);
         if (rdy == -1) {
             std::cerr << "Error waiting for epoll" << std::endl;
             return;
@@ -78,8 +79,9 @@ namespace vanttec {
             auto len = read(evlist[i].data.fd, &frame, sizeof(frame));
             if(len < 0) continue;
 
-            auto id = can_parse_id(frame.data, frame.can_dlc);
-            for(auto &parser : msgParsers) parser(id, frame);
+            // Route by CAN arbitration ID (HAL convention), not data[0] (Vanttec convention)
+            auto id = frame.can_id & CAN_SFF_MASK;
+            for(auto &parser : msgParsers) parser(static_cast<uint8_t>(id), frame);
             auto it = filterMsgParsers.find(id);
             if(it != filterMsgParsers.end())
                 for(auto &parser : it->second) parser(frame);

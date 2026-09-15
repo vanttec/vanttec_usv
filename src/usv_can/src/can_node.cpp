@@ -3,23 +3,25 @@
 #include "CANRxNode.h"
 #include "CANTxNode.h"
 #include "individual_thrusters_node.h"
-#include "Vanttec_CANLib/Utils/CANDeserialization.h"
-#include "Vanttec_CANLib/Utils/CANSerialization.h"
 #include "Vanttec_CANLib_Linux/CANHandler.h"
 #include "rclcpp/rclcpp.hpp"
-#include "std_msgs/msg/float32_multi_array.hpp"
-#include "std_msgs/msg/u_int16.hpp"
 
 using namespace std::chrono_literals;
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
 
-  // TODO move can to parameter
-  auto handler = std::make_shared<vanttec::CANHandler>("can_vtec");
-  // auto handler = std::make_shared<vanttec::CANHandler>("can0");
+  // CAN interface name is a ROS2 parameter, default "can0"
+  auto paramNode = std::make_shared<rclcpp::Node>("can_param_node");
+  paramNode->declare_parameter<std::string>("can_interface", "can0");
+  std::string canInterface = paramNode->get_parameter("can_interface").as_string();
+  RCLCPP_INFO(paramNode->get_logger(), "Opening CAN interface: %s", canInterface.c_str());
+
+  auto handler = std::make_shared<vanttec::CANHandler>(canInterface);
   auto txNode = std::make_shared<CANTxNode>(handler);
   auto rxNode = std::make_shared<CANRxNode>(handler);
+  
+  // Restored: Handles math scaling and 250ms safety timeouts for the motors
   auto thrusterNode = std::make_shared<IndividualThrusterNode>();
 
   rclcpp::executors::MultiThreadedExecutor executor;

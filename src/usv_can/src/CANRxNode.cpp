@@ -1,5 +1,11 @@
 //
 // Created by Abiel on 3/22/23.
+// Updated for HAL CAN protocol (DashboardLumos STM32 firmware)
+//
+// CAN ID Map (arbitration ID → message):
+//   0x010 — STM32 telemetry gateway heartbeat (4-byte LE uint32 uptime ms, 1 Hz)
+//   0x150 — Actuator Control PCB (byte[0]=pump_active, byte[1]=actuator_active)
+//   0x200 — Battery Control PCB (float voltage + float current, LE, 8 bytes)
 //
 
 #include "CANRxNode.h"
@@ -13,52 +19,60 @@ CANRxNode::CANRxNode(const std::shared_ptr<vanttec::CANHandler> &handler)
 
   updateTimer =
       this->create_wall_timer(10ms, std::bind(&CANRxNode::update, this));
+
+  // Publishers
   pingPublisher =
-      this->create_publisher<std_msgs::msg::UInt16>("out/stm32_ping", 1);
-  modePublisher =
-      this->create_publisher<std_msgs::msg::UInt16>("out/mode", 10);
+      this->create_publisher<std_msgs::msg::UInt32>("out/stm32_ping", 1);
+  batteryPublisher =
+      this->create_publisher<std_msgs::msg::Float32MultiArray>("out/battery", 1);
+  actuatorPublisher =
+      this->create_publisher<std_msgs::msg::UInt8MultiArray>("out/actuators", 1);
 
-  handler->register_parser(0x14,
-                           std::bind(&CANRxNode::handleDebugMsg, this, _1));
-
-  handler->register_parser(0x21,
-                          std::bind(&CANRxNode::handleModeMsg, this, _1));
-
-  handler->register_parser(0x1F,
-                          std::bind(&CANRxNode::handlePingMsg, this, _1));
+  // Register parsers by HAL CAN arbitration ID
+  handler->register_parser(0x010,
+                            std::bind(&CANRxNode::handleHeartbeatMsg, this, _1));
+  handler->register_parser(0x200,
+                            std::bind(&CANRxNode::handleBatteryMsg, this, _1));
+  handler->register_parser(0x150,
+                            std::bind(&CANRxNode::handleActuatorMsg, this, _1));
 }
 
 void CANRxNode::update() { handler->update_read(); }
 
-void CANRxNode::handleDebugMsg(can_frame frame) {
-  if (frame.can_dlc - 1 <= 0) return;
-  if (debugLogBuffer.str().size() > 1000) {
-    RCLCPP_ERROR(this->get_logger(),
-                 "Debug log has not been flushed!, Clearing Buffer...");
-    debugLogBuffer.str(std::string());  // Clear buffer
-  }
+// ID 0x010 — 4-byte little-endian uint32 HAL_GetTick() uptime in ms
+void CANRxNode::handleHeartbeatMsg(can_frame frame) {
+  if (frame.can_dlc < 4) return;
 
-  for (int i = 1; i < frame.can_dlc; i++) {
-    char newChar = frame.data[i];
-    if (newChar == '\n') {
-      // Flush current buffer
-      RCLCPP_INFO(this->get_logger(), "DEBUG LOG: %s",
-                  debugLogBuffer.str().c_str());
-      debugLogBuffer.str(std::string());  // Clear buffer
-    } else {
-      debugLogBuffer << newChar;
-    }
-  }
-}
+  uint32_t uptime = static_cast<uint32_t>(frame.data[0])
+                  | (static_cast<uint32_t>(frame.data[1]) << 8)
+                  | (static_cast<uint32_t>(frame.data[2]) << 16)
+                  | (static_cast<uint32_t>(frame.data[3]) << 24);
 
-void CANRxNode::handleModeMsg(can_frame frame){
-  std_msgs::msg::UInt16 msg;
-  msg.data = can_parse_short(frame.data, frame.can_dlc);
-  modePublisher->publish(msg);
-}
-
-void CANRxNode::handlePingMsg(can_frame frame) {
-  std_msgs::msg::UInt16 msg;
-  msg.data = can_parse_short(frame.data, frame.can_dlc);
+  std_msgs::msg::UInt32 msg;
+  msg.data = uptime;
   pingPublisher->publish(msg);
+  RCLCPP_DEBUG(this->get_logger(), "STM32 heartbeat: %u ms", uptime);
+}
+
+// ID 0x200 — 8 bytes: float voltage (bytes 0-3) + float current (bytes 4-7), little-endian
+void CANRxNode::handleBatteryMsg(can_frame frame) {
+  if (frame.can_dlc < 8) return;
+
+  float voltage = 0.0f;
+  float current = 0.0f;
+  std::memcpy(&voltage, &frame.data[0], sizeof(float));
+  std::memcpy(&current, &frame.data[4], sizeof(float));
+
+  std_msgs::msg::Float32MultiArray msg;
+  msg.data = {voltage, current};
+  batteryPublisher->publish(msg);
+}
+
+// ID 0x150 — byte[0]=pump_active, byte[1]=actuator_active
+void CANRxNode::handleActuatorMsg(can_frame frame) {
+  if (frame.can_dlc < 2) return;
+
+  std_msgs::msg::UInt8MultiArray msg;
+  msg.data = {frame.data[0], frame.data[1]};
+  actuatorPublisher->publish(msg);
 }

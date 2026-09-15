@@ -9,8 +9,9 @@
 #ifdef __cplusplus
 namespace vanttec {
     struct CANMessage {
-        uint8_t data[5];
+        uint8_t data[8];    // standard CAN max payload (was 5 for Vanttec)
         uint8_t len{0};
+        uint32_t arb_id{0}; // CAN arbitration ID (11-bit standard frame)
 
         ~CANMessage() {
             ;

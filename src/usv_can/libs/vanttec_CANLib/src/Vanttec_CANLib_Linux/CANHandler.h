@@ -23,7 +23,7 @@ namespace vanttec {
 
         ~CANHandler();
 
-        void register_parser(uint8_t filter, const std::function<void(can_frame)> &parser);
+        void register_parser(uint32_t filter, const std::function<void(can_frame)> &parser);
 
         void register_parser(const std::function<void(uint8_t, can_frame)> &parser);
 
@@ -35,7 +35,7 @@ namespace vanttec {
     
     private:
         std::vector<std::function<void(uint8_t, can_frame)>> msgParsers;
-        std::map<uint8_t, std::vector<std::function<void(can_frame)>>> filterMsgParsers;
+        std::map<uint32_t, std::vector<std::function<void(can_frame)>>> filterMsgParsers;
 
         boost::lockfree::spsc_queue<vanttec::CANMessage> writeQueue{128};
 
