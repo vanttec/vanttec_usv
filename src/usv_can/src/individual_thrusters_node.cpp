@@ -43,13 +43,13 @@ IndividualThrusterNode::IndividualThrusterNode() : Node("IndividualThrusterNode"
 
 double IndividualThrusterNode::map_thruster(double x) const {
     if(x > 36.5){
-        x = 1;
-    } else if(x < -30){
         x = -1;
+    } else if(x < -30){
+        x = 1;
     } else if(x > 0){
-        x /= 36.5;
+        x /= -36.5;
     } else {
-        x /= 30;
+        x /= -30;
     }
 
     return x;

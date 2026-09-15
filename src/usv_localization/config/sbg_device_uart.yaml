@@ -169,27 +169,27 @@
 
     
       #GNSS primary antenna lever arm in IMU X axis (m)
-      primaryLeverArmX: 1.06
+      primaryLeverArmX: 0.88
       #GNSS primary antenna lever arm in IMU Y axis (m)
-      primaryLeverArmY: 0.23
+      primaryLeverArmY: -0.77
       #GNSS primary antenna lever arm in IMU Z axis (m)
-      primaryLeverArmZ: 1.05
+      primaryLeverArmZ: -0.29
       #GNSS primary antenna precise. Set to true if the primary lever arm has been accurately entered and doesn't need online re-estimation.
-      primaryLeverPrecise: true
+      primaryLeverPrecise: false
     
       #GNSS secondary antenna lever arm in IMU X axis (m)
-      secondaryLeverArmX: 0.0
+      secondaryLeverArmX: -0.88
       #GNSS secondary antenna lever arm in IMU Y axis (m)
-      secondaryLeverArmY: 0.0
+      secondaryLeverArmY: 0.77
       #GNSS secondary antenna lever arm in IMU Z axis (m)
-      secondaryLeverArmZ: 0.0
+      secondaryLeverArmZ: -0.29
     
       # Secondary antenna operating mode.
       # 1 The GNSS will be used in single antenna mode only and the secondary lever arm is not used.
       # 2 [Reserved] The GNSS dual antenna information will be used but the secondary lever arm is not known.
       # 3 The GNSS dual antenna information will be used and we have a rough guess for the secondary lever arm.
       # 4 The GNSS dual antenna information will be used and the secondary lever arm is accurately entered and doesn't need online re-estimation.
-      secondaryLeverMode: 1
+      secondaryLeverMode: 3
     
       # Rejection mode for position
       # 0 Measurement is not taken into account
@@ -300,7 +300,7 @@
       # GPS positions from primary or secondary GPS receiver
       log_gps1_pos: 10001
       # GPS true heading from dual antenna system
-      log_gps1_hdt: 0
+      log_gps1_hdt: 10001
       # GPS 1 raw data for post processing.
       log_gps1_raw: 0
       # Provides odometer velocity

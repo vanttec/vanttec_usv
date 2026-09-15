@@ -35,3 +35,7 @@
 [submodule "src/deps/sbgECom"]
 	path = src/deps/sbgECom
 	url = https://github.com/SBG-Systems/sbgECom.git
+[submodule "src/deps/FAST_LIO"]
+	path = src/deps/FAST_LIO
+	url = https://github.com/hku-mars/FAST_LIO.git
+	branch = ROS2
