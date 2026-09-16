@@ -10,11 +10,11 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <condition_variable>
+#include <mutex>
 #include <queue>
 #include <functional>
 #include "socketcan.h"
 #include "Vanttec_CANLib/CANMessage.h"
-#include <boost/lockfree/spsc_queue.hpp>
 
 namespace vanttec {
     class CANHandler {
@@ -37,7 +37,8 @@ namespace vanttec {
         std::vector<std::function<void(uint8_t, can_frame)>> msgParsers;
         std::map<uint32_t, std::vector<std::function<void(can_frame)>>> filterMsgParsers;
 
-        boost::lockfree::spsc_queue<vanttec::CANMessage> writeQueue{128};
+        std::mutex writeQueueMutex;
+        std::queue<vanttec::CANMessage> writeQueue;
 
         static const int MAX_EVENTS = 5;
         epoll_event evlist[MAX_EVENTS];

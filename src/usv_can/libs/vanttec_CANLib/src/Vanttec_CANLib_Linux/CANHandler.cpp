@@ -3,6 +3,8 @@
 //
 
 #include "CANHandler.h"
+#include <cerrno>
+#include <cstring>
 #include <iostream>
 
 namespace vanttec {
@@ -35,23 +37,45 @@ namespace vanttec {
 
     void CANHandler::update_write(){
         CANMessage elem;
-        while(writeQueue.pop(elem)){
+        while (true) {
+            {
+                std::lock_guard<std::mutex> lock(writeQueueMutex);
+                if (writeQueue.empty()) break;
+                elem = writeQueue.front();
+                writeQueue.pop();
+            }
+
             if (elem.len != 0){
-                can_frame outFrame;
+                if (elem.len > CAN_MAX_DLEN) {
+                    std::cerr << "Ignoring CAN frame with invalid DLC: "
+                              << static_cast<int>(elem.len) << std::endl;
+                    continue;
+                }
+
+                can_frame outFrame{};
                 outFrame.can_dlc = elem.len;
                 memcpy(outFrame.data, elem.data, elem.len);
                 outFrame.can_id = elem.arb_id & CAN_SFF_MASK; // use per-message arb ID
 
                 int retry_count = 0;
-                while (::write(canfd, &outFrame, sizeof(can_frame)) != sizeof(can_frame) && retry_count < 10){
-                    std::cerr << "Retrying CAN Write!" << std::endl;
+                ssize_t bytes_written;
+                while ((bytes_written = ::write(canfd, &outFrame, sizeof(can_frame))) !=
+                           sizeof(can_frame) &&
+                       retry_count < 10) {
+                    std::cerr << "CAN write failed (attempt " << (retry_count + 1)
+                              << "/10): " << std::strerror(errno) << std::endl;
                     retry_count++;
+                }
+                if (bytes_written != sizeof(can_frame)) {
+                    std::cerr << "Dropping CAN frame after 10 write attempts"
+                              << std::endl;
                 }
             }
         }
     }
 
     void CANHandler::write(const vanttec::CANMessage &msg) {
+        std::lock_guard<std::mutex> lock(writeQueueMutex);
         writeQueue.push(msg);
     }
 

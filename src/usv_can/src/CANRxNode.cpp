@@ -2,10 +2,10 @@
 // Created by Abiel on 3/22/23.
 // Updated for HAL CAN protocol (DashboardLumos STM32 firmware)
 //
-// CAN ID Map (arbitration ID → message):
-//   0x010 — STM32 telemetry gateway heartbeat (4-byte LE uint32 uptime ms, 1 Hz)
-//   0x150 — Actuator Control PCB (byte[0]=pump_active, byte[1]=actuator_active)
-//   0x200 — Battery Control PCB (float voltage + float current, LE, 8 bytes)
+// CAN ID Map (arbitration ID -> message):
+//   0x010 — STM32 telemetry gateway heartbeat (4-byte LE uint32 uptime ms)
+//   0x150 — Actuator Control PCB (byte[0]=actuator_active)
+//   0x200 — Battery Control PCB (float voltage, LE, 4 bytes)
 //
 
 #include "CANRxNode.h"
@@ -54,25 +54,23 @@ void CANRxNode::handleHeartbeatMsg(can_frame frame) {
   RCLCPP_DEBUG(this->get_logger(), "STM32 heartbeat: %u ms", uptime);
 }
 
-// ID 0x200 — 8 bytes: float voltage (bytes 0-3) + float current (bytes 4-7), little-endian
+// ID 0x200 — 4 bytes: float battery voltage, little-endian
 void CANRxNode::handleBatteryMsg(can_frame frame) {
-  if (frame.can_dlc < 8) return;
+  if (frame.can_dlc < 4) return;
 
   float voltage = 0.0f;
-  float current = 0.0f;
   std::memcpy(&voltage, &frame.data[0], sizeof(float));
-  std::memcpy(&current, &frame.data[4], sizeof(float));
 
   std_msgs::msg::Float32MultiArray msg;
-  msg.data = {voltage, current};
+  msg.data = {voltage};
   batteryPublisher->publish(msg);
 }
 
-// ID 0x150 — byte[0]=pump_active, byte[1]=actuator_active
+// ID 0x150 — byte[0]=actuator_active
 void CANRxNode::handleActuatorMsg(can_frame frame) {
-  if (frame.can_dlc < 2) return;
+  if (frame.can_dlc < 1) return;
 
   std_msgs::msg::UInt8MultiArray msg;
-  msg.data = {frame.data[0], frame.data[1]};
+  msg.data = {frame.data[0]};
   actuatorPublisher->publish(msg);
 }
