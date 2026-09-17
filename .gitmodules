@@ -36,3 +36,6 @@
 	path = src/deps/FAST_LIO
 	url = https://github.com/hku-mars/FAST_LIO.git
 	branch = ROS2
+[submodule "src/deps/livox_ros_driver2"]
+	path = src/deps/livox_ros_driver2
+	url = https://github.com/Ericsii/livox_ros_driver2.git
