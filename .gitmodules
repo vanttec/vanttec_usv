@@ -20,9 +20,6 @@
 [submodule "src/usv_control/libs/a-star"]
 	path = src/usv_control/libs/a-star
 	url = https://github.com/daancode/a-star.git
-[submodule "src/deps/ros_gz"]
-	path = src/deps/ros_gz
-	url = https://github.com/gazebosim/ros_gz.git
 [submodule "src/visionsystemx"]
 	path = src/visionsystemx
 	url = https://github.com/vanttec/visionsystemx.git
@@ -32,3 +29,13 @@
 [submodule "src/deps/robocommand"]
 	path = src/deps/robocommand
 	url = https://github.com/vanttec/robocommand.git
+[submodule "src/deps/sbgECom"]
+	path = src/deps/sbgECom
+	url = https://github.com/SBG-Systems/sbgECom.git
+[submodule "src/deps/FAST_LIO"]
+	path = src/deps/FAST_LIO
+	url = https://github.com/hku-mars/FAST_LIO.git
+	branch = ROS2
+[submodule "src/deps/livox_ros_driver2"]
+	path = src/deps/livox_ros_driver2
+	url = https://github.com/Ericsii/livox_ros_driver2.git
