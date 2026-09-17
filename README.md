@@ -14,73 +14,19 @@ Official documentation [here][vanttec-documentation].
 2. CUDNN 8.9.7
 3. TensorRT 10.3.0
 4. ZED SDK
-5. Gazebo Sim - Harmonic
-6. Install the following dependencies:
+5. Install the following dependencies:
 
 ```Shell
 sudo apt install libgtsam-dev libgtsam-unstable-dev 
-sudo apt install ros-humble-xacro libpcap-dev ros-humble-robot-localization ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-tf-transformations ros-humble-foxglove-bridge ros-humble-nmea-msgs ros-humble-joy-teleop libgz-sim8 libgz-sim8-dev ros-humble-ros-gz ros-humble-ros-gzharmonic
+sudo apt install ros-humble-xacro libpcap-dev ros-humble-robot-localization ros-humble-perception-pcl ros-humble-pcl-msgs ros-humble-vision-opencv ros-humble-tf-transformations ros-humble-foxglove-bridge ros-humble-nmea-msgs ros-humble-joy-teleop 
 
 # Install other missing dependencies automatically if needed:
 rosdep install --from-paths src -y --ignore-src
 ```
 
-7. Download the gz sim waves plugin
-```Shell
-# Install the plugin dependenciess
-sudo apt-get update
-sudo apt-get install libcgal-dev libfftw3-dev
+Note: This repository can be used without CUDA, CUDNN, TensorRT and ZED SDK if needed, but this requires skipping the visionsystemx package during building and will not allow for any vision functionalities.
 
-# Create a ws for the plugin
-cd
-mkdir -p gz_ws/src
-
-# Clone the repo
-cd ~/gz_ws/src
-git clone https://github.com/srmainwaring/asv_wave_sim.git
-
-# Specify $GZ_VERSION before compiling
-export GZ_VERSION=harmonic
-
-# Compile it
-colcon build --symlink-install --merge-install --cmake-args \
--DCMAKE_BUILD_TYPE=RelWithDebInfo \
--DBUILD_TESTING=ON \
--DCMAKE_CXX_STANDARD=17
-
-# Also build the GUI plugin
-cd ~/gz_ws/src/asv_wave_sim/gz-waves/src/gui/plugins/waves_control 
-mkdir build && cd build
-cmake .. && make
-```
-8. Setup Gz Sim and the waves plugin, by adding these lines to the end of your ~/.bashrc file
-
-```Shell
-source ~/gz_ws/install/setup.bash
-
-export GZ_VERSION=harmonic
-
-export GZ_SIM_RESOURCE_PATH=:~/vanttec_usv/src/usv_description/models:$GZ_SIM_RESOURCE_PATH
-
-# ensure the model and world files are found
-export GZ_SIM_RESOURCE_PATH=\
-$GZ_SIM_RESOURCE_PATH:\
-$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/models:\
-$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/world_models:\
-$HOME/gz_ws/src/asv_wave_sim/gz-waves-models/worlds
-
-# ensure the system plugins are found
-export GZ_SIM_SYSTEM_PLUGIN_PATH=\
-$GZ_SIM_SYSTEM_PLUGIN_PATH:\
-$HOME/gz_ws/install/lib
-
-# ensure the gui plugin is found
-export GZ_GUI_PLUGIN_PATH=\
-$GZ_GUI_PLUGIN_PATH:\
-$HOME/gz_ws/src/asv_wave_sim/gz-waves/src/gui/plugins/waves_control/build
-```
-
-9. Download and build this workspace
+### Downloading and building the workspace
 
 ```Shell
 # Clone repository and its submodules
@@ -98,8 +44,16 @@ source ./install/setup.bash
 # Build the rest of the packages
 colcon build
 ```
+For use without cuda, the visionsystemx package can be skipped by using the following command instead: 
+```
+colcon build --packages-skip visionsystemx
+```
 
-10. Install [ACADOS] for usv_control's MPC's functionalities
+
+Optional extra: 
+
+- Install [ACADOS] for usv_control's MPC's functionalities
+- Use [vanttec_usv_gz] for simulation of the USV
 
 ## Congratulations, you're ready to navigate the future @ VantTec!
 
@@ -123,3 +77,4 @@ ros2 launch usv_control teleop_launch.py
 
 [vanttec-documentation]: https://vanttec-documentation.readthedocs.io/en/latest/usv_documentation.html
 [ACADOS]: https://docs.acados.org/installation
+[vanttec_usv_gz]: https://github.com/vanttec/vanttec_usv_gz
