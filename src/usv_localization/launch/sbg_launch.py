@@ -7,7 +7,8 @@ def generate_launch_description():
     config = os.path.join(
         get_package_share_directory('usv_localization'),
         'config',
-        'sbg_device_uart.yaml'
+        # 'sbg_device_uart.yaml'
+        'sbg_device.yaml'
     )
 
     return LaunchDescription([

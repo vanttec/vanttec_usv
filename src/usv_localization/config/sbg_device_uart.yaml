@@ -12,7 +12,7 @@
 
     odometry:
       # Enable ROS odometry messages.
-      enable: false
+      enable: true
       # Publish odometry transforms.
       publishTf: true
       # Odometry frame IDs.
@@ -21,12 +21,12 @@
       initFrameId: "map"
 
     # Configuration of the device with ROS.
-    confWithRos: false
+    confWithRos: true
     
     # Uart configuration
     uartConf:
       # Port Name
-      portName: "/dev/ttyIMU"
+      portName: "/dev/ttyUSB0"
     
       # Baud rate (4800 ,9600 ,19200 ,38400 ,115200 [default],230400 ,460800 ,921600)
       baudRate: 115200
@@ -109,7 +109,7 @@
       # 2 Module connected on PORT_C
       # 3 Module connected on PORT_D
       # 5 Module is connected internally
-      gnss1ModulePortAssignment: 255
+      gnss1ModulePortAssignment: 5
       # GNSS module sync assignment:
       # 0 Module is disabled
       # 1 Synchronization is done using SYNC_IN_A pin
@@ -165,7 +165,7 @@
       # 104 Used on Ellipse-E to setup a connection to ublox in read only mode.
       # 106 Used on Ellipse-E to setup a connection to Novatel receiver in read only mode.
       # 107 Used on Ellipse-D by default
-      gnss_model_id: 101
+      gnss_model_id: 107
     
       #GNSS primary antenna lever arm in IMU X axis (m)
       primaryLeverArmX: 0.0
@@ -273,13 +273,13 @@
       # Status general, clock, com aiding, solution, heave
       log_status: 200
       # Includes IMU status, acc., gyro, temp delta speeds and delta angles values
-      log_imu_data: 4
+      log_imu_data: 8
       # Includes roll, pitch, yaw and their accuracies on each axis
-      log_ekf_euler: 4
+      log_ekf_euler: 8
       # Includes the 4 quaternions values
-      log_ekf_quat: 4
+      log_ekf_quat: 8
       # Position and velocities in NED coordinates with the accuracies on each axis
-      log_ekf_nav: 4
+      log_ekf_nav: 8
       # Velocity expressed in the INS body/vehicle frame
       log_ekf_vel_body: 0
       # Rotations rate and accelerations in the INS body/vehicle frame
@@ -297,7 +297,7 @@
       # GPS velocities from primary or secondary GPS receiver
       log_gps1_vel: 10001
       # GPS positions from primary or secondary GPS receiver
-      log_gps1_pos: 200
+      log_gps1_pos: 10001
       # GPS true heading from dual antenna system
       log_gps1_hdt: 10001
       # GPS 1 raw data for post processing.

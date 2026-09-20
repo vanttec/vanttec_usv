@@ -12,27 +12,36 @@ find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(usv_interfaces REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(sbg_driver REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(usv_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/UsvLoc.msg"
+)
+
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 # add_executable(docking src/docking.cpp)
 # ament_target_dependencies(docking rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
 # target_compile_features(docking PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
+
+add_executable(localization src/localization.cpp)
+ament_target_dependencies(localization rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
+target_link_libraries(localization "${cpp_typesupport_target}")
+
 add_executable(mag_orientation_sbg src/mag_orientation_sbg.cpp)
 ament_target_dependencies(mag_orientation_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
 
-add_executable(pose3_sbg src/pose3_sbg.cpp)
-ament_target_dependencies(pose3_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs usv_interfaces)
+#add_executable(pose3_sbg src/pose3_sbg.cpp)
+#ament_target_dependencies(pose3_sbg rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs usv_interfaces)
 
 install(TARGETS
   mag_orientation_sbg
-  pose3_sbg
+  localization
   DESTINATION lib/${PROJECT_NAME})
 
 # Resources
