@@ -22,14 +22,14 @@
 
     # Configuration of the device with ROS.
     confWithRos: true
-    
+
     # Uart configuration
     uartConf:
       # Port Name
-      portName: "/dev/ttyUSB0"
-    
+      portName: "/dev/ttyIMU"
+
       # Baud rate (4800 ,9600 ,19200 ,38400 ,115200 [default],230400 ,460800 ,921600)
-      baudRate: 115200
+      baudRate: 921600
 
       # List of fallback baud rates to test if configured baud rate doesn't work.
       # fallbackBaudRates:
@@ -119,7 +119,7 @@
       # 5 Synchronization is internal
       # 6 Synchronization is done using SYNC_OUT_A pin
       # 7 Synchronization is done using SYNC_OUT_B pin
-      gnss1ModuleSyncAssignment: 0
+      gnss1ModuleSyncAssignment: 5
       # RTCM input port assignment for Ellipse-N DGPS (see gnss1ModulePortAssignment for values)
       rtcmPortAssignment: 255
       # Odometer module pin assignment
@@ -168,27 +168,27 @@
       gnss_model_id: 107
     
       #GNSS primary antenna lever arm in IMU X axis (m)
-      primaryLeverArmX: 0.0
+      primaryLeverArmX: 0.88
       #GNSS primary antenna lever arm in IMU Y axis (m)
-      primaryLeverArmY: 0.0
+      primaryLeverArmY: -0.77
       #GNSS primary antenna lever arm in IMU Z axis (m)
-      primaryLeverArmZ: 0.0
+      primaryLeverArmZ: -0.29
       #GNSS primary antenna precise. Set to true if the primary lever arm has been accurately entered and doesn't need online re-estimation.
-      primaryLeverPrecise: true
+      primaryLeverPrecise: false
     
       #GNSS secondary antenna lever arm in IMU X axis (m)
-      secondaryLeverArmX: 0.0
+      secondaryLeverArmX: -0.88
       #GNSS secondary antenna lever arm in IMU Y axis (m)
-      secondaryLeverArmY: 0.0
+      secondaryLeverArmY: 0.77
       #GNSS secondary antenna lever arm in IMU Z axis (m)
-      secondaryLeverArmZ: 0.0
+      secondaryLeverArmZ: -0.29
     
       # Secondary antenna operating mode.
       # 1 The GNSS will be used in single antenna mode only and the secondary lever arm is not used.
       # 2 [Reserved] The GNSS dual antenna information will be used but the secondary lever arm is not known.
       # 3 The GNSS dual antenna information will be used and we have a rough guess for the secondary lever arm.
       # 4 The GNSS dual antenna information will be used and the secondary lever arm is accurately entered and doesn't need online re-estimation.
-      secondaryLeverMode: 1
+      secondaryLeverMode: 3
     
       # Rejection mode for position
       # 0 Measurement is not taken into account
@@ -203,7 +203,7 @@
     # Odometer configuration
     odom:
       # Odometer's gain Pulses/m
-      gain: 4800.0 
+      gain: 4800.0
       # User gain average error (%)
       gain_error: 0
       # Odometer's direction
@@ -256,7 +256,7 @@
 
       # Ros standard output:
       # Note: If true publish ROS standard messages.
-      ros_standard: false
+      ros_standard: true
 
       # Frame convention:
       # Note: If true messages are expressed in the ENU convention.
@@ -273,11 +273,11 @@
       # Status general, clock, com aiding, solution, heave
       log_status: 200
       # Includes IMU status, acc., gyro, temp delta speeds and delta angles values
-      log_imu_data: 8
+      log_imu_data: 1
       # Includes roll, pitch, yaw and their accuracies on each axis
       log_ekf_euler: 8
       # Includes the 4 quaternions values
-      log_ekf_quat: 8
+      log_ekf_quat: 1
       # Position and velocities in NED coordinates with the accuracies on each axis
       log_ekf_nav: 8
       # Velocity expressed in the INS body/vehicle frame
@@ -285,15 +285,15 @@
       # Rotations rate and accelerations in the INS body/vehicle frame
       log_ekf_rot_accel_body: 0
       # Rotations rate and accelerations in North, East, Down (NED) navigation frame
-      log_ekf_rot_accel_ned: 4
+      log_ekf_rot_accel_ned: 0
       # Heave, surge and sway and accelerations on each axis for up to 4 points
-      log_ship_motion: 200
+      log_ship_motion: 0
       # Provides UTC time reference
       log_utc_time: 200
       # Magnetic data with associated accelerometer on each axis
-      log_mag: 4
+      log_mag: 0
       # Magnetometer calibration data (raw buffer)
-      log_mag_calib: 200
+      log_mag_calib: 0
       # GPS velocities from primary or secondary GPS receiver
       log_gps1_vel: 10001
       # GPS positions from primary or secondary GPS receiver
@@ -301,7 +301,7 @@
       # GPS true heading from dual antenna system
       log_gps1_hdt: 10001
       # GPS 1 raw data for post processing.
-      log_gps1_raw: 10001
+      log_gps1_raw: 0
       # Provides odometer velocity
       log_odo_vel: 0
       # Event A/B/C/D Event markers sent when events are detected on a sync in pin
@@ -312,7 +312,7 @@
       # Air data
       log_air_data: 0
       # Short IMU data
-      log_imu_short: 8
+      log_imu_short: 0
 
     rtcm:
       # Should ros driver subscribe to RTCM topic
