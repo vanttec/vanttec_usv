@@ -75,8 +75,6 @@ private:
         msg->status.heading_valid ? "VALID" : "INVALID",
         msg->status.mag_ref_used ? "USED" : "NOT USED");
     }
-
-    RCLCPP_INFO(this->get_logger(), "Heading: %.3f rad (%.2f * PI)", yaw, yaw / M_PI);
   }
 
 
