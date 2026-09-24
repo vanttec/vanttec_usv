@@ -16,13 +16,8 @@ find_package(Eigen3 REQUIRED)
 find_package(sbg_driver REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
+find_package(usv_interfaces REQUIRED)
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/UsvLoc.msg"
-)
-
-rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 # add_executable(docking src/docking.cpp)
 # ament_target_dependencies(docking rclcpp std_msgs geometry_msgs visualization_msgs usv_interfaces Eigen3)
@@ -30,7 +25,7 @@ rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typ
 
 
 add_executable(localization src/localization.cpp)
-ament_target_dependencies(localization rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs)
+ament_target_dependencies(localization rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs usv_interfaces)
 target_link_libraries(localization "${cpp_typesupport_target}")
 
 add_executable(mag_orientation_sbg src/mag_orientation_sbg.cpp)
