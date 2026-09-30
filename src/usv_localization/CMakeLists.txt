@@ -17,6 +17,8 @@ find_package(sbg_driver REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
+find_package(sensor_msgs REQUIRED)
+
 
 
 # add_executable(docking src/docking.cpp)
@@ -24,8 +26,8 @@ find_package(usv_interfaces REQUIRED)
 # target_compile_features(docking PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
 
-add_executable(localization src/localization.cpp)
-ament_target_dependencies(localization rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs usv_interfaces)
+add_executable(localization src/localization_node.cpp)
+ament_target_dependencies(localization rclcpp std_msgs geometry_msgs sbg_driver tf2 tf2_geometry_msgs usv_interfaces sensor_msgs)
 target_link_libraries(localization "${cpp_typesupport_target}")
 
 add_executable(mag_orientation_sbg src/mag_orientation_sbg.cpp)

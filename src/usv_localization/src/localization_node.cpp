@@ -4,9 +4,13 @@
 #include "std_msgs/msg/float64.hpp"
 #include "sbg_driver/msg/sbg_ekf_quat.hpp"
 #include "sbg_driver/msg/sbg_ekf_nav.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 #include "tf2/utils.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "usv_interfaces/msg/usv_loc.hpp"
+#include "geometry_msgs/msg/pose2_d.hpp"
+#include "geometry_msgs/msg/vector3.hpp"
+
 
 class Localization : public rclcpp::Node {
 public:
@@ -17,7 +21,13 @@ public:
     subscription_nav = this->create_subscription<sbg_driver::msg::SbgEkfNav>(
       "/sbg/ekf_nav", 10, std::bind(&Localization::nav_callback, this, std::placeholders::_1));
 
-    publisher = this->create_publisher<usv_interfaces::msg::UsvLoc>("/usv_loc", 10);
+    subscription_imu = this->create_subscription<sensor_msgs::msg::Imu>(
+      "/imu/data", 10, std::bind(&Localization::imu_callback, this, std::placeholders::_1));
+    
+
+    publisher_loc = this->create_publisher<usv_interfaces::msg::UsvLoc>("usv/loc", 10);
+    publisher_pose = this->create_publisher<geometry_msgs::msg::Pose2D>("usv/state/pose", 10);
+    publisher_vel = this->create_publisher<geometry_msgs::msg::Vector3>("usv/state/velocity", 10);
 
     RCLCPP_INFO(this->get_logger(), "Nodo de Localization iniciado.");
   }
@@ -25,7 +35,11 @@ public:
 private:
   rclcpp::Subscription<sbg_driver::msg::SbgEkfQuat>::SharedPtr subscription_quat;
   rclcpp::Subscription<sbg_driver::msg::SbgEkfNav>::SharedPtr subscription_nav;
-  rclcpp::Publisher<usv_interfaces::msg::UsvLoc>::SharedPtr publisher;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr subscription_imu;
+
+  rclcpp::Publisher<usv_interfaces::msg::UsvLoc>::SharedPtr publisher_loc;
+  rclcpp::Publisher<geometry_msgs::msg::Pose2D>::SharedPtr publisher_pose;
+  rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr publisher_vel;
 
   bool origin_set = false;
   bool angles_valid = false;
@@ -36,6 +50,8 @@ private:
   double roll = 0.0; 
   double pitch = 0.0; 
   double yaw = 0.0;
+  double r = 0.0;
+  bool imu_received = false;
 
   struct NedPosition{
     double x;
@@ -52,6 +68,11 @@ private:
     pos.y = delta_lon_rad * cos_lat0 * R_TIERRA;
 
     return pos;
+  }
+
+  void imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg){
+    r = msg->angular_velocity.z; // Signo por confirmar en la SBG fisica
+    imu_received = true;
   }
 
   void quat_callback(const sbg_driver::msg::SbgEkfQuat::SharedPtr msg) {
@@ -116,7 +137,31 @@ private:
     msg_out.pitch = pitch;
     msg_out.yaw = yaw;
 
-    publisher->publish(msg_out);
+    publisher_loc->publish(msg_out);
+
+    const double v_N = msg->velocity.x;
+    const double v_E = msg->velocity.y;
+    
+    const double c = std::cos(yaw);
+    const double s = std::sin(yaw);
+
+    const double u = v_N * c + v_E * s;
+    const double v = -v_N * s + v_E * c;
+
+    if(imu_received){
+      geometry_msgs::msg::Vector3 vel_msg;
+      vel_msg.x = u; // surge: avance hacia la proa en m/s
+      vel_msg.y = v; // sway: dezlizamiento a estribor en m/s
+      vel_msg.z = r; // yaw rate (rad/s), positivo a estribor (NED)
+
+      publisher_vel->publish(vel_msg);
+    }
+
+    geometry_msgs::msg::Pose2D pose_msg;
+    pose_msg.x = pos.x;
+    pose_msg.y = pos.y;
+    pose_msg.theta = yaw;
+    publisher_pose->publish(pose_msg);
   }
 
 };
