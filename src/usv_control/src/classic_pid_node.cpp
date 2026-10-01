@@ -40,12 +40,12 @@ class ClassicPIDNode : public rclcpp::Node{
             double ki_u = this->declare_parameter<double>("ki_u", 0.0);
             double kd_u = this->declare_parameter<double>("kd_u", 0.0);
 
-            double psi_out_max = this->declare_parameter<double>("psi_out_max", 8.0);
-            double u_out_max = this->declare_parameter<double>("u_out_max", 12.0);
+            double psi_out_max = this->declare_parameter<double>("psi_out_max", 16.0);
+            double u_out_max = this->declare_parameter<double>("u_out_max", 20.0);
             double u_out_min = this->declare_parameter<double>("u_out_min", 0.0);
 
-            thruster_min = this->declare_parameter<double>("thruster_min", -20.0);
-            thruster_max = this->declare_parameter<double>("thruster_max", 20.0);
+            thruster_min = this->declare_parameter<double>("thruster_min", -30.0);
+            thruster_max = this->declare_parameter<double>("thruster_max", 36.0);
             state_timeout = this->declare_parameter<double>("state_timeout", 0.5);
 
             heading_pid = ClassicPID(kp_psi, ki_psi, kd_psi, -psi_out_max, psi_out_max);
