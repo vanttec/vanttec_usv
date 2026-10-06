@@ -1,8 +1,3 @@
-# Va en la raiz de vanttec_usv/, junto al Dockerfile
-#   docker compose build            -> construye la imagen
-#   docker compose up -d            -> levanta el contenedor en segundo plano
-#   docker compose exec usv bash    -> abre una terminal dentro (las que quieras)
-#   docker compose down             -> detiene y borra el contenedor (tu codigo NO se borra)
 
 services:
   usv:
@@ -17,26 +12,16 @@ services:
     container_name: usv_humble
 
     # --- Red y DDS ---------------------------------------------------------
-    # host: el contenedor comparte la pila de red del host. DDS descubre nodos
-    # por multicast UDP, que no cruza la red bridge por defecto de Docker.
     network_mode: host
-    # FastDDS usa memoria compartida (/dev/shm) entre procesos de la misma
-    # maquina. Sin IPC compartido: los topics aparecen pero los datos no llegan.
     ipc: host
 
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
 
     volumes:
-      # Tu workspace real montado en /ws: editas en el host, compilas dentro.
       - ./:/ws
-      # /dev completo para que el SBG aparezca aunque lo conectes despues
-      # de levantar el contenedor (hotplug).
       - /dev:/dev
-
-    # Montar /dev no basta: el kernel filtra el acceso a dispositivos por
-    # cgroup. Permitimos char devices (c) con major 188 (ttyUSB*) y
-    # 166 (ttyACM*), cualquier minor (*), con read/write/mknod (rwm).
+      
     device_cgroup_rules:
       - 'c 188:* rwm'
       - 'c 166:* rwm'
