@@ -26,6 +26,12 @@ find_library(FATROP_LIBRARY fatrop PATHS /usr/local/lib)
 add_subdirectory(libs/usv_libs)
 add_subdirectory(libs/a-star)
 
+add_library(planning_core src/planning/grid_map.cpp src/planning/costmap_builder.cpp)
+target_include_directories(planning_core PUBLIC include)
+
+
+
+
 set(DEPENDENCIES
   ament_cmake
   geometry_msgs
@@ -198,6 +204,13 @@ install(PROGRAMS
 )
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_grid_map test/test_grid_map.cpp)
+  target_link_libraries(test_grid_map planning_core)
+
+  ament_add_gtest(test_costmap_builder test/test_costmap_builder.cpp)
+  target_link_libraries(test_costmap_builder planning_core)
+
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # comment the line when a copyright and license is added to all source files
