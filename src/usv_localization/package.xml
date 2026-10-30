@@ -18,8 +18,13 @@
   <!-- <depend>polygon_base</depend> -->
   <exec_depend>rclpy</exec_depend>
 
-  <depend>usv_interfaces</depend>
+  <build_depend>rosidl_default_generators</build_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
+  <depend>usv_interfaces</depend>
+  <depend>sensor_msgs</depend>
+  <depend>sbg_driver</depend>
   <buildtool_depend>ament_cmake</buildtool_depend>
   
   <test_depend>ament_lint_auto</test_depend>

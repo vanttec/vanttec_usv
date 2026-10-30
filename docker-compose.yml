@@ -1,0 +1,32 @@
+
+services:
+  usv:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USERNAME: ros
+        USER_UID: 1000   # tu `id -u` en el host
+        USER_GID: 1000   # tu `id -g` en el host
+    image: vanttec/usv-humble:dev
+    container_name: usv_humble
+
+    # --- Red y DDS ---------------------------------------------------------
+    network_mode: host
+    ipc: host
+
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-46}
+
+    volumes:
+      - ./:/ws
+      - /dev:/dev
+      
+    device_cgroup_rules:
+      - 'c 188:* rwm'
+      - 'c 166:* rwm'
+
+    stdin_open: true
+    tty: true
+    # Mantiene el contenedor vivo para entrar con `exec` las veces que quieras.
+    command: sleep infinity
