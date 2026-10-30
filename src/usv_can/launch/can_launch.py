@@ -17,7 +17,7 @@ def generate_launch_description():
     #   sudo ip link set up can0
     can_interface_arg = DeclareLaunchArgument(
         "can_interface",
-        default_value="can0",
+        default_value="can_vtec",
         description="SocketCAN interface name (e.g. can0, can_vtec)"
     )
 
