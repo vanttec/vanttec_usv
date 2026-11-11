@@ -241,7 +241,7 @@ private:
     
     void timer_callback() {
         // Clean up expired obstacles
-        // cleanup_old_obstacles();
+        cleanup_old_obstacles();
         
         // Update local obstacles list from global list
         update_local_obstacles();
@@ -266,6 +266,7 @@ private:
         }
         
         // Remove them in reverse order to maintain valid indices
+        visualization_msgs::msg::MarkerArray deleted;
         for (auto it = to_remove.rbegin(); it != to_remove.rend(); ++it) {
             std::size_t idx = *it;
             
@@ -274,29 +275,16 @@ private:
             obstacle_last_seen_.erase(obstacle_last_seen_.begin() + idx);
             color_history_.erase(color_history_.begin() + idx);
             
-            // Mark the marker for deletion
+            // Send the DELETE to RViz, then drop the marker. Ids are not renumbered,
+            // so each marker keeps the number of its uuid.
             if (idx < global_markers_.markers.size()) {
-                global_markers_.markers[idx].action = visualization_msgs::msg::Marker::DELETE;
+                auto marker = global_markers_.markers[idx];
+                marker.action = visualization_msgs::msg::Marker::DELETE;
+                deleted.markers.push_back(marker);
+                global_markers_.markers.erase(global_markers_.markers.begin() + idx);
             }
         }
-        
-        // Clean up deleted markers periodically
-        bool cleaned_markers = false;
-        for (auto it = global_markers_.markers.begin(); it != global_markers_.markers.end();) {
-            if (it->action == visualization_msgs::msg::Marker::DELETE) {
-                it = global_markers_.markers.erase(it);
-                cleaned_markers = true;
-            } else {
-                ++it;
-            }
-        }
-        
-        if (cleaned_markers) {
-            // Update marker IDs to ensure they stay unique
-            for (std::size_t i = 0; i < global_markers_.markers.size(); ++i) {
-                global_markers_.markers[i].id = i;
-            }
-        }
+        if (!deleted.markers.empty()) marker_pub_->publish(deleted);
     }
     
     void update_local_obstacles() {
