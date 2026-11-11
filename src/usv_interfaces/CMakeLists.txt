@@ -28,7 +28,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ZbboxArray.msg"
   "msg/ClusteringSegmentation.msg"
   "msg/Pose3.msg"
-  DEPENDENCIES std_msgs 
+  DEPENDENCIES std_msgs builtin_interfaces
 )
 
 # ================

@@ -59,8 +59,10 @@ class MissionHandlerNode : public rclcpp::Node {
                 "/usv/op_mode", 1,
                 [this](const std_msgs::msg::UInt16 &msg) { auto_mode.data = msg.data; });
 
+            // Body-frame obstacles from global_obstacle_register_node (or obstacle_publisher_node in sim)
+            this->declare_parameter("obj_list_topic", "/obj_list");
             object_list_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-                "/bebblebrox/objects/yolo", 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
+                this->get_parameter("obj_list_topic").as_string(), 10, std::bind(&MissionHandlerNode::obj_list_callback, this, _1)
             );
 
             wp_arrived_sub_ = this->create_subscription<std_msgs::msg::Bool>(
@@ -238,6 +240,9 @@ class MissionHandlerNode : public rclcpp::Node {
                     obs_t.type = msg.obj_list[i].type.c_str();
                     obs_t.x = (double)(msg.obj_list[i].x);
                     obs_t.y = (double)(msg.obj_list[i].y);
+                    obs_t.uuid = msg.obj_list[i].uuid;
+                    obs_t.confidence = msg.obj_list[i].confidence;
+                    obs_t.last_seen = rclcpp::Time(msg.obj_list[i].last_seen).seconds();
                     obs_v.push_back(obs_t);
                 }
             }

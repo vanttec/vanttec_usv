@@ -15,6 +15,7 @@
 #include "std_msgs/msg/color_rgba.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "geometry_msgs/msg/pose2_d.hpp"
+#include "color_vote.h"
 
 using namespace std::chrono_literals;
 using namespace std::placeholders;
@@ -31,10 +32,14 @@ public:
         this->declare_parameter("min_obstacle_separation", 0.5);  // Minimum distance between obstacles
         this->declare_parameter("max_tracking_distance", 10.0);   // Maximum distance to track obstacles
         this->declare_parameter("tracking_lifetime", 30.0);       // Seconds to keep tracking an obstacle without updates
+        this->declare_parameter("color_vote_window", 10);         // Last N color readings used for the majority vote
+        this->declare_parameter("inference_topics", std::vector<std::string>{
+            "/bebblebrox/objects/yolo", "/bebblebrox/objects/shapes"});
         
         min_obstacle_separation_ = this->get_parameter("min_obstacle_separation").as_double();
         max_tracking_distance_ = this->get_parameter("max_tracking_distance").as_double();
         tracking_lifetime_ = this->get_parameter("tracking_lifetime").as_double();
+        color_vote_window_ = static_cast<std::size_t>(this->get_parameter("color_vote_window").as_int());
         
         // Publishers
         object_list_global_pub_ = this->create_publisher<usv_interfaces::msg::ObjectList>("/obj_list_global", 10);
@@ -47,9 +52,13 @@ public:
             "/usv/state/pose", 10, 
             std::bind(&GlobalObstacleRegisterNode::pose_callback, this, _1));
         
-        inferences_sub_ = this->create_subscription<usv_interfaces::msg::ObjectList>(
-            "/inferences", 10, 
-            std::bind(&GlobalObstacleRegisterNode::inferences_callback, this, _1));
+        // Copy first: as_string_array() returns a reference into a temporary Parameter.
+        const auto topics = this->get_parameter("inference_topics").as_string_array();
+        for (const auto& topic : topics) {
+            inferences_subs_.push_back(this->create_subscription<usv_interfaces::msg::ObjectList>(
+                topic, 10,
+                std::bind(&GlobalObstacleRegisterNode::inferences_callback, this, _1)));
+        }
         
         // Timer for periodic publishing and cleanup
         timer_ = this->create_wall_timer(
@@ -64,12 +73,13 @@ private:
     rclcpp::Publisher<usv_interfaces::msg::ObjectList>::SharedPtr object_list_local_pub_, object_list_global_pub_;
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr marker_pub_, on_watch_marker_pub_;
     rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
-    rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr inferences_sub_;
+    std::vector<rclcpp::Subscription<usv_interfaces::msg::ObjectList>::SharedPtr> inferences_subs_;
     
     // Configuration parameters
     double min_obstacle_separation_;
     double max_tracking_distance_;
     double tracking_lifetime_;
+    std::size_t color_vote_window_;
     
     // Vehicle state
     geometry_msgs::msg::Pose2D pose_;
@@ -82,6 +92,7 @@ private:
     
     // Obstacle tracking - stores last update time for each obstacle
     std::vector<rclcpp::Time> obstacle_last_seen_;
+    std::vector<std::deque<int8_t>> color_history_;
     int next_obstacle_id_ = 0;
     
     // Color definitions
@@ -115,6 +126,9 @@ private:
     }
     
     void process_inference(const usv_interfaces::msg::Object& inference) {
+        // Vision pads ObjectList with ignore entries at (0, 0); they are not obstacles.
+        if (inference.color < 0 || inference.type == "ignore") return;
+
         // Convert local coordinates to global
         auto global_pos = local_to_global(inference.x, inference.y);
         
@@ -150,9 +164,14 @@ private:
             new_obj.v_y = 0.0;
             new_obj.color = inference.color;
             new_obj.type = inference.type.empty() ? "marker" : inference.type;
+            new_obj.uuid = "obs_" + std::to_string(next_obstacle_id_++);
+            new_obj.confidence = inference.confidence;
+            new_obj.last_seen = this->now();
             
             global_obstacles_.obj_list.push_back(new_obj);
             obstacle_last_seen_.push_back(this->now());
+            color_history_.push_back({});
+            vote_color(color_history_.back(), inference.color, color_vote_window_);
             
             // Create marker for visualization
             visualization_msgs::msg::Marker marker;
@@ -201,8 +220,18 @@ private:
             marker.pose.position.x = obs.x;
             marker.pose.position.y = obs.y;
             
+            // Color follows the majority of recent readings, so color changes reach the planner
+            obs.color = vote_color(color_history_[closest_idx], inference.color, color_vote_window_);
+            obs.confidence = inference.confidence;
+            if (obs.color >= 0 && obs.color < 6) {
+                marker.color.r = color_list[obs.color][0];
+                marker.color.g = color_list[obs.color][1];
+                marker.color.b = color_list[obs.color][2];
+            }
+
             // Update the time
             obstacle_last_seen_[closest_idx] = this->now();
+            obs.last_seen = obstacle_last_seen_[closest_idx];
             
             RCLCPP_INFO(this->get_logger(), "Updated obstacle at (%f, %f), velocity: (%f, %f)", 
                 obs.x, obs.y, obs.v_x, obs.v_y);
@@ -242,6 +271,7 @@ private:
             // Remove from all containers
             global_obstacles_.obj_list.erase(global_obstacles_.obj_list.begin() + idx);
             obstacle_last_seen_.erase(obstacle_last_seen_.begin() + idx);
+            color_history_.erase(color_history_.begin() + idx);
             
             // Mark the marker for deletion
             if (idx < global_markers_.markers.size()) {
@@ -313,6 +343,9 @@ private:
                 local_obj.v_y = global_obj.v_y;
                 local_obj.color = global_obj.color;
                 local_obj.type = global_obj.type;
+                local_obj.uuid = global_obj.uuid;
+                local_obj.confidence = global_obj.confidence;
+                local_obj.last_seen = global_obj.last_seen;
                 
                 local_obstacles_.obj_list.push_back(local_obj);
                 

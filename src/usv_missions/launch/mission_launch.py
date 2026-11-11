@@ -40,6 +40,18 @@ def generate_launch_description():
         arguments=[('__log_level:=debug')],
     )
 
+    # Turns vision detections into /obj_list. Set use_register:=false when
+    # obstacle_launch.py (simulated obstacles) already publishes /obj_list.
+    use_register_arg = DeclareLaunchArgument('use_register', default_value='true')
+    global_obstacle_register_node = Node(
+        package='usv_missions',
+        executable='global_obstacle_register_node',
+        condition=IfCondition(LaunchConfiguration('use_register')),
+        output='screen',
+    )
+
     return LaunchDescription([
+        use_register_arg,
+        global_obstacle_register_node,
         mission_handler_node
     ])
