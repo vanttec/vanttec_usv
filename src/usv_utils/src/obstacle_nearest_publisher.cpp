@@ -43,9 +43,11 @@ class ObstacleNearestPublisherNode : public rclcpp::Node {
                         }
                     }
                     while(out.obj_list.size() < 3){
-                        out.obj_list.push_back(usv_interfaces::build<usv_interfaces::msg::Object>().x(0.).y(0.).v_x(0.).v_y(0.).color(5).type("NaN").uuid("").confidence(0.f).last_seen(builtin_interfaces::msg::Time()));
+                        // Padding at 100 m, the same "no obstacle" value mpc_node starts with.
+                        out.obj_list.push_back(usv_interfaces::build<usv_interfaces::msg::Object>().x(100.).y(100.).v_x(0.).v_y(0.).color(5).type("NaN").uuid("").confidence(0.f).last_seen(builtin_interfaces::msg::Time()));
                     }
-                    nearest_dist.data = obj_dist_v[0].first;
+                    // The register publishes an empty list at startup and after cleanup.
+                    nearest_dist.data = obj_dist_v.empty() ? 1e4 : obj_dist_v[0].first;
                 });
 
             pose_sub_ = this->create_subscription<geometry_msgs::msg::Pose2D>(
@@ -71,6 +73,7 @@ class ObstacleNearestPublisherNode : public rclcpp::Node {
 
                 
         void timer_callback() {
+            if(out.obj_list.empty()) return;  // mpc_node reads 3 entries without a size check
             object_n_nearest_list_pub_->publish(out);
             object_n_nearest_dist_pub_->publish(nearest_dist);
         }
