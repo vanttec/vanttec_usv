@@ -29,8 +29,8 @@ class GlobalObstacleRegisterNode : public rclcpp::Node {
 public:
     GlobalObstacleRegisterNode() : Node("global_obstacle_register_node") {
         // Parameters
-        this->declare_parameter("min_obstacle_separation", 0.5);  // Minimum distance between obstacles
-        this->declare_parameter("max_tracking_distance", 10.0);   // Maximum distance to track obstacles
+        this->declare_parameter("min_obstacle_separation", 1.0);  // Above pose error, below the 1.8 m gate width
+        this->declare_parameter("max_tracking_distance", 35.0);   // Covers gates up to 100 ft apart
         this->declare_parameter("tracking_lifetime", 30.0);       // Seconds to keep tracking an obstacle without updates
         this->declare_parameter("color_vote_window", 10);         // Last N color readings used for the majority vote
         this->declare_parameter("inference_topics", std::vector<std::string>{
