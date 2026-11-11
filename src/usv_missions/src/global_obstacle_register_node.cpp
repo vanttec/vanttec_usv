@@ -164,7 +164,8 @@ private:
             new_obj.v_y = 0.0;
             new_obj.color = inference.color;
             new_obj.type = inference.type.empty() ? "marker" : inference.type;
-            new_obj.uuid = "obs_" + std::to_string(next_obstacle_id_++);
+            const int id = next_obstacle_id_++;  // shared by uuid and RViz marker
+            new_obj.uuid = "obs_" + std::to_string(id);
             new_obj.confidence = inference.confidence;
             new_obj.last_seen = this->now();
             
@@ -177,7 +178,7 @@ private:
             visualization_msgs::msg::Marker marker;
             marker.header.frame_id = "world";
             marker.header.stamp = this->now();
-            marker.id = next_obstacle_id_++;
+            marker.id = id;
             marker.type = marker_type[new_obj.type].type;
             marker.action = visualization_msgs::msg::Marker::ADD;
             
