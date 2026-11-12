@@ -9,6 +9,8 @@
 #include "Vanttec_CANLib_Linux/CANHandler.h"
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/u_int32.hpp"
+#include "std_msgs/msg/u_int8.hpp"
+#include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
 #include "std_msgs/msg/u_int8_multi_array.hpp"
 
@@ -25,21 +27,27 @@ class CANRxNode : public rclcpp::Node {
   std::shared_ptr<vanttec::CANHandler> handler{nullptr};
   rclcpp::TimerBase::SharedPtr updateTimer;
 
-  // STM32 heartbeat: 4-byte LE uint32 uptime ms (arb ID 0x010)
+  // STM32 uptime counter: uint32 ms from arb ID 0x010.
   rclcpp::Publisher<std_msgs::msg::UInt32>::SharedPtr pingPublisher;
+  rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr modePublisher;
+  rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr auxiliaryPublisher;
+  rclcpp::Publisher<std_msgs::msg::UInt8>::SharedPtr armedPublisher;
 
-  // Battery data: [voltage_V, current_A] as float32 array (arb ID 0x200)
+  // Direct Battery PCB voltage as float32 array (arb ID 0x200).
   rclcpp::Publisher<std_msgs::msg::Float32MultiArray>::SharedPtr batteryPublisher;
+  rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr stm32BatteryPublisher;
 
   // Actuator flags: [pump_active, actuator_active] as uint8 array (arb ID 0x150)
   rclcpp::Publisher<std_msgs::msg::UInt8MultiArray>::SharedPtr actuatorPublisher;
 
  protected:
-  // ID 0x010 — STM32 telemetry gateway heartbeat (4-byte LE uint32 uptime)
+  // ID 0x010 — uptime uint32 LE, followed by mode, aux selector, and armed bytes.
   void handleHeartbeatMsg(can_frame frame);
 
-  // ID 0x200 — Battery Control PCB: 8 bytes = float voltage + float current (LE)
+  // ID 0x200 — direct Battery PCB voltage, float32 LE.
   void handleBatteryMsg(can_frame frame);
+  // ID 0x108 — STM32 local battery monitor: float32 voltage, little-endian.
+  void handleStm32BatteryMsg(can_frame frame);
 
   // ID 0x150 — Actuator Control PCB: byte[0]=pump_active, byte[1]=actuator_active
   void handleActuatorMsg(can_frame frame);

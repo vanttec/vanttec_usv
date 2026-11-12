@@ -121,7 +121,7 @@ class SiKBoatNode(SiKBaseNode):
             for key in topic_name.split('.'):
                 config = config[key]
             fields = config['fields']
-            return [float(getattr(msg, field)) for field in fields]
+            return [getattr(msg, field) for field in fields]
         except Exception as e:
             self.get_logger().error(f"Error processing message: {str(e)}")
             raise

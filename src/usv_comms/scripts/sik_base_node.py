@@ -9,7 +9,7 @@ import rclpy
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import Pose2D, Vector3
-from std_msgs.msg import Float64, Int8
+from std_msgs.msg import Float32, Float64, Int8, UInt8, UInt32
 from usv_interfaces.msg import Waypoint, ObjectList, Object
 
 class SiKBaseNode(Node):
@@ -17,7 +17,10 @@ class SiKBaseNode(Node):
         'geometry_msgs/msg/Pose2D': Pose2D,
         'geometry_msgs/msg/Vector3': Vector3,
         'std_msgs/msg/Float64': Float64,
+        'std_msgs/msg/Float32': Float32,
         'std_msgs/msg/Int8': Int8,
+        'std_msgs/msg/UInt8': UInt8,
+        'std_msgs/msg/UInt32': UInt32,
         'usv_interfaces/msg/Waypoint': Waypoint,
         'usv_interfaces/msg/ObjectList': ObjectList,
         'usv_interfaces/msg/Object': Object
@@ -134,9 +137,16 @@ class SiKBaseNode(Node):
             type_markers = []
             
             for item in data:
-                if isinstance(item, (int, float)):
+                if isinstance(item, int):
+                    if item < 0:
+                        type_markers.append(3)  # signed int32
+                        result.extend(struct.pack('!i', item))
+                    else:
+                        type_markers.append(2)  # unsigned int32
+                        result.extend(struct.pack('!I', item))
+                elif isinstance(item, float):
                     type_markers.append(0)
-                    result.extend(struct.pack('!f', float(item)))
+                    result.extend(struct.pack('!f', item))
                 elif isinstance(item, str):
                     type_markers.append(1)
                     encoded = item.encode('utf-8')
@@ -182,6 +192,16 @@ class SiKBaseNode(Node):
                     string = data[pos:pos+str_len].decode('utf-8')
                     result.append(string)
                     pos += str_len
+                elif marker == 2:  # Unsigned int32
+                    if pos + 4 > len(data):
+                        raise ValueError(f"Truncated uint32 at {pos}")
+                    result.append(struct.unpack('!I', data[pos:pos+4])[0])
+                    pos += 4
+                elif marker == 3:  # Signed int32
+                    if pos + 4 > len(data):
+                        raise ValueError(f"Truncated int32 at {pos}")
+                    result.append(struct.unpack('!i', data[pos:pos+4])[0])
+                    pos += 4
                 else:
                     raise ValueError(f"Invalid marker: {marker}")
                     

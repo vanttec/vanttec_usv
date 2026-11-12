@@ -29,7 +29,11 @@ def generate_launch_description():
         }],
         remappings=[
             # RX — STM32 → Jetson
-            ("out/stm32_ping",  "/usv/can/stm32_ping"),   # UInt32: STM32 uptime ms (1 Hz)
+            ("out/stm32_heartbeat", "/usv/telemetry/heartbeat"), # UInt32: STM32 uptime ms
+            ("out/stm32_mode", "/usv/telemetry/op_mode"),         # UInt8: 0 auto, 1 manual, 2 disabled
+            ("out/stm32_auxiliary", "/usv/telemetry/auxiliary_selector"),
+            ("out/stm32_armed", "/usv/telemetry/armed"),
+            ("out/stm32_battery_voltage", "/usv/telemetry/battery_voltage"), # Float32 from ID 0x108
             ("out/battery",     "/usv/battery"),            # Float32MultiArray: [voltage, current]
             ("out/actuators",   "/usv/actuators"),          # UInt8MultiArray: [pump, actuator]
 
