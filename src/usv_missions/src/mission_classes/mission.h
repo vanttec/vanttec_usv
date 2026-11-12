@@ -20,7 +20,10 @@ struct USVPose {
 struct Obstacle {
   double x, y;
   std::string type;
-  int color; // 0 = red, 1 = green, 2 = blue, 3 = yellow, 4 = black
+  int color; // 0 = red, 1 = green, 2 = blue, 3 = yellow, 4 = black, 6 = white, 7 = light off
+  std::string uuid;       // stable id from the global register
+  float confidence{0.f};
+  double last_seen{0.0};  // [s] ROS time of the last detection
 };
 
 struct State {

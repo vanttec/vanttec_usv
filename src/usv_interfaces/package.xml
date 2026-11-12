@@ -12,6 +12,7 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
   <depend>std_msgs</depend>
+  <depend>builtin_interfaces</depend>
   <depend>rviz_common</depend>
   <depend>rviz_default_plugins</depend>
   <depend>rviz_rendering</depend>
