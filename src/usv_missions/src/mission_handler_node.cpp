@@ -53,6 +53,7 @@ class MissionHandlerNode : public rclcpp::Node {
                 "/usv/state/pose", 10, 
                 [this](const geometry_msgs::msg::Pose2D &msg) { 
                     pose << msg.x, msg.y, msg.theta;
+                    have_pose = true;
             });
 
             auto_sub_ = this->create_subscription<std_msgs::msg::UInt16>(
@@ -124,7 +125,7 @@ class MissionHandlerNode : public rclcpp::Node {
         
         std::shared_ptr<Mission> vtec;
 
-        bool wp_arrived{false}, moving{false};
+        bool wp_arrived{false}, moving{false}, have_pose{false};
         double goal_dist{0.0};
         double x_diff{0.0}, y_diff{0.0};
         int yellow_found{0}, black_found{0}, pivots_to_do{-1}, pivots_done{0};
@@ -211,6 +212,10 @@ class MissionHandlerNode : public rclcpp::Node {
         }
 
         void timer_callback() {
+            // Missions place goals from the pose and publish each goal once, so wait
+            // for a pose and for a goal subscriber (DDS discovery takes time at startup).
+            // shortcut: a consumer restarted mid-mission still misses the current goal.
+            if(!have_pose || wp_pub_->get_subscription_count() + pose_array_pub_->get_subscription_count() == 0) return;
             check_mission_jump();
 
             feedback = vtec->update(pose, update_params);
