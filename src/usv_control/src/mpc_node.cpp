@@ -202,7 +202,8 @@ public:
                 RCLCPP_WARN(this->get_logger(), "UNBLOCKING MPC - Resetting solver");
                 
                 // Reset solver state
-                asv_dynamics_acados_reset(ocp_capsule, 1);
+                // acados >= 0.5 signature: (capsule, qp_mem, numerical_values, solver_options, x_to_x0_bar)
+                asv_dynamics_acados_reset(ocp_capsule, 1, 0, 0, 0);
                 
                 // Set feasible initial trajectory (hover in place)
                 for(int i = 0; i <= N_HORIZON; i++) {
