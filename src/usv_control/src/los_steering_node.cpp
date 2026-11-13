@@ -1,20 +1,21 @@
 #include <rclcpp/rclcpp.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <std_msgs/msg/float64.hpp>
 #include <Eigen/Dense>
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <limits>
 
 class LosSteeringNode : public rclcpp::Node
 {
 public:
     LosSteeringNode() : Node("los_steering_node")
     {
-        // ROS 2 Parameters
         this->declare_parameter<double>("lookahead_distance", 2.0);
-        this->declare_parameter<double>("cruise_velocity", 0.6); // Updated default to 0.6
+        this->declare_parameter<double>("cruise_velocity", 0.6);
 
         // Subscriptions
         path_sub_ = this->create_subscription<nav_msgs::msg::Path>(
@@ -25,11 +26,15 @@ public:
             "usv/state/pose", 10,
             std::bind(&LosSteeringNode::pose_callback, this, std::placeholders::_1));
 
-        // Publishers
+        // Control Publishers
         heading_pub_ = this->create_publisher<std_msgs::msg::Float64>("/setpoint/heading", 10);
         vel_pub_ = this->create_publisher<std_msgs::msg::Float64>("/setpoint/velocity", 10);
         
-        RCLCPP_INFO(this->get_logger(), "LOS Steering Node initialized with Station Keeping.");
+        // Visualization Publishers
+        crosstrack_pub_ = this->create_publisher<nav_msgs::msg::Path>("/visualization/crosstrack", 10);
+        los_vector_pub_ = this->create_publisher<nav_msgs::msg::Path>("/visualization/los_vector", 10);
+
+        RCLCPP_INFO(this->get_logger(), "LOS Steering Node initialized with RViz Visualizations.");
     }
 
 private:
@@ -45,10 +50,9 @@ private:
         }
         
         if (!path_points_.empty()) {
-            // Save the absolute final waypoint for station keeping
             final_waypoint_ = path_points_.back();
             station_keeping_active_ = false; 
-            RCLCPP_INFO(this->get_logger(), "New path received (%zu points). Replacing current path and exiting station keeping.", path_points_.size());
+            RCLCPP_INFO(this->get_logger(), "New path received (%zu points).", path_points_.size());
         }
     }
 
@@ -57,71 +61,105 @@ private:
         Eigen::Vector2d p_boat(msg->x, msg->y);
         double cruise_vel = this->get_parameter("cruise_velocity").as_double();
 
-        // No path has ever been received
         if (path_points_.empty() && !station_keeping_active_)
         {
             publish_setpoints(0.0, 0.0);
             return;
         }
 
-        // If we previously finished the path, maintain station keeping
         if (station_keeping_active_)
         {
             handle_station_keeping(p_boat, cruise_vel);
             return;
         }
 
-        // 1. Eliminate passed waypoints based on orthogonal projection
-        while (path_points_.size() >= 2)
-        {
-            Eigen::Vector2d w0 = path_points_[0];
-            Eigen::Vector2d w1 = path_points_[1];
-            Eigen::Vector2d v_seg = w1 - w0;
-            
-            double seg_len_sq = v_seg.squaredNorm();
-            if (seg_len_sq == 0.0)
-            {
-                path_points_.erase(path_points_.begin());
-                continue;
-            }
-
-            Eigen::Vector2d v_boat = p_boat - w0;
-            double t = v_boat.dot(v_seg) / seg_len_sq;
-
-            if (t >= 1.0)
-            {
-                // The boat's projection is beyond w1
-                path_points_.erase(path_points_.begin());
-            }
-            else
-            {
-                break; 
-            }
-        }
-
-        // If path completion is detected
         if (path_points_.size() < 2)
         {
-            RCLCPP_INFO(this->get_logger(), "Path completed. Entering station keeping mode.");
-            station_keeping_active_ = true;
-            handle_station_keeping(p_boat, cruise_vel);
+            enter_station_keeping(p_boat, cruise_vel);
             return;
         }
 
-        // 2. Find the closest point on the active segment (Cross-track point)
-        Eigen::Vector2d w0 = path_points_[0];
-        Eigen::Vector2d w1 = path_points_[1];
+        // Iterate through the points list to find the point with the smallest distance (norm)
+        size_t closest_idx = 0;
+        double min_dist = std::numeric_limits<double>::max();
+        for (size_t i = 0; i < path_points_.size(); ++i)
+        {
+            double dist = (path_points_[i] - p_boat).norm();
+            if (dist < min_dist)
+            {
+                min_dist = dist;
+                closest_idx = i;
+            }
+        }
+
+        // Find the pair of points (the active segment)
+        size_t active_idx = 0;
+        if (closest_idx == 0)
+        {
+            active_idx = 0;
+        }
+        else if (closest_idx == path_points_.size() - 1)
+        {
+            active_idx = closest_idx - 1;
+        }
+        else
+        {
+            Eigen::Vector2d p_prev = path_points_[closest_idx - 1];
+            Eigen::Vector2d p_curr = path_points_[closest_idx];
+            Eigen::Vector2d p_next = path_points_[closest_idx + 1];
+
+            auto dist_to_seg = [&](const Eigen::Vector2d& w0, const Eigen::Vector2d& w1) {
+                Eigen::Vector2d v_seg = w1 - w0;
+                double seg_len_sq = v_seg.squaredNorm();
+                if (seg_len_sq == 0.0) return (p_boat - w0).norm();
+                
+                double t = std::clamp((p_boat - w0).dot(v_seg) / seg_len_sq, 0.0, 1.0);
+                Eigen::Vector2d p_proj = w0 + t * v_seg;
+                return (p_boat - p_proj).norm();
+            };
+
+            double dist_prev = dist_to_seg(p_prev, p_curr);
+            double dist_next = dist_to_seg(p_curr, p_next);
+
+            if (dist_prev < dist_next) {
+                active_idx = closest_idx - 1;
+            } else {
+                active_idx = closest_idx;
+            }
+        }
+
+        // Draw a line between the two points and find the closest point on the line (cross-track point)
+        Eigen::Vector2d w0 = path_points_[active_idx];
+        Eigen::Vector2d w1 = path_points_[active_idx + 1];
         Eigen::Vector2d v_seg = w1 - w0;
         double seg_len = v_seg.norm();
-        Eigen::Vector2d dir = v_seg / seg_len;
-
-        Eigen::Vector2d v_boat = p_boat - w0;
-        double t = v_boat.dot(v_seg) / (seg_len * seg_len);
         
-        t = std::clamp(t, 0.0, 1.0);
-        Eigen::Vector2d p_closest = w0 + t * v_seg;
+        if (seg_len == 0.0) 
+        {
+            path_points_.erase(path_points_.begin() + active_idx);
+            return; 
+        }
 
-        // 3. Calculate Lookahead Point along the remaining path
+        Eigen::Vector2d dir = v_seg / seg_len;
+        double t_unclamped = (p_boat - w0).dot(v_seg) / (seg_len * seg_len);
+        
+        if (active_idx == path_points_.size() - 2 && t_unclamped >= 1.0)
+        {
+            path_points_.clear();
+            enter_station_keeping(p_boat, cruise_vel);
+            return;
+        }
+
+        double t_clamped = std::clamp(t_unclamped, 0.0, 1.0);
+        Eigen::Vector2d p_closest = w0 + t_clamped * v_seg;
+
+        // Eliminate all previous points from the list
+        if (active_idx > 0)
+        {
+            path_points_.erase(path_points_.begin(), path_points_.begin() + active_idx);
+        }
+
+        // Calculate Lookahead Point along the remaining path
         double lookahead_dist = this->get_parameter("lookahead_distance").as_double();
         double remaining_lookahead = lookahead_dist;
         Eigen::Vector2d p_lookahead = p_closest;
@@ -159,9 +197,20 @@ private:
             }
         }
 
-        // 4. Calculate desired heading and publish for active path following
+        // Calculate desired heading, publish controls, and visualize
         double desired_heading = std::atan2(p_lookahead.y() - p_boat.y(), p_lookahead.x() - p_boat.x());
         publish_setpoints(desired_heading, cruise_vel);
+
+        // Publish visualization paths
+        crosstrack_pub_->publish(create_viz_line(p_boat, p_closest));
+        los_vector_pub_->publish(create_viz_line(p_boat, p_lookahead));
+    }
+
+    void enter_station_keeping(const Eigen::Vector2d& p_boat, double cruise_vel)
+    {
+        RCLCPP_INFO(this->get_logger(), "Path completed. Entering station keeping mode.");
+        station_keeping_active_ = true;
+        handle_station_keeping(p_boat, cruise_vel);
     }
 
     void handle_station_keeping(const Eigen::Vector2d& p_boat, double cruise_vel)
@@ -169,17 +218,19 @@ private:
         double distance_to_target = (final_waypoint_ - p_boat).norm();
         double desired_heading = std::atan2(final_waypoint_.y() - p_boat.y(), final_waypoint_.x() - p_boat.x());
 
-        // Drift tolerance of 2 meters
-        if (distance_to_target > 2.0)
+        if (distance_to_target > 1.0)
         {
-            // Point towards the target and move forward to correct the drift
             publish_setpoints(desired_heading, cruise_vel);
         }
         else
         {
-            // Within 1 meter radius, set velocity to 0 but keep heading oriented toward the coordinate
             publish_setpoints(desired_heading, 0.0);
         }
+
+        // During station keeping, just point both visualizations to the target coordinate
+        auto viz_line = create_viz_line(p_boat, final_waypoint_);
+        crosstrack_pub_->publish(viz_line);
+        los_vector_pub_->publish(viz_line);
     }
 
     void publish_setpoints(double heading, double velocity)
@@ -193,16 +244,41 @@ private:
         vel_pub_->publish(vel_msg);
     }
 
-    // Node state
+    // Helper to create a 2-point path for RViz line visualization
+    nav_msgs::msg::Path create_viz_line(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2)
+    {
+        nav_msgs::msg::Path path_msg;
+        path_msg.header.frame_id = "map"; // Ensure this matches your fixed frame in RViz
+        path_msg.header.stamp = this->get_clock()->now();
+
+        geometry_msgs::msg::PoseStamped pose1;
+        pose1.pose.position.x = p1.x();
+        pose1.pose.position.y = p1.y();
+        pose1.pose.position.z = 0.0;
+        pose1.pose.orientation.w = 1.0;
+
+        geometry_msgs::msg::PoseStamped pose2;
+        pose2.pose.position.x = p2.x();
+        pose2.pose.position.y = p2.y();
+        pose2.pose.position.z = 0.0;
+        pose2.pose.orientation.w = 1.0;
+
+        path_msg.poses.push_back(pose1);
+        path_msg.poses.push_back(pose2);
+
+        return path_msg;
+    }
+
     std::vector<Eigen::Vector2d> path_points_;
     Eigen::Vector2d final_waypoint_;
     bool station_keeping_active_ = false;
     
-    // Pubs/Subs
     rclcpp::Subscription<nav_msgs::msg::Path>::SharedPtr path_sub_;
     rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr pose_sub_;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr heading_pub_;
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr vel_pub_;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr crosstrack_pub_;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr los_vector_pub_;
 };
 
 int main(int argc, char **argv)
