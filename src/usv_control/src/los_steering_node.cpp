@@ -248,7 +248,7 @@ private:
     nav_msgs::msg::Path create_viz_line(const Eigen::Vector2d& p1, const Eigen::Vector2d& p2)
     {
         nav_msgs::msg::Path path_msg;
-        path_msg.header.frame_id = "map"; // Ensure this matches your fixed frame in RViz
+        path_msg.header.frame_id = "ned"; 
         path_msg.header.stamp = this->get_clock()->now();
 
         geometry_msgs::msg::PoseStamped pose1;
