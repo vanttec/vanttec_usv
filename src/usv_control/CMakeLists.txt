@@ -89,6 +89,15 @@ target_compile_features(classic_pid_node PUBLIC c_std_99 cxx_std_17)
 ament_target_dependencies(classic_pid_node ${DEPENDENCIES})
 target_link_libraries(classic_pid_node usv_libs)
 
+
+add_executable(los_steering_node src/los_steering_node.cpp)
+target_include_directories(los_steering_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include> libs/usv_libs/src)
+target_compile_features(los_steering_node PUBLIC c_std_99 cxx_std_17)
+ament_target_dependencies(los_steering_node ${DEPENDENCIES})
+target_link_libraries(los_steering_node usv_libs)
+
 # High-level controller nodes
 # add_executable(mpc_node src/mpc_node.cpp)
 # target_link_libraries(mpc_node ${FATROP_LIBRARY} ${Boost_LIBRARIES})
@@ -169,6 +178,7 @@ install(TARGETS
   classic_pid_node
   # mpc_node  # Disabled - requires acados
   los_node
+  los_steering_node
   usv_tf2_broadcaster_node
   dynamic_model_node
   a_star_avoidance_node
