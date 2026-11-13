@@ -1,0 +1,23 @@
+# Escenario de prueba: s02_boya_unica
+# Una boya de 0.3 m en medio del camino.
+# Gemelo en gtest: test/test_scenarios.cpp
+#
+# Correr:
+#   ros2 launch usv_control a_star_planner_launch.py site:=tests/s02_boya_unica
+#   ros2 topic pub --once usv/planning/goal geometry_msgs/msg/PoseStamped "{pose: {position: {x: 20.0, y: 0.0}}}"
+#   ros2 topic echo usv/planning/path
+# Esperado (bote arrancando en el origen): 3 puntos: la rodea por un lado, a más de 0.7 m del borde.
+
+localization_node:
+  ros__parameters:
+    use_fixed_datum: false
+    origin_samples: 1
+
+a_star_planner_node:
+  ros__parameters:
+    require_valid_position: false
+    x_min: -50.0
+    x_max: 50.0
+    y_min: -50.0
+    y_max: 50.0
+    buoys: [10.00, 0.00, 0.30]

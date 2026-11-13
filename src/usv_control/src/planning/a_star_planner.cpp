@@ -41,7 +41,48 @@ std::vector<Cell> AStarPlanner::reconstruct(const std::vector<int>& parent, int 
     return path;
 }
 
+// El inicio siempre se acepta, aunque sea letal (decisión de diseño: si el viento
+// empuja al bote cerca de una boya, congelarlo es lo peor). Pero si TODAS sus vecinas
+// también son letales, A* no puede expandir nada. Por eso: primero se "escapa" en línea
+// recta a la celda libre más cercana y desde ahí se planea normal.
 std::optional<std::vector<Cell>> AStarPlanner::plan(const GridMap& map, const Cell& start, const Cell& goal) const {
+    if (!map.isInside(start.i, start.j)) return std::nullopt;
+    if (map.getCost(start.i, start.j) != GridMap::LETHAL) {
+        return search(map, start, goal);
+    }
+    auto exit = nearestFree(map, start);
+    if (!exit) return std::nullopt;
+    auto rest = search(map, *exit, goal);
+    if (!rest) return std::nullopt;
+    rest->insert(rest->begin(), start);
+    return rest;
+}
+
+std::optional<Cell> AStarPlanner::nearestFree(const GridMap& map, const Cell& start) const {
+    const int sy = map.sizeY();
+    std::vector<bool> seen(map.sizeX() * sy, false);
+    std::queue<Cell> frontier;
+    frontier.push(start);
+    seen[toId(start, sy)] = true;
+    const int di[8] = {-1, -1, -1,  0, 0,  1, 1, 1};
+    const int dj[8] = {-1,  0,  1, -1, 1, -1, 0, 1};
+    while (!frontier.empty()) {
+        Cell c = frontier.front();
+        frontier.pop();
+        if (map.getCost(c.i, c.j) != GridMap::LETHAL) return c;
+        for (int k = 0; k < 8; k++) {
+            Cell n{c.i + di[k], c.j + dj[k]};
+            if (!map.isInside(n.i, n.j)) continue;
+            int id = toId(n, sy);
+            if (seen[id]) continue;
+            seen[id] = true;
+            frontier.push(n);
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::vector<Cell>> AStarPlanner::search(const GridMap& map, const Cell& start, const Cell& goal) const {
     if(!map.isInside(goal.i,goal.j) || map.getCost(goal.i,goal.j) == GridMap::LETHAL){
         return std::nullopt;
     }

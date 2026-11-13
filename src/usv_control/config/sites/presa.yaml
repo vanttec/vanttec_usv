@@ -1,0 +1,30 @@
+# Sitio: presa. PLANTILLA: llenar los TODO en campo.
+# Para la alberca o la competencia, copia este archivo y cámbiale el nombre.
+#
+# Cómo sacar el datum:
+#   1. Corre la primera vez con use_fixed_datum: false y origin_samples: 250 (~5 s a 50 Hz).
+#   2. El nodo imprime "Datum AUTO listo: datum_lat: ...  datum_lon: ...". Copia esos números aquí.
+#   3. Cambia use_fixed_datum a true. Desde ahí, el mapa es el mismo en cada corrida.
+#
+# Las boyas y la geocerca están en NED respecto a ESTE datum. Si cambias el datum, recalcúlalas.
+
+localization_node:
+  ros__parameters:
+    use_fixed_datum: false        # TODO: true cuando tengas el datum
+    datum_lat: 0.0                # TODO [deg]
+    datum_lon: 0.0                # TODO [deg]
+    origin_samples: 250
+
+a_star_planner_node:
+  ros__parameters:
+    # TODO: ajustar al área real de trabajo (que cubra la geocerca)
+    x_min: -100.0
+    x_max: 100.0
+    y_min: -100.0
+    y_max: 100.0
+
+    # TODO: vértices del área segura [x1, y1, x2, y2, ...]
+    # geofence: [...]
+
+    # TODO: boyas fijas [x, y, radio, ...]
+    # buoys: [...]

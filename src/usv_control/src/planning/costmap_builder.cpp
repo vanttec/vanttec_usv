@@ -2,11 +2,16 @@
 #include <cmath>
 #include <stdexcept>
 #include <algorithm>
+#include <limits>
 
 CostmapBuilder::CostmapBuilder(const InflationParams& params) : params_(params){}
 
 void CostmapBuilder::build(GridMap& map, const std::vector<Obstacle>& obstacles) const {
     map.fill(GridMap::FREE);
+    stamp(map, obstacles);
+}
+
+void CostmapBuilder::stamp(GridMap& map, const std::vector<Obstacle>& obstacles) const {
     for(const auto& obstacle : obstacles){
         stampObstacle(map,obstacle);
     }
@@ -34,6 +39,51 @@ void CostmapBuilder::stampObstacle(GridMap& map, const Obstacle& obstacle) const
         }
     } 
 
+}
+
+void CostmapBuilder::stampGeofence(GridMap& map, const std::vector<Point2D>& polygon) const {
+    if (polygon.size() < 3) return;  // sin geocerca
+    double cx, cy;
+    for (int i = 0; i < map.sizeX(); i++) {
+        for (int j = 0; j < map.sizeY(); j++) {
+            map.cellToWorld(i, j, cx, cy);
+            uint8_t new_cost = insidePolygon(polygon, cx, cy)
+                ? costAtDistance(distanceToEdges(polygon, cx, cy))
+                : GridMap::LETHAL;
+            map.setCost(i, j, std::max(map.getCost(i, j), new_cost));
+        }
+    }
+}
+
+// Ray casting: lanza un rayo hacia +x y cuenta cuántas aristas cruza.
+// Impar = dentro, par = fuera.
+bool CostmapBuilder::insidePolygon(const std::vector<Point2D>& poly, double x, double y) {
+    bool inside = false;
+    for (size_t a = 0, b = poly.size() - 1; a < poly.size(); b = a++) {
+        const Point2D& p = poly[a];
+        const Point2D& q = poly[b];
+        bool crosses_y = (p.y > y) != (q.y > y);
+        if (crosses_y) {
+            double x_cross = p.x + (y - p.y) * (q.x - p.x) / (q.y - p.y);
+            if (x < x_cross) inside = !inside;
+        }
+    }
+    return inside;
+}
+
+// Distancia mínima del punto a cualquier arista (segmento) del polígono.
+double CostmapBuilder::distanceToEdges(const std::vector<Point2D>& poly, double x, double y) {
+    double best = std::numeric_limits<double>::infinity();
+    for (size_t a = 0, b = poly.size() - 1; a < poly.size(); b = a++) {
+        const Point2D& p = poly[b];
+        const Point2D& q = poly[a];
+        double ex = q.x - p.x, ey = q.y - p.y;
+        double len2 = ex * ex + ey * ey;
+        // t = proyección del punto sobre el segmento, recortada a [0,1]
+        double t = len2 > 0.0 ? std::clamp(((x - p.x) * ex + (y - p.y) * ey) / len2, 0.0, 1.0) : 0.0;
+        best = std::min(best, std::hypot(x - (p.x + t * ex), y - (p.y + t * ey)));
+    }
+    return best;
 }
 
 uint8_t CostmapBuilder::costAtDistance(double d) const{

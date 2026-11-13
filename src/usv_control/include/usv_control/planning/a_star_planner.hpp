@@ -10,6 +10,9 @@ public:
   std::optional<std::vector<Cell>> plan(const GridMap& map, const Cell& start, const Cell& goal) const;
 
 private:
+  // Si el inicio es letal: celda NO letal más cercana (BFS). nullopt si no hay ninguna.
+  std::optional<Cell> nearestFree(const GridMap& map, const Cell& start) const;
+  std::optional<std::vector<Cell>> search(const GridMap& map, const Cell& start, const Cell& goal) const;
   double heuristic(const Cell& a, const Cell& b, double res) const;
   double stepCost(const GridMap& map, const Cell& to, bool diagonal) const;
   int toId(const Cell& c, int size_y) const;

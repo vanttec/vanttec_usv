@@ -92,3 +92,18 @@ TEST(AStarCost, HighWeightAvoidsCostlyBand) {
   EXPECT_TRUE(straight_hits);
   EXPECT_FALSE(detour_hits);
 }
+// El bote está DENTRO de una mancha letal (cerca de una boya): sus 8 vecinas también son letales.
+TEST_F(AStarTest, StartDeepInLethalEscapes) {
+  for (int i = 0; i <= 2; ++i)
+    for (int j = 0; j <= 2; ++j) map_.setCost(i, j, GridMap::LETHAL);
+  auto path = planner_.plan(map_, {1, 1}, {8, 8});
+  ASSERT_TRUE(path.has_value());
+  EXPECT_EQ(path->front(), (Cell{1, 1}));                    // empieza en el bote
+  EXPECT_EQ(path->back(), (Cell{8, 8}));
+  EXPECT_NE(map_.getCost((*path)[1].i, (*path)[1].j), GridMap::LETHAL);  // 2o punto ya es libre
+}
+
+TEST_F(AStarTest, StartLethalWithNoFreeCellFails) {
+  map_.fill(GridMap::LETHAL);
+  EXPECT_FALSE(planner_.plan(map_, {1, 1}, {8, 8}).has_value());
+}
