@@ -69,11 +69,12 @@ void IndividualThrusterNode::update_thrust(){
 
     std_msgs::msg::Float32MultiArray msg;
     // HAL firmware consumes motorSetpoints[0] as left and [1] as right
-    // from CAN ID 0x120. The STM32 mirrors each ESC PWM output itself.
+    // from CAN ID 0x120. Negate both auto commands to match the PWM direction
+    // used by the STM32 manual mixer. The STM32 mirrors each PWM output itself.
     // Setpoints [2..7] are not used for propulsion by the current firmware.
     msg.data = std::vector<float>{
-        static_cast<float>(left_thrust),
-        static_cast<float>(-right_thrust),
+        static_cast<float>(-left_thrust),
+        static_cast<float>(right_thrust),
         static_cast<float>(shoot), 
         0, 0, 0, 0, 0,
         };
