@@ -20,11 +20,15 @@ USVOutput M2::update(const Eigen::Vector3f &pose, const  USVUpdate &params)
 
       if(goal.norm() > 0.01){
         outMsg.state = 1;
-        outMsg.goals = pack_goal(pose, goal, 1.);
+        // No current pose in the list: a repeated point breaks spline_publisher_node.
+        outMsg.goals = pack_goal(goal, 1.);
         last_goal = outMsg.goals[outMsg.goals.size() - 1];
       }
       break;
     case 1: // Finding next gate
+      // Wait until the boat reaches this gate. With long range the next gates
+      // are already visible, and the boat would skip the current one.
+      if(dist(last_goal, pose) >= 1) break;
       goal = get_goal(params.obs_list);
 
       if(goal.norm() > 0.0001){ // If a goal was actually found

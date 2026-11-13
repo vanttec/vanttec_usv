@@ -16,3 +16,4 @@ src/usv_control/scripts/acados/c_generated_code_*
 *.onnx
 *.deb
 *.whl
+compile_commands.json

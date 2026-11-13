@@ -18,7 +18,7 @@
 #include "sbg_driver/msg/sbg_gps_pos.hpp"
 #include "sbg_driver/msg/sbg_gps_hdt.hpp"
 
-#include "usv_interfaces/msg/system_st  atus.hpp"
+#include "usv_interfaces/msg/system_status.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
