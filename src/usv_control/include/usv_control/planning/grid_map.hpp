@@ -2,6 +2,11 @@
 #include <cstdint>
 #include <vector>
 
+struct Cell {
+  int i, j;
+  bool operator==(const Cell& other) const { return i == other.i && j == other.j; }
+};
+
 class GridMap {
 public:
   GridMap(double origin_x, double origin_y, double resolution, int size_x, int size_y);

@@ -26,7 +26,7 @@ find_library(FATROP_LIBRARY fatrop PATHS /usr/local/lib)
 add_subdirectory(libs/usv_libs)
 add_subdirectory(libs/a-star)
 
-add_library(planning_core src/planning/grid_map.cpp src/planning/costmap_builder.cpp src/planning/a_star_planner.cpp)
+add_library(planning_core src/planning/grid_map.cpp src/planning/costmap_builder.cpp src/planning/a_star_planner.cpp src/planning/path_post_processor.cpp)
 target_include_directories(planning_core PUBLIC include)
 
 
@@ -213,6 +213,9 @@ if(BUILD_TESTING)
 
   ament_add_gtest(test_a_star_planner test/test_a_star_planner.cpp)
   target_link_libraries(test_a_star_planner planning_core)
+
+  ament_add_gtest(test_path_post_processor test/test_path_post_processor.cpp)
+  target_link_libraries(test_path_post_processor planning_core)
 
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

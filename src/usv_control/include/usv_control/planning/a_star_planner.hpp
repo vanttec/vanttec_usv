@@ -3,10 +3,6 @@
 #include <vector>
 #include "usv_control/planning/grid_map.hpp"
 
-struct Cell {
-  int i, j;
-  bool operator==(const Cell& other) const { return i == other.i && j == other.j; }
-};
 
 class AStarPlanner {
 public:
