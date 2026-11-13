@@ -149,8 +149,7 @@ private:
   std::vector<Obstacle> readBuoys() {
     const auto flat = declare_parameter<std::vector<double>>("buoys", std::vector<double>{});
     if (flat.size() % 3 != 0) {
-      throw std::invalid_argument("buoys debe tener múltiplo de 3 valores (x, y, r), llegaron " +
-                                  std::to_string(flat.size()));
+      throw std::invalid_argument("buoys debe tener múltiplo de 3 valores (x, y, r), llegaron " + std::to_string(flat.size()));
     }
     std::vector<Obstacle> buoys;
     for (size_t k = 0; k < flat.size(); k += 3) {
@@ -167,8 +166,7 @@ private:
     const auto flat = declare_parameter<std::vector<double>>("geofence", std::vector<double>{});
     if (flat.empty()) return {};
     if (flat.size() % 2 != 0 || flat.size() < 6) {
-      throw std::invalid_argument("geofence necesita pares (x, y) y al menos 3 vértices, llegaron " +
-                                  std::to_string(flat.size()) + " valores");
+      throw std::invalid_argument("geofence necesita pares (x, y) y al menos 3 vértices, llegaron " + std::to_string(flat.size()) + " valores");
     }
     std::vector<Point2D> poly;
     for (size_t k = 0; k < flat.size(); k += 2) {
@@ -185,8 +183,7 @@ private:
     costmap_builder_.build(map_, buoys);
     costmap_builder_.stampGeofence(map_, geofence);
     static_map_ = map_;
-    RCLCPP_INFO(get_logger(), "costmap estático: %zu boyas, geocerca de %zu vértices",
-                buoys.size(), geofence.size());
+    RCLCPP_INFO(get_logger(), "costmap estático: %zu boyas, geocerca de %zu vértices", buoys.size(), geofence.size());
   }
 
   void rebuildDynamicLayer() {
@@ -209,6 +206,7 @@ private:
     goal_x_ = msg->pose.position.x;
     goal_y_ = msg->pose.position.y;
     has_goal_ = true;
+    goal_changed_ = true;
   }
 
   // ObjectList no trae header: el frame lo decide el parámetro objects_in_world.
@@ -276,7 +274,11 @@ private:
       return;
     }
     auto simplified = post_processor_.shortcut(map_, *cells);
-    path_pub_->publish(toPathMsg(simplified, boat_x_, boat_y_, goal_x_, goal_y_));
+    if (goal_changed_ || stopped_){
+      path_pub_->publish(toPathMsg(simplified, boat_x_, boat_y_, goal_x_, goal_y_));
+      goal_changed_ = false;
+      stopped_ = false;
+    }
   }
 
   // ---------- Salida ----------
@@ -285,6 +287,7 @@ private:
     msg.header.stamp = this->now();
     msg.header.frame_id = frame_id_;
     path_pub_->publish(msg);
+    stopped_ = true;
     RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000, "STOP: %s", reason.c_str());
   }
 
@@ -344,6 +347,8 @@ private:
   rclcpp::Time last_loc_time_;
   double goal_x_ = 0.0, goal_y_ = 0.0;
   bool has_goal_ = false;
+  bool goal_changed_ = false;
+  bool stopped_ = false;
 
   // ROS
   rclcpp::Subscription<usv_interfaces::msg::UsvLoc>::SharedPtr loc_sub_;
