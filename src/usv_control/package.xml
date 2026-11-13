@@ -24,6 +24,9 @@
   <depend>tf2_ros</depend>
   <depend>tf2</depend>
   <depend>pluginlib</depend>
+  <depend>eigen3_cmake_module</depend>
+  <depend>eigen</depend>
+  <depend>nav_msgs</depend>
   <exec_depend>rclpy</exec_depend>
   
   <depend>usv_interfaces</depend>
