@@ -1,0 +1,39 @@
+# Parámetros GENERALES del planner: no cambian entre sitios.
+# Lo que depende del lugar (datum, límites, geocerca, boyas) va en config/sites/<sitio>.yaml.
+# Si un parámetro aparece en ambos archivos, gana el que se carga al último (el del sitio).
+a_star_planner_node:              # = Node("a_star_planner_node")
+  ros__parameters:
+    # --- Interfaz ---
+    frame_id: "ned"
+    publish_rate: 2.0             # [Hz] replaneo + publicación
+    loc_timeout: 1.0              # [s] sin usv/loc más tiempo que esto → STOP
+    require_valid_position: true  # STOP si usv/loc dice position_valid = false (en sim: false)
+
+    # --- Grid ---
+    resolution: 0.2               # [m/celda]
+
+    # --- Barco ---
+    boat_width: 0.6               # [m] manga, incluyendo lo que sobresalga
+    boat_length: 1.0              # [m] eslora
+    safety_margin: 0.3            # [m] colchón extra sobre el radio inscrito
+
+    # --- Inflado (CostmapBuilder) ---
+    influence_radius: 1.5         # [m] hasta dónde llega el gradiente
+    decay: 2.0                    # [1/m] k del exp(-k·d)
+
+    # --- Percepción (ObjectList del global_obstacle_register_node) ---
+    objects_topic: "/obj_list_global"  # /obj_list_global = NED; /obj_list = relativo al bote
+    objects_in_world: true        # true si objects_topic viene en NED (mismo origen que usv/loc)
+    buoy_radius: 0.15             # [m] radio para tipos que no estén en obstacle_types
+    obstacle_types: ["round", "marker", "boat", "picture"]  # Object.type que publica el register
+    obstacle_radii: [0.25, 0.25, 0.5, 0.25]                 # [m] PROVISIONAL (tamaños del marker de RViz del register): medir los reales
+    sensor_x: 0.0                 # [m] solo si objects_in_world = false: sensor hacia la proa
+    sensor_y: 0.0                 # [m] solo si objects_in_world = false: sensor hacia estribor
+    merge_distance: 1.0           # [m] detecciones sin uuid más cerca que esto = mismo objeto
+    obstacle_timeout: 0.0         # [s] olvidar objetos no vistos en este tiempo; 0 = nunca
+
+    # --- A* ---
+    cost_weight: 1.0              # peso del costo vs distancia
+
+    # --- Post-proceso ---
+    cost_threshold: 100           # [0-253] costo máx. que el shortcut puede cruzar

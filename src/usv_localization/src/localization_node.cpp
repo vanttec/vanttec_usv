@@ -1,5 +1,6 @@
 #include <memory>
 #include <cmath>
+#include <stdexcept>
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float64.hpp"
 #include "sbg_driver/msg/sbg_ekf_quat.hpp"
@@ -29,6 +30,27 @@ public:
     publisher_pose = this->create_publisher<geometry_msgs::msg::Pose2D>("usv/state/pose", 10);
     publisher_vel = this->create_publisher<geometry_msgs::msg::Vector3>("usv/state/velocity", 10);
 
+    // ---------- Datum (origen del marco NED local) ----------
+    // use_fixed_datum = true  -> origen fijo del YAML del sitio; el mapa es el mismo en cada corrida.
+    // use_fixed_datum = false -> origen = promedio de los primeros origin_samples fixes válidos.
+    const bool use_fixed = this->declare_parameter<bool>("use_fixed_datum", false);
+    const double datum_lat = this->declare_parameter<double>("datum_lat", 0.0);
+    const double datum_lon = this->declare_parameter<double>("datum_lon", 0.0);
+    origin_samples_ = this->declare_parameter<int>("origin_samples", 1);
+    if (origin_samples_ < 1) {
+      throw std::invalid_argument("origin_samples debe ser >= 1");
+    }
+
+    if (use_fixed) {
+      if (datum_lat < -90.0 || datum_lat > 90.0 || datum_lon < -180.0 || datum_lon > 180.0) {
+        throw std::invalid_argument("datum_lat/datum_lon fuera de rango");
+      }
+      setOrigin(datum_lat, datum_lon);
+      RCLCPP_INFO(this->get_logger(), "Datum FIJO: lat %.9f, lon %.9f", lat0, lon0);
+    } else {
+      RCLCPP_INFO(this->get_logger(), "Datum AUTO: promediando %d fixes válidos", origin_samples_);
+    }
+
     RCLCPP_INFO(this->get_logger(), "Nodo de Localization iniciado.");
   }
 
@@ -52,6 +74,18 @@ private:
   double yaw = 0.0;
   double r = 0.0;
   bool imu_received = false;
+
+  int origin_samples_ = 1;
+  int samples_taken_ = 0;
+  double lat_sum_ = 0.0;
+  double lon_sum_ = 0.0;
+
+  void setOrigin(double lat, double lon) {
+    lat0 = lat;
+    lon0 = lon;
+    cos_lat0 = std::cos(lat0 * M_PI / 180.0);
+    origin_set = true;
+  }
 
   struct NedPosition{
     double x;
@@ -103,10 +137,15 @@ private:
   void nav_callback(const sbg_driver::msg::SbgEkfNav::SharedPtr msg){
     if (!origin_set){
         if(msg->status.solution_mode == 4 && msg->status.position_valid){
-            lat0 = msg->latitude;
-            lon0 = msg->longitude;
-            cos_lat0 = std::cos(lat0 * M_PI / 180.0);
-            origin_set=true;
+            lat_sum_ += msg->latitude;
+            lon_sum_ += msg->longitude;
+            samples_taken_++;
+            if (samples_taken_ >= origin_samples_) {
+                setOrigin(lat_sum_ / samples_taken_, lon_sum_ / samples_taken_);
+                RCLCPP_INFO(this->get_logger(),
+                  "Datum AUTO listo (%d muestras): datum_lat: %.9f  datum_lon: %.9f",
+                  samples_taken_, lat0, lon0);
+            }
         }
         return;
     }
@@ -123,6 +162,8 @@ private:
     NedPosition pos = latLonToNED(msg->latitude,msg->longitude);
 
     usv_interfaces::msg::UsvLoc msg_out;
+    msg_out.header.stamp = this->now();
+    msg_out.header.frame_id = "ned";
     msg_out.status = msg->status.solution_mode;
     msg_out.latitud = msg->latitude;
     msg_out.longitud = msg->longitude;

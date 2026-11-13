@@ -1,0 +1,30 @@
+# Sitio: simulación en Gazebo.
+# Un archivo por sitio con DOS secciones: la de localización y la del planner.
+# Cada nodo solo lee la sección con su nombre e ignora la otra.
+#
+# Reglas para los arreglos:
+#   - Todos los números con punto decimal (5.0, no 5). Si mezclas int y double, ROS rechaza el arreglo.
+#   - No pongas listas vacías ([]): ROS no puede inferir el tipo. Si no hay boyas o geocerca, borra o comenta la línea.
+
+localization_node:
+  ros__parameters:
+    use_fixed_datum: false        # en sim el origen puede ser el primer fix
+    origin_samples: 1
+
+a_star_planner_node:
+  ros__parameters:
+    require_valid_position: false # la sim no siempre marca position_valid
+    # Límites del grid en NED local [m] (x = Norte, y = Este)
+    x_min: -50.0
+    x_max: 50.0
+    y_min: -50.0
+    y_max: 50.0
+
+    # Boyas de prueba: [x, y, radio, x, y, radio, ...]
+    # Una "puerta" a 10 m al norte con 2 m de hueco, más una boya suelta para esquivar.
+    buoys: [10.0, -1.0, 0.15,
+            10.0,  1.0, 0.15,
+            20.0,  0.0, 0.3]
+
+    # geofence: [x1, y1, x2, y2, ...] vértices en orden. Comentada = sin geocerca.
+    # geofence: [-40.0, -40.0, 40.0, -40.0, 40.0, 40.0, -40.0, 40.0]

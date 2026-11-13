@@ -1,0 +1,22 @@
+# Escenario de prueba: s01_libre
+# Sin boyas.
+# Gemelo en gtest: test/test_scenarios.cpp
+#
+# Correr:
+#   ros2 launch usv_control a_star_planner_launch.py site:=tests/s01_libre
+#   ros2 topic pub --once usv/planning/goal geometry_msgs/msg/PoseStamped "{pose: {position: {x: 20.0, y: 0.0}}}"
+#   ros2 topic echo usv/planning/path
+# Esperado (bote arrancando en el origen): Path de 2 puntos: recto del bote al goal.
+
+localization_node:
+  ros__parameters:
+    use_fixed_datum: false
+    origin_samples: 1
+
+a_star_planner_node:
+  ros__parameters:
+    require_valid_position: false
+    x_min: -50.0
+    x_max: 50.0
+    y_min: -50.0
+    y_max: 50.0

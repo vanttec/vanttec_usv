@@ -1,0 +1,28 @@
+# Escenario de prueba: s05_canal_puerta_cerrada
+# Canal de 4 m de ancho (geocerca) con una puerta de 1.2 m.
+# Gemelo en gtest: test/test_scenarios.cpp
+#
+# Correr:
+#   ros2 launch usv_control a_star_planner_launch.py site:=tests/s05_canal_puerta_cerrada
+#   ros2 topic pub --once usv/planning/goal geometry_msgs/msg/PoseStamped "{pose: {position: {x: 20.0, y: 0.0}}}"
+#   ros2 topic echo usv/planning/path
+# Esperado (bote arrancando en el origen): STOP: no se encontró camino. El inflado cierra la puerta y la geocerca impide rodear.
+
+localization_node:
+  ros__parameters:
+    use_fixed_datum: false
+    origin_samples: 1
+
+a_star_planner_node:
+  ros__parameters:
+    require_valid_position: false
+    x_min: -50.0
+    x_max: 50.0
+    y_min: -50.0
+    y_max: 50.0
+    buoys: [10.00, -0.60, 0.15,
+            10.00, 0.60, 0.15]
+    geofence: [-5.00, -2.00,
+               30.00, -2.00,
+               30.00, 2.00,
+               -5.00, 2.00]

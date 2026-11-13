@@ -26,6 +26,17 @@ find_library(FATROP_LIBRARY fatrop PATHS /usr/local/lib)
 add_subdirectory(libs/usv_libs)
 add_subdirectory(libs/a-star)
 
+add_library(planning_core
+  src/planning/grid_map.cpp
+  src/planning/costmap_builder.cpp
+  src/planning/a_star_planner.cpp
+  src/planning/path_post_processor.cpp
+  src/planning/obstacle_tracker.cpp)
+target_include_directories(planning_core PUBLIC include)
+
+
+
+
 set(DEPENDENCIES
   ament_cmake
   geometry_msgs
@@ -97,6 +108,10 @@ target_include_directories(los_steering_node PUBLIC
 target_compile_features(los_steering_node PUBLIC c_std_99 cxx_std_17)
 ament_target_dependencies(los_steering_node ${DEPENDENCIES})
 target_link_libraries(los_steering_node usv_libs)
+add_executable(a_star_planner_node src/a_star_planner_node.cpp)
+target_link_libraries(a_star_planner_node planning_core)
+ament_target_dependencies(a_star_planner_node rclcpp nav_msgs geometry_msgs usv_interfaces)
+install(TARGETS a_star_planner_node DESTINATION lib/${PROJECT_NAME})
 
 # High-level controller nodes
 # add_executable(mpc_node src/mpc_node.cpp)
@@ -191,7 +206,7 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY
-  config 
+  config
   launch
   scripts
   DESTINATION share/${PROJECT_NAME})
@@ -208,6 +223,25 @@ install(PROGRAMS
 )
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_grid_map test/test_grid_map.cpp)
+  target_link_libraries(test_grid_map planning_core)
+
+  ament_add_gtest(test_costmap_builder test/test_costmap_builder.cpp)
+  target_link_libraries(test_costmap_builder planning_core)
+
+  ament_add_gtest(test_a_star_planner test/test_a_star_planner.cpp)
+  target_link_libraries(test_a_star_planner planning_core)
+
+  ament_add_gtest(test_path_post_processor test/test_path_post_processor.cpp)
+  target_link_libraries(test_path_post_processor planning_core)
+
+  ament_add_gtest(test_obstacle_tracker test/test_obstacle_tracker.cpp)
+  target_link_libraries(test_obstacle_tracker planning_core)
+
+  ament_add_gtest(test_scenarios test/test_scenarios.cpp)
+  target_link_libraries(test_scenarios planning_core)
+
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # comment the line when a copyright and license is added to all source files

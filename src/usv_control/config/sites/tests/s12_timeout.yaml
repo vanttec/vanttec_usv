@@ -1,0 +1,23 @@
+# Escenario de prueba: s12_timeout
+# Sin boyas fijas; obstacle_timeout = 5 s para probar que se olvidan las boyas de percepción.
+# Gemelo en gtest: test/test_scenarios.cpp
+#
+# Correr:
+#   ros2 launch usv_control a_star_planner_launch.py site:=tests/s12_timeout
+#   ros2 topic pub --once usv/planning/goal geometry_msgs/msg/PoseStamped "{pose: {position: {x: 20.0, y: 0.0}}}"
+#   ros2 topic echo usv/planning/path
+# Esperado (bote arrancando en el origen): Ver README: publica una boya, el path la rodea, y a los ~5 s vuelve a ser recto.
+
+localization_node:
+  ros__parameters:
+    use_fixed_datum: false
+    origin_samples: 1
+
+a_star_planner_node:
+  ros__parameters:
+    require_valid_position: false
+    x_min: -50.0
+    x_max: 50.0
+    y_min: -50.0
+    y_max: 50.0
+    obstacle_timeout: 5.0

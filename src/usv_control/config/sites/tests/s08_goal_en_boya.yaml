@@ -1,0 +1,23 @@
+# Escenario de prueba: s08_goal_en_boya
+# Boya justo en el goal.
+# Gemelo en gtest: test/test_scenarios.cpp
+#
+# Correr:
+#   ros2 launch usv_control a_star_planner_launch.py site:=tests/s08_goal_en_boya
+#   ros2 topic pub --once usv/planning/goal geometry_msgs/msg/PoseStamped "{pose: {position: {x: 10.0, y: 0.0}}}"
+#   ros2 topic echo usv/planning/path
+# Esperado (bote arrancando en el origen): STOP: no se encontró camino (goal letal).
+
+localization_node:
+  ros__parameters:
+    use_fixed_datum: false
+    origin_samples: 1
+
+a_star_planner_node:
+  ros__parameters:
+    require_valid_position: false
+    x_min: -50.0
+    x_max: 50.0
+    y_min: -50.0
+    y_max: 50.0
+    buoys: [10.00, 0.00, 0.30]
