@@ -1,6 +1,7 @@
 #include <chrono>
 #include <cmath>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include <stdexcept>
 
@@ -39,7 +40,7 @@ public:
     goal_sub_ = create_subscription<geometry_msgs::msg::PoseStamped>(
       "usv/planning/goal", 10, std::bind(&PlannerNode::onGoal, this, _1));
     obj_sub_ = create_subscription<usv_interfaces::msg::ObjectList>(
-      "usv/perception/objects", 10, std::bind(&PlannerNode::onObjects, this, _1));
+      objects_topic_, 10, std::bind(&PlannerNode::onObjects, this, _1));
     path_pub_ = create_publisher<nav_msgs::msg::Path>("usv/planning/path", 10);
 
     buildStaticCostmap();
@@ -107,12 +108,41 @@ private:
   }
 
   void readPerceptionParams() {
+    objects_topic_ = declare_parameter<std::string>("objects_topic", "/obj_list_global");
+    objects_in_world_ = declare_parameter<bool>("objects_in_world", true);
     buoy_radius_ = declare_parameter<double>("buoy_radius", 0.15);
     sensor_x_ = declare_parameter<double>("sensor_x", 0.0);
     sensor_y_ = declare_parameter<double>("sensor_y", 0.0);
     if (buoy_radius_ <= 0.0) {
       throw std::invalid_argument("buoy_radius debe ser > 0");
     }
+
+    // Radio por tipo: dos listas paralelas (ROS 2 no tiene parámetros tipo diccionario).
+    const auto types = declare_parameter<std::vector<std::string>>(
+      "obstacle_types", std::vector<std::string>{});
+    const auto radii = declare_parameter<std::vector<double>>(
+      "obstacle_radii", std::vector<double>{});
+    if (types.size() != radii.size()) {
+      throw std::invalid_argument("obstacle_types y obstacle_radii deben tener el mismo tamaño");
+    }
+    for (size_t k = 0; k < types.size(); ++k) {
+      if (radii[k] <= 0.0) {
+        throw std::invalid_argument("obstacle_radii: radio de '" + types[k] + "' debe ser > 0");
+      }
+      radius_by_type_[types[k]] = radii[k];
+    }
+  }
+
+  // Tipo desconocido -> buoy_radius.
+  double radiusFor(const std::string& type) const {
+    const auto it = radius_by_type_.find(type);
+    return it != radius_by_type_.end() ? it->second : buoy_radius_;
+  }
+
+  // Entradas que no son obstáculos: relleno de visión (color -1 / "ignore")
+  // y relleno de obstacle_nearest_publisher (color 5 / "NaN").
+  static bool isPadding(const usv_interfaces::msg::Object& obj) {
+    return obj.color < 0 || obj.color == 5 || obj.type == "ignore" || obj.type == "NaN";
   }
 
   // buoys: [x1, y1, r1, x2, y2, r2, ...] en NED [m]
@@ -181,10 +211,11 @@ private:
     has_goal_ = true;
   }
 
-  // header.frame_id == frame_id_ ("ned") -> x, y ya están en NED.
-  // Cualquier otro frame -> relativos al bote (x proa, y estribor), se transforman con la pose actual.
+  // ObjectList no trae header: el frame lo decide el parámetro objects_in_world.
+  //   true  -> x, y en NED local (p. ej. /obj_list_global, misma pose que usv/loc)
+  //   false -> relativos al sensor (x proa, y estribor), se transforman con la pose actual
   void onObjects(const usv_interfaces::msg::ObjectList::SharedPtr msg) {
-    const bool in_world = (msg->header.frame_id == frame_id_);
+    const bool in_world = objects_in_world_;
     if (!in_world && !has_loc_) {
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
         "objetos relativos al bote pero sin pose: descartados");
@@ -194,6 +225,7 @@ private:
     std::vector<Detection> detections;
     detections.reserve(msg->obj_list.size());
     for (const auto& obj : msg->obj_list) {
+      if (isPadding(obj)) continue;
       double x = obj.x;
       double y = obj.y;
       if (!in_world) {
@@ -202,8 +234,7 @@ private:
         x = p.x;
         y = p.y;
       }
-      const double r = obj.radius > 0.0 ? obj.radius : buoy_radius_;
-      detections.push_back(Detection{x, y, r, obj.uuid});
+      detections.push_back(Detection{x, y, radiusFor(obj.type), obj.uuid});
     }
     tracker_.update(detections, this->now().seconds());
     map_dirty_ = true;
@@ -291,7 +322,10 @@ private:
   double loc_timeout_;
   std::string frame_id_;
   bool require_valid_position_;
+  std::string objects_topic_;
+  bool objects_in_world_ = true;
   double buoy_radius_ = 0.15;
+  std::unordered_map<std::string, double> radius_by_type_;
   double sensor_x_ = 0.0, sensor_y_ = 0.0;   // posición del sensor en el bote [m] (proa, estribor)
 
   // Planeación

@@ -21,10 +21,14 @@ a_star_planner_node:              # = Node("a_star_planner_node")
     influence_radius: 1.5         # [m] hasta dónde llega el gradiente
     decay: 2.0                    # [1/m] k del exp(-k·d)
 
-    # --- Percepción (usv/perception/objects) ---
-    buoy_radius: 0.15             # [m] radio si el objeto llega con radius = 0
-    sensor_x: 0.0                 # [m] posición del sensor en el bote, hacia la proa
-    sensor_y: 0.0                 # [m] posición del sensor en el bote, hacia estribor
+    # --- Percepción (ObjectList del global_obstacle_register_node) ---
+    objects_topic: "/obj_list_global"  # /obj_list_global = NED; /obj_list = relativo al bote
+    objects_in_world: true        # true si objects_topic viene en NED (mismo origen que usv/loc)
+    buoy_radius: 0.15             # [m] radio para tipos que no estén en obstacle_types
+    obstacle_types: ["round", "marker", "boat", "picture"]  # Object.type que publica el register
+    obstacle_radii: [0.25, 0.25, 0.5, 0.25]                 # [m] PROVISIONAL (tamaños del marker de RViz del register): medir los reales
+    sensor_x: 0.0                 # [m] solo si objects_in_world = false: sensor hacia la proa
+    sensor_y: 0.0                 # [m] solo si objects_in_world = false: sensor hacia estribor
     merge_distance: 1.0           # [m] detecciones sin uuid más cerca que esto = mismo objeto
     obstacle_timeout: 0.0         # [s] olvidar objetos no vistos en este tiempo; 0 = nunca
 

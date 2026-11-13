@@ -49,7 +49,7 @@ Todas menos `PlannerNode` son C++ puro (sin ROS) y tienen pruebas en `test/`.
 **Tópicos**
 - Entra `usv/loc` (`UsvLoc`): pose y yaw del bote.
 - Entra `usv/planning/goal` (`PoseStamped`): goal en NED.
-- Entra `usv/perception/objects` (`ObjectList`): boyas detectadas.
+- Entra `objects_topic` (`ObjectList`, default `/obj_list_global` del `global_obstacle_register_node`): boyas detectadas.
 - Sale `usv/planning/path` (`nav_msgs/Path`).
 
 **Inicio letal:** el inicio siempre se acepta. Si el bote está dentro de zona letal (vecinas incluidas),
@@ -60,11 +60,13 @@ el path sale primero en línea recta a la celda libre más cercana y desde ahí 
 - *Dinámica*: lo que ve percepción. Cuando llega un `ObjectList` (o un objeto expira), se hace
   `map = estática` y se estampan encima los obstáculos del tracker.
 
-**Frame de `ObjectList`** (por `header.frame_id`):
-- `"ned"` (igual a `frame_id`): x, y ya están en NED local.
-- Cualquier otro: relativos al bote, x hacia la proa, y hacia estribor. Se transforman con la pose
+**Frame de `ObjectList`** (no trae header; lo decide el parámetro `objects_in_world`):
+- `true` (default, con `/obj_list_global`): x, y ya están en NED local. El register los calcula con
+  `usv/state/pose`, que publica `localization_node` con el mismo origen que `usv/loc`.
+- `false` (p. ej. `/obj_list`): relativos al bote, x hacia la proa, y hacia estribor. Se transforman con la pose
   y el yaw más recientes de `usv/loc`, sumando antes `sensor_x`, `sensor_y`.
-- `radius = 0` → se usa `buoy_radius`.
+- Radio: se busca `Object.type` en `obstacle_types`/`obstacle_radii`; si no está, `buoy_radius`.
+- Se descarta el relleno: `color` -1 o 5, `type` `"ignore"` o `"NaN"`.
 **STOP** = `Path` con cero poses. Se publica si no hay goal, no hay pose (o pasó `loc_timeout`),
 la posición no es válida (si `require_valid_position: true`), el bote o el goal están fuera del mapa,
 o A* no encuentra camino. El motivo sale en el log como `STOP: ...`.
@@ -95,7 +97,10 @@ los parámetros dicen **cómo** hacerlo y van en YAML. Los valores derivados (n�
 | `safety_margin` | m | Colchón por error de localización y control. |
 | `influence_radius` | m | Hasta dónde llega el gradiente de costo (desde el borde del obstáculo). |
 | `decay` | 1/m | k en `253·e^(−k(d − lethal))`: qué tan rápido baja el costo. |
-| `buoy_radius` | m | Radio de un objeto de percepción que llega con `radius = 0`. |
+| `objects_topic` | — | Tópico del `ObjectList`. `/obj_list_global` (NED) o `/obj_list` (relativo al bote). |
+| `objects_in_world` | — | `true` si `objects_topic` viene en NED; `false` si es relativo al bote. |
+| `obstacle_types`, `obstacle_radii` | —, m | Radio por `Object.type` (listas paralelas, mismo tamaño). |
+| `buoy_radius` | m | Radio para un tipo que no esté en `obstacle_types`. |
 | `sensor_x`, `sensor_y` | m | Dónde está el sensor en el bote (proa, estribor), para objetos relativos. |
 | `merge_distance` | m | Dos detecciones sin uuid más cerca que esto se tratan como el mismo objeto. |
 | `obstacle_timeout` | s | Olvida objetos que no se ven en este tiempo. `0` = nunca (boyas fijas). |
@@ -138,8 +143,9 @@ ros2 topic echo usv/planning/path
 
 Probar con una boya falsa, 5 m a proa del bote:
 ```bash
-ros2 topic pub --once usv/perception/objects usv_interfaces/msg/ObjectList \
-  "{header: {frame_id: 'base_link'}, obj_list: [{x: 5.0, y: 0.0, radius: 0.3, uuid: 'test1'}]}"
+# con objects_in_world: false y objects_topic: /obj_list
+ros2 topic pub --once /obj_list usv_interfaces/msg/ObjectList \
+  "{obj_list: [{x: 5.0, y: 0.0, type: 'round', uuid: 'test1'}]}"
 ```
 
 ## Sitio nuevo (ej. la presa)
@@ -202,19 +208,20 @@ ros2 topic echo --once usv/planning/path | grep -A2 "position:"
 
 ### 3. En Gazebo, boyas de percepción (dinámicas)
 
-Con `site:=sim` (o `tests/s01_libre`), publica objetos a mano en `usv/perception/objects`.
+Con `site:=sim` (o `tests/s01_libre`), publica objetos a mano. Sin el `global_obstacle_register_node` corriendo:
+si está corriendo, publica `/obj_list_global` a 20 Hz y pisa lo que mandes.
 
 **a) Frame NED.** Boya en (10, 0) del mundo, goal (20, 0) → el path la rodea.
 ```bash
-ros2 topic pub --once usv/perception/objects usv_interfaces/msg/ObjectList \
-  "{header: {frame_id: 'ned'}, obj_list: [{x: 10.0, y: 0.0, radius: 0.3, uuid: 'n1'}]}"
+ros2 topic pub --once /obj_list_global usv_interfaces/msg/ObjectList \
+  "{obj_list: [{x: 10.0, y: 0.0, type: 'round', uuid: 'n1'}]}"
 ```
 
 **b) Frame del bote y signo de y.** Primero mira el yaw: `ros2 topic echo --once usv/loc | grep yaw`.
-Publica una boya 8 m a proa y 2 m a estribor:
+Lanza el planner con `objects_in_world: false` y `objects_topic: /obj_list`, y publica una boya 8 m a proa y 2 m a estribor:
 ```bash
-ros2 topic pub --once usv/perception/objects usv_interfaces/msg/ObjectList \
-  "{header: {frame_id: 'base_link'}, obj_list: [{x: 8.0, y: 2.0, radius: 0.3, uuid: 'b1'}]}"
+ros2 topic pub --once /obj_list usv_interfaces/msg/ObjectList \
+  "{obj_list: [{x: 8.0, y: 2.0, type: 'round', uuid: 'b1'}]}"
 ```
 Con yaw ≈ 0 (proa al Norte), la boya debe quedar en NED ≈ (8, 2), **a la derecha** del bote.
 Un goal en (8, 2) debe dar STOP (goal encima de la boya). Si en cambio el STOP sale con (8, −2),
