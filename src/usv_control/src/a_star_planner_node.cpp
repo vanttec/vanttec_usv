@@ -26,6 +26,7 @@ public:
     loc_timeout_(declare_parameter<double>("loc_timeout", 1.0)),
     frame_id_(declare_parameter<std::string>("frame_id", "ned")),
     require_valid_position_(declare_parameter<bool>("require_valid_position", true)),
+    goal_reached_threshold_(declare_parameter<double>("goal_reached_threshold", 0.5)),
     map_(makeGridMap()),
     static_map_(map_),
     costmap_builder_(makeInflationParams()),
@@ -192,6 +193,23 @@ private:
     map_dirty_ = false;
   }
 
+  void advanceGoalIfReached() {
+    if (!has_goal_) return;
+    const double dx = boat_x_ - goal_x_;
+    const double dy = boat_y_ - goal_y_;
+    if (dx * dx + dy * dy > goal_reached_threshold_ * goal_reached_threshold_) return;
+
+    goals_x_.erase(goals_x_.begin());
+    goals_y_.erase(goals_y_.begin());
+    if (goals_x_.empty()) {        // era el último
+      has_goal_ = false;
+      return;
+    }
+    goal_x_ = goals_x_.front();    // el siguiente
+    goal_y_ = goals_y_.front();
+    goal_changed_ = true;
+  }
+
   // ---------- Callbacks ----------
   void onLoc(const usv_interfaces::msg::UsvLoc::SharedPtr msg) {
     boat_x_ = msg->x;
@@ -203,10 +221,16 @@ private:
   }
 
   void onGoal(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
-    goal_x_ = msg->pose.position.x;
-    goal_y_ = msg->pose.position.y;
-    has_goal_ = true;
-    goal_changed_ = true;
+    double goal_x = msg->pose.position.x;
+    double goal_y = msg->pose.position.y;
+    if(!has_goal_){
+      has_goal_ = true;
+      goal_x_ = goal_x;
+      goal_y_ = goal_y;
+      goal_changed_ = true;
+    }
+    goals_x_.push_back(goal_x);
+    goals_y_.push_back(goal_y);
   }
 
   // ObjectList no trae header: el frame lo decide el parámetro objects_in_world.
@@ -259,6 +283,13 @@ private:
       publishStop("posición no válida");
       return;
     }
+
+    advanceGoalIfReached();
+    if (!has_goal_) {
+      publishStop("sin goals pendientes");
+      return;
+    }
+
     int boat_i, boat_j, goal_i, goal_j;
     if (!map_.worldToCell(boat_x_, boat_y_, boat_i, boat_j) ||
         !map_.worldToCell(goal_x_, goal_y_, goal_i, goal_j)) {
@@ -273,8 +304,9 @@ private:
       publishStop("no se encontró camino");
       return;
     }
+
     auto simplified = post_processor_.shortcut(map_, *cells);
-    if (goal_changed_ || stopped_){
+    if (goal_changed_ || stopped_) {
       path_pub_->publish(toPathMsg(simplified, boat_x_, boat_y_, goal_x_, goal_y_));
       goal_changed_ = false;
       stopped_ = false;
@@ -292,8 +324,7 @@ private:
   }
 
   // Primer punto = bote exacto, intermedios = centros de celda, último = goal exacto.
-  nav_msgs::msg::Path toPathMsg(const std::vector<Cell>& cells, double boat_x, double boat_y,
-                                double goal_x, double goal_y) {
+  nav_msgs::msg::Path toPathMsg(const std::vector<Cell>& cells, double boat_x, double boat_y,double goal_x, double goal_y) {
     nav_msgs::msg::Path path;
     path.header.stamp = this->now();
     path.header.frame_id = frame_id_;
@@ -330,6 +361,7 @@ private:
   double buoy_radius_ = 0.15;
   std::unordered_map<std::string, double> radius_by_type_;
   double sensor_x_ = 0.0, sensor_y_ = 0.0;   // posición del sensor en el bote [m] (proa, estribor)
+  double goal_reached_threshold_ = 0.5;     // [m] umbral para considerar que se ha alcanzado el objetivo
 
   // Planeación
   GridMap map_;          // el que usa A*: estático + dinámico
@@ -349,6 +381,9 @@ private:
   bool has_goal_ = false;
   bool goal_changed_ = false;
   bool stopped_ = false;
+
+  std::vector<double> goals_x_;
+  std::vector<double> goals_y_;
 
   // ROS
   rclcpp::Subscription<usv_interfaces::msg::UsvLoc>::SharedPtr loc_sub_;

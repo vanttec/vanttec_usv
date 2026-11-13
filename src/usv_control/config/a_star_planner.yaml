@@ -37,3 +37,6 @@ a_star_planner_node:              # = Node("a_star_planner_node")
 
     # --- Post-proceso ---
     cost_threshold: 100           # [0-253] costo máx. que el shortcut puede cruzar
+
+    # --- Goal ---
+    goal_reached_threshold: 0.5   # [m] umbral para considerar que se ha alcanzado el objetivo
