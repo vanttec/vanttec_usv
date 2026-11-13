@@ -1,3 +1,5 @@
+std_msgs/Header header
+
 # Modo de solucion que utilizo la sbg 
 uint8 status
 

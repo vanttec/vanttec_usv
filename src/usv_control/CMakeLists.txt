@@ -95,6 +95,11 @@ target_compile_features(classic_pid_node PUBLIC c_std_99 cxx_std_17)
 ament_target_dependencies(classic_pid_node ${DEPENDENCIES})
 target_link_libraries(classic_pid_node usv_libs)
 
+add_executable(a_star_planner_node src/a_star_planner_node.cpp)
+target_link_libraries(a_star_planner_node planning_core)
+ament_target_dependencies(a_star_planner_node rclcpp nav_msgs geometry_msgs usv_interfaces)
+install(TARGETS a_star_planner_node DESTINATION lib/${PROJECT_NAME})
+
 # High-level controller nodes
 # add_executable(mpc_node src/mpc_node.cpp)
 # target_link_libraries(mpc_node ${FATROP_LIBRARY} ${Boost_LIBRARIES})

@@ -123,6 +123,8 @@ private:
     NedPosition pos = latLonToNED(msg->latitude,msg->longitude);
 
     usv_interfaces::msg::UsvLoc msg_out;
+    msg_out.header.stamp = this->now();
+    msg_out.header.frame_id = "ned";
     msg_out.status = msg->status.solution_mode;
     msg_out.latitud = msg->latitude;
     msg_out.longitud = msg->longitude;
