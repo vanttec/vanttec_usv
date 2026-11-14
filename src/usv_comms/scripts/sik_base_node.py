@@ -17,6 +17,7 @@ class SiKBaseNode(Node):
         'geometry_msgs/msg/Pose2D': Pose2D,
         'geometry_msgs/msg/Vector3': Vector3,
         'std_msgs/msg/Float64': Float64,
+        'std_msgs/msg/Float32': Float32,
         'std_msgs/msg/Int8': Int8,
         'std_msgs/msg/UInt8': UInt8,
         'usv_interfaces/msg/Waypoint': Waypoint,
@@ -27,7 +28,7 @@ class SiKBaseNode(Node):
 
     def __init__(self, node_name: str, node_type: str):
         """Initialize base node"""
-        super().__init__(node_name)
+        super().__init_ _(node_name)
         
         # Initialize instance variables
         self.node_type = node_type
@@ -136,9 +137,16 @@ class SiKBaseNode(Node):
             type_markers = []
             
             for item in data:
-                if isinstance(item, (int, float)):
+                if isinstance(item, int):
+                    if item < 0:
+                        type_markers.append(3)  # signed int32
+                        result.extend(struct.pack('!i', item))
+                    else:
+                        type_markers.append(2)  # unsigned int32
+                        result.extend(struct.pack('!I', item))
+                elif isinstance(item, float):
                     type_markers.append(0)
-                    result.extend(struct.pack('!f', float(item)))
+                    result.extend(struct.pack('!f', item))
                 elif isinstance(item, str):
                     type_markers.append(1)
                     encoded = item.encode('utf-8')
@@ -184,6 +192,16 @@ class SiKBaseNode(Node):
                     string = data[pos:pos+str_len].decode('utf-8')
                     result.append(string)
                     pos += str_len
+                elif marker == 2:  # Unsigned int32
+                    if pos + 4 > len(data):
+                        raise ValueError(f"Truncated uint32 at {pos}")
+                    result.append(struct.unpack('!I', data[pos:pos+4])[0])
+                    pos += 4
+                elif marker == 3:  # Signed int32
+                    if pos + 4 > len(data):
+                        raise ValueError(f"Truncated int32 at {pos}")
+                    result.append(struct.unpack('!i', data[pos:pos+4])[0])
+                    pos += 4
                 else:
                     raise ValueError(f"Invalid marker: {marker}")
                     

@@ -16,14 +16,23 @@ from launch.actions import ExecuteProcess
 
 
 def generate_launch_description():
+    can_interface_arg = DeclareLaunchArgument(
+        "can_interface",
+        default_value="can_vtec",
+        description="SocketCAN interface connected to the STM32 bus",
+    )
+
     can_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             PathJoinSubstitution([
-                FindPackageShare('usv_control'),
+                FindPackageShare('usv_can'),
                 'launch',
                 'can_launch.py'
             ])
         ]),
+        launch_arguments={
+            "can_interface": LaunchConfiguration("can_interface"),
+        }.items(),
     )
 
     sbg_launch = IncludeLaunchDescription(
@@ -47,6 +56,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        can_interface_arg,
         can_launch,
         sik_boat_node,
         sbg_launch,

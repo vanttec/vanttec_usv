@@ -6,6 +6,41 @@ radio_config:
   update_rate: 0.05
 
 topics:
+  stm32_heartbeat:
+    topic: "/usv/telemetry/heartbeat"
+    msg_type: "std_msgs/msg/UInt32"
+    enabled: true
+    direction: "boat_to_station"
+    fields: ["data"]
+
+  op_mode:
+    topic: "/usv/telemetry/op_mode"
+    msg_type: "std_msgs/msg/UInt8"
+    enabled: true
+    direction: "boat_to_station"
+    fields: ["data"]
+
+  battery_voltage:
+    topic: "/usv/telemetry/battery_voltage"
+    msg_type: "std_msgs/msg/Float32"
+    enabled: true
+    direction: "boat_to_station"
+    fields: ["data"]
+
+  armed:
+    topic: "/usv/telemetry/armed"
+    msg_type: "std_msgs/msg/UInt8"
+    enabled: true
+    direction: "boat_to_station"
+    fields: ["data"]
+
+  auxiliary_selector:
+    topic: "/usv/telemetry/auxiliary_selector"
+    msg_type: "std_msgs/msg/UInt8"
+    enabled: true
+    direction: "boat_to_station"
+    fields: ["data"]
+
   pose:
     topic: "/usv/state/pose"
     msg_type: "geometry_msgs/msg/Pose2D"

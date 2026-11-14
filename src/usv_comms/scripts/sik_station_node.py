@@ -93,7 +93,7 @@ class SiKStationNode(SiKBaseNode):
             if config is None:
                 raise ValueError(f"Configuration not found for topic '{topic_name}'")
             fields = config['fields']
-            return [float(getattr(msg, field)) for field in fields]
+            return [getattr(msg, field) for field in fields]
         except Exception as e:
             self.get_logger().error(f"Error processing standard message: {str(e)}")
             raise
