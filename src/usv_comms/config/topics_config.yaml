@@ -27,6 +27,12 @@ topics:
     direction: "boat_to_station"
     fields: ["x", "y", "latitud", "longitud", "roll", "pitch", "yaw", "status"]
 
+  op_mode:
+    topic: "/usv/telemetry/op_mode"
+    msg_type: "std_msgs/msg/UInt8"
+    enabled: true
+    direction: "boat_to_station"
+    fields: ["data"]
     
   waypoint:
     topic: "/usv/waypoint"
