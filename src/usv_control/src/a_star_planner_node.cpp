@@ -223,6 +223,18 @@ private:
   void onGoal(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
     double goal_x = msg->pose.position.x;
     double goal_y = msg->pose.position.y;
+
+    int gi, gj;
+    if (!map_.worldToCell(goal_x, goal_y, gi, gj)) {
+      RCLCPP_WARN(get_logger(), "goal (%.2f, %.2f) fuera del mapa: descartado", goal_x, goal_y);
+      return;
+    }
+    if (static_map_.getCost(gi, gj) == GridMap::LETHAL) {
+      RCLCPP_WARN(get_logger(), "goal (%.2f, %.2f) en zona prohibida (geocerca o boya fija): descartado",
+                  goal_x, goal_y);
+      return;
+    }
+    
     if(!has_goal_){
       has_goal_ = true;
       goal_x_ = goal_x;
