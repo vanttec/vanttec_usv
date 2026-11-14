@@ -1,0 +1,83 @@
+xbee_config:
+  port:
+    boat: "/dev/ttyXBEEBOAT"
+    station: "/dev/ttyXBEESTATION"
+  baud_rate: 230400 
+  remote_ids:
+    boat: "BOAT_XBEE"
+    station: "STATION_XBEE"
+  update_rate: 0.1  # 10Hz
+
+topics:
+  pose:
+    topic: "/usv/state/pose"
+    msg_type: "geometry_msgs/msg/Pose2D"
+    enabled: true
+    fields: ["x", "y", "theta"]
+    
+  velocity:
+    topic: "/usv/state/velocity"
+    msg_type: "geometry_msgs/msg/Vector3"
+    enabled: true
+    fields: ["x", "y", "z"]
+    
+  waypoint:
+    topic: "/usv/waypoint"
+    msg_type: "usv_interfaces/msg/Waypoint"
+    enabled: true
+    fields: ["x", "y"]
+    
+  guidance:
+    heading:
+      topic: "/guidance/desired_heading"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      fields: ["data"]
+    velocity:
+      topic: "/guidance_desired_velocity"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      fields: ["data"]
+
+  control_debug:
+    tx:
+      topic: "/debug/Tx"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      fields: ["data"]
+    tz:
+      topic: "/debug/Tz"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      fields: ["data"]
+
+  thrusters:
+    left:
+      topic: "/usv/left_thruster"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      fields: ["data"]
+    right:
+      topic: "/usv/right_thruster"
+      msg_type: "std_msgs/msg/Float64"
+      enabled: true
+      fields: ["data"]
+
+  missions:
+      state:
+        topic: "/usv/mission/state"
+        msg_type: "std_msgs/msg/Int8"
+        fields: ["data"]
+        enabled: true
+      status:
+        topic: "/usv/mission/status"
+        msg_type: "std_msgs/msg/Int8"
+        fields: ["data"]
+        enabled: true
+        
+  objects:
+    topic: "/objects"
+    msg_type: "usv_interfaces/msg/ObjectList"
+    enabled: true
+    max_objects: 5  # Limit number of objects to transmit
+    fields: ["x", "y", "color", "type"]
