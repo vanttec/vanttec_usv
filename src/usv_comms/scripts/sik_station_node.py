@@ -126,9 +126,17 @@ class SiKStationNode(SiKBaseNode):
             fields = config['fields']
             if len(data) != len(fields):
                 raise ValueError(f"Field count mismatch. Expected {len(fields)}, got {len(data)}")
+            
             msg = msg_type()
+            field_types = msg.get_fields_and_field_types()
+            
             for field, value in zip(fields, data):
+                # Automatically cast to int if the ROS message field type is an integer type
+                ftype = field_types.get(field, '')
+                if 'int' in ftype:
+                    value = int(value)
                 setattr(msg, field, value)
+                
             self.topic_publishers[topic_name].publish(msg)
         except Exception as e:
             self.get_logger().error(f"Error handling standard message: {str(e)}")
