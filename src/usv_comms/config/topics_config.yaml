@@ -25,7 +25,8 @@ topics:
     msg_type: "usv_interfaces/msg/UsvLoc"
     enabled: true
     direction: "boat_to_station"
-    
+    fields: ["x", "y", "latitud", "longitud", "roll", "pitch", "yaw", "status"]
+
     
   waypoint:
     topic: "/usv/waypoint"
@@ -66,13 +67,13 @@ topics:
     left:
       topic: "/usv/left_thruster"
       msg_type: "std_msgs/msg/Float64"
-      enabled: false
+      enabled: true
       direction: "station_to_boat"
       fields: ["data"]
     right:
       topic: "/usv/right_thruster"
       msg_type: "std_msgs/msg/Float64"
-      enabled: false
+      enabled: true
       direction: "station_to_boat"
       fields: ["data"]
 
@@ -93,7 +94,7 @@ topics:
   objects:
     topic: "/objects"
     msg_type: "usv_interfaces/msg/ObjectList"
-    enabled: false
+    enabled: true
     direction: "boat_to_station"
     max_objects: 5
     fields: ["x", "y", "color", "type"]

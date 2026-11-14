@@ -10,7 +10,7 @@ from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import Pose2D, Vector3
 from std_msgs.msg import Float64, Int8
-from usv_interfaces.msg import Waypoint, ObjectList, Object
+from usv_interfaces.msg import Waypoint, ObjectList, Object, UsvLoc
 
 class SiKBaseNode(Node):
     MESSAGE_TYPES = {
@@ -20,7 +20,8 @@ class SiKBaseNode(Node):
         'std_msgs/msg/Int8': Int8,
         'usv_interfaces/msg/Waypoint': Waypoint,
         'usv_interfaces/msg/ObjectList': ObjectList,
-        'usv_interfaces/msg/Object': Object
+        'usv_interfaces/msg/Object': Object,
+        'usv_interfaces/msg/UsvLoc': UsvLoc
     }
 
     def __init__(self, node_name: str, node_type: str):
