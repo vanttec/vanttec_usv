@@ -1,3 +1,4 @@
+#include <complex>
 #include <rclcpp/rclcpp.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include <geometry_msgs/msg/pose2_d.hpp>
@@ -16,6 +17,9 @@ public:
     {
         this->declare_parameter<double>("lookahead_distance", 2.0);
         this->declare_parameter<double>("cruise_velocity", 0.6);
+        this->declare_parameter<double>("k_cte",1.0);
+
+        
 
         // Subscriptions
         path_sub_ = this->create_subscription<nav_msgs::msg::Path>(
@@ -199,6 +203,15 @@ private:
 
         // Calculate desired heading, publish controls, and visualize
         double desired_heading = std::atan2(p_lookahead.y() - p_boat.y(), p_lookahead.x() - p_boat.x());
+
+        //Modify desired heading based on cross track error formula from (Fossen, 2011):
+        double cross_track_error = (p_closest-p_boat).norm();
+        double k_cte = this->get_parameter("k_cte").as_double();
+        desired_heading -= std::atan(-k_cte*cross_track_error);
+
+        // Adjust cruise_vel based on heading error (to do)
+
+
         publish_setpoints(desired_heading, cruise_vel);
 
         // Publish visualization paths
@@ -231,6 +244,8 @@ private:
         auto viz_line = create_viz_line(p_boat, final_waypoint_);
         crosstrack_pub_->publish(viz_line);
         los_vector_pub_->publish(viz_line);
+
+        
     }
 
     void publish_setpoints(double heading, double velocity)

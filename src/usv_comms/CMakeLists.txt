@@ -13,6 +13,15 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(usv_interfaces REQUIRED)
 
+
+# add_executable(global_obstacle_register_node src/global_obstacle_register_node.cpp)
+# ament_target_dependencies(global_obstacle_register_node rclcpp std_msgs std_srvs geometry_msgs visualization_msgs usv_interfaces Eigen3)
+# target_compile_features(global_obstacle_register_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+# install(TARGETS
+#   global_obstacle_register_node
+#   DESTINATION lib/${PROJECT_NAME})
+
 install(DIRECTORY
   config 
   # launch
